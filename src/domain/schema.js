@@ -84,7 +84,10 @@ export function normalizeDoc(raw, now = new Date()) {
   const note = (msg) => repairs.push(msg);
 
   if (!isObj(raw)) {
-    return { doc: createEmptyDoc(now), repairs: ['File was not a JSON object — started a new record.'] };
+    return {
+      doc: createEmptyDoc(now),
+      repairs: ['File was not a JSON object — started a new record.'],
+    };
   }
 
   const base = createEmptyDoc(now);
@@ -203,7 +206,9 @@ export function normalizeDoc(raw, now = new Date()) {
     .map((st, i) => {
       const kept = asArray(st.periodIds).filter((id) => periodIds.has(id));
       if (kept.length !== asArray(st.periodIds).length) {
-        note(`Removed a reference to a deleted period from ${asString(st.displayName, 'a student')}.`);
+        note(
+          `Removed a reference to a deleted period from ${asString(st.displayName, 'a student')}.`
+        );
       }
       const first = asString(st.firstName);
       const last = asString(st.lastName);

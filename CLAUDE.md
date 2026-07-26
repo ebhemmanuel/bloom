@@ -55,7 +55,7 @@ The domain layer is the priority target because it is pure and it is where a bug
 Do not apply one to the other — see §1 of the design doc.
 
 - **Ambient** (splash, onboarding, empty states): soft gradients, blur, cascading entrances, ambient drift.
-- **Working** (board, toolbar, manage screens): soft *palette*, crisp *edges*. No blur behind text, no ambient motion.
+- **Working** (board, toolbar, manage screens): soft _palette_, crisp _edges_. No blur behind text, no ambient motion.
 - **Print** is a third, austere register: pure black on white, status conveyed by glyph and text as well as fill, because these sheets get photocopied in monochrome.
 
 ## Gotchas discovered the hard way

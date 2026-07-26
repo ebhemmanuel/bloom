@@ -1,5 +1,14 @@
 @use 'abstracts/tokens';
 @use 'abstracts/motion';
+
 @use 'base/reset';
 @use 'base/typography';
-@use 'layout/boot';
+
+@use 'layout/app-shell';
+@use 'layout/toolbar';
+
+@use 'components/controls';
+@use 'components/board';
+@use 'components/card';
+@use 'components/feedback';
+@use 'components/ambient';

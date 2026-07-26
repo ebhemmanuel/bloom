@@ -1,0 +1,28 @@
+.acc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-4);
+  flex-wrap: wrap;
+  padding: var(--acc-space-2) var(--acc-space-5);
+  min-height: var(--acc-toolbar-h);
+  background: var(--acc-surface);
+  border-bottom: 1px solid var(--acc-border);
+  flex-shrink: 0;
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+}
+
+.acc-periods {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-1);
+  flex-wrap: wrap;
+}

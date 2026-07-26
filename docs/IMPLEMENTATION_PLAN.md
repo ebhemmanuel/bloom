@@ -4,7 +4,7 @@
 
 Teachers are legally required to document that they delivered each student's IEP/504 accommodations, and today that tracking is ad hoc. This builds a standalone, fully offline desktop app for daily accommodation tracking, structured as a Jira-style kanban board with one collapsible swimlane per student.
 
-The hard constraint is that student PII and disability-plan references **must never touch the network**. That rules out any database or hosted service, so the record lives in a plain JSON file on the teacher's own machine. Distribution is via USB stick: the stick carries only the application, and on first run the onboarding wizard creates the data file in the teacher's local profile — deliberately *outside* the app folder, so copying or re-cloning the app never drags student data with it. The output must print to PDF for compliance submission.
+The hard constraint is that student PII and disability-plan references **must never touch the network**. That rules out any database or hosted service, so the record lives in a plain JSON file on the teacher's own machine. Distribution is via USB stick: the stick carries only the application, and on first run the onboarding wizard creates the data file in the teacher's local profile — deliberately _outside_ the app folder, so copying or re-cloning the app never drags student data with it. The output must print to PDF for compliance submission.
 
 Target directory `C:\Users\akkis\Documents\Repos\accomidations` is currently empty. Precedent repos: `bigchat` (Electron + Vite + SCSS token pattern + splash/onboarding idiom) and `bipbup` (React + SCSS/BEM conventions).
 
@@ -12,25 +12,25 @@ Target directory `C:\Users\akkis\Documents\Repos\accomidations` is currently emp
 
 ## Confirmed decisions
 
-| # | Decision |
-|---|---|
-| 1 | **Electron + Vite**, portable Windows `.exe` via electron-builder, mirroring bigchat |
-| 2 | **True Jira kanban** — draggable cards, one collapsible swimlane per student |
-| 3 | Columns: `Unassigned` → `Used` → `Used with Detail`; unassigned auto-resolves to `Not Used` at cycle end |
-| 4 | **Notes is per-student-per-day**, the LAST column of the swimlane — not a field on cards |
-| 5 | Shared accommodation **catalog + per-student custom one-offs** |
-| 6 | **Data file lives in the teacher's local profile, never in the app folder** (see §3) |
-| 7 | Date filter — board shows one date at a time |
-| 8 | Student name search; all students on one page by default |
-| 9 | Class **periods** are a real grouping/filter dimension |
-| 10 | **Mark-absent** button at the far right of each swimlane header |
-| 11 | **Copy from previous day** action |
-| 12 | Bulk actions are an **extensible per-accommodation capability** — some opt out |
-| 13 | PDF: (a) date-range × period × all students with name search, (b) single-day all-students sheet |
-| 14 | **Intro animation loader → onboarding** on startup |
-| 15 | Cycle completes **once per school day** at a configurable time |
-| 16 | **One teacher per data file** |
-| 17 | **Plaintext JSON.** Per user: the USB never carries data, and machine-local data is the teacher's responsibility. Ship a lock-on-idle screen + a deploy guide recommending BitLocker |
+| #   | Decision                                                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Electron + Vite**, portable Windows `.exe` via electron-builder, mirroring bigchat                                                                                                 |
+| 2   | **True Jira kanban** — draggable cards, one collapsible swimlane per student                                                                                                         |
+| 3   | Columns: `Unassigned` → `Used` → `Used with Detail`; unassigned auto-resolves to `Not Used` at cycle end                                                                             |
+| 4   | **Notes is per-student-per-day**, the LAST column of the swimlane — not a field on cards                                                                                             |
+| 5   | Shared accommodation **catalog + per-student custom one-offs**                                                                                                                       |
+| 6   | **Data file lives in the teacher's local profile, never in the app folder** (see §3)                                                                                                 |
+| 7   | Date filter — board shows one date at a time                                                                                                                                         |
+| 8   | Student name search; all students on one page by default                                                                                                                             |
+| 9   | Class **periods** are a real grouping/filter dimension                                                                                                                               |
+| 10  | **Mark-absent** button at the far right of each swimlane header                                                                                                                      |
+| 11  | **Copy from previous day** action                                                                                                                                                    |
+| 12  | Bulk actions are an **extensible per-accommodation capability** — some opt out                                                                                                       |
+| 13  | PDF: (a) date-range × period × all students with name search, (b) single-day all-students sheet                                                                                      |
+| 14  | **Intro animation loader → onboarding** on startup                                                                                                                                   |
+| 15  | Cycle completes **once per school day** at a configurable time                                                                                                                       |
+| 16  | **One teacher per data file**                                                                                                                                                        |
+| 17  | **Plaintext JSON.** Per user: the USB never carries data, and machine-local data is the teacher's responsibility. Ship a lock-on-idle screen + a deploy guide recommending BitLocker |
 
 ---
 
@@ -145,7 +145,7 @@ At the DataLocation onboarding step, before writing anything:
    - **Continue anyway** → allowed, but pins a persistent `DataPathBanner`.
 4. **Writability probe** — write and delete `.acc-write-test`. On `EACCES`/`EPERM`/`EROFS`, refuse and re-prompt rather than silently relocating.
 
-Resolution order at every launch: `--data-dir` CLI arg → `ACCOMMODATIONS_DATA_DIR` env → pointer file → onboarding. If the pointer names a folder that no longer exists (USB-only Documents, re-imaged machine), do **not** start fresh — show a recovery screen offering *Locate my file* / *Start fresh*, because silently creating an empty record is indistinguishable from data loss.
+Resolution order at every launch: `--data-dir` CLI arg → `ACCOMMODATIONS_DATA_DIR` env → pointer file → onboarding. If the pointer names a folder that no longer exists (USB-only Documents, re-imaged machine), do **not** start fresh — show a recovery screen offering _Locate my file_ / _Start fresh_, because silently creating an empty record is indistinguishable from data loss.
 
 ---
 
@@ -216,12 +216,12 @@ The single most important deliverable. Design rules, each load-bearing:
 
 ### Status vocabulary
 
-| Persisted | Meaning | Column |
-|---|---|---|
-| `unassigned` | not yet triaged today | Unassigned |
-| `used` | delivered | Used |
-| `used_with_detail` | delivered, narrative in `detail` | Used with Detail |
-| `not_used` | **resolved** — cycle closed with no delivery | Unassigned, `--not-used` modifier |
+| Persisted          | Meaning                                      | Column                            |
+| ------------------ | -------------------------------------------- | --------------------------------- |
+| `unassigned`       | not yet triaged today                        | Unassigned                        |
+| `used`             | delivered                                    | Used                              |
+| `used_with_detail` | delivered, narrative in `detail`             | Used with Detail                  |
+| `not_used`         | **resolved** — cycle closed with no delivery | Unassigned, `--not-used` modifier |
 
 Derived only, never persisted (computed by `effectiveStatus`): `absent` (excluded from the compliance denominator), `not_applicable` (period doesn't meet that weekday, or a non-instructional date), `no_record` (no day record exists — prints as "— no record —").
 
@@ -259,7 +259,7 @@ Renderer mutates optimistically and posts the whole doc; main coalesces with a *
 
 ### Corrupt-file recovery
 
-Rename the bad file to `data.corrupt-{ts}.json` first — never overwrite evidence. Then, in order: `data.json.tmp` if it parses (crash between write and rename) → newest parsing file in `backups/` → a dialog offering *Open recovered copy from {date}* / *Start fresh* / *Quit*.
+Rename the bad file to `data.corrupt-{ts}.json` first — never overwrite evidence. Then, in order: `data.json.tmp` if it parses (crash between write and rename) → newest parsing file in `backups/` → a dialog offering _Open recovered copy from {date}_ / _Start fresh_ / _Quit_.
 
 ### Concurrency
 
@@ -293,16 +293,19 @@ Renderer loads via `loadFile(path.join(RENDERER_DIR, 'index.html'))`, where `REN
 
 ## 6. PDF export — `webContents.printToPDF`
 
-**Recommended over a bundled JS PDF library.** Both are offline-safe, so the decision is fit — and the deliverable *is* a styled document with grouped tables, repeating headers, page breaks between students, and a signature block. Chromium already does that layout; with jsPDF you hand-compute y-offsets for a multi-page variable-height report. Zero new runtime dependency, `@page` / `break-inside: avoid` / `thead { display: table-header-group }` come free, and the print view is a real React route so preview and PDF are the **same code path**.
+**Recommended over a bundled JS PDF library.** Both are offline-safe, so the decision is fit — and the deliverable _is_ a styled document with grouped tables, repeating headers, page breaks between students, and a signature block. Chromium already does that layout; with jsPDF you hand-compute y-offsets for a multi-page variable-height report. Zero new runtime dependency, `@page` / `break-inside: avoid` / `thead { display: table-header-group }` come free, and the print view is a real React route so preview and PDF are the **same code path**.
 
 The one real cost is asynchrony. Render into a hidden `BrowserWindow` and don't call `printToPDF` until all three of `did-finish-load`, `document.fonts.ready`, and an explicit `print:ready` IPC ping from `PrintRoot` have fired. Fonts are bundled locally, so there is no font race against a network that doesn't exist.
 
 ```js
 await win.webContents.printToPDF({
-  pageSize: 'Letter',                    // Letter, not A4 — easy to get wrong
+  pageSize: 'Letter', // Letter, not A4 — easy to get wrong
   landscape: kind === 'range',
-  printBackground: true, preferCSSPageSize: true, displayHeaderFooter: true,
-  headerTemplate, footerTemplate,        // "Page X of Y" + compliance footer
+  printBackground: true,
+  preferCSSPageSize: true,
+  displayHeaderFooter: true,
+  headerTemplate,
+  footerTemplate, // "Page X of Y" + compliance footer
   margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.45, right: 0.45 },
 });
 ```
@@ -325,7 +328,7 @@ Both carry a header (teacher, school, room, plan-type counts, generated-at), a s
 `src/domain/resolve.js`:
 
 ```js
-effectiveStatus(doc, date, studentId, assignmentId, now)
+effectiveStatus(doc, date, studentId, assignmentId, now);
 ```
 
 Precedence:
@@ -349,7 +352,7 @@ Both screen and paper read through this one function, so there is no clock-depen
 
 A teacher opens the app after three weeks off. A naive rollover marks 15 days × every student × every accommodation as "not used" — on paper, a catastrophic compliance failure the teacher never committed.
 
-**`sealDay` therefore only ever touches days that already have a record in `doc.days`.** Dates with no record stay absent from the map, resolve to `no_record`, and print as "— no record —". *No data was recorded* and *the accommodation was not delivered* are different claims and the schema must never conflate them. **If one decision in this document is load-bearing, it is this one.**
+**`sealDay` therefore only ever touches days that already have a record in `doc.days`.** Dates with no record stay absent from the map, resolve to `no_record`, and print as "— no record —". _No data was recorded_ and _the accommodation was not delivered_ are different claims and the schema must never conflate them. **If one decision in this document is load-bearing, it is this one.**
 
 ### Freezing history
 
@@ -359,7 +362,7 @@ Sealed days render read-only. Changing one requires an explicit **Amend day** ac
 
 ### `copyFromPreviousDay` — default `structure`
 
-- **`structure` (default)** — copies *which* cards appear (respecting `activeFrom`/`activeTo`); statuses reset to `unassigned`; no details, no notes, no absent flags.
+- **`structure` (default)** — copies _which_ cards appear (respecting `activeFrom`/`activeTo`); statuses reset to `unassigned`; no details, no notes, no absent flags.
 - **`full`** — also copies statuses and details. Behind a confirm dialog that says plainly what it does, and stamps `seedMode: 'full'` for provenance.
 
 The default must be `structure`: copying yesterday's "Used" into today manufactures a record of delivery that did not happen.
@@ -448,53 +451,53 @@ export const BULK_ACTIONS = [
 appId: com.classroom.accommodations
 productName: Accommodations Tracker
 directories: { output: dist-electron }
-files: [ electron/**/*, package.json ]
-extraResources: [ { from: dist-renderer, to: dist-renderer, filter: ["**/*"] } ]
+files: [electron/**/*, package.json]
+extraResources: [{ from: dist-renderer, to: dist-renderer, filter: ['**/*'] }]
 asar: true
 compression: maximum
 win:
-  target: [ { target: portable, arch: [x64] } ]
+  target: [{ target: portable, arch: [x64] }]
   icon: build/icon.ico
   signAndEditExecutable: false
 portable:
-  artifactName: "Accommodations-Tracker.exe"
-  unpackDirName: false     # deterministic unpack dir → much faster launch from USB
+  artifactName: 'Accommodations-Tracker.exe'
+  unpackDirName: false # deterministic unpack dir → much faster launch from USB
 ```
 
 ---
 
 ## 10. Testing — vitest
 
-Everything in `src/domain/` is pure, synchronous, and takes `now` as an explicit parameter. That is *why* the layer exists.
+Everything in `src/domain/` is pure, synchronous, and takes `now` as an explicit parameter. That is _why_ the layer exists.
 
-| Suite | Coverage |
-|---|---|
-| `dates.test.js` | Local date keys across DST boundaries (2027-03-14, 2026-11-01), midnight, year rollover, under `TZ=America/New_York` and `TZ=America/Anchorage`. Explicit assertion that no path calls `toISOString().slice(0,10)`. |
-| `schema.test.js` | `normalizeDoc` repairs — missing arrays, unknown statuses, orphan entries, duplicate ids, `null` days. Must never throw; every repair reported. |
-| `migrations.test.js` | Each `tests/fixtures/v{n}.json` → current. Idempotence. Forward-version refusal. |
+| Suite                 | Coverage                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dates.test.js`       | Local date keys across DST boundaries (2027-03-14, 2026-11-01), midnight, year rollover, under `TZ=America/New_York` and `TZ=America/Anchorage`. Explicit assertion that no path calls `toISOString().slice(0,10)`.                                                                                                                                                                                                                                 |
+| `schema.test.js`      | `normalizeDoc` repairs — missing arrays, unknown statuses, orphan entries, duplicate ids, `null` days. Must never throw; every repair reported.                                                                                                                                                                                                                                                                                                     |
+| `migrations.test.js`  | Each `tests/fixtures/v{n}.json` → current. Idempotence. Forward-version refusal.                                                                                                                                                                                                                                                                                                                                                                    |
 | **`resolve.test.js`** | Table-driven over the full precedence chain: before cycle end → `unassigned`; after → `not_used` **computed but not persisted**; sealed → `not_used` + `resolvedBy: 'auto'`; absent excluded from denominator; non-meeting weekday and holiday → `not_applicable`; **missing day → `no_record`, never `not_used`**; `sealDay` idempotent and non-mutating (deep-frozen input); amend appends and preserves `sealed`; backwards clock never unseals. |
-| `seed.test.js` | `structure` resets statuses; `full` stamps `seedMode`; expired `activeTo` excluded; never copies notes or absent flags; refuses a sealed target. |
-| `selectors.test.js` | Search normalization (accents, "Last, First", prefix), period filter, stable sort, and **referential stability** so `React.memo` actually works. |
-| `bulkActions.test.js` | Ineligible items skipped; `appliesTo` respected; batch groups into one undo step; unknown id is a no-op. |
-| `report.test.js` | Compliance math — absences and `no_record` excluded from the denominator; inclusive range boundaries; snapshot of the **report data model**, not DOM. |
-| `data-paths.test.js` | Pointer read/write; OneDrive/UNC pattern detection; writability probe failure modes; missing-folder recovery path. |
-| `data-store.test.js` | Real tmp dir: rename failure leaves the original intact; `.tmp` recovery; recovery ordering; backup rotation; `EPERM` retry succeeds on attempt 2; mtime-conflict detection fires. |
+| `seed.test.js`        | `structure` resets statuses; `full` stamps `seedMode`; expired `activeTo` excluded; never copies notes or absent flags; refuses a sealed target.                                                                                                                                                                                                                                                                                                    |
+| `selectors.test.js`   | Search normalization (accents, "Last, First", prefix), period filter, stable sort, and **referential stability** so `React.memo` actually works.                                                                                                                                                                                                                                                                                                    |
+| `bulkActions.test.js` | Ineligible items skipped; `appliesTo` respected; batch groups into one undo step; unknown id is a no-op.                                                                                                                                                                                                                                                                                                                                            |
+| `report.test.js`      | Compliance math — absences and `no_record` excluded from the denominator; inclusive range boundaries; snapshot of the **report data model**, not DOM.                                                                                                                                                                                                                                                                                               |
+| `data-paths.test.js`  | Pointer read/write; OneDrive/UNC pattern detection; writability probe failure modes; missing-folder recovery path.                                                                                                                                                                                                                                                                                                                                  |
+| `data-store.test.js`  | Real tmp dir: rename failure leaves the original intact; `.tmp` recovery; recovery ordering; backup rotation; `EPERM` retry succeeds on attempt 2; mtime-conflict detection fires.                                                                                                                                                                                                                                                                  |
 
 ---
 
 ## 11. Phased order
 
-| Phase | Scope | Est. |
-|---|---|---|
-| **0 — Skeleton** | Scaffold, all configs, `main.js` loading a hello-world React app from `file://`, CSP + network kill switch, `npm run electron:build` producing a working portable exe. **Ship a nothing-app on day one** — packaging and path resolution are where this class of project dies. Retire that risk first. | 0.5d |
-| **1 — Data layer** | All of `src/domain/*` + the full vitest suite. `data-paths.js` (pointer, picker, sync detection), `data-store.js`, `data-lock.js`, IPC, preload, `DataContext`, `SaveStatusPill`. No board. Prove it: mutate, kill the process, reopen, data survives; corrupt the file, recover; run the exe from a USB stick and confirm the JSON lands in the profile, not on the stick. | 1.5d |
-| **2 — Board MVP** | Toolbar, swimlanes + collapse, three columns, cards, pangea DnD, `CardStatusControl`, detail popover, notes cell, absent toggle, past-day read-only. `_tokens.scss` + all BEM styles. | 2d |
-| **3 — Data management** | Catalog, periods, roster, per-student assignments, custom one-offs. **Precedes onboarding** — onboarding is a wizard shell over these same forms. | 1d |
-| **4 — Cycle logic** | `useDayRollover`, seal on startup/tick/button, sealed visuals, amend flow, copy-from-previous-day (both modes). | 0.5d |
-| **5 — Bulk actions** | Registry, capability flags, selection model, `BulkActionBar`, undo grouping. | 0.5d |
-| **6 — PDF** | Print routes, print stylesheet, hidden-window `printToPDF`, export dialog, both reports, save + open-after-save, direct print. Budget iterations — pagination always takes longer than expected. | 1.5d |
-| **7 — Splash + onboarding** | CSS-keyframe intro loader, `data-step` stepper incl. the DataLocation step, `onboardingCompletedAt` gate, replay from settings. | 1d |
-| **8 — Hardening / ship** | Idle-lock screen, read-only banner, external-change detection, backup/restore UI, keyboard shortcuts, empty states, icon, README + a one-page printable teacher deploy guide, **smoke test from a real USB stick on a machine that is not the dev box**. | 1d |
+| Phase                       | Scope                                                                                                                                                                                                                                                                                                                                                                       | Est. |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| **0 — Skeleton**            | Scaffold, all configs, `main.js` loading a hello-world React app from `file://`, CSP + network kill switch, `npm run electron:build` producing a working portable exe. **Ship a nothing-app on day one** — packaging and path resolution are where this class of project dies. Retire that risk first.                                                                      | 0.5d |
+| **1 — Data layer**          | All of `src/domain/*` + the full vitest suite. `data-paths.js` (pointer, picker, sync detection), `data-store.js`, `data-lock.js`, IPC, preload, `DataContext`, `SaveStatusPill`. No board. Prove it: mutate, kill the process, reopen, data survives; corrupt the file, recover; run the exe from a USB stick and confirm the JSON lands in the profile, not on the stick. | 1.5d |
+| **2 — Board MVP**           | Toolbar, swimlanes + collapse, three columns, cards, pangea DnD, `CardStatusControl`, detail popover, notes cell, absent toggle, past-day read-only. `_tokens.scss` + all BEM styles.                                                                                                                                                                                       | 2d   |
+| **3 — Data management**     | Catalog, periods, roster, per-student assignments, custom one-offs. **Precedes onboarding** — onboarding is a wizard shell over these same forms.                                                                                                                                                                                                                           | 1d   |
+| **4 — Cycle logic**         | `useDayRollover`, seal on startup/tick/button, sealed visuals, amend flow, copy-from-previous-day (both modes).                                                                                                                                                                                                                                                             | 0.5d |
+| **5 — Bulk actions**        | Registry, capability flags, selection model, `BulkActionBar`, undo grouping.                                                                                                                                                                                                                                                                                                | 0.5d |
+| **6 — PDF**                 | Print routes, print stylesheet, hidden-window `printToPDF`, export dialog, both reports, save + open-after-save, direct print. Budget iterations — pagination always takes longer than expected.                                                                                                                                                                            | 1.5d |
+| **7 — Splash + onboarding** | CSS-keyframe intro loader, `data-step` stepper incl. the DataLocation step, `onboardingCompletedAt` gate, replay from settings.                                                                                                                                                                                                                                             | 1d   |
+| **8 — Hardening / ship**    | Idle-lock screen, read-only banner, external-change detection, backup/restore UI, keyboard shortcuts, empty states, icon, README + a one-page printable teacher deploy guide, **smoke test from a real USB stick on a machine that is not the dev box**.                                                                                                                    | 1d   |
 
 **≈9.5 focused days.**
 

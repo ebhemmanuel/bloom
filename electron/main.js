@@ -6,7 +6,7 @@ const fs = require('node:fs');
 
 const { hardenSession, hardenWebContents } = require('./security');
 const log = require('./app-log');
-const { registerIpcHandlers } = require('./ipc-handlers');
+const { registerIpcHandlers, flushPendingWrites } = require('./ipc-handlers');
 
 // Keep development completely off the real userData path. That folder holds the
 // pointer to a teacher's live data.json, and a dev run must never be able to
@@ -122,8 +122,21 @@ if (!gotLock) {
   });
 }
 
+// Durability. The real failure mode is not a clean quit — it is a lid closing or
+// district policy shutting the machine down mid-edit, so flush on every exit path
+// we can observe rather than trusting 'before-quit' alone.
+app.on('before-quit', flushPendingWrites);
+
 app.on('window-all-closed', () => {
+  flushPendingWrites();
   app.quit();
+});
+
+app.whenReady().then(() => {
+  const { powerMonitor } = require('electron');
+  for (const event of ['suspend', 'shutdown', 'lock-screen']) {
+    powerMonitor.on(event, flushPendingWrites);
+  }
 });
 
 process.on('uncaughtException', (err) => {

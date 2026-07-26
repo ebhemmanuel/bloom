@@ -26,10 +26,10 @@ It is exactly wrong for **working** surfaces — the board mid-entry, and above 
 
 **So the system has two registers, and the design must hold both:**
 
-| Register | Where | Character |
-|---|---|---|
-| **Ambient** | Splash, onboarding, empty states, dialogs, completion | Soft gradients, blur, generous space, cascading entrances, ambient drift |
-| **Working** | Board, cards, toolbar, manage screens, print | Calm and soft in *palette*, but crisp in *edge and contrast*. Motion is functional only. No ambient drift. No blur behind text. |
+| Register    | Where                                                 | Character                                                                                                                       |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Ambient** | Splash, onboarding, empty states, dialogs, completion | Soft gradients, blur, generous space, cascading entrances, ambient drift                                                        |
+| **Working** | Board, cards, toolbar, manage screens, print          | Calm and soft in _palette_, but crisp in _edge and contrast_. Motion is functional only. No ambient drift. No blur behind text. |
 
 Both registers share one palette, one type scale, and one motion vocabulary. They differ in how much of it they spend. Getting this split right is the single most important thing about this design.
 
@@ -56,54 +56,54 @@ Base neutrals carry a slight violet warmth so that white surfaces sitting on top
 
 ### 3.2 Core palette (light — primary)
 
-| Token | Value | Use |
-|---|---|---|
-| `--acc-bg` | `#faf8fc` | App background — warm near-white, faint lilac cast |
-| `--acc-surface` | `#ffffff` | Cards, panels, lanes |
-| `--acc-surface-sunken` | `#f3f0f8` | Column wells, inset areas |
-| `--acc-surface-hover` | `#f7f4fb` | Hover |
-| `--acc-surface-selected` | `#eeeafd` | Selection |
-| `--acc-border` | `#e9e5f0` | Default hairline — deliberately very soft |
-| `--acc-border-strong` | `#d6d0e2` | Emphasis, dividers |
-| `--acc-fg` | `#2a2438` | Primary text — soft near-black, violet-tinted, never `#000` |
-| `--acc-fg-muted` | `#6b6480` | Secondary |
-| `--acc-fg-faint` | `#9a93a8` | Tertiary, placeholders |
-| `--acc-accent` | `#5b4bd6` | Primary action, focus |
-| `--acc-accent-soft` | `#eeebfd` | Accent fills |
+| Token                    | Value     | Use                                                         |
+| ------------------------ | --------- | ----------------------------------------------------------- |
+| `--acc-bg`               | `#faf8fc` | App background — warm near-white, faint lilac cast          |
+| `--acc-surface`          | `#ffffff` | Cards, panels, lanes                                        |
+| `--acc-surface-sunken`   | `#f3f0f8` | Column wells, inset areas                                   |
+| `--acc-surface-hover`    | `#f7f4fb` | Hover                                                       |
+| `--acc-surface-selected` | `#eeeafd` | Selection                                                   |
+| `--acc-border`           | `#e9e5f0` | Default hairline — deliberately very soft                   |
+| `--acc-border-strong`    | `#d6d0e2` | Emphasis, dividers                                          |
+| `--acc-fg`               | `#2a2438` | Primary text — soft near-black, violet-tinted, never `#000` |
+| `--acc-fg-muted`         | `#6b6480` | Secondary                                                   |
+| `--acc-fg-faint`         | `#9a93a8` | Tertiary, placeholders                                      |
+| `--acc-accent`           | `#5b4bd6` | Primary action, focus                                       |
+| `--acc-accent-soft`      | `#eeebfd` | Accent fills                                                |
 
 ### 3.3 Status palette
 
 Pastel fills with a darker paired ink for text, so every status chip clears 4.5:1 without losing the soft feel.
 
-| Status | Ink | Fill | Glyph (print) | Rationale |
-|---|---|---|---|---|
-| Unassigned | `#7a7391` | `#f2eff7` | `·` | Neutral. Not yet triaged is not a problem. |
-| Used | `#2f7d63` | `#e4f4ed` | `U` | Sage green. Calm, not celebratory. |
-| Used with Detail | `#5b4bd6` | `#eeebfd` | `D` | Periwinkle. Ties to accent — this is the "richest" record. |
-| Not Used | `#a06a2c` | `#fbf1e2` | `—` | **Warm apricot, never red.** See principle 4. |
-| Absent | `#8a839a` | `#f4f2f7` | `A` | Recedes. Excluded from compliance math. |
-| No record | `#b5aec4` | — | `∅` | Faintest thing on screen. Must read as "nothing here", not "zero". |
+| Status           | Ink       | Fill      | Glyph (print) | Rationale                                                          |
+| ---------------- | --------- | --------- | ------------- | ------------------------------------------------------------------ |
+| Unassigned       | `#7a7391` | `#f2eff7` | `·`           | Neutral. Not yet triaged is not a problem.                         |
+| Used             | `#2f7d63` | `#e4f4ed` | `U`           | Sage green. Calm, not celebratory.                                 |
+| Used with Detail | `#5b4bd6` | `#eeebfd` | `D`           | Periwinkle. Ties to accent — this is the "richest" record.         |
+| Not Used         | `#a06a2c` | `#fbf1e2` | `—`           | **Warm apricot, never red.** See principle 4.                      |
+| Absent           | `#8a839a` | `#f4f2f7` | `A`           | Recedes. Excluded from compliance math.                            |
+| No record        | `#b5aec4` | —         | `∅`           | Faintest thing on screen. Must read as "nothing here", not "zero". |
 
-**`Not Used` and `No record` must be visually distinct at a glance.** Conflating them is the app's most serious possible failure — one means "we did not deliver", the other means "we have no data". Give them different fills *and* different glyph weights.
+**`Not Used` and `No record` must be visually distinct at a glance.** Conflating them is the app's most serious possible failure — one means "we did not deliver", the other means "we have no data". Give them different fills _and_ different glyph weights.
 
 ### 3.4 Plan-type pills
 
-| Plan | Ink | Fill |
-|---|---|---|
-| IEP | `#3d5bbf` | `#e8eeff` |
-| 504 | `#6b4bb8` | `#f0e9fd` |
+| Plan | Ink       | Fill      |
+| ---- | --------- | --------- |
+| IEP  | `#3d5bbf` | `#e8eeff` |
+| 504  | `#6b4bb8` | `#f0e9fd` |
 
 ### 3.5 The aurora palette — onboarding and splash only
 
 The blurred gradient blobs. Five soft washes, used at low opacity behind heavy blur:
 
-| Name | Value |
-|---|---|
-| Blush | `#ffd9e8` |
+| Name       | Value     |
+| ---------- | --------- |
+| Blush      | `#ffd9e8` |
 | Periwinkle | `#d9dfff` |
-| Mint | `#d2f2e6` |
-| Apricot | `#ffe7cf` |
-| Lilac | `#ebdcff` |
+| Mint       | `#d2f2e6` |
+| Apricot    | `#ffe7cf` |
+| Lilac      | `#ebdcff` |
 
 **Rules:** never more than three blobs visible at once; never behind body copy that must be read (put copy on a solid or heavily-scrimmed surface); never on the board, manage screens, or print.
 
@@ -119,25 +119,25 @@ This is where the "welcoming and smooth" requirement is actually delivered. Trea
 
 ### 4.1 Durations
 
-| Token | Value | Use |
-|---|---|---|
-| `--acc-dur-instant` | `90ms` | Hover, checkbox, press feedback |
-| `--acc-dur-fast` | `160ms` | Tooltips, chips, small state change |
-| `--acc-dur-normal` | `260ms` | Element entrance, popovers, expand/collapse |
-| `--acc-dur-slow` | `420ms` | Screen transitions, modal in |
-| `--acc-dur-ambient` | `900ms` | Splash reveal, onboarding hero |
-| `--acc-dur-drift` | `24s` | Aurora blob drift loop |
+| Token               | Value   | Use                                         |
+| ------------------- | ------- | ------------------------------------------- |
+| `--acc-dur-instant` | `90ms`  | Hover, checkbox, press feedback             |
+| `--acc-dur-fast`    | `160ms` | Tooltips, chips, small state change         |
+| `--acc-dur-normal`  | `260ms` | Element entrance, popovers, expand/collapse |
+| `--acc-dur-slow`    | `420ms` | Screen transitions, modal in                |
+| `--acc-dur-ambient` | `900ms` | Splash reveal, onboarding hero              |
+| `--acc-dur-drift`   | `24s`   | Aurora blob drift loop                      |
 
-Nothing a user *waits on* exceeds 420ms. Ambient durations apply only to things happening around them, never in front of them.
+Nothing a user _waits on_ exceeds 420ms. Ambient durations apply only to things happening around them, never in front of them.
 
 ### 4.2 Easings
 
-| Token | Curve | Use |
-|---|---|---|
-| `--acc-ease-entrance` | `cubic-bezier(0.16, 1, 0.3, 1)` | Everything arriving. Long decelerating tail — this curve *is* the "smooth" feel. |
-| `--acc-ease-exit` | `cubic-bezier(0.7, 0, 0.84, 0)` | Everything leaving. Accelerates away, gets out of the way fast. |
-| `--acc-ease-standard` | `cubic-bezier(0.65, 0, 0.35, 1)` | Moves between two on-screen states |
-| `--acc-ease-settle` | `cubic-bezier(0.34, 1.28, 0.64, 1)` | Gentle overshoot. **Onboarding gradient pop-in, card drop.** Use sparingly — overshoot everywhere reads as bouncy and cheap. |
+| Token                 | Curve                               | Use                                                                                                                          |
+| --------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `--acc-ease-entrance` | `cubic-bezier(0.16, 1, 0.3, 1)`     | Everything arriving. Long decelerating tail — this curve _is_ the "smooth" feel.                                             |
+| `--acc-ease-exit`     | `cubic-bezier(0.7, 0, 0.84, 0)`     | Everything leaving. Accelerates away, gets out of the way fast.                                                              |
+| `--acc-ease-standard` | `cubic-bezier(0.65, 0, 0.35, 1)`    | Moves between two on-screen states                                                                                           |
+| `--acc-ease-settle`   | `cubic-bezier(0.34, 1.28, 0.64, 1)` | Gentle overshoot. **Onboarding gradient pop-in, card drop.** Use sparingly — overshoot everywhere reads as bouncy and cheap. |
 
 Asymmetry is intentional: things enter slowly and leave quickly. That is what makes an interface feel gracious rather than sluggish.
 
@@ -152,7 +152,7 @@ duration: --acc-dur-normal (260ms)
 easing:   --acc-ease-entrance
 ```
 
-`translateY` is small on purpose. Large travel reads as a slide transition; 8px reads as *settling into place*.
+`translateY` is small on purpose. Large travel reads as a slide transition; 8px reads as _settling into place_.
 
 ### 4.4 Cascade (stagger) — and its budget
 
@@ -163,12 +163,14 @@ Siblings enter in reading order at **45ms intervals**.
 Why this is non-negotiable: a teacher with 30 students opens the board every single day. At an uncapped 45ms stagger the board takes 1.4 seconds to assemble — delightful once, infuriating by Wednesday.
 
 **Cascade applies:**
+
 - Onboarding steps, splash, empty states, completion screens — generously
 - Board first mount only — capped, once per session
 - Modal and popover contents — first 4–6 items
 
 **Cascade must NOT apply:**
-- Search or filter results. Re-cascading on every keystroke reads as the app re-loading. Filtered-out lanes crossfade out over 160ms; survivors simply *stay put*. This is the most common way to get this wrong.
+
+- Search or filter results. Re-cascading on every keystroke reads as the app re-loading. Filtered-out lanes crossfade out over 160ms; survivors simply _stay put_. This is the most common way to get this wrong.
 - Any card whose status the user just changed. It should move, not re-enter.
 - Date changes on the board. Crossfade the lane contents; do not re-stagger 30 lanes.
 
@@ -194,6 +196,7 @@ Ambient motion stops entirely once the user reaches the board. Nothing moves on 
 ### 4.7 Reduced motion — mandatory
 
 Under `prefers-reduced-motion: reduce`:
+
 - All transforms drop; opacity crossfades remain, shortened to 120ms
 - Stagger goes to 0 — groups appear together
 - Aurora drift stops; blobs render static
@@ -211,16 +214,16 @@ The first thing anyone sees. Runs while the app resolves the data location, read
 
 **Sequence:**
 
-| t | Event |
-|---|---|
-| 0ms | Warm near-white field. Nothing else. |
-| 120ms | Aurora blob 1 (periwinkle) fades up over 900ms, blurred ~80px, and begins drifting |
-| 320ms | Blob 2 (blush) — same, offset position and drift period |
-| 520ms | Blob 3 (mint) |
-| 600ms | Wordmark fades + settles in (`--acc-ease-entrance`) |
-| 800ms | Progress track fades in beneath it |
-| — | Status line crossfades between real stages: "Finding your records" → "Opening" → "Checking for updates" → "Almost ready" |
-| exit | Everything fades out over 320ms as onboarding or the board fades in underneath |
+| t     | Event                                                                                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ |
+| 0ms   | Warm near-white field. Nothing else.                                                                                     |
+| 120ms | Aurora blob 1 (periwinkle) fades up over 900ms, blurred ~80px, and begins drifting                                       |
+| 320ms | Blob 2 (blush) — same, offset position and drift period                                                                  |
+| 520ms | Blob 3 (mint)                                                                                                            |
+| 600ms | Wordmark fades + settles in (`--acc-ease-entrance`)                                                                      |
+| 800ms | Progress track fades in beneath it                                                                                       |
+| —     | Status line crossfades between real stages: "Finding your records" → "Opening" → "Checking for updates" → "Almost ready" |
+| exit  | Everything fades out over 320ms as onboarding or the board fades in underneath                                           |
 
 The progress fill eases with `--acc-ease-standard` between real values; it must never appear to stall, so hold a minimum 400ms per visible stage even on a fast machine.
 
@@ -251,12 +254,12 @@ The specific request, specified precisely.
 
 Blobs enter **one at a time, not as a group** — that individual arrival is the whole effect:
 
-| Order | Blob | Delay | Duration | Enters from |
-|---|---|---|---|---|
-| 1 | Periwinkle | 200ms | 1000ms | scale 0.75 → 1, opacity 0 → 0.55, from lower-left |
-| 2 | Blush | 560ms | 1000ms | scale 0.7 → 1, opacity 0 → 0.5, from upper-right |
-| 3 | Mint | 920ms | 1000ms | scale 0.8 → 1, opacity 0 → 0.45, from lower-right |
-| 4 | Apricot | 1280ms | 1000ms | scale 0.75 → 1, opacity 0 → 0.4, centre-top, furthest back |
+| Order | Blob       | Delay  | Duration | Enters from                                                |
+| ----- | ---------- | ------ | -------- | ---------------------------------------------------------- |
+| 1     | Periwinkle | 200ms  | 1000ms   | scale 0.75 → 1, opacity 0 → 0.55, from lower-left          |
+| 2     | Blush      | 560ms  | 1000ms   | scale 0.7 → 1, opacity 0 → 0.5, from upper-right           |
+| 3     | Mint       | 920ms  | 1000ms   | scale 0.8 → 1, opacity 0 → 0.45, from lower-right          |
+| 4     | Apricot    | 1280ms | 1000ms   | scale 0.75 → 1, opacity 0 → 0.4, centre-top, furthest back |
 
 Each uses `--acc-ease-settle` so it arrives with a barely-perceptible overshoot — the "pop". Blur radius 70–110px, varied per blob. Each begins its independent drift loop the moment its entrance finishes.
 
@@ -275,11 +278,11 @@ Total to interactive: ~1.7s. That is a long time by app standards and correct he
 
 Three questions, revealed **progressively** rather than as a wall of fields — each answered field cascades the next one in (260ms, standard entrance). This is what makes a form feel like a conversation.
 
-| Field | Type | Notes |
-|---|---|---|
-| **Name** | Text | "What should we call you?" Accepts "Ms. Rivera" or "Jordan" — do not split into first/last, and do not require a title. Appears on every printed report, so show a live preview of how it will read there. |
-| **Subject(s)** | Multi-select chips + free entry | "What do you teach?" Offer common ones (Math, ELA, Science, Social Studies, Special Education, Art, Music, PE, World Languages) and let them type anything. Multi-select — secondary teachers routinely teach two. |
-| **Grade level(s)** | Multi-select chips | "Which grades?" K–12 as compact chips, plus a range drag/shift-click affordance. Multi-select. |
+| Field              | Type                            | Notes                                                                                                                                                                                                              |
+| ------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Name**           | Text                            | "What should we call you?" Accepts "Ms. Rivera" or "Jordan" — do not split into first/last, and do not require a title. Appears on every printed report, so show a live preview of how it will read there.         |
+| **Subject(s)**     | Multi-select chips + free entry | "What do you teach?" Offer common ones (Math, ELA, Science, Social Studies, Special Education, Art, Music, PE, World Languages) and let them type anything. Multi-select — secondary teachers routinely teach two. |
+| **Grade level(s)** | Multi-select chips              | "Which grades?" K–12 as compact chips, plus a range drag/shift-click affordance. Multi-select.                                                                                                                     |
 
 Chips animate on selection with a 90ms fill transition and a subtle scale settle — never a hard color flip.
 
@@ -290,6 +293,7 @@ Subject and grades are **not** used for compliance logic. They personalise the p
 Functionally the most important step and the one most likely to be designed badly.
 
 The app must explain, without jargon and without alarm, that:
+
 - The record file is created on **this computer**, not on the USB stick
 - It never goes to the internet
 - If the suggested folder syncs to OneDrive, that would send student information to the cloud — and offer a local-only alternative
@@ -331,11 +335,11 @@ Jira-style kanban. One collapsible **swimlane per student**; columns are statuse
 
 **Cards:** white, `--acc-radius-md`, hairline border, `--acc-shadow-card`. Contents: accommodation label, a category chip, a "custom" badge where applicable, and a detail indicator. Every card also carries a **three-button segmented status control** — drag is the headline interaction, but a tired teacher at 3:55pm will tap buttons, and touchscreen and motor-impaired users need them. Both must feel first-class.
 
-**Drag feel:** lift raises the card with `--acc-shadow-drag` and a 1.02 scale over 160ms; the source position collapses smoothly rather than snapping; the destination column tints with its status fill; drop settles with `--acc-ease-settle`. Cards can never be dropped into another student's lane, and the design should make that *unmistakable* — non-target lanes desaturate slightly during a drag rather than showing a rejection state on drop.
+**Drag feel:** lift raises the card with `--acc-shadow-drag` and a 1.02 scale over 160ms; the source position collapses smoothly rather than snapping; the destination column tints with its status fill; drop settles with `--acc-ease-settle`. Cards can never be dropped into another student's lane, and the design should make that _unmistakable_ — non-target lanes desaturate slightly during a drag rather than showing a rejection state on drop.
 
 **Absent state:** the lane body desaturates and drops to ~55% opacity over 260ms, columns become visibly inert. Recorded statuses stay visible — absence excludes a student from compliance math, it does not erase what was already noted.
 
-**Sealed (past) days:** a distinct, calm read-only treatment — slightly sunken lane background and a small lock affordance. It should read as *settled*, not as *disabled*. Editing requires an explicit "Amend" action.
+**Sealed (past) days:** a distinct, calm read-only treatment — slightly sunken lane background and a small lock affordance. It should read as _settled_, not as _disabled_. Editing requires an explicit "Amend" action.
 
 ### 5.4 Toolbar
 
@@ -349,7 +353,7 @@ A save-status pill sits at the right: "Saved" in muted grey, a soft pulse while 
 
 Opens on drop into "Used with Detail", or on demand. Scales up from the card's own position (0.96 → 1, 200ms, `--acc-ease-entrance`) with a soft scrim fading behind it — it should feel like it grew out of the card, not like a dialog appeared.
 
-Textarea autofocused, `detailPrompt` as placeholder. Cancelling with the field empty reverts the card to its pre-drag status, and that revert should be *animated back* so the teacher sees what happened rather than finding the card mysteriously moved.
+Textarea autofocused, `detailPrompt` as placeholder. Cancelling with the field empty reverts the card to its pre-drag status, and that revert should be _animated back_ so the teacher sees what happened rather than finding the card mysteriously moved.
 
 ### 5.6 Notes column
 
@@ -386,22 +390,22 @@ After a configurable idle period the app veils itself — the board blurs behind
 Ambient register — these are the moments to be warm.
 
 - **Empty board** (no students yet): a soft illustration or aurora wash, one sentence, one action.
-- **No record for this date**: must clearly say *nothing was recorded*, not *nothing was delivered*. This distinction is the most important line of copy in the entire product.
+- **No record for this date**: must clearly say _nothing was recorded_, not _nothing was delivered_. This distinction is the most important line of copy in the entire product.
 - **Errors**: amber-family, plain language, always with a next action. Never a raw stack trace, never a red modal. A teacher seeing an error about a compliance file is already anxious — the design's job is to lower that, not raise it.
 
 ---
 
 ## 6. Typography
 
-| Role | Size | Weight |
-|---|---|---|
-| Display (splash, onboarding hero) | 28–32px | 600 |
-| Heading | 20px | 600 |
-| Subhead (column headers) | 11px, uppercase, `0.08em` tracking | 600 |
-| Body | 14px | 400 |
-| Card label | 13–14px | 500 |
-| Sub / meta | 12px | 400 |
-| Tiny / counts | 11px | 500 |
+| Role                              | Size                               | Weight |
+| --------------------------------- | ---------------------------------- | ------ |
+| Display (splash, onboarding hero) | 28–32px                            | 600    |
+| Heading                           | 20px                               | 600    |
+| Subhead (column headers)          | 11px, uppercase, `0.08em` tracking | 600    |
+| Body                              | 14px                               | 400    |
+| Card label                        | 13–14px                            | 500    |
+| Sub / meta                        | 12px                               | 400    |
+| Tiny / counts                     | 11px                               | 500    |
 
 Stack: Inter → Segoe UI → system-ui. **Fonts must be bundled locally** under `src/assets/fonts/` — a Google Fonts link would break offline operation and violate the product's core promise. If a licensed display face is introduced for the splash and onboarding hero, confirm desktop-app embedding rights before it ships.
 
@@ -418,6 +422,7 @@ Radii: `sm 4px` (chips, inputs) · `md 8px` (cards) · `lg 14px` (panels, lanes)
 Slightly larger radii than the current scaffold — it is a meaningful part of the "soft" ask.
 
 Elevation is soft and violet-tinted, never neutral grey-black:
+
 ```
 card:    0 1px 2px rgba(42, 36, 56, 0.06)
 raised:  0 4px 12px -2px rgba(42, 36, 56, 0.10)
@@ -442,7 +447,7 @@ Needed as designed states (default / hover / focus / active / disabled / error w
 
 This app documents disability accommodations. It will be reviewed. It must be exemplary.
 
-- **Contrast:** 4.5:1 body text, 3:1 large text and UI boundaries, against the *actual* rendered background including any aurora behind it. Soft palettes fail this easily — verify every status chip.
+- **Contrast:** 4.5:1 body text, 3:1 large text and UI boundaries, against the _actual_ rendered background including any aurora behind it. Soft palettes fail this easily — verify every status chip.
 - **Never color alone.** Every status carries a glyph and a text label as well as a fill. Required on screen; doubly required in monochrome print.
 - **Full keyboard operation**, including drag: `@hello-pangea/dnd` provides space-to-lift / arrows / space-to-drop with live-region announcements. Do not design anything that breaks it, and design the visible focus and lift states explicitly.
 - **Focus is always visible**, 2px accent ring at 2px offset. Never remove it.
@@ -455,6 +460,7 @@ This app documents disability accommodations. It will be reviewed. It must be ex
 ## 10. What is fixed, and what the design agent should push on
 
 **Fixed — structural or legal:**
+
 - Jira-style kanban: swimlane per student, statuses as columns, notes as the last column
 - The three statuses plus the resolved "Not Used" state, and the `Not Used` ≠ `No record` distinction
 - Mark-absent at the far right of the lane header
@@ -463,6 +469,7 @@ This app documents disability accommodations. It will be reviewed. It must be ex
 - Accessibility floors in §9
 
 **Open — please improve:**
+
 - The aurora composition itself: count, placement, blur radii, drift paths, whether it should respond subtly to cursor
 - Exact palette values — the direction is warm violet-neutral, the specific hues are a first pass
 - Onboarding copy, in full. It is currently described, not written.

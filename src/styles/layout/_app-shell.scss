@@ -1,0 +1,38 @@
+@use '../abstracts/motion' as motion;
+
+.acc-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.acc-app__main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.acc-board {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.acc-board__lanes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--acc-space-4) var(--acc-space-5) var(--acc-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+}
+
+// Working register: nothing moves unless the user moved it. While a drag is in
+// progress the cursor stays a grab everywhere so the whole board feels live.
+body[data-dragging='true'] {
+  cursor: grabbing;
+}

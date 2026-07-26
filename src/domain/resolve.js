@@ -228,14 +228,24 @@ export function sealDay(doc, dateKey, now = new Date(), sealedBy = RESOLVED_BY.A
 }
 
 /**
- * Seal every unsealed day whose cycle has completed.
+ * Seal every unsealed PAST day. Runs at startup and on the rollover tick.
  *
- * Runs at startup and on the rollover tick. Only visits dates already present in
- * `doc.days`, so a long absence costs nothing and manufactures nothing.
+ * Deliberately never seals today, even once the clock is past `cycleEndTime`.
+ * Teachers do this paperwork in the evening — sealing at 16:00 would make the
+ * board read-only exactly when it is being used, forcing an Amend (with an audit
+ * entry) for ordinary same-day data entry. Today still *displays* unassigned
+ * entries as "Not Used" via `effectiveStatus` rules 6-7, so the teacher sees the
+ * real default; it just stays editable until the date rolls over, or until they
+ * press "Close out day" themselves.
+ *
+ * Only visits dates already present in `doc.days`, so a long absence costs
+ * nothing and manufactures nothing.
  */
 export function sealCompletedDays(doc, now = new Date(), sealedBy = RESOLVED_BY.AUTO) {
+  const today = todayKey(now);
   let next = doc;
   for (const dateKey of Object.keys(doc.days || {})) {
+    if (compareDateKeys(dateKey, today) >= 0) continue;
     next = sealDay(next, dateKey, now, sealedBy);
   }
   return next;
@@ -267,7 +277,15 @@ export function isDayEditable(doc, dateKey, now = new Date()) {
  * auditor is looking for. The day stays `sealed: true`; the amendment log is
  * what makes the correction defensible rather than suspicious.
  */
-export function amendEntry(doc, dateKey, studentId, assignmentId, changes, reason, now = new Date()) {
+export function amendEntry(
+  doc,
+  dateKey,
+  studentId,
+  assignmentId,
+  changes,
+  reason,
+  now = new Date()
+) {
   const day = doc.days?.[dateKey];
   if (!day) return doc;
 

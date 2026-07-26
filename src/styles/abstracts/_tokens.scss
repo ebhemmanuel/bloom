@@ -26,7 +26,6 @@ $acc-tokens: (
   'surface-hover': #f7f4fb,
   'surface-selected': #eeeafd,
   'scrim': rgba(42, 36, 56, 0.42),
-
   // Lines ------------------------------------------------------------------
   'border': #e9e5f0,
   'border-strong': #d6d0e2,
@@ -90,19 +89,8 @@ $acc-tokens: (
   'aurora-lilac': #ebdcff,
 
   // Typography -------------------------------------------------------------
-  'font-sans': (
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif,
-  ),
-  'font-mono': (
-    'JetBrains Mono',
-    'Cascadia Mono',
-    Consolas,
-    monospace,
-  ),
+  'font-sans': ('Inter', 'Segoe UI', system-ui, -apple-system, sans-serif),
+  'font-mono': ('JetBrains Mono', 'Cascadia Mono', Consolas, monospace),
   'fs-display': 30px,
   'fs-heading': 20px,
   'fs-subhead': 15px,
@@ -141,7 +129,6 @@ $acc-tokens: (
   'shadow-raised': 0 4px 12px -2px rgba(42, 36, 56, 0.1),
   'shadow-overlay': 0 12px 32px -8px rgba(42, 36, 56, 0.18),
   'shadow-drag': 0 16px 32px -8px rgba(42, 36, 56, 0.24),
-
   // Motion ------------------------------------------------------------------
   // Asymmetric on purpose: things enter slowly and leave quickly. That is what
   // makes an interface feel gracious rather than sluggish.

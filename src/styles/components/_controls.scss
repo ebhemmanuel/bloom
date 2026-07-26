@@ -1,0 +1,222 @@
+@use '../abstracts/motion' as motion;
+
+// --- Buttons ---------------------------------------------------------------
+
+.acc-btn {
+  @include motion.interactive(background-color, border-color, color, box-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--acc-space-2);
+  padding: 0 var(--acc-space-3);
+  height: 32px;
+  border-radius: var(--acc-radius-sm);
+  border: 1px solid var(--acc-border-strong);
+  background: var(--acc-surface);
+  color: var(--acc-fg);
+  font-size: var(--acc-fs-sub);
+  font-weight: var(--acc-fw-medium);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--acc-surface-hover);
+    border-color: var(--acc-fg-faint);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &--primary {
+    background: var(--acc-accent);
+    border-color: var(--acc-accent);
+    color: var(--acc-accent-fg);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-accent-hover);
+      border-color: var(--acc-accent-hover);
+    }
+  }
+
+  &--quiet {
+    border-color: transparent;
+    background: transparent;
+    color: var(--acc-fg-muted);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-sunken);
+      border-color: transparent;
+      color: var(--acc-fg);
+    }
+  }
+
+  &--small {
+    height: 26px;
+    font-size: var(--acc-fs-tiny);
+  }
+}
+
+// --- Chips -----------------------------------------------------------------
+
+.acc-chip {
+  @include motion.interactive(background-color, border-color, color);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--acc-space-1);
+  height: 28px;
+  padding: 0 var(--acc-space-3);
+  border-radius: var(--acc-radius-pill);
+  border: 1px solid var(--acc-border);
+  background: var(--acc-surface);
+  color: var(--acc-fg-muted);
+  font-size: var(--acc-fs-sub);
+  font-weight: var(--acc-fw-medium);
+
+  &:hover {
+    background: var(--acc-surface-hover);
+    color: var(--acc-fg);
+  }
+
+  &--on {
+    background: var(--acc-accent-soft);
+    border-color: var(--acc-accent);
+    color: var(--acc-accent);
+  }
+
+  &__count {
+    font-size: var(--acc-fs-tiny);
+    opacity: 0.7;
+  }
+}
+
+// --- Plan-type pills -------------------------------------------------------
+
+.acc-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--acc-space-2);
+  border-radius: var(--acc-radius-sm);
+  font-size: var(--acc-fs-tiny);
+  font-weight: var(--acc-fw-semibold);
+  letter-spacing: 0.02em;
+
+  &--iep {
+    background: var(--acc-plan-iep-soft);
+    color: var(--acc-plan-iep);
+  }
+  &--504 {
+    background: var(--acc-plan-504-soft);
+    color: var(--acc-plan-504);
+  }
+  &--other {
+    background: var(--acc-surface-sunken);
+    color: var(--acc-fg-muted);
+  }
+}
+
+// --- Date picker -----------------------------------------------------------
+
+.acc-datepicker {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-1);
+
+  &__step {
+    @include motion.interactive(background-color, color);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--acc-radius-sm);
+    color: var(--acc-fg-muted);
+    font-size: 18px;
+    line-height: 1;
+
+    &:hover {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
+  }
+
+  &__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 132px;
+  }
+
+  &__input {
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: var(--acc-radius-sm);
+    padding: 2px var(--acc-space-1);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+
+    &:hover {
+      border-color: var(--acc-border);
+    }
+  }
+
+  &__label {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+  }
+}
+
+// --- Search ----------------------------------------------------------------
+
+.acc-search {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-2);
+  height: 32px;
+  padding: 0 var(--acc-space-3);
+  border-radius: var(--acc-radius-pill);
+  border: 1px solid var(--acc-border);
+  background: var(--acc-surface);
+  min-width: 240px;
+  @include motion.interactive(border-color, box-shadow);
+
+  &:focus-within {
+    border-color: var(--acc-accent);
+    box-shadow: 0 0 0 3px var(--acc-accent-soft);
+  }
+
+  &__icon {
+    color: var(--acc-fg-faint);
+    flex-shrink: 0;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: var(--acc-fs-body);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+    // The browser's own clear affordance duplicates ours.
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  &__clear {
+    color: var(--acc-fg-faint);
+    font-size: 17px;
+    line-height: 1;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  &__count {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+}

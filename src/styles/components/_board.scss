@@ -1,0 +1,228 @@
+@use '../abstracts/motion' as motion;
+
+// --- Swimlane --------------------------------------------------------------
+
+.acc-lane {
+  @include motion.entrance;
+  // Lanes live in a column flex container that scrolls. Without this they are
+  // flex items with the default flex-shrink: 1, so instead of overflowing into
+  // the scroll area they get squeezed to a fraction of their height and
+  // `overflow: hidden` silently clips the cards away — the board renders as a
+  // stack of bare headers.
+  flex: 0 0 auto;
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border);
+  border-radius: var(--acc-radius-lg);
+  box-shadow: var(--acc-shadow-card);
+  overflow: hidden;
+  transition:
+    opacity var(--acc-dur-normal) var(--acc-ease-standard),
+    filter var(--acc-dur-normal) var(--acc-ease-standard);
+
+  // Both are needed: the variable keeps the entrance animation's end state in
+  // agreement, the property covers lanes that never animated.
+  &--absent {
+    --acc-enter-to-opacity: 0.55;
+    opacity: 0.55;
+    filter: saturate(0.4);
+  }
+
+  &--readonly {
+    background: var(--acc-surface-sunken);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
+    min-height: var(--acc-lane-header-h);
+    padding: 0 var(--acc-space-4);
+    border-bottom: 1px solid var(--acc-border);
+  }
+
+  &__disclosure {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    min-width: 0;
+  }
+
+  &__chevron {
+    color: var(--acc-fg-faint);
+    flex-shrink: 0;
+    transition: transform var(--acc-dur-normal) var(--acc-ease-standard);
+
+    &--open {
+      transform: rotate(90deg);
+    }
+  }
+
+  &__name {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__periods,
+  &__progress {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+
+  &__progress-absent {
+    color: var(--acc-status-absent);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__warn {
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-warning);
+    background: var(--acc-warning-soft);
+    padding: 2px var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    white-space: nowrap;
+  }
+
+  // Pinned far right, per spec.
+  &__absent {
+    @include motion.interactive(background-color, color, border-color);
+    margin-left: auto;
+    height: 26px;
+    padding: 0 var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    border: 1px solid var(--acc-border);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg-muted);
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: var(--acc-status-absent-soft);
+      color: var(--acc-fg);
+    }
+
+    &--on {
+      background: var(--acc-status-absent-soft);
+      border-color: var(--acc-status-absent);
+      color: var(--acc-status-absent);
+      font-weight: var(--acc-fw-semibold);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+    }
+  }
+
+  // Three status columns + the notes column.
+  &__body {
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(var(--acc-column-min-w), 1fr))
+      var(--acc-notes-col-w);
+    gap: 1px;
+    background: var(--acc-border);
+  }
+
+  &__strip {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-4);
+    flex-wrap: wrap;
+    padding: var(--acc-space-3) var(--acc-space-4);
+    background: var(--acc-surface-sunken);
+  }
+
+  &__strip-empty {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+}
+
+// Collapsed-lane tallies.
+.acc-tally {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--acc-space-1);
+  font-size: var(--acc-fs-tiny);
+
+  &__count {
+    font-weight: var(--acc-fw-semibold);
+    font-size: var(--acc-fs-sub);
+  }
+
+  &__label {
+    color: var(--acc-fg-muted);
+  }
+
+  &--used &__count {
+    color: var(--acc-status-used);
+  }
+  &--used-with-detail &__count {
+    color: var(--acc-status-detail);
+  }
+  &--unassigned &__count {
+    color: var(--acc-status-unassigned);
+  }
+  &--not-used &__count {
+    color: var(--acc-status-not-used);
+  }
+  &--absent &__count {
+    color: var(--acc-status-absent);
+  }
+  &--not-applicable &__count {
+    color: var(--acc-status-na);
+  }
+  &--no-record &__count {
+    color: var(--acc-status-no-record);
+  }
+}
+
+// --- Status column ---------------------------------------------------------
+
+.acc-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--acc-surface-sunken);
+  transition: background-color var(--acc-dur-fast) var(--acc-ease-standard);
+
+  &--over {
+    background: var(--acc-accent-soft);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-2) var(--acc-space-3) var(--acc-space-1);
+  }
+
+  &__count {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    padding: 0 var(--acc-space-2) var(--acc-space-3);
+    min-height: 64px;
+  }
+
+  // Status accent as a top rule — carries meaning without tinting the whole well.
+  &--unassigned &__header {
+    box-shadow: inset 0 2px 0 var(--acc-status-unassigned-soft);
+  }
+  &--used &__header {
+    box-shadow: inset 0 2px 0 var(--acc-status-used-soft);
+  }
+  &--used-with-detail &__header {
+    box-shadow: inset 0 2px 0 var(--acc-status-detail-soft);
+  }
+}

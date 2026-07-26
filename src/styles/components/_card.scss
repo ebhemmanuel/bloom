@@ -1,0 +1,186 @@
+@use '../abstracts/motion' as motion;
+
+.acc-card {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  grid-template-areas:
+    'grip body'
+    'grip status';
+  gap: var(--acc-space-1) var(--acc-space-2);
+  padding: var(--acc-space-2);
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border);
+  border-radius: var(--acc-radius-md);
+  box-shadow: var(--acc-shadow-card);
+  transition:
+    box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
+    border-color var(--acc-dur-fast) var(--acc-ease-standard),
+    background-color var(--acc-dur-fast) var(--acc-ease-standard);
+
+  &:hover {
+    border-color: var(--acc-border-strong);
+    box-shadow: var(--acc-shadow-raised);
+  }
+
+  // The lift. Scale stays subtle — a card that balloons feels toy-like.
+  &--dragging {
+    box-shadow: var(--acc-shadow-drag);
+    border-color: var(--acc-accent);
+    transform-origin: center;
+  }
+
+  &--custom {
+    border-left: 3px solid var(--acc-status-detail);
+  }
+
+  &--not-used {
+    background: var(--acc-status-not-used-soft);
+    border-color: var(--acc-status-not-used-soft);
+  }
+
+  &--needs-detail {
+    border-color: var(--acc-warning);
+  }
+
+  &--na {
+    opacity: 0.5;
+  }
+
+  &__grip {
+    grid-area: grip;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    cursor: grab;
+    padding: var(--acc-space-1) 0;
+
+    span {
+      display: block;
+      height: 3px;
+      width: 3px;
+      border-radius: 50%;
+      background: var(--acc-fg-faint);
+      box-shadow:
+        0 6px 0 var(--acc-fg-faint),
+        0 12px 0 var(--acc-fg-faint);
+      opacity: 0.5;
+      transition: opacity var(--acc-dur-fast) var(--acc-ease-standard);
+    }
+  }
+
+  &:hover &__grip span {
+    opacity: 0.9;
+  }
+
+  &__body {
+    grid-area: body;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: var(--acc-fs-card);
+    font-weight: var(--acc-fw-medium);
+    line-height: var(--acc-lh-normal);
+    overflow-wrap: anywhere;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-1);
+    flex-wrap: wrap;
+    margin-top: var(--acc-space-1);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__badge {
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: var(--acc-ls-cap);
+    text-transform: uppercase;
+    color: var(--acc-status-detail);
+    background: var(--acc-status-detail-soft);
+    padding: 1px var(--acc-space-1);
+    border-radius: var(--acc-radius-sm);
+  }
+
+  &__detail-chip {
+    @include motion.interactive(background-color, color);
+    font-size: 10px;
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-status-used);
+    background: var(--acc-status-used-soft);
+    padding: 1px var(--acc-space-1);
+    border-radius: var(--acc-radius-sm);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &--missing {
+      color: var(--acc-warning);
+      background: var(--acc-warning-soft);
+    }
+  }
+
+  &__resolved {
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-status-not-used);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+  }
+}
+
+// --- Segmented status control ---------------------------------------------
+// Co-equal with dragging. Targets are 44px-wide-ish and 28px tall so they work
+// on the touchscreen laptops this ships to.
+
+.acc-card-status {
+  grid-area: status;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: var(--acc-surface-sunken);
+  border-radius: var(--acc-radius-sm);
+
+  &__btn {
+    @include motion.interactive(background-color, color, box-shadow);
+    height: 24px;
+    border-radius: 3px;
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg-muted);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface);
+      color: var(--acc-fg);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    &--active {
+      background: var(--acc-surface);
+      box-shadow: var(--acc-shadow-card);
+      font-weight: var(--acc-fw-semibold);
+    }
+
+    &--unassigned.acc-card-status__btn--active {
+      color: var(--acc-status-unassigned);
+    }
+    &--used.acc-card-status__btn--active {
+      color: var(--acc-status-used);
+    }
+    &--used-with-detail.acc-card-status__btn--active {
+      color: var(--acc-status-detail);
+    }
+  }
+}

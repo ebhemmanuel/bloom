@@ -82,7 +82,14 @@ function probeWritable(dirPath) {
  */
 function probeLocation(dirPath) {
   if (typeof dirPath !== 'string' || dirPath.trim().length === 0) {
-    return { dirPath, valid: false, writable: false, synced: false, provider: null, reason: 'EMPTY' };
+    return {
+      dirPath,
+      valid: false,
+      writable: false,
+      synced: false,
+      provider: null,
+      reason: 'EMPTY',
+    };
   }
 
   const resolved = path.resolve(dirPath);
@@ -118,8 +125,7 @@ function probeLocation(dirPath) {
  * a district machine it is very often redirected into OneDrive.
  */
 function suggestLocations(app) {
-  const localAppData =
-    process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
 
   const candidates = [
     {

@@ -1,0 +1,283 @@
+// ---------------------------------------------------------------------------
+// The AMBIENT register: splash, onboarding, and the aurora field.
+//
+// This is the only place blur and gradient are permitted. Never on the board,
+// never on manage screens, never in print. See docs/DESIGN_REQUIREMENTS.md §1.
+// ---------------------------------------------------------------------------
+
+// --- Aurora ----------------------------------------------------------------
+// Blobs enter ONE AT A TIME — that individual arrival is the whole effect — then
+// each begins its own drift loop on a desynchronised period so the field never
+// visibly repeats.
+
+.acc-blob {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation:
+    acc-bloom-in var(--acc-dur-ambient) var(--acc-ease-settle) var(--acc-blob-delay, 0ms) both,
+    acc-drift var(--acc-blob-drift, 24s) var(--acc-ease-in-out)
+      calc(var(--acc-blob-delay, 0ms) + var(--acc-dur-ambient)) infinite;
+
+  &--1 {
+    --acc-blob-delay: 200ms;
+    --acc-blob-opacity: 0.55;
+    --acc-blob-scale-from: 0.75;
+    --acc-blob-drift: 24s;
+    inset-block-end: -12%;
+    inset-inline-start: -8%;
+    inline-size: 46vw;
+    block-size: 46vw;
+    background: radial-gradient(circle, var(--acc-aurora-periwinkle) 0%, transparent 68%);
+    filter: blur(80px);
+  }
+
+  &--2 {
+    --acc-blob-delay: 560ms;
+    --acc-blob-opacity: 0.5;
+    --acc-blob-scale-from: 0.7;
+    --acc-blob-drift: 29s;
+    inset-block-start: -14%;
+    inset-inline-end: -6%;
+    inline-size: 42vw;
+    block-size: 42vw;
+    background: radial-gradient(circle, var(--acc-aurora-blush) 0%, transparent 68%);
+    filter: blur(90px);
+  }
+
+  &--3 {
+    --acc-blob-delay: 920ms;
+    --acc-blob-opacity: 0.45;
+    --acc-blob-scale-from: 0.8;
+    --acc-blob-drift: 21s;
+    inset-block-end: -18%;
+    inset-inline-end: 8%;
+    inline-size: 38vw;
+    block-size: 38vw;
+    background: radial-gradient(circle, var(--acc-aurora-mint) 0%, transparent 66%);
+    filter: blur(70px);
+  }
+
+  &--4 {
+    --acc-blob-delay: 1280ms;
+    --acc-blob-opacity: 0.4;
+    --acc-blob-scale-from: 0.75;
+    --acc-blob-drift: 33s;
+    inset-block-start: -8%;
+    inset-inline-start: 22%;
+    inline-size: 34vw;
+    block-size: 34vw;
+    background: radial-gradient(circle, var(--acc-aurora-apricot) 0%, transparent 66%);
+    filter: blur(110px);
+  }
+}
+
+// Static field under reduced motion — no entrance, no drift.
+@media (prefers-reduced-motion: reduce) {
+  .acc-blob {
+    animation: none;
+    opacity: var(--acc-blob-opacity, 0.5);
+  }
+}
+
+// --- Splash ----------------------------------------------------------------
+
+.acc-splash {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+  background: var(--acc-bg);
+
+  &__aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  &__content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--acc-space-3);
+    text-align: center;
+    animation: acc-enter var(--acc-dur-ambient) var(--acc-ease-entrance) 600ms both;
+  }
+
+  &__stage {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    // Pulses only while indeterminate; the real progress bar carries the detail.
+    animation: acc-pulse-soft 2.2s var(--acc-ease-in-out) infinite;
+  }
+
+  &__track {
+    inline-size: 260px;
+    block-size: 4px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface-sunken);
+    overflow: hidden;
+    animation: acc-fade-in var(--acc-dur-normal) var(--acc-ease-entrance) 800ms both;
+  }
+
+  &__fill {
+    block-size: 100%;
+    inline-size: var(--acc-progress, 0%);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-accent);
+    transition: inline-size var(--acc-dur-slow) var(--acc-ease-standard);
+  }
+}
+
+// --- Onboarding shell ------------------------------------------------------
+
+.acc-onboard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--acc-space-6);
+  overflow-y: auto;
+  background: var(--acc-bg);
+
+  &__aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  // Copy sits on a scrimmed surface so contrast never depends on where a blob
+  // happens to drift. Soft palette, but text stays fully legible.
+  &__panel {
+    position: relative;
+    inline-size: 100%;
+    max-inline-size: 560px;
+    padding: var(--acc-space-7);
+    border-radius: var(--acc-radius-xl);
+    background: color-mix(in srgb, var(--acc-surface) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--acc-border);
+    box-shadow: var(--acc-shadow-overlay);
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-3);
+  }
+
+  &__lede {
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &__note {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    margin-top: var(--acc-space-2);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--acc-space-2);
+    margin-top: var(--acc-space-2);
+  }
+
+  &__error {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-danger);
+  }
+}
+
+// --- Data-location cards ---------------------------------------------------
+
+.acc-locationcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-1);
+  inline-size: 100%;
+  padding: var(--acc-space-3) var(--acc-space-4);
+  text-align: start;
+  border: 1px solid var(--acc-border-strong);
+  border-radius: var(--acc-radius-lg);
+  background: var(--acc-surface);
+  transition:
+    border-color var(--acc-dur-fast) var(--acc-ease-standard),
+    background-color var(--acc-dur-fast) var(--acc-ease-standard),
+    box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+  &:hover:not(:disabled) {
+    border-color: var(--acc-accent);
+    box-shadow: var(--acc-shadow-raised);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  // Advisory, never a red error. Cloud sync is guidance the teacher needs, not a
+  // mistake they have made.
+  &--advisory {
+    border-color: var(--acc-warning);
+    background: var(--acc-warning-soft);
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+
+  &__label {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__tag {
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-accent);
+    background: var(--acc-accent-soft);
+    padding: 1px var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
+  &__path {
+    font-family: var(--acc-font-mono);
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    overflow-wrap: anywhere;
+  }
+
+  &__advisory {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-warning);
+    line-height: var(--acc-lh-normal);
+    margin-top: var(--acc-space-1);
+  }
+
+  &__found {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-success);
+    margin-top: var(--acc-space-1);
+  }
+}

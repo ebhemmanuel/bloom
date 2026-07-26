@@ -20,8 +20,7 @@ const beforeCycle = new Date(2026, 8, 16, 9, 0); // Wed 09:00
 const afterCycle = new Date(2026, 8, 16, 17, 30); // Wed 17:30
 const nextMorning = new Date(2026, 8, 17, 7, 45); // Thu 07:45
 
-const status = (doc, date, student, asg, now) =>
-  effectiveStatus(doc, date, student, asg, now);
+const status = (doc, date, student, asg, now) => effectiveStatus(doc, date, student, asg, now);
 
 describe('effectiveStatus — precedence chain', () => {
   it('returns no_record when the day was never opened', () => {
@@ -73,9 +72,7 @@ describe('effectiveStatus — precedence chain', () => {
 
   it('returns absent for an absent student, whatever the clock says', () => {
     const doc = withDay(makeDoc(), WED, { [T.jordan]: { absent: true } });
-    expect(status(doc, WED, T.jordan, T.asgJordanExtTime, beforeCycle)).toBe(
-      DERIVED_STATUS.ABSENT
-    );
+    expect(status(doc, WED, T.jordan, T.asgJordanExtTime, beforeCycle)).toBe(DERIVED_STATUS.ABSENT);
     expect(status(doc, WED, T.jordan, T.asgJordanExtTime, afterCycle)).toBe(DERIVED_STATUS.ABSENT);
   });
 
@@ -136,9 +133,21 @@ describe('the load-bearing guarantee: a missing day is never not_used', () => {
   it('a three-week gap resolves to no_record throughout, never not_used', () => {
     const doc = makeDoc(); // no day records at all
     const gap = [
-      '2026-08-24','2026-08-25','2026-08-26','2026-08-27','2026-08-28',
-      '2026-08-31','2026-09-01','2026-09-02','2026-09-03','2026-09-04',
-      '2026-09-07','2026-09-08','2026-09-09','2026-09-10','2026-09-11',
+      '2026-08-24',
+      '2026-08-25',
+      '2026-08-26',
+      '2026-08-27',
+      '2026-08-28',
+      '2026-08-31',
+      '2026-09-01',
+      '2026-09-02',
+      '2026-09-03',
+      '2026-09-04',
+      '2026-09-07',
+      '2026-09-08',
+      '2026-09-09',
+      '2026-09-10',
+      '2026-09-11',
     ];
 
     for (const date of gap) {
@@ -152,6 +161,37 @@ describe('the load-bearing guarantee: a missing day is never not_used', () => {
     const doc = makeDoc();
     const sealed = sealCompletedDays(doc, nextMorning);
     expect(Object.keys(sealed.days)).toHaveLength(0);
+  });
+
+  it('auto-seal leaves TODAY editable even after the cycle end time', () => {
+    // Teachers do this paperwork in the evening. Sealing today at 16:00 would
+    // make the board read-only exactly when it is being used, forcing an audited
+    // Amend for ordinary same-day entry.
+    const doc = withDay(makeDoc(), WED, {});
+    const sealed = sealCompletedDays(doc, afterCycle); // Wed 17:30
+
+    expect(sealed.days[WED].sealed).toBe(false);
+    // …but the teacher still SEES the real default.
+    expect(status(sealed, WED, T.jordan, T.asgJordanExtTime, afterCycle)).toBe(STATUS.NOT_USED);
+    // …and the stored value is still editable, not materialised.
+    expect(sealed.days[WED].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
+      STATUS.UNASSIGNED
+    );
+  });
+
+  it('auto-seal does close out yesterday once the date rolls over', () => {
+    const doc = withDay(withDay(makeDoc(), TUE, {}), WED, {});
+    const sealed = sealCompletedDays(doc, nextMorning); // Thu 07:45
+
+    expect(sealed.days[TUE].sealed).toBe(true);
+    expect(sealed.days[WED].sealed).toBe(true);
+  });
+
+  it('an explicit close-out can still seal today', () => {
+    const doc = withDay(makeDoc(), WED, {});
+    const sealed = sealDay(doc, WED, afterCycle, 'user');
+    expect(sealed.days[WED].sealed).toBe(true);
+    expect(sealed.days[WED].sealedBy).toBe('user');
   });
 
   it('a student with no entry on an existing day is no_record, not not_used', () => {
