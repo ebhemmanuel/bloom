@@ -1,0 +1,40 @@
+appId: com.classroom.accommodations
+productName: Accommodations Tracker
+copyright: Accommodations Tracker
+
+directories:
+  output: dist-electron
+  buildResources: build
+
+files:
+  - electron/**/*
+  - package.json
+
+extraResources:
+  - from: dist-renderer
+    to: dist-renderer
+    filter:
+      - '**/*'
+
+asar: true
+compression: maximum
+
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  icon: build/icon.ico
+  # Unsigned. District AppLocker / SmartScreen implications are documented in the README.
+  signAndEditExecutable: false
+
+portable:
+  artifactName: 'Accommodations-Tracker.exe'
+  # unpackDirName is deliberately NOT set. The default derives a stable directory
+  # name from productName + version, so a relaunch reuses the existing unpack
+  # instead of re-extracting ~86 MB — a real difference from a USB stick.
+  # Setting it to `false` does the opposite: a random dir per launch. Verified by
+  # observing the unpack path in app.log.
+  #
+  # Consequence, and the reason data.json cannot live "next to the exe": the app
+  # always runs from %TEMP%\<hash>\, never from the folder the user sees.

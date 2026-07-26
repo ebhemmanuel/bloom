@@ -1,0 +1,33 @@
+// Temporary Phase 0 boot screen. Removed once AppShell lands in Phase 2.
+
+.acc-boot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding: var(--acc-space-8);
+
+  &__facts {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: var(--acc-space-2) var(--acc-space-5);
+    margin: 0;
+    padding: var(--acc-space-5);
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    box-shadow: var(--acc-shadow-card);
+    font-size: var(--acc-fs-sub);
+
+    dt {
+      color: var(--acc-fg-muted);
+    }
+
+    dd {
+      margin: 0;
+      font-family: var(--acc-font-mono);
+    }
+  }
+}

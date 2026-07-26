@@ -1,0 +1,48 @@
+// Fonts are bundled locally under src/assets/fonts and referenced with @font-face
+// here once they land. NO @import from Google Fonts, ever — it would break offline
+// operation and violate the network promise the product is built on.
+//
+// Until the licensed faces are dropped in, the token stack falls through to
+// Segoe UI, which ships with every Windows install this app targets.
+
+.acc-display {
+  font-size: var(--acc-fs-display);
+  font-weight: var(--acc-fw-semibold);
+  line-height: var(--acc-lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.acc-heading {
+  font-size: var(--acc-fs-heading);
+  font-weight: var(--acc-fw-semibold);
+  line-height: var(--acc-lh-tight);
+}
+
+.acc-subhead {
+  font-size: var(--acc-fs-tiny);
+  font-weight: var(--acc-fw-semibold);
+  letter-spacing: var(--acc-ls-cap);
+  text-transform: uppercase;
+  color: var(--acc-fg-muted);
+}
+
+.acc-body-muted {
+  color: var(--acc-fg-muted);
+}
+
+.acc-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+// Screen-reader-only text. Used heavily by the board for drag announcements.
+.acc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

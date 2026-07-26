@@ -1,0 +1,233 @@
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Design tokens. See docs/DESIGN_REQUIREMENTS.md for the reasoning behind these.
+//
+// Same idiom as bigchat/assets/scss/themes/_marathon-shared.scss: one Sass map is
+// the single source of truth, and an @each loop emits it as --acc-* custom
+// properties. Components consume var(--acc-*) and never the Sass variables, so a
+// palette swap is a token-only edit.
+//
+// Direction: warm, low-saturation, violet-leaning neutrals with pastel status
+// accents — morning light on paper, not a SaaS dashboard. Softness lives in
+// color, radius, shadow and motion; it never costs contrast.
+//
+// Light is primary on purpose. This is a daylight classroom tool that prints
+// constantly; a dark board that inverts on paper is worse than a light one
+// that matches.
+// ---------------------------------------------------------------------------
+
+$acc-tokens: (
+  // Surfaces ---------------------------------------------------------------
+  'bg': #faf8fc,
+  'surface': #ffffff,
+  'surface-raised': #ffffff,
+  'surface-sunken': #f3f0f8,
+  'surface-hover': #f7f4fb,
+  'surface-selected': #eeeafd,
+  'scrim': rgba(42, 36, 56, 0.42),
+
+  // Lines ------------------------------------------------------------------
+  'border': #e9e5f0,
+  'border-strong': #d6d0e2,
+  'border-focus': #5b4bd6,
+
+  // Text -------------------------------------------------------------------
+  // Never pure black — #2a2438 carries the same violet warmth as the surfaces,
+  // so text sits in the palette instead of punching a hole through it.
+  'fg': #2a2438,
+  'fg-muted': #6b6480,
+  'fg-faint': #9a93a8,
+  'fg-inverse': #ffffff,
+
+  // Accent -----------------------------------------------------------------
+  'accent': #5b4bd6,
+  'accent-hover': #6d5ee6,
+  'accent-soft': #eeebfd,
+  'accent-fg': #ffffff,
+
+  // Status ------------------------------------------------------------------
+  // Deliberately NOT a red/green pass-fail axis. "Not Used" is a fact, not a
+  // failure — a student may have been absent or simply not needed the support.
+  // Amber reads as "note this"; red would read as "you failed a disabled child",
+  // which is both wrong and cruel on a report a teacher has to sign.
+  'status-unassigned': #7a7391,
+  'status-unassigned-soft': #f2eff7,
+  'status-used': #2f7d63,
+  'status-used-soft': #e4f4ed,
+  'status-detail': #5b4bd6,
+  'status-detail-soft': #eeebfd,
+  'status-not-used': #a06a2c,
+  'status-not-used-soft': #fbf1e2,
+  'status-absent': #8a839a,
+  'status-absent-soft': #f4f2f7,
+  'status-na': #9a93a8,
+  // Must be unmistakably distinct from status-not-used. "No data recorded" and
+  // "the accommodation was not delivered" are different claims and conflating
+  // them is this product's most serious possible failure.
+  'status-no-record': #b5aec4,
+
+  // Plan-type pills ---------------------------------------------------------
+  'plan-iep': #3d5bbf,
+  'plan-iep-soft': #e8eeff,
+  'plan-504': #6b4bb8,
+  'plan-504-soft': #f0e9fd,
+
+  // Feedback ---------------------------------------------------------------
+  'danger': #a33a30,
+  'danger-soft': #fdecea,
+  'warning': #a06a2c,
+  'warning-soft': #fbf1e2,
+  'success': #2f7d63,
+  'success-soft': #e4f4ed,
+
+  // Aurora — onboarding and splash ONLY. Never on the board, manage screens,
+  // or print. Used at low opacity behind 70–110px blur.
+  'aurora-blush': #ffd9e8,
+  'aurora-periwinkle': #d9dfff,
+  'aurora-mint': #d2f2e6,
+  'aurora-apricot': #ffe7cf,
+  'aurora-lilac': #ebdcff,
+
+  // Typography -------------------------------------------------------------
+  'font-sans': (
+    'Inter',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif,
+  ),
+  'font-mono': (
+    'JetBrains Mono',
+    'Cascadia Mono',
+    Consolas,
+    monospace,
+  ),
+  'fs-display': 30px,
+  'fs-heading': 20px,
+  'fs-subhead': 15px,
+  'fs-body': 14px,
+  'fs-card': 13px,
+  'fs-sub': 12px,
+  'fs-tiny': 11px,
+  'fw-regular': 400,
+  'fw-medium': 500,
+  'fw-semibold': 600,
+  'fw-bold': 700,
+  'lh-tight': 1.2,
+  'lh-normal': 1.45,
+  'ls-cap': 0.08em,
+
+  // Spacing ----------------------------------------------------------------
+  'space-0': 0,
+  'space-1': 4px,
+  'space-2': 8px,
+  'space-3': 12px,
+  'space-4': 16px,
+  'space-5': 20px,
+  'space-6': 24px,
+  'space-7': 32px,
+  'space-8': 48px,
+
+  // Radii — larger than a typical app scale; a meaningful part of "soft".
+  'radius-sm': 4px,
+  'radius-md': 8px,
+  'radius-lg': 14px,
+  'radius-xl': 20px,
+  'radius-pill': 999px,
+
+  // Elevation — violet-tinted, never neutral grey-black.
+  'shadow-card': 0 1px 2px rgba(42, 36, 56, 0.06),
+  'shadow-raised': 0 4px 12px -2px rgba(42, 36, 56, 0.1),
+  'shadow-overlay': 0 12px 32px -8px rgba(42, 36, 56, 0.18),
+  'shadow-drag': 0 16px 32px -8px rgba(42, 36, 56, 0.24),
+
+  // Motion ------------------------------------------------------------------
+  // Asymmetric on purpose: things enter slowly and leave quickly. That is what
+  // makes an interface feel gracious rather than sluggish.
+  'ease-entrance': cubic-bezier(0.16, 1, 0.3, 1),
+  'ease-exit': cubic-bezier(0.7, 0, 0.84, 0),
+  'ease-standard': cubic-bezier(0.65, 0, 0.35, 1),
+  'ease-settle': cubic-bezier(0.34, 1.28, 0.64, 1),
+  'dur-instant': 90ms,
+  'dur-fast': 160ms,
+  'dur-normal': 260ms,
+  'dur-slow': 420ms,
+  'dur-ambient': 900ms,
+  'dur-drift': 24s,
+  // Cascade: 45ms between siblings, total capped at 400ms (~8 items) — past
+  // that, remaining items share the final step. An uncapped stagger makes a
+  // 30-lane board take 1.4s to assemble: delightful once, infuriating daily.
+  'stagger-step': 45ms,
+  'stagger-cap': 400ms,
+
+  // Layout ------------------------------------------------------------------
+  'toolbar-h': 56px,
+  'lane-header-h': 44px,
+  'column-min-w': 220px,
+  'notes-col-w': 280px
+);
+
+// Dark theme deltas. Only values that actually change are listed — the rest
+// fall through to the base map.
+$acc-tokens-dark: (
+  'bg': #191621,
+  'surface': #221e2c,
+  'surface-raised': #292435,
+  'surface-sunken': #151220,
+  'surface-hover': #2e2839,
+  'surface-selected': #2f2652,
+  'scrim': rgba(10, 8, 14, 0.66),
+  'border': #352f42,
+  'border-strong': #494153,
+  'fg': #ece9f2,
+  'fg-muted': #a49cb8,
+  'fg-faint': #766e88,
+  'accent': #a595ff,
+  'accent-hover': #b8abff,
+  'accent-soft': #322a5c,
+  'accent-fg': #16121f,
+  'status-unassigned': #a49cb8,
+  'status-unassigned-soft': #2b2637,
+  'status-used': #6fc9a6,
+  'status-used-soft': #1c3a30,
+  'status-detail': #a595ff,
+  'status-detail-soft': #302a54,
+  'status-not-used': #e0aa63,
+  'status-not-used-soft': #3b2d18,
+  'status-absent': #8a839a,
+  'status-absent-soft': #262130,
+  'status-na': #766e88,
+  'status-no-record': #4d4560,
+  'plan-iep': #90a8f5,
+  'plan-iep-soft': #24305c,
+  'plan-504': #b79cf0,
+  'plan-504-soft': #322553,
+  'danger': #f0938a,
+  'danger-soft': #43211e,
+  'warning': #e0aa63,
+  'warning-soft': #3b2d18,
+  'success': #6fc9a6,
+  'success-soft': #1c3a30,
+  'shadow-card': 0 1px 2px rgba(0, 0, 0, 0.3),
+  'shadow-raised': 0 4px 12px -2px rgba(0, 0, 0, 0.4),
+  'shadow-overlay': 0 12px 32px -8px rgba(0, 0, 0, 0.55),
+  'shadow-drag': 0 16px 32px -8px rgba(0, 0, 0, 0.6),
+);
+
+@mixin emit-tokens($tokens) {
+  @each $name, $value in $tokens {
+    --acc-#{$name}: #{$value};
+  }
+}
+
+:root {
+  @include emit-tokens($acc-tokens);
+}
+
+// Explicit opt-in, not a prefers-color-scheme default. A teacher's OS theme is a
+// personal preference; this app's default appearance is a deployment decision,
+// and a classroom projector mirroring a dark board is a legibility problem.
+[data-theme='dark'] {
+  @include emit-tokens($acc-tokens-dark);
+}

@@ -1,0 +1,205 @@
+@use 'sass:list';
+
+// ---------------------------------------------------------------------------
+// Motion primitives. See docs/DESIGN_REQUIREMENTS.md §4.
+//
+// House rules encoded here so no component has to reinvent them:
+//   - Nothing cuts. Screen changes crossfade with overlap.
+//   - Things arrive, they don't appear: opacity + a small 8px settle.
+//   - Cascades are capped at 400ms total. An uncapped stagger makes a 30-lane
+//     board take 1.4s to assemble — delightful once, infuriating by Wednesday.
+//   - prefers-reduced-motion drops every transform and every stagger. This app
+//     documents disability accommodations; shipping motion sickness in it would
+//     be indefensible.
+//
+// The app deliberately ships no JS animation runtime. Everything is CSS.
+// ---------------------------------------------------------------------------
+
+// --- Keyframes -------------------------------------------------------------
+
+// The standard entrance. translateY is small on purpose: large travel reads as
+// a slide transition, 8px reads as settling into place.
+@keyframes acc-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes acc-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes acc-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes acc-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+// Popover growing out of its origin element rather than appearing over it.
+@keyframes acc-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Aurora blob arrival — the individual "pop" of onboarding. Scale is authored
+// per-blob via --acc-blob-scale-from so each one enters differently.
+@keyframes acc-bloom-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--acc-blob-scale-from, 0.75)) translate3d(0, 0, 0);
+  }
+  to {
+    opacity: var(--acc-blob-opacity, 0.5);
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+// Ambient drift. Amplitude stays under 6% of viewport — perceptible only if you
+// look for it. Periods are desynchronised per blob so the field never repeats.
+@keyframes acc-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -2.5%, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-2.5%, 2%, 0) scale(0.97);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Save-status pill while a write is in flight. Quietly reassuring, not urgent.
+@keyframes acc-pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// --- Mixins ----------------------------------------------------------------
+
+/// Standard entrance. Apply to anything arriving on screen.
+@mixin entrance($duration: var(--acc-dur-normal), $delay: 0ms) {
+  animation: acc-enter $duration var(--acc-ease-entrance) $delay both;
+}
+
+@mixin fade-in($duration: var(--acc-dur-normal), $delay: 0ms) {
+  animation: acc-fade-in $duration var(--acc-ease-entrance) $delay both;
+}
+
+/// Stagger direct children in reading order, capped per the budget rule.
+/// Children must already carry an entrance animation.
+@mixin cascade($step: 45ms, $max-items: 8) {
+  @for $i from 1 through $max-items {
+    > *:nth-child(#{$i}) {
+      animation-delay: $step * ($i - 1);
+    }
+  }
+  // Everything past the cap shares the final step and arrives together.
+  > *:nth-child(n + #{$max-items + 1}) {
+    animation-delay: $step * ($max-items - 1);
+  }
+}
+
+/// Crossfade between two co-present states. The incoming delay is shorter than
+/// the outgoing duration on purpose — the ~80ms overlap is what removes the
+/// sense of a jump.
+@mixin screen-enter {
+  animation: acc-enter var(--acc-dur-slow) var(--acc-ease-entrance) 120ms both;
+}
+
+@mixin screen-exit {
+  animation: acc-exit 200ms var(--acc-ease-exit) both;
+}
+
+/// Soft interactive transition for hover/press states.
+@mixin interactive($properties...) {
+  // Explicit @if rather than the global if() — modern Sass parses a bare if()
+  // as the CSS function and errors out.
+  @if list.length($properties) > 0 {
+    transition-property: $properties;
+  } @else {
+    transition-property: all;
+  }
+  transition-duration: var(--acc-dur-instant);
+  transition-timing-function: var(--acc-ease-standard);
+}
+
+// --- Utility classes -------------------------------------------------------
+
+.acc-enter {
+  @include entrance;
+}
+
+.acc-fade-enter {
+  @include fade-in;
+}
+
+.acc-screen-enter {
+  @include screen-enter;
+}
+
+.acc-screen-exit {
+  @include screen-exit;
+}
+
+/// Put on any container whose direct children should cascade in.
+.acc-cascade {
+  @include cascade;
+}
+
+// --- Reduced motion --------------------------------------------------------
+// Opacity crossfades survive (they carry meaning and cause no vestibular
+// trouble); every transform and every stagger is removed.
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-enter,
+  .acc-fade-enter,
+  .acc-screen-enter {
+    animation: acc-fade-in 120ms linear both;
+  }
+
+  .acc-screen-exit {
+    animation: acc-fade-out 120ms linear both;
+  }
+
+  .acc-cascade > * {
+    animation-delay: 0ms !important;
+  }
+}

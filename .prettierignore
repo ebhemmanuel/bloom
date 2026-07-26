@@ -1,0 +1,8 @@
+node_modules
+dist-renderer
+dist-electron
+dev-data
+coverage
+package-lock.json
+*.min.js
+build/icon.ico

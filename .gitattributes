@@ -1,0 +1,11 @@
+# Normalise line endings so diffs stay clean across machines.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.otf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.exe binary

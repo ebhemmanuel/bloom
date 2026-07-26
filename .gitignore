@@ -1,0 +1,15 @@
+node_modules/
+dist-renderer/
+dist-electron/
+coverage/
+
+# Local development data store. NEVER commit — may contain student PII.
+dev-data/
+*.data.json
+data.json
+data.corrupt-*.json
+backups/
+
+.DS_Store
+Thumbs.db
+*.log
