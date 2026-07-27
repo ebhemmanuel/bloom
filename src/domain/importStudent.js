@@ -22,6 +22,25 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
  * commas ARE the delimiter, those inside brackets or quotes are protected, which
  * keeps that exact example intact.
  */
+/**
+ * Split a list of student names.
+ *
+ * Deliberately NOT the accommodation splitter. A name list is the opposite
+ * problem: commas are the delimiter, not something to protect, and there is no
+ * "Alvarez, Jordan" case to preserve because this app asks for one display label
+ * per student rather than a first and last name.
+ *
+ * The point is that a teacher pasting a column out of their roster gets a
+ * roster, not one student with a very long name — which is what a plain trim of
+ * the field would give them.
+ */
+export function splitStudentNames(text) {
+  return String(text || '')
+    .split(/[\n\r,;\t]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export function splitAccommodationList(text) {
   const raw = String(text ?? '').replace(/\r\n?/g, '\n');
   if (!raw.trim()) return [];

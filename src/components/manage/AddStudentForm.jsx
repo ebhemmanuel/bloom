@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext.jsx';
 import {
   resolveAccommodationList,
   addStudentWithAccommodations,
+  splitStudentNames,
 } from '../../domain/importStudent.js';
 import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
@@ -28,7 +29,6 @@ export default function AddStudentForm({ onAdded }) {
   const periods = useMemo(() => periodOptions(doc), [doc]);
 
   const [displayName, setDisplayName] = useState('');
-  const [sasid, setSasid] = useState('');
   const [planType, setPlanType] = useState('IEP');
   const [periodIds, setPeriodIds] = useState([]);
   // Blank means "has been here since the start of the year", which is the common
@@ -50,7 +50,19 @@ export default function AddStudentForm({ onAdded }) {
     return [...parsed.items, ...extra];
   }, [parsed.items, picked]);
 
-  const canSubmit = displayName.trim().length > 0 && combined.length > 0;
+  /**
+   * One field, one or many students.
+   *
+   * A teacher setting up in September has their roster in front of them, and the
+   * natural thing to do is paste the column. Splitting here means that produces
+   * a roster; without it, it produced one student whose name was the whole list.
+   * Everything else on the form — plan type, periods, enrolment date and the
+   * accommodations — applies to all of them, which is exactly right for a class
+   * being set up in one go and is editable per student afterwards.
+   */
+  const names = useMemo(() => splitStudentNames(displayName), [displayName]);
+
+  const canSubmit = names.length > 0 && combined.length > 0;
 
   const togglePick = (item) => {
     setPicked((prev) =>
@@ -73,36 +85,39 @@ export default function AddStudentForm({ onAdded }) {
     if (!canSubmit) return;
     let report = null;
     mutate((d) => {
-      const outcome = addStudentWithAccommodations(d, {
-        displayName: displayName.trim(),
-        sasid,
-        planType,
-        periodIds,
-        enrolledFrom: enrolledFrom || null,
-        accommodations: combined,
-      });
-      report = outcome.report;
+      let next = d;
+      for (const name of names) {
+        const outcome = addStudentWithAccommodations(next, {
+          displayName: name,
+          planType,
+          periodIds,
+          enrolledFrom: enrolledFrom || null,
+          accommodations: combined,
+        });
+        next = outcome.doc;
+        // Every student gets the same list, so one report describes them all.
+        report = outcome.report;
+      }
 
-      // Lay out every school day this student is entitled to, from whenever
+      // Lay out every school day these students are entitled to, from whenever
       // they joined through today. Without this a teacher adding their roster in
       // November would have a board for today and nothing behind it.
-      const range = backfillRange(outcome.doc);
+      const range = backfillRange(next);
       const filled = range
-        ? backfillDays(outcome.doc, {
+        ? backfillDays(next, {
             from: enrolledFrom && enrolledFrom > range.from ? enrolledFrom : range.from,
             to: range.to,
           }).doc
-        : outcome.doc;
+        : next;
 
-      // Seed them into the day on screen. Without this the student appears on
-      // the board but has no entries in the day record, so every card silently
+      // Seed them into the day on screen. Without this a student appears on the
+      // board but has no entries in the day record, so every card silently
       // refuses to move — the mutation finds nothing to update.
       return ensureDay(filled, dateKey);
     });
 
-    setResult({ name: displayName.trim(), report });
+    setResult({ names, report });
     setDisplayName('');
-    setSasid('');
     setPeriodIds([]);
     setEnrolledFrom('');
     setPaste('');
@@ -115,7 +130,11 @@ export default function AddStudentForm({ onAdded }) {
     <section className="acc-addstudent">
       <div className="acc-addstudent__identity">
         <label className="acc-field">
-          <span className="acc-field__label">What should this student be called?</span>
+          <span className="acc-field__label">
+            {names.length > 1
+              ? `What should these ${names.length} students be called?`
+              : 'What should this student be called?'}
+          </span>
           <input
             className="acc-field__input"
             value={displayName}
@@ -123,24 +142,42 @@ export default function AddStudentForm({ onAdded }) {
             placeholder="J. Alvarez, or JA, or Student 4"
           />
           <span className="acc-field__hint">
-            Whatever you'll recognise on the board and on a printed report. Initials or a code work
-            fine — the file does not need a full legal name.
+            Whatever you&rsquo;ll recognise on the board and on a printed report. Initials or a code
+            work fine — the file does not need a full legal name. Paste a whole list, separated by
+            commas or one per line, to add them together.
           </span>
         </label>
 
-        <div className="acc-field-row">
+        {names.length > 1 && (
+          <div className="acc-preview acc-fade-enter">
+            <p className="acc-preview__summary">
+              {names.length} students, each getting everything set below
+            </p>
+            <div className="acc-chipset">
+              {names.map((n) => (
+                <span key={n} className="acc-chip acc-chip--on">
+                  {n}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="acc-field-row acc-field-row--80-20">
           <label className="acc-field">
-            <span className="acc-field__label">SASID</span>
+            <span className="acc-field__label">Newly enrolled?</span>
             <input
-              className="acc-field__input"
-              value={sasid}
-              onChange={(e) => setSasid(e.target.value)}
-              placeholder="State-assigned student ID"
-              inputMode="numeric"
+              type="date"
+              className="acc-field__input acc-field__input--date"
+              value={enrolledFrom}
+              min={doc.schoolCalendar?.termStart || undefined}
+              max={todayKey()}
+              onChange={(e) => setEnrolledFrom(e.target.value)}
+              aria-label="First day in this class"
             />
           </label>
 
-          <label className="acc-field acc-field--narrow">
+          <label className="acc-field">
             <span className="acc-field__label">Plan</span>
             <select
               className="acc-field__input"
@@ -156,23 +193,11 @@ export default function AddStudentForm({ onAdded }) {
           </label>
         </div>
 
-        <label className="acc-field">
-          <span className="acc-field__label">Newly enrolled?</span>
-          <input
-            type="date"
-            className="acc-field__input acc-field__input--date"
-            value={enrolledFrom}
-            min={doc.schoolCalendar?.termStart || undefined}
-            max={todayKey()}
-            onChange={(e) => setEnrolledFrom(e.target.value)}
-            aria-label="First day in this class"
-          />
-          <span className="acc-field__hint">
-            {enrolledFrom
-              ? `Every day before ${formatDateMedium(enrolledFrom)} stays locked and reads “not applicable — enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
-              : 'Leave blank if they have been in this class since the start of the year. Set a date and everything before it is locked, with the reason on the record.'}
-          </span>
-        </label>
+        <span className="acc-field__hint">
+          {enrolledFrom
+            ? `Every day before ${formatDateMedium(enrolledFrom)} stays locked and reads “not applicable — enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
+            : 'Leave the date blank if they have been in this class since the start of the year. Set one and everything before it is locked, with the reason on the record.'}
+        </span>
 
         <div className="acc-field">
           <span className="acc-field__label">Which periods?</span>
@@ -322,13 +347,14 @@ export default function AddStudentForm({ onAdded }) {
           onClick={submit}
           disabled={!canSubmit}
         >
-          Add student
+          {names.length > 1 ? `Add ${names.length} students` : 'Add student'}
         </button>
       </footer>
 
       {result && (
         <p className="acc-addstudent__result acc-fade-enter" role="status">
-          Added <strong>{result.name}</strong> with {result.report.added} accommodation
+          Added <strong>{result.names.join(', ')}</strong>
+          {result.names.length > 1 ? ' — each' : ''} with {result.report.added} accommodation
           {result.report.added === 1 ? '' : 's'}
           {result.report.reused > 0 && ` (${result.report.reused} reused from your list)`}.
         </p>

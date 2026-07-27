@@ -306,6 +306,23 @@
   display: flex;
   gap: var(--acc-space-3);
   align-items: flex-start;
+
+  // Both children need `min-inline-size: 0` or a flex item refuses to shrink
+  // below its content, and a long date input drags the row wider than the modal.
+  > .acc-field {
+    min-inline-size: 0;
+  }
+
+  // A wide field beside a narrow one — a date next to its plan type, say. The
+  // ratio is on the ROW rather than baked into `.acc-field`, so the same field
+  // component can sit in any proportion its context calls for.
+  &--80-20 > .acc-field {
+    flex: 4 1 0;
+
+    &:last-child {
+      flex: 1 1 0;
+    }
+  }
 }
 
 .acc-chipset {
