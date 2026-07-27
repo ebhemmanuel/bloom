@@ -4,6 +4,7 @@ import {
   resolveAccommodationList,
   addStudentWithAccommodations,
   splitStudentNames,
+  readPastedNames,
 } from '../../domain/importStudent.js';
 import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
@@ -139,6 +140,20 @@ export default function AddStudentForm({ onAdded }) {
             className="acc-field__input"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
+            /*
+              Take the clipboard's own text rather than what the field would
+              make of it. A column pasted out of a spreadsheet arrives with
+              newlines, and a single-line input replaces every one with a space,
+              which is exactly the delimiter that also sits inside "Priya S."
+              Joining with commas keeps the field readable AND splittable.
+            */
+            onPaste={(e) => {
+              const names = readPastedNames(e);
+              if (!names) return;
+              e.preventDefault();
+              const existing = displayName.trim();
+              setDisplayName((existing ? `${existing}, ` : '') + names.join(', '));
+            }}
             placeholder="J. Alvarez, or JA, or Student 4"
           />
           <span className="acc-field__hint">

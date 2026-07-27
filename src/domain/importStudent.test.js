@@ -3,6 +3,8 @@ import {
   splitAccommodationList,
   resolveAccommodationList,
   addStudentWithAccommodations,
+  splitStudentNames,
+  readPastedNames,
 } from './importStudent.js';
 import { createEmptyDoc } from './schema.js';
 import { itemsForSet, STARTER_SETS, allStarterItems } from './starterSets.js';
@@ -11,6 +13,130 @@ const catalog = [
   { id: 'cat_1', label: 'Extended time (1.5x) on assessments' },
   { id: 'cat_2', label: 'Preferential seating (front, near instruction)' },
 ];
+
+describe('splitStudentNames', () => {
+  it('splits on the delimiters a spreadsheet actually sends', () => {
+    expect(splitStudentNames('Priya S.\tDavid L.\nSarah M.')).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+    ]);
+    expect(splitStudentNames('Priya S., David L.; Sarah M.')).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+    ]);
+  });
+
+  it('recovers a list the input already flattened to spaces', () => {
+    // What a single-line field does to a pasted column: every newline becomes a
+    // space, which is the same character that sits inside each name.
+    expect(splitStudentNames('Priya S. David L. Sarah M. Michael K.')).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+      'Michael K.',
+    ]);
+  });
+
+  it('handles the real thing: ten names, spaces only', () => {
+    expect(
+      splitStudentNames(
+        'Priya S. David L. Sarah M. Michael K. Emily R. James T. Olivia C. Daniel W. Sophia B. Matthew H.'
+      )
+    ).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+      'Michael K.',
+      'Emily R.',
+      'James T.',
+      'Olivia C.',
+      'Daniel W.',
+      'Sophia B.',
+      'Matthew H.',
+    ]);
+  });
+
+  it('rescues both halves of a mixed paste', () => {
+    // Some names kept their commas, the rest were flattened into one run of
+    // spaces. Splitting on commas alone would leave the first chunk whole.
+    expect(splitStudentNames('Priya S. David L. Sarah M., Daniel W., Sophia B.')).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+      'Daniel W.',
+      'Sophia B.',
+    ]);
+  });
+
+  it('leaves a single name alone', () => {
+    expect(splitStudentNames('Jordan Alvarez')).toEqual(['Jordan Alvarez']);
+    expect(splitStudentNames('Priya S.')).toEqual(['Priya S.']);
+  });
+
+  /**
+   * The cases the recovery must NOT touch. A wrong split is worse than none:
+   * the teacher sees the result either way, but an unexpected split has to be
+   * understood before it can be undone.
+   */
+  it('does not split initials-only names', () => {
+    expect(splitStudentNames('J. M.')).toEqual(['J. M.']);
+  });
+
+  it('does not split an honorific', () => {
+    expect(splitStudentNames('Ms. Rivera')).toEqual(['Ms. Rivera']);
+    expect(splitStudentNames('Mr. Okafor')).toEqual(['Mr. Okafor']);
+  });
+
+  it('does not guess at full last names run together', () => {
+    // Genuinely ambiguous. Two students, or one person with three names?
+    expect(splitStudentNames('Jordan Alvarez Priya Raman')).toEqual(['Jordan Alvarez Priya Raman']);
+  });
+
+  it('does not split a sentence that merely contains initials', () => {
+    expect(splitStudentNames('see Priya S. about the reading plan for David L.')).toEqual([
+      'see Priya S. about the reading plan for David L.',
+    ]);
+  });
+
+  it('keeps accented names whole', () => {
+    expect(splitStudentNames('Sofía N. Renée B.')).toEqual(['Sofía N.', 'Renée B.']);
+  });
+
+  it('ignores empty entries and stray whitespace', () => {
+    expect(splitStudentNames('  Priya S. ,, \n David L.  ')).toEqual(['Priya S.', 'David L.']);
+    expect(splitStudentNames('')).toEqual([]);
+  });
+});
+
+describe('readPastedNames', () => {
+  const paste = (text) => ({ clipboardData: { getData: () => text } });
+
+  it('reads the clipboard rather than what the field would keep', () => {
+    // The delimiters are still there at paste time. Only the input destroys them.
+    expect(readPastedNames(paste('Priya S.\nDavid L.\nSarah M.'))).toEqual([
+      'Priya S.',
+      'David L.',
+      'Sarah M.',
+    ]);
+  });
+
+  it('handles a row of cells as well as a column', () => {
+    expect(readPastedNames(paste('Priya S.\tDavid L.'))).toEqual(['Priya S.', 'David L.']);
+  });
+
+  it('stands aside for an ordinary single-name paste', () => {
+    // Null means "let the browser insert this normally".
+    expect(readPastedNames(paste('Jordan Alvarez'))).toBeNull();
+    expect(readPastedNames(paste('Priya S.\n'))).toBeNull();
+  });
+
+  it('survives a paste event with no clipboard data', () => {
+    expect(readPastedNames({})).toBeNull();
+    expect(readPastedNames(undefined)).toBeNull();
+  });
+});
 
 describe('splitAccommodationList - delimiters', () => {
   it('splits a pasted column on newlines', () => {

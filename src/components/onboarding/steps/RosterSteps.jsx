@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PLAN_TYPES } from '../../../domain/constants.js';
 import { STARTER_SETS, itemsForSet, allStarterItems } from '../../../domain/starterSets.js';
 import { initialsOf } from '../../../domain/initials.js';
+import { splitStudentNames, readPastedNames } from '../../../domain/importStudent.js';
 
 /**
  * The optional half of onboarding: who you support, and what they get.
@@ -24,11 +25,19 @@ export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
   const [name, setName] = useState('');
   const [plan, setPlan] = useState('IEP');
 
-  const ready = name.trim().length > 0;
+  const parsed = splitStudentNames(name);
+  const ready = parsed.length > 0;
 
+  /**
+   * One field, one or many.
+   *
+   * Typing a name adds a student. Pasting a column out of a spreadsheet adds all
+   * of them, because that is what a teacher setting up in September actually
+   * has in front of them.
+   */
   const add = () => {
     if (!ready) return;
-    onAdd(name.trim(), plan);
+    parsed.forEach((n) => onAdd(n, plan));
     setName('');
   };
 
@@ -55,6 +64,18 @@ export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
                 add();
               }
             }}
+            /*
+              Straight from the clipboard, before the single-line field can turn
+              every newline into a space. A pasted roster is added on the spot;
+              there is nothing to confirm when the names are right there.
+            */
+            onPaste={(e) => {
+              const names = readPastedNames(e);
+              if (!names) return;
+              e.preventDefault();
+              names.forEach((n) => onAdd(n, plan));
+              setName('');
+            }}
             placeholder="e.g. J.M. or Jordan M."
             aria-label="Student name"
           />
@@ -77,9 +98,24 @@ export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
             onClick={add}
             disabled={!ready}
           >
-            Add
+            {parsed.length > 1 ? `Add ${parsed.length}` : 'Add'}
           </button>
         </div>
+
+        {/*
+          Says what the split found before it happens. Recovering names from a
+          run of spaces is a judgement call, so the teacher gets to see the call
+          and correct the field rather than discover it in the list afterwards.
+        */}
+        {parsed.length > 1 && (
+          <div className="acc-ob__chips acc-fade-enter">
+            {parsed.map((n) => (
+              <span key={n} className="acc-ob__chip acc-ob__chip--on">
+                {n}
+              </span>
+            ))}
+          </div>
+        )}
 
         {students.length > 0 && (
           <div className="acc-ob__roster">
@@ -119,7 +155,7 @@ export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
 
         <footer className="acc-ob__foot">
           <p className="acc-ob__hint">
-            You can also paste a whole list in from a spreadsheet later.
+            Paste a whole column straight from your roster, they all come in at once.
           </p>
           <button type="button" className="acc-ob__next" onClick={onBoard}>
             {students.length > 0 ? 'Open my board' : 'Skip for now'}

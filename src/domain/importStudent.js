@@ -23,6 +23,43 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
  * keeps that exact example intact.
  */
 /**
+ * A roster that arrived with its delimiters already destroyed.
+ *
+ * Pasting a column of names into a single-line input loses them: the browser
+ * replaces every newline with a space, so "Priya S." and "David L." arrive as
+ * one string with nothing between them but the same space that sits inside each
+ * name. `readPastedNames` avoids this by reading the clipboard directly, but
+ * text can still reach us flattened, and this is the last chance to recover it.
+ *
+ * The only safe signal is the shape teachers actually use: a name followed by a
+ * single-letter initial and a full stop. Requiring that pattern at least twice,
+ * and requiring the leading word to be two letters or more, is what keeps it
+ * from firing on the cases that would be ruined by a wrong guess:
+ *
+ *   "Priya S. David L. Sarah M."  -> three students
+ *   "J. M."                       -> one student, leading word is one letter
+ *   "Ms. Rivera"                  -> one name, "Ms." is not a single initial
+ *   "Jordan Alvarez Priya Raman"  -> one name, genuinely ambiguous, left alone
+ *
+ * A wrong split here is worse than no split: the teacher sees the chips either
+ * way, but an unexpected split has to be understood before it can be undone.
+ */
+const INITIAL_PATTERN = /(?:^|\s)[\p{L}][\p{L}'-]+\s+\p{L}\.(?=\s|$)/gu;
+
+function splitOnTrailingInitials(text) {
+  const matches = text.match(INITIAL_PATTERN);
+  if (!matches || matches.length < 2) return null;
+
+  // Every character has to belong to one of the matches, or this is a sentence
+  // that merely happens to contain two initials.
+  if (matches.join(' ').replace(/\s+/g, ' ').trim() !== text.replace(/\s+/g, ' ').trim()) {
+    return null;
+  }
+
+  return matches.map((m) => m.trim());
+}
+
+/**
  * Split a list of student names.
  *
  * Deliberately NOT the accommodation splitter. A name list is the opposite
@@ -31,14 +68,41 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
  * per student rather than a first and last name.
  *
  * The point is that a teacher pasting a column out of their roster gets a
- * roster, not one student with a very long name - which is what a plain trim of
+ * roster, not one student with a very long name, which is what a plain trim of
  * the field would give them.
  */
 export function splitStudentNames(text) {
-  return String(text || '')
-    .split(/[\n\r,;\t]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  return (
+    String(text || '')
+      .split(/[\n\r,;\t]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      // Per piece, not just when the whole string has no delimiters. A real
+      // paste is often mixed: a few names survive with their commas while the
+      // rest were flattened into one run of spaces, and only recovering inside
+      // each piece rescues both halves.
+      .flatMap((piece) => splitOnTrailingInitials(piece) || [piece])
+  );
+}
+
+/**
+ * Read names straight off the clipboard, before the field can flatten them.
+ *
+ * This is the actual fix for pasting out of a spreadsheet. Google Sheets puts
+ * tabs between columns and newlines between rows on the clipboard, and both are
+ * unambiguous; it is the single-line input that throws them away, replacing each
+ * newline with a space. Reading `text/plain` from the paste event gets the
+ * original, so no guessing is needed.
+ *
+ * @returns {string[]|null} names, or null when this paste is ordinary text that
+ *   should be inserted normally.
+ */
+export function readPastedNames(event) {
+  const text = event?.clipboardData?.getData('text/plain') || '';
+  if (!/[\n\r\t]/.test(text)) return null;
+
+  const names = splitStudentNames(text);
+  return names.length > 1 ? names : null;
 }
 
 export function splitAccommodationList(text) {
