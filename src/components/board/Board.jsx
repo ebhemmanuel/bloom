@@ -22,6 +22,7 @@ import {
 } from '../../domain/mutations.js';
 import CardContextMenu from './CardContextMenu.jsx';
 import StudentContextMenu from './StudentContextMenu.jsx';
+import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
@@ -45,6 +46,7 @@ export default function Board({ onAddStudent }) {
   const [detailCard, setDetailCard] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [laneMenu, setLaneMenu] = useState(null);
+  const [confirmUnenrol, setConfirmUnenrol] = useState(null);
   const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
   const {
@@ -391,9 +393,34 @@ export default function Board({ onAddStudent }) {
           onClose={() => setLaneMenu(null)}
           onRename={(name) => mutate((d) => renameStudent(d, laneMenu.lane.studentId, name))}
           onToggleAbsent={(reason) => handleToggleAbsent(laneMenu.lane.studentId, reason)}
-          onUnenrol={(from) =>
-            mutate((d) => setStudentEnrollment(d, laneMenu.lane.studentId, from))
-          }
+          onUnenrol={(from) => {
+            // Re-enrolling is harmless and immediately visible, so it goes
+            // straight through. Unenrolling changes every future day, so it asks.
+            if (!from) {
+              mutate((d) => setStudentEnrollment(d, laneMenu.lane.studentId, null));
+              return;
+            }
+            setConfirmUnenrol({ lane: laneMenu.lane, from });
+          }}
+        />
+      )}
+
+      {confirmUnenrol && (
+        <ConfirmDialog
+          title={`Unenrol ${confirmUnenrol.lane.displayName}?`}
+          body={`They will stop appearing on the board from ${formatDateLong(
+            confirmUnenrol.from
+          )} onward, and will not be included in reports covering days after that.`}
+          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enrol them at any time if this was a mistake."
+          confirmLabel="Unenrol"
+          tone="warn"
+          onCancel={() => setConfirmUnenrol(null)}
+          onConfirm={() => {
+            mutate((d) =>
+              setStudentEnrollment(d, confirmUnenrol.lane.studentId, confirmUnenrol.from)
+            );
+            setConfirmUnenrol(null);
+          }}
         />
       )}
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Modal from '../shared/Modal.jsx';
+import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import {
@@ -35,6 +36,7 @@ export default function StudentAccommodationsModal({ onClose }) {
   const [draft, setDraft] = useState('');
   const [renamingId, setRenamingId] = useState(null);
   const [renameText, setRenameText] = useState('');
+  const [confirming, setConfirming] = useState(null);
 
   const today = todayKey();
 
@@ -297,9 +299,7 @@ export default function StudentAccommodationsModal({ onClose }) {
                     className="acc-btn acc-btn--small acc-btn--quiet"
                     disabled={readOnly}
                     title="They stop appearing from tomorrow. Their record so far is kept in full."
-                    onClick={() =>
-                      mutate((d) => setStudentEnrollment(d, student.id, addDays(today, 1)))
-                    }
+                    onClick={() => setConfirming(addDays(today, 1))}
                   >
                     Unenrol from tomorrow
                   </button>
@@ -313,6 +313,23 @@ export default function StudentAccommodationsModal({ onClose }) {
           )}
         </section>
       </div>
+
+      {confirming && student && (
+        <ConfirmDialog
+          title={`Unenrol ${student.displayName}?`}
+          body={`They will stop appearing on the board from ${formatDateMedium(
+            confirming
+          )} onward, and will not be included in reports covering days after that.`}
+          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enrol them at any time if this was a mistake."
+          confirmLabel="Unenrol"
+          tone="warn"
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => {
+            mutate((d) => setStudentEnrollment(d, student.id, confirming));
+            setConfirming(null);
+          }}
+        />
+      )}
     </Modal>
   );
 }

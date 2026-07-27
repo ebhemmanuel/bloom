@@ -244,6 +244,61 @@
   }
 }
 
+// Deliberately narrow: a confirm is one question, and a wide box invites the eye
+// to skim past it.
+.acc-confirm {
+  inline-size: 100%;
+  max-inline-size: 420px;
+  padding: var(--acc-space-6);
+  background: var(--acc-surface);
+  border-radius: var(--acc-radius-xl);
+  box-shadow: var(--acc-shadow-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-3);
+
+  &__title {
+    font-size: var(--acc-fs-heading);
+    font-weight: var(--acc-fw-semibold);
+    line-height: var(--acc-lh-tight);
+  }
+
+  &__body {
+    font-size: var(--acc-fs-body);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  // The "you can undo this" line. Sits on a calm fill rather than an alarm
+  // colour, because every action that gets this dialog is reversible.
+  &__reassurance {
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--acc-space-2);
+    margin-block-start: var(--acc-space-2);
+  }
+}
+
+.acc-btn--warn {
+  background: var(--acc-warning);
+  border-color: var(--acc-warning);
+  color: var(--acc-surface);
+
+  &:hover:not(:disabled) {
+    background: #8f5f26;
+    border-color: #8f5f26;
+  }
+}
+
 .acc-detail {
   width: 100%;
   max-width: 520px;
