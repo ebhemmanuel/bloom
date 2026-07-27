@@ -6,6 +6,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { buildReport, resolveScope, schoolDaysIn, formatRangeLabel } from '../../domain/report.js';
 import { todayKey } from '../../domain/dates.js';
+import { pdfBridge, isDesktop } from '../../lib/bridge.js';
 
 /**
  * Choose what to print.
@@ -27,6 +28,8 @@ export default function PrintReportModal({ onClose }) {
   const [to, setTo] = useState(() => todayKey());
   const [scopePeriods, setScopePeriods] = useState(periodIds);
   const [printing, setPrinting] = useState(false);
+  const [saved, setSaved] = useState(null);
+  const [error, setError] = useState(null);
 
   const scope = kind === 'range' ? { kind: 'range', from, to } : { kind: 'todate' };
   const resolved = useMemo(() => resolveScope(doc, scope, new Date()), [doc, kind, from, to]);
@@ -43,22 +46,34 @@ export default function PrintReportModal({ onClose }) {
   const invalid = kind === 'range' && (!from || !to || from > to);
 
   /**
-   * Render the report into a portal, then hand off to the OS print dialog.
+   * Mount the report, let it lay out, then hand the window to the print path.
    *
-   * The print stylesheet hides the app and shows only this, so what is on paper
-   * is the same DOM the preview counted — there is no second rendering path that
-   * could drift from the numbers shown here.
+   * The print stylesheet hides everything except this portal, so what reaches
+   * the paper is the same DOM the preview counted — there is no second render
+   * that could drift from the numbers shown here.
+   *
+   * Two frames before printing, not one: the first commits the portal, the
+   * second is the browser's own layout pass. Printing on the first produced a
+   * blank first page often enough to matter.
    */
-  const doPrint = () => {
+  const run = (action) => {
     setPrinting(true);
-    // Let the portal paint before the (synchronous, blocking) print call.
     requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        window.print();
-        setPrinting(false);
+      requestAnimationFrame(async () => {
+        try {
+          const result = await action();
+          if (result?.ok && result.path) setSaved(result.path);
+          else if (result && !result.ok && !result.canceled) setError(result.reason || 'failed');
+        } finally {
+          setPrinting(false);
+        }
       })
     );
   };
+
+  const doPrint = () => run(() => pdfBridge.print({ landscape: true }));
+  const doSave = () =>
+    run(() => pdfBridge.export({ from: resolved.from, to: resolved.to, landscape: true }));
 
   return (
     <>
@@ -160,17 +175,42 @@ export default function PrintReportModal({ onClose }) {
             )}
           </p>
 
+          {saved && (
+            <p className="acc-printopts__saved acc-fade-enter" role="status">
+              Saved to <strong>{saved}</strong>.{' '}
+              <button type="button" className="acc-linkbtn" onClick={() => pdfBridge.reveal(saved)}>
+                Open it
+              </button>
+            </p>
+          )}
+          {error && (
+            <p className="acc-printopts__error" role="status">
+              That didn’t work ({error}). Your records are untouched — try again, or use Print.
+            </p>
+          )}
+
           <div className="acc-printopts__actions">
             <button type="button" className="acc-btn acc-btn--quiet" onClick={onClose}>
               Cancel
             </button>
+            {/* Saving needs the desktop app; a browser tab cannot write a file. */}
+            {isDesktop && (
+              <button
+                type="button"
+                className="acc-btn"
+                onClick={doSave}
+                disabled={printing || invalid || days.length === 0}
+              >
+                Save as PDF
+              </button>
+            )}
             <button
               type="button"
               className="acc-btn acc-btn--primary"
               onClick={doPrint}
-              disabled={invalid || days.length === 0}
+              disabled={printing || invalid || days.length === 0}
             >
-              Print
+              {printing ? 'Preparing…' : 'Print'}
             </button>
           </div>
         </div>

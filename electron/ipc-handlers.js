@@ -9,6 +9,7 @@
  */
 
 const { app, ipcMain, dialog, shell } = require('electron');
+const pdf = require('./pdf-export');
 
 const paths = require('./data-paths');
 const { createDataStore } = require('./data-store');
@@ -182,6 +183,32 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
     require('node:fs').writeFileSync(result.filePath, loaded.text, 'utf8');
     return { ok: true, path: result.filePath };
+  });
+
+  // --- printing ------------------------------------------------------------
+  //
+  // Both paths print the window that is already showing the report, so the paper
+  // and the screen cannot disagree. Chromium's own title-and-URL header is
+  // replaced by ours in pdf-export.js — without that, a compliance record goes
+  // to the district with a localhost URL across the top.
+
+  ipcMain.handle('pdf:export', async (_e, payload = {}) => {
+    const win = getWindow();
+    const { from, to, landscape = true } = payload;
+    const result = await pdf.exportPdf(win, {
+      fileName: pdf.suggestFileName(from, to),
+      landscape,
+    });
+    return result;
+  });
+
+  ipcMain.handle('pdf:print', async (_e, payload = {}) =>
+    pdf.printDirect(getWindow(), { landscape: payload.landscape !== false })
+  );
+
+  ipcMain.handle('pdf:reveal', async (_e, filePath) => {
+    if (!isNonEmptyString(filePath)) return { ok: false, reason: 'BAD_PATH' };
+    return pdf.revealPdf(filePath);
   });
 }
 

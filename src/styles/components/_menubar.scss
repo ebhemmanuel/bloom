@@ -583,10 +583,42 @@
     font-weight: var(--acc-fw-medium);
   }
 
+  // The saved path can be long; it wraps rather than stretching the modal.
+  &__saved {
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-accent-soft);
+    color: var(--acc-fg);
+    font-size: var(--acc-fs-sub);
+    overflow-wrap: anywhere;
+  }
+
+  &__error {
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    color: var(--acc-danger);
+    font-size: var(--acc-fs-sub);
+  }
+
   &__actions {
     display: flex;
     justify-content: flex-end;
     gap: var(--acc-space-2);
+  }
+}
+
+// A button that reads as part of a sentence.
+.acc-linkbtn {
+  transition: color var(--acc-dur-instant) var(--acc-ease-standard);
+  color: var(--acc-accent);
+  font-size: inherit;
+  font-weight: var(--acc-fw-semibold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: var(--acc-fg);
   }
 }
 

@@ -59,14 +59,17 @@ contextBridge.exposeInMainWorld('accommodations', {
   },
 
   pdf: {
-    /** kind: 'range' | 'day'. Renders offscreen, then offers a save dialog. */
-    export: (kind, payload) => ipcRenderer.invoke('pdf:export', kind, payload),
+    /**
+     * Render the print view already mounted in this window to a PDF, then offer
+     * a save dialog. `{ from, to }` only shape the suggested filename.
+     */
+    export: (payload) => ipcRenderer.invoke('pdf:export', payload),
 
-    /** Same render, but straight to the system print dialog. */
-    print: (kind, payload) => ipcRenderer.invoke('pdf:print', kind, payload),
+    /** Same view, straight to the system print dialog. */
+    print: (payload) => ipcRenderer.invoke('pdf:print', payload),
 
-    /** Called by PrintRoot once the print view has fully laid out. */
-    signalReady: () => ipcRenderer.send('print:ready'),
+    /** Open a just-saved PDF in the system reader. */
+    reveal: (filePath) => ipcRenderer.invoke('pdf:reveal', filePath),
   },
 
   app: {

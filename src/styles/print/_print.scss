@@ -15,9 +15,13 @@
 }
 
 @media print {
+  // Only reached by the browser fallback. The desktop print path sets its own
+  // page size and margins (electron/pdf-export.js) so it can also replace
+  // Chromium's title-and-URL header with a page number — matched here so the
+  // two look the same. The deeper bottom is the footer's band.
   @page {
     size: Letter landscape;
-    margin: 0.5in 0.45in;
+    margin: 0.5in 0.45in 0.62in;
   }
 
   // Hide the app, show only the report — same DOM the preview counted, so the

@@ -46,9 +46,15 @@ const browserFallback = {
     onExternalChange: () => () => {},
   },
   pdf: {
-    export: async () => ({ ok: false, reason: 'PDF export requires the desktop app.' }),
-    print: async () => ({ ok: false, reason: 'Printing requires the desktop app.' }),
-    signalReady: () => {},
+    export: async () => ({ ok: false, reason: 'Saving a PDF requires the desktop app.' }),
+    // Falls back to the browser's own print, which is fine for building the UI
+    // but brings Chromium's title-and-URL header with it. The desktop path
+    // replaces that; see electron/pdf-export.js.
+    print: async () => {
+      window.print();
+      return { ok: true, browserFallback: true };
+    },
+    reveal: async () => ({ ok: false, reason: 'browser' }),
   },
   app: {
     getInfo: async () => ({ version: 'dev', packaged: false, platform: 'browser' }),
