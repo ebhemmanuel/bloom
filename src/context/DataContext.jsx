@@ -31,6 +31,18 @@ export function DataProvider({ children }) {
   const [loadState, setLoadState] = useState({ status: 'loading', stage: 'locating', progress: 0 });
   const [repairs, setRepairs] = useState([]);
   const [saveStatus, setSaveStatus] = useState({ state: 'idle' });
+  /**
+   * True for the one render where the board appears straight out of onboarding.
+   *
+   * The board plays a slower, choreographed entrance that once, so it reads as
+   * growing out of the same scene the outro left behind. Every launch after that
+   * gets the ordinary faster one, because a teacher opening the app for the
+   * fortieth time wants their board, not a performance.
+   */
+  const [firstRun, setFirstRun] = useState(false);
+  // Stable, so the board's cascade effect is not restarted by an unrelated
+  // document change while it is running.
+  const clearFirstRun = useCallback(() => setFirstRun(false), []);
 
   // The doc we last sent to disk, so we never post an identical payload.
   const lastSavedRef = useRef(null);
@@ -177,11 +189,17 @@ export function DataProvider({ children }) {
       repairs,
       saveStatus,
       mutate,
-      setDoc,
+      // `setDoc(next, { firstRun: true })` is how onboarding hands over.
+      setDoc: (next, options) => {
+        if (options?.firstRun) setFirstRun(true);
+        setDoc(next);
+      },
+      firstRun,
+      clearFirstRun,
       dismissRepairs: () => setRepairs([]),
       readOnly: Boolean(meta.readOnly),
     }),
-    [doc, meta, loadState, repairs, saveStatus, mutate]
+    [doc, meta, loadState, repairs, saveStatus, mutate, firstRun, clearFirstRun]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

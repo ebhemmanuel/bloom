@@ -197,5 +197,48 @@ export const SUBJECT_OPTIONS = [
 
 export const GRADE_OPTIONS = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
+/**
+ * The day-end times offered during onboarding.
+ *
+ * A short list of the times a school day actually ends, rather than a time
+ * picker: choosing from six is one tap, and typing 15:30 into a field is a
+ * decision about formatting rather than about your day.
+ */
+export const CYCLE_END_OPTIONS = [
+  { value: '14:30', label: '2:30' },
+  { value: '15:00', label: '3:00' },
+  { value: '15:30', label: '3:30' },
+  { value: '16:00', label: '4:00' },
+  { value: '16:30', label: '4:30' },
+  { value: '17:00', label: '5:00' },
+];
+
+/**
+ * The advisories a teacher can opt into, all off by default.
+ *
+ * Off is the honest default for a tool used by someone who is already
+ * interrupted all day. Each maps to something `deriveNotifications` can actually
+ * compute from the document; none of them are marketing.
+ */
+export const REMINDER_OPTIONS = [
+  {
+    id: 'morning',
+    title: 'A gentle morning check-in',
+    body: 'One quiet note at the start of the day. Never urgent.',
+  },
+  {
+    id: 'details',
+    title: 'Details, before you close out',
+    body: "Only if a card says 'used with detail' and nothing's written yet.",
+  },
+  {
+    id: 'weekly',
+    title: 'A weekly recap',
+    body: 'A short summary of the week, ready when reports are due.',
+  },
+];
+
+export const DEFAULT_REMINDERS = Object.fromEntries(REMINDER_OPTIONS.map((r) => [r.id, false]));
+
 export const DEFAULT_CYCLE_END_TIME = '16:00';
 export const DEFAULT_IDLE_LOCK_MINUTES = 10;

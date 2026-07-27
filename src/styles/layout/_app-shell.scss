@@ -173,6 +173,89 @@
   gap: var(--acc-space-4);
 }
 
+// ---------------------------------------------------------------------------
+// First-run handoff, phase 3.
+//
+// Onboarding's outro leaves in a cascade and the aurora holds for a beat; this
+// is the board arriving on the other side of it. The backdrop and the blob field
+// are deliberately NOT included: they persist straight through the handoff, so
+// the scene never cuts and the board looks like it grew out of it.
+//
+// Once only, on the run that finished onboarding. See useFirstRunCascade.
+// ---------------------------------------------------------------------------
+
+.acc-firstrun {
+  // Header, toolbar, lanes: the pieces that cascade, in reading order.
+  .acc-header,
+  .acc-board__scroll > *,
+  .acc-board__lanes > * {
+    opacity: 0;
+  }
+
+  // The beat. Everything is mounted and measured, so there is no layout shift
+  // when it arrives, but nothing is visible yet.
+  &--held {
+    .acc-header,
+    .acc-board__scroll > *,
+    .acc-board__lanes > * {
+      opacity: 0;
+    }
+  }
+
+  &--in {
+    .acc-header {
+      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 0ms both;
+    }
+
+    .acc-board__scroll > * {
+      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 120ms both;
+    }
+
+    // Lanes stagger top to bottom. Capped at twelve: a forty-student roster must
+    // not stretch this past the ~900ms the spec allows, so everything after the
+    // twelfth shares the last slot and they land together.
+    .acc-board__lanes > * {
+      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 260ms both;
+
+      @for $i from 1 through 12 {
+        &:nth-child(#{$i}) {
+          animation-delay: 200ms + $i * 30ms;
+        }
+      }
+    }
+  }
+
+  // Reduced motion: one fade, no transforms, no stagger.
+  &--fade {
+    .acc-header,
+    .acc-board__scroll > *,
+    .acc-board__lanes > * {
+      animation: acc-fade-in 200ms linear both;
+    }
+  }
+}
+
+@keyframes acc-firstrun-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-firstrun--in {
+    .acc-header,
+    .acc-board__scroll > *,
+    .acc-board__lanes > * {
+      animation: acc-fade-in 200ms linear both;
+    }
+  }
+}
+
 // While a drag is in flight the cursor stays a grab everywhere, so the whole
 // board reads as live rather than just the card under the pointer.
 body[data-dragging='true'] {

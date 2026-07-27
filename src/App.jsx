@@ -17,6 +17,7 @@ import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
 import { dataBridge } from './lib/bridge.js';
+import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
 /** Startup loader. Real staged progress, then a crossfade into what comes next. */
 function Loader({ loadState }) {
@@ -50,7 +51,9 @@ function Loader({ loadState }) {
 
 /** The shell, once a document is loaded and onboarding is done. */
 function AppShell() {
-  const { doc, meta, repairs, dismissRepairs } = useData();
+  const { doc, meta, repairs, dismissRepairs, firstRun, clearFirstRun } = useData();
+  // Plays only on the run that just finished onboarding. See the hook.
+  const cascade = useFirstRunCascade(firstRun, clearFirstRun);
   const { model, setDateKey } = useBoard();
   const { openPanel, toggle, close } = useHeaderPanel();
   // One slot: only ever one modal at a time, and dismissing is a single action.
@@ -110,7 +113,7 @@ function AppShell() {
   );
 
   return (
-    <div className="acc-app">
+    <div className={`acc-app ${cascade}`.trim()}>
       {/*
         The page blooms, the board does not. Aurora and the drifting blob field
         render BEHIND the floating frame; the board card itself stays clean.

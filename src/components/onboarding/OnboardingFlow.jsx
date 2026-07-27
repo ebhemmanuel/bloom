@@ -1,329 +1,120 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { dataBridge } from '../../lib/bridge.js';
-import { createEmptyDoc, PRODUCT_NAME } from '../../domain/schema.js';
-import { newTeacherId } from '../../domain/ids.js';
-import { isoTimestamp, todayKey } from '../../domain/dates.js';
-import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '../../domain/constants.js';
-import useTilt from '../../hooks/useTilt.js';
-
-const STEPS = ['welcome', 'about', 'location', 'done'];
-
-/** Aurora field. Each blob blooms in on its own delay, then drifts forever. */
-function AuroraField() {
-  return (
-    <div className="acc-bloomfield" aria-hidden="true">
-      <span className="acc-bloomfield__blob acc-bloomfield__blob--1" />
-      <span className="acc-bloomfield__blob acc-bloomfield__blob--2" />
-      <span className="acc-bloomfield__blob acc-bloomfield__blob--3" />
-      <span className="acc-bloomfield__blob acc-bloomfield__blob--4" />
-    </div>
-  );
-}
-
-function WelcomeStep({ onNext }) {
-  const tilt = useTilt();
-
-  return (
-    <div className="acc-ob__screen acc-ob__screen--welcome">
-      <div className="acc-ob__hero">
-        <p className="acc-ob__eyebrow">{PRODUCT_NAME}</p>
-        <h1 className="acc-ob__title">Hi there.</h1>
-        <p className="acc-ob__lede">
-          {PRODUCT_NAME} is a calm place to keep a daily record of the support you give your
-          students. A few quiet minutes at the end of the day.
-        </p>
-        <p className="acc-ob__fine">
-          Everything you write stays on this computer.
-          <br />
-          Nothing is ever sent anywhere.
-        </p>
-        <button type="button" className="acc-ob__cta" ref={tilt} onClick={onNext}>
-          Let&rsquo;s get started
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** Chip row used for both subjects and grades. */
-function Chips({ options, selected, onToggle, columns }) {
-  return (
-    <div className={`acc-ob__chips${columns ? ' acc-ob__chips--grid' : ''}`}>
-      {options.map((option) => (
-        <button
-          key={option}
-          type="button"
-          className={`acc-ob__chip${selected.includes(option) ? ' acc-ob__chip--on' : ''}`}
-          onClick={() => onToggle(option)}
-          aria-pressed={selected.includes(option)}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function AboutStep({ draft, setDraft, onNext }) {
-  const [custom, setCustom] = useState('');
-  const tilt = useTilt();
-
-  const toggle = (key, value) =>
-    setDraft((d) => ({
-      ...d,
-      [key]: d[key].includes(value) ? d[key].filter((x) => x !== value) : [...d[key], value],
-    }));
-
-  const addCustom = () => {
-    const value = custom.trim();
-    if (!value) return;
-    setDraft((d) =>
-      d.subjects.some((s) => s.toLowerCase() === value.toLowerCase())
-        ? d
-        : { ...d, subjects: [...d.subjects, value] }
-    );
-    setCustom('');
-  };
-
-  const extras = draft.subjects.filter((s) => !SUBJECT_OPTIONS.includes(s));
-
-  return (
-    <div className="acc-ob__screen">
-      <div className="acc-ob__panel">
-        <h2 className="acc-ob__heading">A little about you</h2>
-
-        <label className="acc-ob__field">
-          <span className="acc-ob__label">What should we call you?</span>
-          <input
-            className="acc-ob__input"
-            value={draft.displayName}
-            onChange={(e) => setDraft((d) => ({ ...d, displayName: e.target.value }))}
-            placeholder="Ms. Rivera"
-            aria-label="Your name"
-            autoFocus
-          />
-          {/* Shows exactly where the name will end up, so it is obvious this is
-              for the paperwork rather than a login. */}
-          <span className="acc-ob__preview">
-            {PRODUCT_NAME} · Daily Accommodation Record ·{' '}
-            <strong>{draft.displayName.trim() || 'your name'}</strong>
-          </span>
-        </label>
-
-        <div className="acc-ob__field">
-          <span className="acc-ob__label">What do you teach?</span>
-          <Chips
-            options={SUBJECT_OPTIONS}
-            selected={draft.subjects}
-            onToggle={(v) => toggle('subjects', v)}
-          />
-          {extras.length > 0 && (
-            <div className="acc-ob__chips">
-              {extras.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className="acc-ob__chip acc-ob__chip--on"
-                  onClick={() => toggle('subjects', s)}
-                  aria-pressed
-                >
-                  {s} ×
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="acc-inputgroup acc-inputgroup--lg">
-            <input
-              className="acc-inputgroup__input"
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addCustom();
-                }
-              }}
-              placeholder="Something else…"
-              aria-label="Add a subject"
-            />
-            <button
-              type="button"
-              className="acc-inputgroup__action"
-              onClick={addCustom}
-              disabled={!custom.trim()}
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
-        <div className="acc-ob__field">
-          <span className="acc-ob__label">Which grades?</span>
-          <Chips
-            options={GRADE_OPTIONS}
-            selected={draft.gradeLevels}
-            onToggle={(v) => toggle('gradeLevels', v)}
-            columns
-          />
-        </div>
-
-        <label className="acc-ob__field">
-          <span className="acc-ob__label">When did the school year start?</span>
-          <input
-            type="date"
-            className="acc-ob__input acc-ob__input--date"
-            value={draft.termStart}
-            max={todayKey()}
-            onChange={(e) => setDraft((d) => ({ ...d, termStart: e.target.value }))}
-            aria-label="First day of the school year"
-          />
-          {/* This is the only thing here that changes what the app DOES rather
-              than what it says, so it earns a sentence explaining itself. */}
-          <span className="acc-ob__hint">
-            Bloom will lay out every school day from then until today, ready for your students’
-            accommodations - so you can fill in what has already happened instead of starting from
-            an empty year. Nothing is marked as delivered or missed until you say so.
-          </span>
-        </label>
-
-        <button
-          type="button"
-          className="acc-ob__cta"
-          ref={tilt}
-          onClick={onNext}
-          disabled={!draft.displayName.trim()}
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function LocationStep({ onChoose, busy, error }) {
-  const [options, setOptions] = useState([]);
-
-  useEffect(() => {
-    dataBridge.suggestLocations().then(setOptions);
-  }, []);
-
-  const browse = async () => {
-    const picked = await dataBridge.pickFolder();
-    if (picked.canceled) return;
-    onChoose(picked.dirPath);
-  };
-
-  return (
-    <div className="acc-ob__screen">
-      <div className="acc-ob__panel">
-        <h2 className="acc-ob__heading">Where should your records live?</h2>
-        <p className="acc-ob__sub">
-          Your students&rsquo; information is saved as a single file on this computer. It is never
-          sent anywhere.
-        </p>
-
-        <ul className="acc-ob__locations">
-          {options.map((option) => (
-            <li key={option.id}>
-              <button
-                type="button"
-                className={`acc-ob__location${option.synced ? ' acc-ob__location--advisory' : ''}`}
-                onClick={() => onChoose(option.dirPath)}
-                disabled={busy || !option.writable}
-              >
-                <span className="acc-ob__location-top">
-                  <span className="acc-ob__location-label">{option.label}</span>
-                  {option.id === 'local' && !option.synced && (
-                    <span className="acc-ob__tag">Recommended</span>
-                  )}
-                </span>
-                <span className="acc-ob__location-hint">{option.hint}</span>
-                <code className="acc-ob__location-path">{option.dirPath}</code>
-
-                {option.synced && (
-                  <span className="acc-ob__location-advisory">
-                    This folder syncs to {option.provider}. Your students&rsquo; information would
-                    be copied off this computer.
-                  </span>
-                )}
-                {option.existingFile && (
-                  <span className="acc-ob__location-found">
-                    An existing record was found here - we&rsquo;ll open it.
-                  </span>
-                )}
-                {!option.writable && (
-                  <span className="acc-ob__location-advisory">
-                    This computer won&rsquo;t let us save here ({option.reason}).
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <button type="button" className="acc-ob__ghost" onClick={browse} disabled={busy}>
-          Choose a different folder…
-        </button>
-
-        {error && <p className="acc-ob__error">{error}</p>}
-      </div>
-    </div>
-  );
-}
-
-function DoneStep({ summary, onOpen }) {
-  const tilt = useTilt();
-
-  return (
-    <div className="acc-ob__screen">
-      <div className="acc-ob__done">
-        <h2 className="acc-ob__done-title">You&rsquo;re all set</h2>
-        <div className="acc-ob__done-pill acc-numeric">{summary}</div>
-        <p className="acc-ob__done-body">
-          Periods, your roster, and your accommodation list come next - a few minutes, whenever
-          you&rsquo;re ready.
-        </p>
-        <button type="button" className="acc-ob__cta" ref={tilt} onClick={onOpen}>
-          Open my board
-        </button>
-      </div>
-    </div>
-  );
-}
+import { buildOnboardedDoc } from '../../domain/onboarding.js';
+import { todayKey } from '../../domain/dates.js';
+import {
+  DEFAULT_CYCLE_END_TIME,
+  DEFAULT_REMINDERS,
+  CYCLE_END_OPTIONS,
+  GRADE_OPTIONS,
+} from '../../domain/constants.js';
+import OnboardingAmbient from './OnboardingAmbient.jsx';
+import { IntroStep, WelcomeStep, OutroStep } from './steps/OpeningSteps.jsx';
+import { NameStep, TeachStep, PeriodsStep, DayStep, SetStep } from './steps/ProfileSteps.jsx';
+import { RosterStep, SupportsStep } from './steps/RosterSteps.jsx';
+import LocationStep from './steps/LocationStep.jsx';
 
 /**
  * First-run setup.
  *
- * Everything is collected into local state and only committed at the end, so a
- * teacher can move back and forth without half a profile being written to disk,
- * and so the data location, which has to exist before anything can be saved, is
- * chosen as part of the same continuous flow rather than as a gate in front of it.
+ * One question per screen, and only the name is required. Everything is held in
+ * local state and committed exactly once, at the end, by `buildOnboardedDoc`.
+ * That is deliberate: a teacher who closes the laptop on the periods screen
+ * should leave nothing behind, because a half-written profile would make the
+ * next launch skip onboarding and open a board built on it.
+ *
+ * The ambient scene mounts once and never remounts. Screens change in front of a
+ * background that does not, which is what makes moving between questions feel
+ * like turning your head rather than loading a page.
  */
+
+/** Which progress segment each phase lights, out of six. */
+const SEGMENTS = {
+  name: 1,
+  teach: 2,
+  periods: 3,
+  location: 4,
+  day: 4,
+  set: 5,
+  roster: 6,
+  accom: 6,
+};
+
+/** Long enough for the outgoing screen to clear before the next one arrives. */
+const CROSSFADE_MS = 560;
+
+/**
+ * How long the outro runs before the board takes over.
+ *
+ * The three status lines land at 1400/2000/2600ms and the last needs to sit for
+ * a beat, so the handoff starts at 3900ms. See the outro-to-board spec in
+ * design_handoff_onboarding_v2 for the choreography on the other side.
+ */
+const OUTRO_MS = 3900;
+
+/** "3, 4, 5" becomes "3-5". A list of thirteen grades is not a summary. */
+function summariseGrades(grades) {
+  const idx = grades
+    .map((g) => GRADE_OPTIONS.indexOf(g))
+    .filter((i) => i >= 0)
+    .sort((a, b) => a - b);
+
+  const parts = [];
+  for (let i = 0; i < idx.length;) {
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1] === idx[j] + 1) j += 1;
+    parts.push(j > i ? `${GRADE_OPTIONS[idx[i]]}-${GRADE_OPTIONS[idx[j]]}` : GRADE_OPTIONS[idx[i]]);
+    i = j + 1;
+  }
+  return parts.join(', ');
+}
+
 export default function OnboardingFlow({ needsLocation }) {
   const { setDoc } = useData();
 
-  const [step, setStep] = useState('welcome');
-  const [draft, setDraft] = useState({
-    displayName: '',
-    subjects: [],
-    gradeLevels: [],
-    // Defaults to today, which is the honest answer for a teacher setting up on
-    // day one and a harmless one otherwise - it simply backfills nothing.
-    termStart: todayKey(),
-  });
+  const [phase, setPhase] = useState('intro');
+  // The screen on its way out. Both are rendered at once for the crossfade.
+  const [leaving, setLeaving] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  // Skip the location step entirely when a folder is already configured.
-  const steps = useMemo(
-    () => STEPS.filter((s) => s !== 'location' || needsLocation),
-    [needsLocation]
-  );
+  const [answers, setAnswers] = useState({
+    name: '',
+    subjects: [],
+    grades: [],
+    periods: [],
+    periodNames: {},
+    endTime: DEFAULT_CYCLE_END_TIME,
+    reminders: { ...DEFAULT_REMINDERS },
+    students: [],
+  });
+  const [editingId, setEditingId] = useState(null);
 
-  const index = steps.indexOf(step);
+  const timers = useRef([]);
+  const after = (fn, ms) => {
+    const id = setTimeout(fn, ms);
+    timers.current.push(id);
+    return id;
+  };
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const advance = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
+  const go = (next) => {
+    setLeaving(phase);
+    setPhase(next);
+    after(() => setLeaving(null), CROSSFADE_MS);
+  };
+
+  const patch = (changes) => setAnswers((a) => ({ ...a, ...changes }));
+
+  const toggleIn = (key, value) =>
+    setAnswers((a) => ({
+      ...a,
+      [key]: a[key].includes(value) ? a[key].filter((x) => x !== value) : [...a[key], value],
+    }));
+
+  const updateStudent = (id, fn) =>
+    setAnswers((a) => ({ ...a, students: a.students.map((s) => (s.id === id ? fn(s) : s)) }));
 
   const chooseLocation = async (dirPath) => {
     setBusy(true);
@@ -338,68 +129,221 @@ export default function OnboardingFlow({ needsLocation }) {
       );
       return;
     }
-    advance();
+    go('set');
   };
 
+  /**
+   * Commit, then hand over.
+   *
+   * The document is written as the outro starts rather than after it, so the
+   * three status lines describe work that is genuinely happening. If the write
+   * were held until the end, the outro would be a loading screen for nothing.
+   */
   const finish = () => {
-    const now = new Date();
-    const doc = createEmptyDoc(now);
-    const teacherId = newTeacherId();
-
-    doc.teachers = [
-      {
-        id: teacherId,
-        displayName: draft.displayName.trim(),
-        subjects: draft.subjects,
-        gradeLevels: draft.gradeLevels,
-        school: '',
-        room: '',
-        createdAt: isoTimestamp(now),
-      },
-    ];
-    doc.settings.activeTeacherId = teacherId;
-    doc.settings.onboardingCompletedAt = isoTimestamp(now);
-    doc.settings.lastKnownDate = todayKey(now);
-
-    // The start of the year is what the backfill measures from. There is no
-    // roster yet, so no days are laid out here - that happens as students are
-    // added, which is the first moment there is anything to lay out.
-    doc.schoolCalendar.termStart = draft.termStart || todayKey(now);
-
-    setDoc(doc);
+    go('outro');
+    after(() => {
+      setDoc(buildOnboardedDoc({ ...answers, termStart: todayKey() }, new Date()), {
+        firstRun: true,
+      });
+    }, OUTRO_MS);
   };
 
-  const summary =
-    [
-      draft.subjects.length
-        ? `${draft.subjects.length} subject${draft.subjects.length === 1 ? '' : 's'}`
-        : null,
-      draft.gradeLevels.length
-        ? `${draft.gradeLevels.length} grade${draft.gradeLevels.length === 1 ? '' : 's'}`
-        : null,
-    ]
-      .filter(Boolean)
-      .join(' · ') || 'Ready to go';
+  const displayName = answers.name.trim() || 'Ms. Rivera';
+  const firstName = answers.name.trim() || 'friend';
+  const editing = answers.students.find((s) => s.id === editingId) || null;
+
+  const summary = useMemo(() => {
+    const timeLabel =
+      CYCLE_END_OPTIONS.find((t) => t.value === answers.endTime)?.label || answers.endTime;
+    const parts = [displayName];
+    if (answers.subjects.length) parts.push(answers.subjects.slice(0, 3).join(', '));
+    if (answers.grades.length) parts.push(`Grades ${summariseGrades(answers.grades)}`);
+    if (answers.periods.length) {
+      parts.push(`${answers.periods.length} period${answers.periods.length === 1 ? '' : 's'}`);
+    }
+    parts.push(`Day ends ${timeLabel}`);
+    return parts.join(' · ');
+  }, [answers, displayName]);
+
+  const segment = SEGMENTS[phase] || 0;
+
+  /**
+   * Rendered for whichever phase is arriving AND whichever is leaving.
+   *
+   * Keeping both mounted for the length of the crossfade is what lets one screen
+   * clear as the next arrives. `--leaving` picks the exit animation.
+   */
+  const screen = (key) => {
+    if (phase !== key && leaving !== key) return null;
+    const isLeaving = leaving === key;
+    const body = renderScreen(key);
+    return (
+      <div
+        key={key}
+        className={`acc-ob__stage${isLeaving ? ' acc-ob__stage--leaving' : ' acc-ob__stage--entering'}`}
+        aria-hidden={isLeaving || undefined}
+      >
+        {body}
+      </div>
+    );
+  };
+
+  function renderScreen(key) {
+    switch (key) {
+      case 'intro':
+        return <IntroStep onNext={() => go('welcome')} />;
+      case 'welcome':
+        return <WelcomeStep onNext={() => go('name')} />;
+      case 'name':
+        return (
+          <NameStep
+            value={answers.name}
+            onChange={(name) => patch({ name })}
+            onNext={() => answers.name.trim() && go('teach')}
+          />
+        );
+      case 'teach':
+        return (
+          <TeachStep
+            name={firstName}
+            subjects={answers.subjects}
+            grades={answers.grades}
+            onToggle={toggleIn}
+            onAddSubject={(s) =>
+              setAnswers((a) =>
+                a.subjects.includes(s) ? a : { ...a, subjects: [...a.subjects, s] }
+              )
+            }
+            onBack={() => go('name')}
+            onNext={() => go('periods')}
+          />
+        );
+      case 'periods':
+        return (
+          <PeriodsStep
+            periods={answers.periods}
+            periodNames={answers.periodNames}
+            onToggle={(n) =>
+              setAnswers((a) => ({
+                ...a,
+                periods: a.periods.includes(n)
+                  ? a.periods.filter((x) => x !== n)
+                  : [...a.periods, n].sort((x, y) => x - y),
+              }))
+            }
+            onRename={(n, value) =>
+              setAnswers((a) => ({ ...a, periodNames: { ...a.periodNames, [n]: value } }))
+            }
+            onBack={() => go('teach')}
+            onNext={() => go('day')}
+          />
+        );
+      case 'day':
+        return (
+          <DayStep
+            endTime={answers.endTime}
+            reminders={answers.reminders}
+            onPickTime={(endTime) => patch({ endTime })}
+            onToggleReminder={(id) =>
+              setAnswers((a) => ({
+                ...a,
+                reminders: { ...a.reminders, [id]: !a.reminders[id] },
+              }))
+            }
+            onBack={() => go('periods')}
+            onNext={() => go(needsLocation ? 'location' : 'set')}
+          />
+        );
+      case 'location':
+        return <LocationStep onChoose={chooseLocation} busy={busy} error={error} />;
+      case 'set':
+        return <SetStep summary={summary} onRoster={() => go('roster')} onBoard={finish} />;
+      case 'roster':
+        return (
+          <RosterStep
+            students={answers.students}
+            onAdd={(name, plan) =>
+              setAnswers((a) => ({
+                ...a,
+                students: [
+                  ...a.students,
+                  { id: `s${a.students.length}-${name}`, name, plan, accoms: [] },
+                ],
+              }))
+            }
+            onRemove={(id) =>
+              setAnswers((a) => ({ ...a, students: a.students.filter((s) => s.id !== id) }))
+            }
+            onEdit={(id) => {
+              setEditingId(id);
+              go('accom');
+            }}
+            onBoard={finish}
+          />
+        );
+      case 'accom':
+        if (!editing) return null;
+        return (
+          <SupportsStep
+            student={editing}
+            onToggle={(label) =>
+              updateStudent(editing.id, (s) => ({
+                ...s,
+                accoms: s.accoms.includes(label)
+                  ? s.accoms.filter((x) => x !== label)
+                  : [...s.accoms, label],
+              }))
+            }
+            onAddCustom={(label) =>
+              updateStudent(editing.id, (s) =>
+                s.accoms.includes(label) ? s : { ...s, accoms: [...s.accoms, label] }
+              )
+            }
+            onDone={() => go('roster')}
+          />
+        );
+      case 'outro':
+        return (
+          <OutroStep
+            name={firstName}
+            studentCount={answers.students.length}
+            leaving={leaving === 'outro'}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
+  const PHASES = [
+    'intro',
+    'welcome',
+    'name',
+    'teach',
+    'periods',
+    'day',
+    'location',
+    'set',
+    'roster',
+    'accom',
+    'outro',
+  ];
 
   return (
-    <div className="acc-ob">
-      <div className="acc-ob__backdrop" aria-hidden="true" />
-      <AuroraField />
+    <div className="acc-ob" data-phase={phase}>
+      <OnboardingAmbient phase={phase} />
 
-      {/* Progress segments, hidden on the welcome screen so the first thing you
-          see is a greeting rather than a form with a length. */}
-      {step !== 'welcome' && (
-        <div className="acc-ob__progress" aria-label="Setup progress">
-          {steps.map((s, i) => (
-            <span key={s} className={`acc-ob__seg${i <= index ? ' acc-ob__seg--on' : ''}`} />
-          ))}
-        </div>
-      )}
+      <div className="acc-ob__stack">
+        {segment > 0 && (
+          <div className="acc-ob__progress" role="presentation">
+            {Array.from({ length: 6 }, (_, i) => (
+              <span key={i} className={`acc-ob__seg${i < segment ? ' acc-ob__seg--on' : ''}`} />
+            ))}
+          </div>
+        )}
 
-      {step === 'welcome' && <WelcomeStep onNext={advance} />}
-      {step === 'about' && <AboutStep draft={draft} setDraft={setDraft} onNext={advance} />}
-      {step === 'location' && <LocationStep onChoose={chooseLocation} busy={busy} error={error} />}
-      {step === 'done' && <DoneStep summary={summary} onOpen={finish} />}
+        {PHASES.map((p) => screen(p))}
+      </div>
     </div>
   );
 }

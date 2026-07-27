@@ -6,6 +6,7 @@ import {
   DEFAULTABLE_STATUSES,
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_IDLE_LOCK_MINUTES,
+  DEFAULT_REMINDERS,
 } from './constants.js';
 import { isoTimestamp, isValidDateKey, todayKey } from './dates.js';
 
@@ -52,6 +53,7 @@ export function createEmptyDoc(now = new Date()) {
       idleLockMinutes: DEFAULT_IDLE_LOCK_MINUTES,
       lastKnownDate: todayKey(now),
       theme: 'light',
+      reminders: { ...DEFAULT_REMINDERS },
     },
     schoolCalendar: {
       termStart: null,
@@ -130,6 +132,19 @@ export function normalizeDoc(raw, now = new Date()) {
     idleLockMinutes: asIntIn(s.idleLockMinutes, 0, 240, DEFAULT_IDLE_LOCK_MINUTES),
     lastKnownDate: isValidDateKey(s.lastKnownDate) ? s.lastKnownDate : todayKey(now),
     theme: s.theme === 'dark' ? 'dark' : 'light',
+    /**
+     * Which of the derived advisories the teacher opted into.
+     *
+     * Every one defaults to false and stays false unless asked for. Onboarding
+     * says "you get enough pings already", and a setting that quietly turns
+     * itself on would make that a lie.
+     */
+    reminders: Object.fromEntries(
+      Object.keys(DEFAULT_REMINDERS).map((k) => [
+        k,
+        asBool(isObj(s.reminders) ? s.reminders[k] : false, false),
+      ])
+    ),
   };
 
   // --- school calendar -----------------------------------------------------
