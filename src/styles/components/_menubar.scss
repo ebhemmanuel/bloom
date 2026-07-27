@@ -342,15 +342,10 @@
   // centre explicitly — a fixed height cancels the default `stretch` and the
   // button falls to the top of the row.
   &__actions,
+  // Both hold a single `.acc-inputgroup`, which does the row layout itself.
   &__rename,
   &__add {
-    display: flex;
-    align-items: center;
-    gap: var(--acc-space-2);
     flex-shrink: 0;
-  }
-
-  &__rename {
     inline-size: 100%;
   }
 
@@ -722,12 +717,8 @@
     flex-shrink: 0;
   }
 
-  // Input + fixed-height button: centre explicitly, or the button's height
-  // cancels flex's default stretch and it sits at the top of the row.
+  // Holds a single `.acc-inputgroup`, which does the row layout itself.
   &__rename {
-    display: flex;
-    align-items: center;
-    gap: var(--acc-space-2);
     inline-size: 100%;
   }
 

@@ -329,28 +329,11 @@
     border-color: var(--acc-accent);
     box-shadow: 0 0 0 3px var(--acc-accent-soft);
   }
-
-  // Matched to the button's 32px rather than left to derive its own height from
-  // padding — two controls on one row should share a height, not merely be
-  // centred against each other.
-  &--sm {
-    flex: 1;
-    min-inline-size: 0;
-    block-size: 32px;
-    padding: 0 var(--acc-space-4);
-    font-size: var(--acc-fs-sub);
-  }
 }
 
 .acc-ob__preview {
   font-size: var(--acc-fs-tiny);
   color: var(--acc-fg-faint);
-}
-
-.acc-ob__inline {
-  display: flex;
-  gap: var(--acc-space-2);
-  align-items: center;
 }
 
 .acc-ob__chips {

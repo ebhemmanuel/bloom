@@ -192,6 +192,9 @@
 
 // --- Detail popover --------------------------------------------------------
 
+// One sheet behind every dialog, frosted the same way Ctrl+Space frosts the
+// board. Always portalled to <body> — see Scrim.jsx for why rendering it in
+// place leaves the header and the page margins undimmed.
 .acc-scrim {
   position: fixed;
   inset: 0;
@@ -201,6 +204,8 @@
   justify-content: center;
   padding: var(--acc-space-6);
   background: var(--acc-scrim);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
 }
 
 .acc-modal {

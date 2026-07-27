@@ -86,18 +86,20 @@ export default function PeriodFilter({ periods, selected, onChange }) {
                   commitRename(p);
                 }}
               >
-                <input
-                  className="acc-field__input acc-field__input--inline"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Escape' && setRenaming(null)}
-                  placeholder={p.shortName}
-                  aria-label={`Rename ${p.shortName}`}
-                  autoFocus
-                />
-                <button type="submit" className="acc-btn acc-btn--small">
-                  Save
-                </button>
+                <div className="acc-inputgroup">
+                  <input
+                    className="acc-inputgroup__input"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Escape' && setRenaming(null)}
+                    placeholder={p.shortName}
+                    aria-label={`Rename ${p.shortName}`}
+                    autoFocus
+                  />
+                  <button type="submit" className="acc-inputgroup__action">
+                    Save
+                  </button>
+                </div>
               </form>
             ) : (
               <button

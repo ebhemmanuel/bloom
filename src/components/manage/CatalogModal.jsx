@@ -99,17 +99,23 @@ export default function CatalogModal({ onClose }) {
                       setRenamingId(null);
                     }}
                   >
-                    <input
-                      className="acc-field__input acc-field__input--inline"
-                      value={renameText}
-                      onChange={(e) => setRenameText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Escape' && setRenamingId(null)}
-                      aria-label="New wording"
-                      autoFocus
-                    />
-                    <button type="submit" className="acc-btn acc-btn--small">
-                      Save
-                    </button>
+                    <div className="acc-inputgroup">
+                      <input
+                        className="acc-inputgroup__input"
+                        value={renameText}
+                        onChange={(e) => setRenameText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Escape' && setRenamingId(null)}
+                        aria-label="New wording"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        className="acc-inputgroup__action"
+                        disabled={!renameText.trim()}
+                      >
+                        Save
+                      </button>
+                    </div>
                   </form>
                 ) : (
                   <>
@@ -200,21 +206,23 @@ export default function CatalogModal({ onClose }) {
             setNewLabel('');
           }}
         >
-          <input
-            className="acc-field__input"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="Add a preset…"
-            aria-label="Add a preset"
-            disabled={readOnly}
-          />
-          <button
-            type="submit"
-            className="acc-btn acc-btn--small acc-btn--primary"
-            disabled={readOnly || !newLabel.trim() || existing.has(newLabel.trim().toLowerCase())}
-          >
-            Add
-          </button>
+          <div className="acc-inputgroup">
+            <input
+              className="acc-inputgroup__input"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Add a preset…"
+              aria-label="Add a preset"
+              disabled={readOnly}
+            />
+            <button
+              type="submit"
+              className="acc-inputgroup__action"
+              disabled={readOnly || !newLabel.trim() || existing.has(newLabel.trim().toLowerCase())}
+            >
+              Add
+            </button>
+          </div>
         </form>
 
         <div className="acc-catmod__starters">

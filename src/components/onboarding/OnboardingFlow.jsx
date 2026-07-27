@@ -129,9 +129,9 @@ function AboutStep({ draft, setDraft, onNext }) {
               ))}
             </div>
           )}
-          <div className="acc-ob__inline">
+          <div className="acc-inputgroup acc-inputgroup--lg">
             <input
-              className="acc-ob__input acc-ob__input--sm"
+              className="acc-inputgroup__input"
               value={custom}
               onChange={(e) => setCustom(e.target.value)}
               onKeyDown={(e) => {
@@ -145,7 +145,7 @@ function AboutStep({ draft, setDraft, onNext }) {
             />
             <button
               type="button"
-              className="acc-ob__ghost"
+              className="acc-inputgroup__action"
               onClick={addCustom}
               disabled={!custom.trim()}
             >

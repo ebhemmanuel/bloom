@@ -72,17 +72,19 @@ export default function StudentContextMenu({
                 onClose();
               }}
             >
-              <input
-                className="acc-field__input acc-field__input--inline"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Escape' && setRenaming(false)}
-                aria-label="New name"
-                autoFocus
-              />
-              <button type="submit" className="acc-btn acc-btn--small">
-                Save
-              </button>
+              <div className="acc-inputgroup">
+                <input
+                  className="acc-inputgroup__input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Escape' && setRenaming(false)}
+                  aria-label="New name"
+                  autoFocus
+                />
+                <button type="submit" className="acc-inputgroup__action" disabled={!name.trim()}>
+                  Save
+                </button>
+              </div>
             </form>
           ) : (
             <button

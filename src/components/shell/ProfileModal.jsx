@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { updateTeacher, updateSettings } from '../../domain/mutations.js';
 import ChipMulti from '../shared/ChipMulti.jsx';
+import Scrim from '../shared/Scrim.jsx';
 import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '../../domain/constants.js';
 
 /**
@@ -50,9 +51,9 @@ export default function ProfileModal({ onClose }) {
   };
 
   return (
-    <div
-      className={`acc-scrim ${leaving ? 'acc-scrim--leaving' : 'acc-fade-enter'}`}
-      onMouseDown={() => {
+    <Scrim
+      leaving={leaving}
+      onDismiss={() => {
         // Only an untouched form is dismissible by clicking away.
         if (!dirty) dismiss();
       }}
@@ -153,6 +154,6 @@ export default function ProfileModal({ onClose }) {
           </button>
         </footer>
       </div>
-    </div>
+    </Scrim>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Scrim from '../shared/Scrim.jsx';
 
 /**
  * Detail capture for "Used with Detail".
@@ -27,7 +28,7 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
   }, [onCancel, onSave, text]);
 
   return (
-    <div className="acc-scrim acc-fade-enter" onMouseDown={onCancel}>
+    <Scrim onDismiss={onCancel}>
       <div
         className="acc-detail acc-enter"
         role="dialog"
@@ -68,6 +69,6 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
           </button>
         </footer>
       </div>
-    </div>
+    </Scrim>
   );
 }

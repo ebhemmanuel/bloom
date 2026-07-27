@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import Scrim from './Scrim.jsx';
 
 export default function Modal({ title, subtitle, wide, onClose, children }) {
   useEffect(() => {
@@ -10,7 +11,7 @@ export default function Modal({ title, subtitle, wide, onClose, children }) {
   }, [onClose]);
 
   return (
-    <div className="acc-scrim acc-fade-enter" onMouseDown={onClose}>
+    <Scrim onDismiss={onClose}>
       <div
         className={`acc-modal${wide ? ' acc-modal--wide' : ''} acc-enter`}
         role="dialog"
@@ -29,6 +30,6 @@ export default function Modal({ title, subtitle, wide, onClose, children }) {
         </header>
         <div className="acc-modal__body">{children}</div>
       </div>
-    </div>
+    </Scrim>
   );
 }

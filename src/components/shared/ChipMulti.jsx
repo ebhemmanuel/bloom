@@ -68,9 +68,9 @@ export default function ChipMulti({
       </div>
 
       {allowCustom && !disabled && (
-        <div className="acc-chipset__add">
+        <div className="acc-inputgroup acc-chipset__add">
           <input
-            className="acc-field__input acc-field__input--inline"
+            className="acc-inputgroup__input"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
             onKeyDown={(e) => {
@@ -84,7 +84,7 @@ export default function ChipMulti({
           />
           <button
             type="button"
-            className="acc-btn acc-btn--small"
+            className="acc-inputgroup__action"
             onClick={addCustom}
             disabled={!custom.trim()}
           >

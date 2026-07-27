@@ -313,12 +313,10 @@
   flex-wrap: wrap;
   gap: var(--acc-space-1);
 
-  // Input + fixed-height button: centre explicitly, or the button's height
-  // cancels flex's default stretch and it sits at the top of the row.
+  // Layout comes from `.acc-inputgroup`, which the element also carries — the
+  // input and its Add button share one border there, so any gap here would
+  // prise them back apart.
   &__add {
-    display: flex;
-    align-items: center;
-    gap: var(--acc-space-2);
     margin-block-start: var(--acc-space-2);
   }
 }

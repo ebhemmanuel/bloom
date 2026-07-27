@@ -92,6 +92,90 @@
   }
 }
 
+// --- Input group -----------------------------------------------------------
+/**
+ * An input with its action button attached to the end, sharing one border.
+ *
+ * Used for every inline "type something, then Save/Add" pair. Two upsides over a
+ * detached pill: the button reads as belonging to the field it acts on, and
+ * `align-items: stretch` makes the heights identical by construction — the
+ * misalignment bug that kept recurring is not expressible in this shape.
+ */
+.acc-inputgroup {
+  display: flex;
+  align-items: stretch;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 32px;
+  border: 1px solid var(--acc-border);
+  border-radius: var(--acc-radius-pill);
+  background: var(--acc-surface);
+  overflow: hidden;
+  @include motion.interactive(border-color, box-shadow);
+
+  // The ring goes on the GROUP, not the input, so the button is inside the
+  // focused object rather than sitting next to it.
+  &:focus-within {
+    border-color: var(--acc-accent);
+    box-shadow: 0 0 0 3px var(--acc-accent-soft);
+  }
+
+  &:hover:not(:focus-within) {
+    border-color: var(--acc-border-strong);
+  }
+
+  &__input {
+    flex: 1;
+    min-inline-size: 0;
+    padding: 0 var(--acc-space-4);
+    border: none;
+    background: none;
+    outline: none;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+  }
+
+  &__action {
+    @include motion.interactive(background-color, color);
+    flex: none;
+    padding: 0 var(--acc-space-4);
+    border: none;
+    border-inline-start: 1px solid var(--acc-border);
+    background: var(--acc-surface-sunken);
+    color: var(--acc-fg-muted);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-semibold);
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background: var(--acc-accent-soft);
+      color: var(--acc-accent);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  // Taller variant for the onboarding panel, where fields are 44px.
+  &--lg {
+    block-size: 44px;
+
+    .acc-inputgroup__input {
+      font-size: var(--acc-fs-subhead);
+    }
+
+    .acc-inputgroup__action {
+      font-size: var(--acc-fs-sub);
+    }
+  }
+}
+
 // --- Chips -----------------------------------------------------------------
 
 .acc-chip {

@@ -154,17 +154,23 @@ export default function StudentAccommodationsModal({ onClose }) {
                             setRenamingId(null);
                           }}
                         >
-                          <input
-                            className="acc-field__input acc-field__input--inline"
-                            value={renameText}
-                            onChange={(e) => setRenameText(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Escape' && setRenamingId(null)}
-                            aria-label="New name"
-                            autoFocus
-                          />
-                          <button type="submit" className="acc-btn acc-btn--small">
-                            Save
-                          </button>
+                          <div className="acc-inputgroup">
+                            <input
+                              className="acc-inputgroup__input"
+                              value={renameText}
+                              onChange={(e) => setRenameText(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Escape' && setRenamingId(null)}
+                              aria-label="New name"
+                              autoFocus
+                            />
+                            <button
+                              type="submit"
+                              className="acc-inputgroup__action"
+                              disabled={!renameText.trim()}
+                            >
+                              Save
+                            </button>
+                          </div>
                         </form>
                       ) : (
                         <>
