@@ -210,9 +210,24 @@
 
 .acc-ob__screen--welcome .acc-ob__cta {
   margin-block-start: var(--acc-space-5);
-  animation: acc-enter 700ms var(--acc-ease-entrance) 2200ms both;
+  // `backwards`, not `both`. A forwards fill keeps the final keyframe's
+  // transform applied forever, which would silently outrank the tilt — the same
+  // trap `--acc-enter-to-opacity` exists for. The end state and the resting
+  // state are identical here, so nothing looks different for dropping it.
+  animation: acc-enter 700ms var(--acc-ease-entrance) 2200ms backwards;
 }
 
+/**
+ * The onboarding call to action.
+ *
+ * This is the ambient register, and the one screen where the app is allowed to
+ * be pleased to see you: it leans toward the cursor and springs up a little
+ * under it. The angles come from `useTilt`, which publishes only where the
+ * pointer is — everything about how that FEELS is decided here.
+ *
+ * Nothing like this belongs on the board. A control a teacher hits two hundred
+ * times an afternoon should be still.
+ */
 .acc-ob__cta {
   appearance: none;
   border: none;
@@ -223,16 +238,43 @@
   padding: 13px 30px;
   border-radius: var(--acc-radius-pill);
   box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+
+  transform: perspective(520px) rotateX(var(--acc-tilt-x, 0deg)) rotateY(var(--acc-tilt-y, 0deg))
+    scale(var(--acc-tilt-scale, 1));
+  // Keeps the type crisp through the rotation instead of shimmering.
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+
   transition:
     background-color var(--acc-dur-instant) var(--acc-ease-standard),
-    transform var(--acc-dur-instant) var(--acc-ease-standard);
+    box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
+    // The settle curve overshoots slightly, so releasing the button springs
+    // level rather than easing there. This is the return journey; the outbound
+    // one is governed by --live below.
+    transform var(--acc-dur-normal) var(--acc-ease-settle);
 
   &:hover:not(:disabled) {
     background: var(--acc-accent-hover);
+    --acc-tilt-scale: 1.045;
+    box-shadow: 0 10px 22px -6px rgba(91, 75, 214, 0.45);
+  }
+
+  /**
+   * While the pointer is actually over it.
+   *
+   * Short and linear so the lean TRACKS the cursor. Left on the settle curve it
+   * would lag a moving pointer by a quarter of a second and read as broken
+   * rather than springy.
+   */
+  &.acc-tilt--live {
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
+      transform 90ms linear;
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.98);
+    --acc-tilt-scale: 0.98;
   }
 
   &:disabled {
@@ -523,13 +565,25 @@
 
 .acc-ob__done .acc-ob__cta {
   margin-block-start: var(--acc-space-2);
-  animation: acc-enter var(--acc-dur-normal) var(--acc-ease-entrance) 315ms both;
+  // See the welcome CTA above for why this is `backwards` rather than `both`.
+  animation: acc-enter var(--acc-dur-normal) var(--acc-ease-entrance) 315ms backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .acc-ob__backdrop,
   .acc-bloomfield__blob {
     animation: none;
+  }
+
+  // useTilt already refuses to attach here, so the angles never move — this
+  // drops the lift and the spring too, leaving a plain colour change.
+  .acc-ob__cta {
+    transform: none;
+    transition: background-color var(--acc-dur-instant) linear;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+    }
   }
   .acc-bloomfield__blob--1 {
     opacity: 0.55;

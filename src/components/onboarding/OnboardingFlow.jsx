@@ -5,6 +5,7 @@ import { createEmptyDoc, PRODUCT_NAME } from '../../domain/schema.js';
 import { newTeacherId } from '../../domain/ids.js';
 import { isoTimestamp, todayKey } from '../../domain/dates.js';
 import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '../../domain/constants.js';
+import useTilt from '../../hooks/useTilt.js';
 
 const STEPS = ['welcome', 'about', 'location', 'done'];
 
@@ -21,6 +22,8 @@ function AuroraField() {
 }
 
 function WelcomeStep({ onNext }) {
+  const tilt = useTilt();
+
   return (
     <div className="acc-ob__screen acc-ob__screen--welcome">
       <div className="acc-ob__hero">
@@ -35,7 +38,7 @@ function WelcomeStep({ onNext }) {
           <br />
           Nothing is ever sent anywhere.
         </p>
-        <button type="button" className="acc-ob__cta" onClick={onNext}>
+        <button type="button" className="acc-ob__cta" ref={tilt} onClick={onNext}>
           Let&rsquo;s get started
         </button>
       </div>
@@ -64,6 +67,7 @@ function Chips({ options, selected, onToggle, columns }) {
 
 function AboutStep({ draft, setDraft, onNext }) {
   const [custom, setCustom] = useState('');
+  const tilt = useTilt();
 
   const toggle = (key, value) =>
     setDraft((d) => ({
@@ -186,6 +190,7 @@ function AboutStep({ draft, setDraft, onNext }) {
         <button
           type="button"
           className="acc-ob__cta"
+          ref={tilt}
           onClick={onNext}
           disabled={!draft.displayName.trim()}
         >
@@ -268,6 +273,8 @@ function LocationStep({ onChoose, busy, error }) {
 }
 
 function DoneStep({ summary, onOpen }) {
+  const tilt = useTilt();
+
   return (
     <div className="acc-ob__screen">
       <div className="acc-ob__done">
@@ -277,7 +284,7 @@ function DoneStep({ summary, onOpen }) {
           Periods, your roster, and your accommodation list come next — a few minutes, whenever
           you&rsquo;re ready.
         </p>
-        <button type="button" className="acc-ob__cta" onClick={onOpen}>
+        <button type="button" className="acc-ob__cta" ref={tilt} onClick={onOpen}>
           Open my board
         </button>
       </div>
