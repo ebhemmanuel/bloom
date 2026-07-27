@@ -319,43 +319,6 @@
   opacity: 0.6;
 }
 
-// --- Day notes + absence ---------------------------------------------------
-
-.acc-daynotes {
-  resize: vertical;
-  min-block-size: 96px;
-  line-height: var(--acc-lh-normal);
-}
-
-.acc-absence {
-  display: flex;
-  flex-direction: column;
-  gap: var(--acc-space-2);
-  align-items: flex-start;
-  padding: var(--acc-space-3);
-  border-radius: var(--acc-radius-md);
-  background: var(--acc-surface-sunken);
-
-  // Amber advisory, not a red error — being out is a fact to record, not a
-  // mistake to flag.
-  &--recorded {
-    background: var(--acc-warning-soft);
-    border: 1px solid #e8d9bd;
-  }
-
-  &__title {
-    font-size: var(--acc-fs-sub);
-    font-weight: var(--acc-fw-semibold);
-    color: var(--acc-warning);
-  }
-
-  &__body {
-    font-size: var(--acc-fs-tiny);
-    color: var(--acc-fg-muted);
-    line-height: var(--acc-lh-normal);
-  }
-}
-
 .acc-btn--full {
   inline-size: 100%;
   justify-content: center;

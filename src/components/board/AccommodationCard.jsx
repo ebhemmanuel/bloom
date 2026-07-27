@@ -79,10 +79,11 @@ function AccommodationCard({
             card.useCount > 1 ? `, used ${card.useCount} times` : ''
           }`}
         >
-          <p className="acc-card__label">{card.label}</p>
+          <span className="acc-card__grip" aria-hidden="true">
+            <span />
+          </span>
 
-          {/* Pinned bottom-right rather than in the meta row, so a glance down
-              the column reads the repeat counts as a column. */}
+          {/* Pinned bottom-right of the card, outside the body flow. */}
           {card.useCount > 1 && (
             <span
               className="acc-card__count acc-numeric"
@@ -97,32 +98,36 @@ function AccommodationCard({
             <span className="acc-card__stack acc-numeric">{selectionCount}</span>
           )}
 
-          <div className="acc-card__meta">
-            {card.notRelevant && (
-              <span className="acc-card__badge acc-card__badge--muted">Not relevant</span>
-            )}
-            {card.defaultStatus && (
-              <span
-                className="acc-card__badge acc-card__badge--default"
-                title="Starts here every day"
-              >
-                Default
-              </span>
-            )}
-            {card.isCustom && <span className="acc-card__badge">One-off</span>}
-            {card.hasDetail && (
-              <span className="acc-card__detail-chip" title={card.detail}>
-                Detail added
-              </span>
-            )}
-            {card.needsDetail && (
-              <span className="acc-card__detail-chip acc-card__detail-chip--missing">
-                Detail needed
-              </span>
-            )}
-            {resolvedNotUsed && (
-              <span className="acc-card__resolved">{STATUS_LABEL[STATUS.NOT_USED]}</span>
-            )}
+          <div className="acc-card__body">
+            <p className="acc-card__label">{card.label}</p>
+
+            <div className="acc-card__meta">
+              {card.notRelevant && (
+                <span className="acc-card__badge acc-card__badge--muted">Not relevant</span>
+              )}
+              {card.defaultStatus && (
+                <span
+                  className="acc-card__badge acc-card__badge--default"
+                  title="Starts here every day"
+                >
+                  Default
+                </span>
+              )}
+              {card.isCustom && <span className="acc-card__badge">One-off</span>}
+              {card.hasDetail && (
+                <span className="acc-card__detail-chip" title={card.detail}>
+                  Detail added
+                </span>
+              )}
+              {card.needsDetail && (
+                <span className="acc-card__detail-chip acc-card__detail-chip--missing">
+                  Detail needed
+                </span>
+              )}
+              {resolvedNotUsed && (
+                <span className="acc-card__resolved">{STATUS_LABEL[STATUS.NOT_USED]}</span>
+              )}
+            </div>
           </div>
         </li>
       )}

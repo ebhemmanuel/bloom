@@ -7,6 +7,8 @@ import {
 import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
 import { periodOptions } from '../../domain/selectors.js';
+import { ensureDay } from '../../domain/seed.js';
+import { useBoard } from '../../context/BoardContext.jsx';
 
 /**
  * Add one student and their whole accommodation list in a single pass.
@@ -21,6 +23,7 @@ import { periodOptions } from '../../domain/selectors.js';
  */
 export default function AddStudentForm({ onAdded }) {
   const { doc, mutate } = useData();
+  const { dateKey } = useBoard();
   const periods = useMemo(() => periodOptions(doc), [doc]);
 
   const [displayName, setDisplayName] = useState('');
@@ -74,7 +77,10 @@ export default function AddStudentForm({ onAdded }) {
         accommodations: combined,
       });
       report = outcome.report;
-      return outcome.doc;
+      // Seed them into the day on screen. Without this the student appears on
+      // the board but has no entries in the day record, so every card silently
+      // refuses to move — the mutation finds nothing to update.
+      return ensureDay(outcome.doc, dateKey);
     });
 
     setResult({ name: displayName.trim(), report });

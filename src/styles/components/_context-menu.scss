@@ -1,16 +1,24 @@
 // Custom right-click menu. Replaces the browser's native menu on a card.
 
+// Catcher sits under the menu and over everything else.
+.acc-ctx__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
 .acc-ctx {
   position: fixed;
-  z-index: 70;
+  z-index: 71;
   inset-inline-start: var(--acc-ctx-left, 0);
   inset-block-start: var(--acc-ctx-top, 0);
   inline-size: 260px;
-  padding: var(--acc-space-2);
+  padding: 8px;
+  box-sizing: border-box;
   background: var(--acc-surface);
   border: 1px solid var(--acc-border-strong);
-  border-radius: var(--acc-radius-md);
-  box-shadow: var(--acc-shadow-overlay);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
 
   // Grows from the pointer, so it reads as belonging to the card you clicked.
   &--enter {

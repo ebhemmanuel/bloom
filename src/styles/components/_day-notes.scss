@@ -1,0 +1,230 @@
+// Day notes popover. Values taken directly from the prototype rather than
+// approximated from the token scale — this panel has its own tighter type.
+
+.acc-daypanel {
+  position: absolute;
+  inset-block-start: 60px;
+  inset-inline-end: 0;
+  z-index: 60;
+  inline-size: min(380px, calc(100vw - 24px));
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border-strong);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--acc-border);
+  }
+
+  &__eyebrow {
+    font-size: 11px;
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--acc-fg-muted);
+  }
+
+  &__close {
+    color: var(--acc-fg-faint);
+    font-size: 19px;
+    line-height: 1;
+    padding: 2px 6px;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  &__intro {
+    font-size: 11px;
+    color: var(--acc-fg-faint);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  &__notes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  // Borderless on a sunken fill until focused — the resting state should read as
+  // a place to write, not as a form control.
+  &__textarea {
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--acc-surface-sunken);
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    color: var(--acc-fg);
+    transition:
+      border-color 160ms var(--acc-ease-standard),
+      background-color 160ms var(--acc-ease-standard),
+      box-shadow 160ms var(--acc-ease-standard);
+
+    &:focus {
+      background: var(--acc-surface);
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  &__saved {
+    align-self: flex-end;
+    font-size: 11px;
+    color: var(--acc-status-used);
+    opacity: 0;
+    transition: opacity 160ms var(--acc-ease-standard);
+
+    &--on {
+      opacity: 1;
+    }
+  }
+
+  &__absence {
+    border-top: 1px solid var(--acc-border);
+    padding-block-start: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__reported {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__reported-text {
+    font-size: 12px;
+    color: var(--acc-fg-muted);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  &__undo {
+    height: 26px;
+    padding: 0 12px;
+    border-radius: var(--acc-radius-pill);
+    background: transparent;
+    color: var(--acc-fg-muted);
+    font-size: 11px;
+    font-weight: var(--acc-fw-medium);
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
+  }
+
+  &__start {
+    align-self: flex-start;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: var(--acc-radius-pill);
+    border: 1px solid var(--acc-border-strong);
+    background: var(--acc-surface);
+    color: var(--acc-fg);
+    font-size: 11px;
+    font-weight: var(--acc-fw-medium);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-hover);
+      border-color: var(--acc-fg-faint);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg);
+  }
+
+  &__reasons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__reason {
+    height: 26px;
+    padding: 0 12px;
+    border-radius: var(--acc-radius-pill);
+    border: 1px solid var(--acc-border);
+    background: var(--acc-surface);
+    color: var(--acc-fg-muted);
+    font-size: 11px;
+    font-weight: var(--acc-fw-medium);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      border-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      border-color: #c9c0f2;
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+      border-color: var(--acc-accent);
+      color: var(--acc-accent);
+    }
+  }
+
+  &__input {
+    padding: 8px 10px;
+    border: 1px solid var(--acc-border-strong);
+    border-radius: 8px;
+    background: var(--acc-surface);
+    font-size: 12px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  // Full width, and no Cancel beside it — closing the popover cancels.
+  &__submit {
+    inline-size: 100%;
+    height: 34px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-accent);
+    color: var(--acc-accent-fg);
+    font-size: 12px;
+    font-weight: var(--acc-fw-semibold);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-accent-hover);
+    }
+  }
+}
