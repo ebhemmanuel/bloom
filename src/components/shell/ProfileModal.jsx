@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { updateTeacher, updateSettings } from '../../domain/mutations.js';
 import ChipMulti from '../shared/ChipMulti.jsx';
 import Scrim from '../shared/Scrim.jsx';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '../../domain/constants.js';
 
 /**
@@ -26,13 +27,9 @@ export default function ProfileModal({ onClose }) {
     gradeLevels: teacher?.gradeLevels || [],
   });
   const [dirty, setDirty] = useState(false);
-  const [leaving, setLeaving] = useState(false);
 
   // Exit mirrors the entrance rather than cutting, per the motion spec.
-  const dismiss = () => {
-    setLeaving(true);
-    setTimeout(onClose, 160);
-  };
+  const { leaving, dismiss } = useDismissAnimation(onClose);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -40,8 +37,7 @@ export default function ProfileModal({ onClose }) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dismiss]);
 
   const commit = (changes) => {
     const next = { ...draft, ...changes };
@@ -59,7 +55,7 @@ export default function ProfileModal({ onClose }) {
       }}
     >
       <div
-        className={`acc-modal ${leaving ? 'acc-modal--leaving' : 'acc-enter'}`}
+        className={`acc-modal ${leaving ? 'acc-leave' : 'acc-enter'}`}
         role="dialog"
         aria-modal="true"
         aria-label="Your details"

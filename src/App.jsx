@@ -143,7 +143,7 @@ function AppShell() {
           hiddenCount={model.hiddenBySearch}
         />
 
-        <CommandPalette open={palette.open} onClose={palette.close} />
+        {palette.open && <CommandPalette onClose={palette.close} />}
 
         {openPanel === 'settings' && <ProfileModal onClose={close} />}
         {openPanel === 'daynotes' && <DayNotesPanel onClose={close} />}

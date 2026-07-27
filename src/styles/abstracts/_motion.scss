@@ -132,15 +132,17 @@
   }
 }
 
-// Exit that mirrors acc-enter, for popovers dismissed downward.
+// Exit that mirrors acc-enter, for popovers dismissed downward. Scale is
+// mirrored too, so the panel settles back into the control it came out of
+// rather than merely sliding off it.
 @keyframes acc-exit-down {
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(8px) scale(0.985);
   }
 }
 
@@ -164,6 +166,11 @@
 
 @mixin fade-in($duration: var(--acc-dur-normal), $delay: 0ms) {
   animation: acc-fade-in $duration var(--acc-ease-entrance) $delay both;
+}
+
+/// The mirror of `entrance`, for anything leaving the screen.
+@mixin exit-down($duration: var(--acc-dur-fast), $delay: 0ms) {
+  animation: acc-exit-down $duration var(--acc-ease-exit) $delay both;
 }
 
 /// Stagger direct children in reading order, capped per the budget rule.
@@ -210,6 +217,14 @@
   @include entrance;
 }
 
+/// The mirror of `.acc-enter`, for anything that leaves the screen. Faster than
+/// the entrance on purpose — an arrival is worth watching and a departure is
+/// not — but the same path, so a panel retreats into whatever it came out of.
+/// Pair it with `useDismissAnimation`, which holds the unmount for the duration.
+.acc-leave {
+  @include exit-down;
+}
+
 .acc-fade-enter {
   @include fade-in;
 }
@@ -238,6 +253,7 @@
     animation: acc-fade-in 120ms linear both;
   }
 
+  .acc-leave,
   .acc-screen-exit {
     animation: acc-fade-out 120ms linear both;
   }

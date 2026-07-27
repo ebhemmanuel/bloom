@@ -1,4 +1,5 @@
 import { usePopoverDismiss } from './AppHeader.jsx';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
 /**
  * Notifications, opened from the bell.
@@ -8,18 +9,19 @@ import { usePopoverDismiss } from './AppHeader.jsx';
  * `deriveNotifications` and each one has something the teacher can act on.
  */
 export default function NotificationsPanel({ notifications, onClose, onAct }) {
-  const ref = usePopoverDismiss(true, onClose);
+  const { leaving, dismiss, dismissThen } = useDismissAnimation(onClose);
+  const ref = usePopoverDismiss(true, dismiss);
 
   return (
     <div
-      className="acc-popover acc-popover--notifications acc-enter"
+      className={`acc-popover acc-popover--notifications ${leaving ? 'acc-leave' : 'acc-enter'}`}
       ref={ref}
       role="dialog"
       aria-label="Notifications"
     >
       <header className="acc-popover__header">
         <span className="acc-subhead">Notifications</span>
-        <button type="button" className="acc-popover__close" onClick={onClose} aria-label="Close">
+        <button type="button" className="acc-popover__close" onClick={dismiss} aria-label="Close">
           ×
         </button>
       </header>
@@ -37,10 +39,10 @@ export default function NotificationsPanel({ notifications, onClose, onAct }) {
                   <button
                     type="button"
                     className="acc-btn acc-btn--small"
-                    onClick={() => {
+                    onClick={dismissThen(() => {
                       onAct(n);
                       onClose();
-                    }}
+                    })}
                   >
                     {n.action}
                   </button>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { usePopoverDismiss } from './AppHeader.jsx';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 import { setDayNotes, reportTeacherAbsence, clearTeacherAbsence } from '../../domain/mutations.js';
 import { TEACHER_ABSENCE_REASONS } from '../../domain/constants.js';
 import { formatDateMedium, relativeDayLabel } from '../../domain/dates.js';
@@ -24,8 +25,15 @@ export default function DayNotesPanel({ onClose }) {
   const [detail, setDetail] = useState('');
   const timer = useRef(null);
   const latest = useRef(model.dayNotes || '');
+  // What the debounce is holding, plus a live handle on the writer — the
+  // unmount cleanup can't read either from the closure it was created in.
+  const pending = useRef(null);
+  const flush = useRef(null);
 
-  const ref = usePopoverDismiss(true, onClose);
+  // Every way out of this panel goes through `dismiss`, so it leaves the way it
+  // arrived whether the teacher clicks the ×, clicks away, or presses Escape.
+  const { leaving, dismiss } = useDismissAnimation(onClose);
+  const ref = usePopoverDismiss(true, dismiss);
   const absence = model.teacherAbsence;
   const locked = readOnly || model.sealed;
 
@@ -41,15 +49,34 @@ export default function DayNotesPanel({ onClose }) {
     }
   }, [model.dayNotes]);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  // Kept current every render so the cleanup below writes with today's mutate
+  // and today's date rather than whichever ones existed when it was registered.
+  flush.current = () => {
+    if (pending.current === null) return;
+    const text = pending.current;
+    pending.current = null;
+    latest.current = text;
+    mutate((d) => setDayNotes(d, dateKey, text));
+  };
+
+  // Type a note, close the panel inside the debounce window, lose the note.
+  // Cheap to get wrong and invisible when it happens, so the pending write is
+  // committed on the way out rather than dropped with the timer.
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      flush.current?.();
+    },
+    []
+  );
 
   const onNotesChange = (event) => {
     const next = event.target.value;
     setDraft(next);
+    pending.current = next;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      latest.current = next;
-      mutate((d) => setDayNotes(d, dateKey, next));
+      flush.current();
       setSaved(true);
       setTimeout(() => setSaved(false), 1400);
     }, 500);
@@ -62,10 +89,15 @@ export default function DayNotesPanel({ onClose }) {
   };
 
   return (
-    <div className="acc-daypanel acc-enter" ref={ref} role="dialog" aria-label="Day notes">
+    <div
+      className={`acc-daypanel ${leaving ? 'acc-leave' : 'acc-enter'}`}
+      ref={ref}
+      role="dialog"
+      aria-label="Day notes"
+    >
       <header className="acc-daypanel__header">
         <span className="acc-daypanel__eyebrow">{heading}</span>
-        <button type="button" className="acc-daypanel__close" onClick={onClose} aria-label="Close">
+        <button type="button" className="acc-daypanel__close" onClick={dismiss} aria-label="Close">
           ×
         </button>
       </header>

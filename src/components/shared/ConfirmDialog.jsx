@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Scrim from './Scrim.jsx';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
 /**
  * A small "are you sure" for actions that change what happens on future days.
@@ -19,20 +20,23 @@ export default function ConfirmDialog({
   onCancel,
 }) {
   const confirmRef = useRef(null);
+  // Confirming animates out too. A dialog whose cancel eases away but whose
+  // confirm vanishes reads as the click having broken something.
+  const { leaving, dismiss, dismissThen } = useDismissAnimation(onCancel);
 
   useEffect(() => {
     confirmRef.current?.focus();
     const onKey = (e) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape') dismiss();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
+  }, [dismiss]);
 
   return (
-    <Scrim onDismiss={onCancel}>
+    <Scrim leaving={leaving} onDismiss={dismiss}>
       <div
-        className="acc-confirm acc-enter"
+        className={`acc-confirm ${leaving ? 'acc-leave' : 'acc-enter'}`}
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
@@ -43,14 +47,14 @@ export default function ConfirmDialog({
         {reassurance && <p className="acc-confirm__reassurance">{reassurance}</p>}
 
         <div className="acc-confirm__actions">
-          <button type="button" className="acc-btn acc-btn--quiet" onClick={onCancel}>
+          <button type="button" className="acc-btn acc-btn--quiet" onClick={dismiss}>
             {cancelLabel}
           </button>
           <button
             ref={confirmRef}
             type="button"
             className={`acc-btn acc-btn--primary${tone === 'warn' ? ' acc-btn--warn' : ''}`}
-            onClick={onConfirm}
+            onClick={dismissThen(onConfirm)}
           >
             {confirmLabel}
           </button>

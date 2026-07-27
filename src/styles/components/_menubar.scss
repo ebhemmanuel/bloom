@@ -168,13 +168,22 @@
     }
   }
 
+  // Grows and shrinks with the result list instead of snapping between heights.
+  // `auto` is normally a discrete value and would cut on every keystroke; the
+  // `interpolate-size` declaration in the reset is what makes it interpolable.
   &__sheet {
     inline-size: min(520px, calc(100vw - 32px));
+    block-size: auto;
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 16px;
     box-shadow: 0 24px 60px -12px rgba(42, 36, 56, 0.35);
     overflow: hidden;
+    transition: block-size var(--acc-dur-normal) var(--acc-ease-standard);
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 
   &__field {
@@ -214,6 +223,12 @@
     max-block-size: 320px;
     overflow-y: auto;
     padding: var(--acc-space-2);
+
+    // Only on the opening list — the component drops `acc-cascade` as soon as
+    // anything is typed, so results never re-stagger while the sheet resizes.
+    &.acc-cascade > li {
+      animation: acc-enter var(--acc-dur-fast) var(--acc-ease-entrance) both;
+    }
   }
 
   &__result {

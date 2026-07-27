@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Scrim from '../shared/Scrim.jsx';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
 /**
  * Detail capture for "Used with Detail".
@@ -11,6 +12,8 @@ import Scrim from '../shared/Scrim.jsx';
 export default function CardDetailPopover({ card, onSave, onCancel }) {
   const [text, setText] = useState(card.detail || '');
   const inputRef = useRef(null);
+  const { leaving, dismiss, dismissThen } = useDismissAnimation(onCancel);
+  const save = dismissThen(() => onSave(text));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -20,17 +23,17 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onCancel();
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) onSave(text);
+      if (e.key === 'Escape') dismiss();
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onCancel, onSave, text]);
+  }, [dismiss, save]);
 
   return (
-    <Scrim onDismiss={onCancel}>
+    <Scrim leaving={leaving} onDismiss={dismiss}>
       <div
-        className="acc-detail acc-enter"
+        className={`acc-detail ${leaving ? 'acc-leave' : 'acc-enter'}`}
         role="dialog"
         aria-modal="true"
         aria-label={`Detail for ${card.label}`}
@@ -56,13 +59,13 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
         </p>
 
         <footer className="acc-detail__actions">
-          <button type="button" className="acc-btn acc-btn--quiet" onClick={onCancel}>
+          <button type="button" className="acc-btn acc-btn--quiet" onClick={dismiss}>
             Cancel
           </button>
           <button
             type="button"
             className="acc-btn acc-btn--primary"
-            onClick={() => onSave(text)}
+            onClick={save}
             disabled={!text.trim()}
           >
             Save detail

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
+import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
 /**
  * Ctrl+Space: jump to a student.
@@ -13,24 +14,18 @@ import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
  *
  * Selecting a student filters the board to them and clears when dismissed, so
  * this is navigation rather than a filter the teacher has to remember to undo.
+ *
+ * Mounted only while open — App renders it conditionally rather than passing an
+ * `open` prop. Unmounting is what resets the dismiss animation, so the sheet can
+ * be closed on its second opening as well as its first.
  */
-export default function CommandPalette({ open, onClose }) {
+export default function CommandPalette({ onClose }) {
   const { doc } = useData();
   const { setSearch, setPeriodIds, setDateKey, dateKey } = useBoard();
 
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
-  const [leaving, setLeaving] = useState(false);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    setQuery('');
-    setCursor(0);
-    setLeaving(false);
-    // Focus after paint so the sheet is up before the caret lands in it.
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, [open]);
 
   /**
    * Dismissal mirrors the entrance rather than cutting.
@@ -38,10 +33,12 @@ export default function CommandPalette({ open, onClose }) {
    * The sheet is a full-screen frosted overlay; snapping it out of existence
    * reads as a glitch, where fading it back reads as putting something down.
    */
-  const dismiss = () => {
-    setLeaving(true);
-    setTimeout(onClose, 160);
-  };
+  const { leaving, dismiss } = useDismissAnimation(onClose);
+
+  useEffect(() => {
+    // Focus after paint so the sheet is up before the caret lands in it.
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
 
   /**
    * Students and periods in one list.
@@ -87,8 +84,6 @@ export default function CommandPalette({ open, onClose }) {
     setCursor((c) => Math.min(c, Math.max(0, results.length - 1)));
   }, [results.length]);
 
-  if (!open) return null;
-
   const choose = (item) => {
     if (!item) return;
 
@@ -108,6 +103,13 @@ export default function CommandPalette({ open, onClose }) {
 
   const onKeyDown = (e) => {
     if (e.key === 'Escape') {
+      dismiss();
+      return;
+    }
+    // Ctrl+Space closes as well as opens, and it has to fade out the same way
+    // Escape does — which is why the global shortcut below only ever opens.
+    if (e.code === 'Space' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
       dismiss();
       return;
     }
@@ -161,7 +163,10 @@ export default function CommandPalette({ open, onClose }) {
         </div>
 
         {results.length > 0 ? (
-          <ul className="acc-palette__results acc-cascade" role="listbox">
+          // Cascade on the opening list only. Re-staggering on every keystroke
+          // is the re-cascade-on-search the motion budget rules out, and next to
+          // a sheet that is already resizing it reads as the list flinching.
+          <ul className={`acc-palette__results${query ? '' : ' acc-cascade'}`} role="listbox">
             {results.map((item, i) => (
               <li key={`${item.kind}:${item.id}`}>
                 <button
@@ -196,7 +201,13 @@ export default function CommandPalette({ open, onClose }) {
   );
 }
 
-/** Ctrl/Cmd+Space anywhere in the app. */
+/**
+ * Ctrl/Cmd+Space anywhere in the app.
+ *
+ * Opens only. Closing belongs to the palette itself, which animates its exit —
+ * a toggle here would unmount it mid-fade, so the same keystroke would open
+ * gently and close with a cut.
+ */
 export function useCommandPalette() {
   const [open, setOpen] = useState(false);
 
@@ -204,7 +215,7 @@ export function useCommandPalette() {
     const onKey = (e) => {
       if (e.code === 'Space' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        setOpen((o) => !o);
+        setOpen(true);
       }
     };
     window.addEventListener('keydown', onKey);

@@ -345,11 +345,9 @@
   border-top: 1px solid var(--acc-border);
 }
 
-// Exits mirror entrances rather than cutting.
-.acc-modal--leaving {
-  animation: acc-exit-down var(--acc-dur-fast) var(--acc-ease-exit) both;
-}
-
+// Exits mirror entrances rather than cutting. The panel itself uses the shared
+// `.acc-leave`; the scrim fades without moving, since a sheet sliding down
+// behind a dialog would read as two separate departures.
 .acc-scrim--leaving {
   animation: acc-fade-out var(--acc-dur-fast) var(--acc-ease-exit) both;
 }
