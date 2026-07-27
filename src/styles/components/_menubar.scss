@@ -169,15 +169,20 @@
   }
 
   // Grows and shrinks with the result list instead of snapping between heights.
-  // `auto` is normally a discrete value and would cut on every keystroke; the
-  // `interpolate-size` declaration in the reset is what makes it interpolable.
+  //
+  // The height has to be a measured length. `auto` cannot be transitioned
+  // against `auto` — even with `interpolate-size`, which only helps when the
+  // declared value itself changes — so the component measures its content and
+  // publishes it as `--acc-palette-h`. That is a custom property, not styling:
+  // every colour, radius and duration below still comes from the token system.
   &__sheet {
     inline-size: min(520px, calc(100vw - 32px));
-    block-size: auto;
+    block-size: var(--acc-palette-h, auto);
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 16px;
     box-shadow: 0 24px 60px -12px rgba(42, 36, 56, 0.35);
+    // Clips the outgoing content while the height is still catching up.
     overflow: hidden;
     transition: block-size var(--acc-dur-normal) var(--acc-ease-standard);
 

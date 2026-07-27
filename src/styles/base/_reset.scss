@@ -10,14 +10,6 @@ body,
   height: 100%;
 }
 
-// Lets a `block-size` transition run against `auto`, which is otherwise a
-// discrete jump. Inherited, so declaring it once here is what makes the command
-// palette able to grow and shrink smoothly as its result list changes. Opt-in
-// per element — nothing animates unless it also declares a transition.
-:root {
-  interpolate-size: allow-keywords;
-}
-
 body {
   margin: 0;
   background: var(--acc-bg);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
@@ -26,6 +26,41 @@ export default function CommandPalette({ onClose }) {
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
+  const sheetRef = useRef(null);
+  const contentRef = useRef(null);
+
+  /**
+   * Keep the sheet's height in step with its contents, so it eases between
+   * sizes as results filter instead of snapping to each one.
+   *
+   * This has to be measured. A CSS transition needs two lengths to interpolate
+   * between, and a box sized by its contents is `auto` before and after — there
+   * is nothing to animate. So the content is measured and published as a custom
+   * property that the stylesheet transitions.
+   */
+  const measure = () => {
+    const sheet = sheetRef.current;
+    const content = contentRef.current;
+    if (!sheet || !content) return;
+    sheet.style.setProperty('--acc-palette-h', `${content.getBoundingClientRect().height}px`);
+  };
+
+  // No dep array: every render is a chance for the list to have changed length,
+  // and this is the path that actually fires on a keystroke. Layout effect, so
+  // the first measurement lands before paint and the sheet opens at its real
+  // size rather than growing into it.
+  useLayoutEffect(measure);
+
+  // Backstop for size changes that happen without a render — a font finishing
+  // loading, a long student name rewrapping when the window narrows.
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Dismissal mirrors the entrance rather than cutting.
@@ -134,67 +169,71 @@ export default function CommandPalette({ onClose }) {
       role="presentation"
     >
       <div
+        ref={sheetRef}
         className={`acc-palette__sheet ${leaving ? 'acc-palette__sheet--leaving' : 'acc-enter'}`}
         role="dialog"
         aria-modal="true"
         aria-label="Find a student"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="acc-palette__field">
-          <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
-            <circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <path
-              d="M10.4 10.4L14 14"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
+        {/* Measured, so the sheet can transition to its content's height. */}
+        <div className="acc-palette__content" ref={contentRef}>
+          <div className="acc-palette__field">
+            <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path
+                d="M10.4 10.4L14 14"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              ref={inputRef}
+              className="acc-palette__input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Jump to a student or period…"
+              aria-label="Jump to a student or period"
             />
-          </svg>
-          <input
-            ref={inputRef}
-            className="acc-palette__input"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Jump to a student or period…"
-            aria-label="Jump to a student or period"
-          />
-          <kbd className="acc-palette__kbd">Esc</kbd>
-        </div>
+            <kbd className="acc-palette__kbd">Esc</kbd>
+          </div>
 
-        {results.length > 0 ? (
-          // Cascade on the opening list only. Re-staggering on every keystroke
-          // is the re-cascade-on-search the motion budget rules out, and next to
-          // a sheet that is already resizing it reads as the list flinching.
-          <ul className={`acc-palette__results${query ? '' : ' acc-cascade'}`} role="listbox">
-            {results.map((item, i) => (
-              <li key={`${item.kind}:${item.id}`}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={i === cursor}
-                  className={`acc-palette__result${i === cursor ? ' acc-palette__result--on' : ''}`}
-                  onMouseEnter={() => setCursor(i)}
-                  onClick={() => choose(item)}
-                >
-                  <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
-                    {item.kind === 'period' ? 'Period' : 'Student'}
-                  </span>
-                  <span className="acc-palette__name">{item.label}</span>
-                  <span className="acc-palette__meta">{item.meta}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="acc-palette__none">
-            {doc.students.length === 0 ? 'No students yet.' : 'Nothing matches.'}
+          {results.length > 0 ? (
+            // Cascade on the opening list only. Re-staggering on every keystroke
+            // is the re-cascade-on-search the motion budget rules out, and next to
+            // a sheet that is already resizing it reads as the list flinching.
+            <ul className={`acc-palette__results${query ? '' : ' acc-cascade'}`} role="listbox">
+              {results.map((item, i) => (
+                <li key={`${item.kind}:${item.id}`}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={i === cursor}
+                    className={`acc-palette__result${i === cursor ? ' acc-palette__result--on' : ''}`}
+                    onMouseEnter={() => setCursor(i)}
+                    onClick={() => choose(item)}
+                  >
+                    <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
+                      {item.kind === 'period' ? 'Period' : 'Student'}
+                    </span>
+                    <span className="acc-palette__name">{item.label}</span>
+                    <span className="acc-palette__meta">{item.meta}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="acc-palette__none">
+              {doc.students.length === 0 ? 'No students yet.' : 'Nothing matches.'}
+            </p>
+          )}
+
+          <p className="acc-palette__hint">
+            Students and periods · ↑↓ to move · Enter to open · Esc to close
           </p>
-        )}
-
-        <p className="acc-palette__hint">
-          Students and periods · ↑↓ to move · Enter to open · Esc to close
-        </p>
+        </div>
       </div>
     </div>,
     document.body

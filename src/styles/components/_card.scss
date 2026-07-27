@@ -72,9 +72,12 @@
     border-inline-start: 3px solid var(--acc-status-detail);
   }
 
+  // A card that resolved to Not Used keeps the ordinary card surface. The state
+  // is carried by the `__resolved` label alone — the card has not changed, only
+  // what the closed-out day says about it, and repainting the whole Unassigned
+  // column at 4pm reads as an alarm rather than as a day ending.
   &--not-used {
-    background: var(--acc-status-not-used-soft);
-    border-color: color-mix(in srgb, var(--acc-status-not-used) 25%, transparent);
+    border-color: color-mix(in srgb, var(--acc-status-not-used) 22%, var(--acc-border));
   }
 
   &--needs-detail {
