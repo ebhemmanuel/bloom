@@ -1,0 +1,131 @@
+// The "+ Add accommodation" affordance at the end of each Unassigned column.
+
+.acc-addacc {
+  list-style: none;
+
+  &__trigger {
+    inline-size: 100%;
+    padding: var(--acc-space-2);
+    border: 1px dashed var(--acc-border-strong);
+    border-radius: var(--acc-radius-md);
+    background: transparent;
+    color: var(--acc-fg-faint);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      color var(--acc-dur-fast) var(--acc-ease-standard),
+      background-color var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover {
+      border-color: var(--acc-accent);
+      color: var(--acc-accent);
+      background: var(--acc-accent-soft);
+    }
+  }
+
+  &--open {
+    padding: var(--acc-space-2);
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-accent);
+    border-radius: var(--acc-radius-md);
+    box-shadow: var(--acc-shadow-card);
+  }
+
+  &__input {
+    inline-size: 100%;
+    box-sizing: border-box;
+    padding: var(--acc-space-2);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-card);
+    outline: none;
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  // Suggestions come from the catalog the teacher already uses, so picking one
+  // reuses their own wording rather than minting a near-duplicate.
+  &__suggest {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-block-start: var(--acc-space-2);
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--acc-space-2);
+      inline-size: 100%;
+      padding: var(--acc-space-2);
+      border-radius: var(--acc-radius-sm);
+      background: var(--acc-surface-sunken);
+      font-size: var(--acc-fs-tiny);
+      text-align: start;
+      transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+      &:hover {
+        background: var(--acc-accent-soft);
+        color: var(--acc-accent);
+      }
+    }
+  }
+
+  &__flag {
+    flex-shrink: 0;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-warning);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--acc-space-2);
+    margin-block-start: var(--acc-space-2);
+  }
+
+  &__hint {
+    margin-block-start: var(--acc-space-2);
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+}
+
+// --- Custom scrollbar ------------------------------------------------------
+// Native bar hidden in _app-shell. This floats just outside the content, only
+// while scrolling, so a resting board has no chrome on its edge.
+
+.acc-scrollbar {
+  position: absolute;
+  inset-inline-end: 8px;
+  inline-size: 6px;
+  border-radius: var(--acc-radius-pill);
+  background: rgba(42, 36, 56, 0.06);
+  opacity: 0;
+  transition: opacity var(--acc-dur-slow) var(--acc-ease-standard);
+  pointer-events: auto;
+  z-index: 40;
+
+  &--visible {
+    opacity: 1;
+  }
+
+  &__thumb {
+    position: absolute;
+    inline-size: 100%;
+    border-radius: var(--acc-radius-pill);
+    background: rgba(42, 36, 56, 0.28);
+    cursor: grab;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: rgba(42, 36, 56, 0.42);
+    }
+  }
+}

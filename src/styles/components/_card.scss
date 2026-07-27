@@ -55,6 +55,39 @@
     opacity: 0.45;
   }
 
+  // Not this teacher's to deliver. Dimmed and inert, but still legible and
+  // still reversible — it must never look deleted.
+  &--irrelevant {
+    opacity: 0.45;
+    cursor: default;
+
+    &:hover {
+      border-color: var(--acc-border);
+      box-shadow: var(--acc-shadow-card);
+    }
+  }
+
+  &--selected {
+    background: var(--acc-surface-selected);
+    border-color: var(--acc-accent);
+  }
+
+  // Count of cards travelling with a group drag.
+  &__stack {
+    position: absolute;
+    inset-block-start: -8px;
+    inset-inline-end: -8px;
+    min-inline-size: 20px;
+    block-size: 20px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-accent);
+    color: var(--acc-accent-fg);
+    font-size: 10px;
+    font-weight: var(--acc-fw-bold);
+  }
+
   &--locked {
     cursor: default;
 
@@ -100,10 +133,19 @@
       background: var(--acc-surface-sunken);
       border: 1px dashed var(--acc-border-strong);
     }
+
+    &--muted {
+      color: var(--acc-fg-faint);
+      background: var(--acc-surface-sunken);
+    }
   }
 
-  // Repeat-use count.
+  // Repeat-use count, pinned bottom-right so a glance down the column reads the
+  // counts as a column rather than hunting through each meta row.
   &__count {
+    position: absolute;
+    inset-block-end: 8px;
+    inset-inline-end: 8px;
     font-size: 10px;
     font-weight: var(--acc-fw-bold);
     color: var(--acc-status-used);

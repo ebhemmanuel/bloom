@@ -20,17 +20,30 @@ import { STATUS, STATUS_LABEL } from '../../domain/constants.js';
  * re-rendering all of them on every keystroke in the search box is the difference
  * between fluid and sluggish.
  */
-function AccommodationCard({ card, index, disabled, onOpenDetail, onContextMenu }) {
+function AccommodationCard({
+  card,
+  index,
+  disabled,
+  selected,
+  selectionCount,
+  onOpenDetail,
+  onContextMenu,
+  onSelectClick,
+}) {
   const resolvedNotUsed = card.resolved === STATUS.NOT_USED;
+  // Not this teacher's to deliver, so it cannot be moved either.
+  const inert = disabled || card.notRelevant;
 
   const classes = [
     'acc-card',
     card.isCustom && 'acc-card--custom',
     resolvedNotUsed && 'acc-card--not-used',
     card.needsDetail && 'acc-card--needs-detail',
-    card.notApplicable && 'acc-card--na',
-    disabled && 'acc-card--locked',
+    card.notApplicable && !card.notRelevant && 'acc-card--na',
+    card.notRelevant && 'acc-card--irrelevant',
+    inert && 'acc-card--locked',
     card.defaultStatus && 'acc-card--defaulted',
+    selected && 'acc-card--selected',
   ]
     .filter(Boolean)
     .join(' ');
@@ -39,7 +52,7 @@ function AccommodationCard({ card, index, disabled, onOpenDetail, onContextMenu 
     <Draggable
       draggableId={`card:${card.studentId}:${card.assignmentId}`}
       index={index}
-      isDragDisabled={disabled}
+      isDragDisabled={inert}
     >
       {(provided, snapshot) => (
         <li
@@ -50,27 +63,43 @@ function AccommodationCard({ card, index, disabled, onOpenDetail, onContextMenu 
           // app — everything else is a BEM modifier, per CLAUDE.md.
           style={provided.draggableProps.style}
           className={`${classes}${snapshot.isDragging ? ' acc-card--dragging' : ''}`}
-          onClick={() => onOpenDetail(card)}
+          onClick={(event) => {
+            // A modifier click is a selection gesture, not "open the detail".
+            if (onSelectClick(card, event)) return;
+            if (!card.notRelevant) onOpenDetail(card);
+          }}
           onContextMenu={(event) => {
             // Suppress the browser menu — right-click belongs to our own.
             event.preventDefault();
             event.stopPropagation();
             if (!disabled) onContextMenu(card, event.clientX, event.clientY);
           }}
+          aria-selected={selected || undefined}
           aria-label={`${card.label} — ${STATUS_LABEL[card.resolved] || ''}${
             card.useCount > 1 ? `, used ${card.useCount} times` : ''
           }`}
         >
           <p className="acc-card__label">{card.label}</p>
 
+          {/* Pinned bottom-right rather than in the meta row, so a glance down
+              the column reads the repeat counts as a column. */}
+          {card.useCount > 1 && (
+            <span
+              className="acc-card__count acc-numeric"
+              title={`Used ${card.useCount} times today`}
+            >
+              ×{card.useCount}
+            </span>
+          )}
+
+          {/* How many cards travel with this drag. */}
+          {snapshot.isDragging && selectionCount > 1 && (
+            <span className="acc-card__stack acc-numeric">{selectionCount}</span>
+          )}
+
           <div className="acc-card__meta">
-            {card.useCount > 1 && (
-              <span
-                className="acc-card__count acc-numeric"
-                title={`Used ${card.useCount} times today`}
-              >
-                ×{card.useCount}
-              </span>
+            {card.notRelevant && (
+              <span className="acc-card__badge acc-card__badge--muted">Not relevant</span>
             )}
             {card.defaultStatus && (
               <span
@@ -102,6 +131,7 @@ function AccommodationCard({ card, index, disabled, onOpenDetail, onContextMenu 
 }
 
 export default memo(AccommodationCard, (a, b) => {
+  if (a.selected !== b.selected || a.selectionCount !== b.selectionCount) return false;
   const x = a.card;
   const y = b.card;
   return (
@@ -114,6 +144,7 @@ export default memo(AccommodationCard, (a, b) => {
     x.detail === y.detail &&
     x.needsDetail === y.needsDetail &&
     x.useCount === y.useCount &&
-    x.defaultStatus === y.defaultStatus
+    x.defaultStatus === y.defaultStatus &&
+    x.notRelevant === y.notRelevant
   );
 });

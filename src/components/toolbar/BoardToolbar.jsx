@@ -1,10 +1,39 @@
 import { useState } from 'react';
 import DatePicker from './DatePicker.jsx';
 import PeriodFilter from './PeriodFilter.jsx';
-import StudentSearch from './StudentSearch.jsx';
-import SaveStatusPill from '../shared/SaveStatusPill.jsx';
+import Toast from '../shared/Toast.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
 
+function Chevron({ down }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      aria-hidden="true"
+      className={`acc-foldall__chevron${down ? ' acc-foldall__chevron--down' : ''}`}
+    >
+      <path
+        d="M6 4l4 4-4 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * The board's tools, as a single floating row above the first lane.
+ *
+ * No longer a bordered bar — it sits on the board surface inside the scroll area,
+ * so the lanes read as the primary content and the tools as something resting on
+ * top of them.
+ *
+ * Left: fold-all, date, copy-yesterday. Right: close-out, periods.
+ */
 export default function BoardToolbar({
   dateKey,
   onDateChange,
@@ -12,15 +41,12 @@ export default function BoardToolbar({
   periods,
   selectedPeriodIds,
   onPeriodsChange,
-  search,
-  onSearchChange,
   model,
   readOnly,
   onCopyPrevious,
   onCloseOutDay,
-  onCollapseAll,
-  onExpandAll,
-  onAddStudent,
+  allFolded,
+  onToggleFoldAll,
 }) {
   const [notice, setNotice] = useState(null);
   const disabled = readOnly || model.sealed;
@@ -42,8 +68,9 @@ export default function BoardToolbar({
 
     if (result.reason === 'would-overwrite') {
       setNotice({
-        tone: 'confirm',
+        tone: 'warn',
         text: "You've already recorded something today. Copying will overwrite it.",
+        confirmLabel: 'Overwrite anyway',
         onConfirm: () => copy(mode, true),
       });
     } else if (result.reason === 'no-source') {
@@ -55,112 +82,49 @@ export default function BoardToolbar({
 
   return (
     <>
-      {/*
-        Row 1 — the date being recorded, and the actions that apply to that day.
-        Row 2 — the filters, sitting directly above the first card so it reads as
-        narrowing the list below rather than changing the day above.
-      */}
       <div className="acc-toolbar">
+        <button
+          type="button"
+          className="acc-btn acc-btn--round"
+          onClick={onToggleFoldAll}
+          aria-label={allFolded ? 'Unfold all students' : 'Fold all students'}
+          title={allFolded ? 'Unfold all students' : 'Fold all students'}
+        >
+          <Chevron down={!allFolded} />
+        </button>
+
         <DatePicker
           dateKey={dateKey}
           onChange={onDateChange}
           nonInstructionalDates={nonInstructionalDates}
         />
 
-        <div className="acc-toolbar__actions">
-          <button type="button" className="acc-btn acc-btn--quiet" onClick={onCollapseAll}>
-            Fold all
-          </button>
-          <button type="button" className="acc-btn acc-btn--quiet" onClick={onExpandAll}>
-            Unfold all
-          </button>
+        <button
+          type="button"
+          className="acc-btn"
+          onClick={() => copy(SEED_MODE.STRUCTURE, false)}
+          disabled={disabled}
+          title="Set up today's cards the same as the last recorded day. Statuses start unassigned."
+        >
+          Copy yesterday
+        </button>
 
-          <button
-            type="button"
-            className="acc-btn"
-            onClick={() => copy(SEED_MODE.STRUCTURE, false)}
-            disabled={disabled}
-            title="Set up today's cards the same as the last recorded day. Statuses start unassigned."
-          >
-            Copy yesterday
-          </button>
-
-          <button
-            type="button"
-            className="acc-btn"
-            onClick={onCloseOutDay}
-            disabled={disabled || !model.hasRecord}
-            title="Finish this day. Anything still unassigned is recorded as Not Used."
-          >
-            Close out day
-          </button>
-        </div>
-
-        <SaveStatusPill />
-      </div>
-
-      <div className="acc-filters">
-        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
-
-        <StudentSearch
-          value={search}
-          onChange={onSearchChange}
-          matchCount={model.laneCount}
-          hiddenCount={model.hiddenBySearch}
-        />
-
-        <div className="acc-filters__spacer" />
-
-        <span className="acc-filters__count acc-numeric">
-          {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
-        </span>
+        <div className="acc-toolbar__spacer" />
 
         <button
           type="button"
           className="acc-btn"
-          onClick={onAddStudent}
-          disabled={readOnly}
-          title="Add a student and paste their accommodations in one go"
+          onClick={onCloseOutDay}
+          disabled={disabled || !model.hasRecord}
+          title="Finish this day. Anything still unassigned is recorded as Not Used."
         >
-          Add student
+          Close out day
         </button>
+
+        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
       </div>
 
-      {model.detailsMissing > 0 && (
-        <div className="acc-banner acc-banner--warn acc-fade-enter">
-          {model.detailsMissing} card{model.detailsMissing === 1 ? '' : 's'} marked “used with
-          detail” {model.detailsMissing === 1 ? 'has' : 'have'} no detail written. Those print as an
-          unsupported claim.
-        </div>
-      )}
-
-      {notice && (
-        <div className={`acc-banner acc-banner--${notice.tone} acc-fade-enter`}>
-          <span>{notice.text}</span>
-          <span className="acc-banner__actions">
-            {notice.onConfirm && (
-              <button
-                type="button"
-                className="acc-btn acc-btn--small"
-                onClick={() => {
-                  const run = notice.onConfirm;
-                  setNotice(null);
-                  run();
-                }}
-              >
-                Overwrite anyway
-              </button>
-            )}
-            <button
-              type="button"
-              className="acc-btn acc-btn--small acc-btn--quiet"
-              onClick={() => setNotice(null)}
-            >
-              Dismiss
-            </button>
-          </span>
-        </div>
-      )}
+      {notice && <Toast {...notice} onDismiss={() => setNotice(null)} />}
     </>
   );
 }

@@ -61,11 +61,27 @@ function SwimlaneHeader({ lane, collapsed, disabled, onToggleCollapse, onToggleA
         )}
       </span>
 
-      {lane.detailsMissing > 0 && !lane.absent && (
-        <span className="acc-lane__warn">
-          {lane.detailsMissing} need{lane.detailsMissing === 1 ? 's' : ''} detail
-        </span>
-      )}
+      {/* Right-aligned group: the needs-detail chip sits immediately left of
+          Mark absent, replacing the old global warning pill. A per-lane warning
+          points at the student it concerns instead of making the teacher hunt. */}
+      <span className="acc-lane__right">
+        {lane.detailsMissing > 0 && !lane.absent && (
+          <span className="acc-lane__warn">
+            <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
+              <path
+                d="M8 2.5 14.5 13.5h-13z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinejoin="round"
+              />
+              <path d="M8 6.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              <circle cx="8" cy="11.4" r="0.7" fill="currentColor" />
+            </svg>
+            {lane.detailsMissing} need{lane.detailsMissing === 1 ? 's' : ''} detail
+          </span>
+        )}
+      </span>
 
       {/* Far right, per spec. */}
       <button

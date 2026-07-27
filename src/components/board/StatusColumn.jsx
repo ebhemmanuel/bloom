@@ -11,7 +11,22 @@ import AccommodationCard from './AccommodationCard.jsx';
  * drag — rather than a rejection branch in onDragEnd that the user only
  * discovers by trying and failing.
  */
-function StatusColumn({ studentId, status, label, cards, disabled, onOpenDetail, onContextMenu }) {
+function StatusColumn({
+  studentId,
+  status,
+  label,
+  cards,
+  disabled,
+  isSelected,
+  selectionCount,
+  onOpenDetail,
+  onContextMenu,
+  onSelectClick,
+  footer,
+}) {
+  // Visual order within this column, for Shift+click range selection.
+  const columnIds = cards.map((c) => c.assignmentId);
+
   return (
     <Droppable
       droppableId={`drop:${studentId}:${status}`}
@@ -37,11 +52,15 @@ function StatusColumn({ studentId, status, label, cards, disabled, onOpenDetail,
                 card={card}
                 index={index}
                 disabled={disabled}
+                selected={isSelected(card)}
+                selectionCount={selectionCount}
                 onOpenDetail={onOpenDetail}
                 onContextMenu={onContextMenu}
+                onSelectClick={(c, event) => onSelectClick(c, event, columnIds)}
               />
             ))}
             {provided.placeholder}
+            {footer}
           </ul>
         </section>
       )}

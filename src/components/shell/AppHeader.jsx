@@ -1,56 +1,82 @@
 import { useEffect, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
+import { PRODUCT_NAME } from '../../domain/schema.js';
+import { initialsOf } from '../../domain/initials.js';
+import SaveStatusPill from '../shared/SaveStatusPill.jsx';
+import StudentSearch from '../toolbar/StudentSearch.jsx';
 
-/**
- * Initials for the avatar. "Ms. Rivera" → R, "Jordan Alvarez" → JA.
- *
- * A leading honorific is dropped WITH its trailing period — otherwise "Ms."
- * leaves a bare "." behind and the avatar reads ".R". Only word-initial letters
- * are used, so punctuation can never reach the avatar.
- */
-export function initialsOf(name) {
-  const parts = String(name || '')
-    .replace(/^\s*(mr|mrs|ms|miss|dr|mx|prof)\.?\s+/i, '')
-    .split(/[\s.]+/)
-    // Keep only fragments that actually start with a letter.
-    .map((p) => p.match(/\p{L}/u)?.[0])
-    .filter(Boolean);
-
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].toUpperCase();
-  return (parts[0] + parts[parts.length - 1]).toUpperCase();
-}
-
-function BellIcon() {
+function Icon({ path, size = 16 }) {
   return (
-    <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
-      <path
-        d="M8 2a3.6 3.6 0 0 0-3.6 3.6v2.1L3.2 9.9h9.6l-1.2-2.2V5.6A3.6 3.6 0 0 0 8 2Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6.5 11.7a1.6 1.6 0 0 0 3 0"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
+    <svg viewBox="0 0 16 16" width={size} height={size} aria-hidden="true">
+      {path}
     </svg>
   );
 }
 
+const NOTE_ICON = (
+  <>
+    <rect
+      x="3"
+      y="2.5"
+      width="10"
+      height="11"
+      rx="1.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+    />
+    <path
+      d="M5.5 6h5M5.5 8.5h5M5.5 11h3"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+  </>
+);
+
+const BELL_ICON = (
+  <>
+    <path
+      d="M8 2a3.6 3.6 0 0 0-3.6 3.6v2.1L3.2 9.9h9.6l-1.2-2.2V5.6A3.6 3.6 0 0 0 8 2Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6.5 11.7a1.6 1.6 0 0 0 3 0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+  </>
+);
+
+const PLUS_ICON = (
+  <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+);
+
 /**
- * Top navigation: product name at the left, notifications and the teacher's
- * avatar at the right. Clicking the avatar opens their own details.
+ * Floating pill nav.
+ *
+ * Left: brand. Centre: student search — it is the most-reached-for control on a
+ * 30-lane board, so it gets the centre rather than being buried in a toolbar.
+ * Right: roster count, add, save state, day notes, notifications, avatar.
  */
 export default function AppHeader({
   notifications,
+  openPanel,
   onOpenSettings,
   onOpenNotifications,
-  openPanel,
+  onOpenDayNotes,
+  onAddStudent,
+  hasDayNotes,
+  search,
+  onSearchChange,
+  matchCount,
+  hiddenCount,
+  studentCount,
 }) {
   const { doc } = useData();
   const teacher =
@@ -61,10 +87,45 @@ export default function AppHeader({
     <header className="acc-header">
       <div className="acc-header__brand">
         <span className="acc-header__mark" aria-hidden="true" />
-        <span className="acc-header__name">Accommodations Tracker</span>
+        <span className="acc-header__name">{PRODUCT_NAME}</span>
       </div>
 
+      <StudentSearch
+        value={search}
+        onChange={onSearchChange}
+        matchCount={matchCount}
+        hiddenCount={hiddenCount}
+      />
+
       <div className="acc-header__right">
+        <button
+          type="button"
+          className="acc-header__round"
+          onClick={onAddStudent}
+          aria-label="Add student"
+          title="Add student"
+        >
+          <Icon path={PLUS_ICON} size={13} />
+        </button>
+
+        <span className="acc-header__count acc-numeric">
+          {studentCount} student{studentCount === 1 ? '' : 's'}
+        </span>
+
+        <SaveStatusPill />
+
+        <button
+          type="button"
+          className={`acc-header__icon${openPanel === 'daynotes' ? ' acc-header__icon--on' : ''}`}
+          onClick={onOpenDayNotes}
+          aria-label="Day notes"
+          aria-expanded={openPanel === 'daynotes'}
+          title="Day notes"
+        >
+          <Icon path={NOTE_ICON} />
+          {hasDayNotes && <span className="acc-header__pip" aria-hidden="true" />}
+        </button>
+
         <button
           type="button"
           className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}
@@ -72,7 +133,7 @@ export default function AppHeader({
           aria-label={unread ? `Notifications, ${unread} to review` : 'Notifications'}
           aria-expanded={openPanel === 'notifications'}
         >
-          <BellIcon />
+          <Icon path={BELL_ICON} size={17} />
           {unread > 0 && (
             <span className="acc-header__dot acc-numeric">{unread > 9 ? '9+' : unread}</span>
           )}
@@ -95,7 +156,9 @@ export default function AppHeader({
 
 /**
  * Dismiss-on-outside-click / Escape for the header popovers.
- * Shared so both panels behave identically.
+ *
+ * `mousedown` rather than `click`: a drag that starts inside and ends outside
+ * should not count as an outside click.
  */
 export function usePopoverDismiss(open, onClose) {
   const ref = useRef(null);
@@ -110,8 +173,6 @@ export function usePopoverDismiss(open, onClose) {
       if (event.key === 'Escape') onClose();
     };
 
-    // `mousedown` rather than `click`: a click that starts inside and ends
-    // outside should not count as an outside click.
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {

@@ -1,0 +1,1071 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          html,
+          body {
+            margin: 0;
+            height: 100%;
+            background: #faf8fc;
+            color: #2a2438;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: #5b4bd6;
+          }
+          a:hover {
+            color: #6d5ee6;
+          }
+          input::placeholder {
+            color: #9a93a8;
+          }
+          @keyframes acc-enter {
+            from {
+              opacity: 0;
+              transform: translateY(8px) scale(0.985);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          @keyframes acc-screen-in {
+            from {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes acc-exit {
+            from {
+              opacity: 1;
+              transform: translateY(0);
+            }
+            to {
+              opacity: 0;
+              transform: translateY(-6px);
+            }
+          }
+          @keyframes acc-fade-in {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          @keyframes acc-bloom-1 {
+            from {
+              opacity: 0;
+              transform: translate(-6%, 6%) scale(0.75);
+            }
+            to {
+              opacity: 0.55;
+              transform: translate(0, 0) scale(1);
+            }
+          }
+          @keyframes acc-bloom-2 {
+            from {
+              opacity: 0;
+              transform: translate(5%, -5%) scale(0.7);
+            }
+            to {
+              opacity: 0.5;
+              transform: translate(0, 0) scale(1);
+            }
+          }
+          @keyframes acc-bloom-3 {
+            from {
+              opacity: 0;
+              transform: translate(4%, 5%) scale(0.8);
+            }
+            to {
+              opacity: 0.45;
+              transform: translate(0, 0) scale(1);
+            }
+          }
+          @keyframes acc-bloom-4 {
+            from {
+              opacity: 0;
+              transform: translate(0, -4%) scale(0.75);
+            }
+            to {
+              opacity: 0.4;
+              transform: translate(0, 0) scale(1);
+            }
+          }
+          @keyframes acc-drift {
+            0% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+            33% {
+              transform: translate3d(3%, -2.5%, 0) scale(1.05);
+            }
+            66% {
+              transform: translate3d(-2.5%, 2%, 0) scale(0.97);
+            }
+            100% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+          }
+          @keyframes acc-bg-shift {
+            0% {
+              background-position: 0% 30%;
+            }
+            50% {
+              background-position: 100% 70%;
+            }
+            100% {
+              background-position: 0% 30%;
+            }
+          }
+          @keyframes acc-mote {
+            0% {
+              transform: translate3d(0, 0, 0);
+            }
+            25% {
+              transform: translate3d(2.8vw, -9vh, 0);
+            }
+            50% {
+              transform: translate3d(-1.6vw, -17vh, 0);
+            }
+            75% {
+              transform: translate3d(2vw, -26vh, 0);
+            }
+            100% {
+              transform: translate3d(0, -34vh, 0);
+            }
+          }
+          @keyframes acc-mote-breathe {
+            0%,
+            100% {
+              opacity: 0.28;
+              scale: 1;
+            }
+            50% {
+              opacity: 0.6;
+              scale: 1.18;
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            * {
+              animation-duration: 0.01ms !important;
+              animation-delay: 0ms !important;
+              animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important;
+            }
+          }
+        </style>
+      </helmet>
+      <div
+        style="
+          position: relative;
+          height: 100vh;
+          min-height: 640px;
+          overflow: hidden;
+          background: #faf8fc;
+        "
+      >
+        <sc-if value="{{board}}" hint-placeholder-val="{{false}}">
+          <div
+            style="
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              animation: acc-fade-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
+            "
+          >
+            <div style="font-size: 13px; color: #9a93a8">
+              The board fades in here, crisp, still, ready for the day.
+            </div>
+          </div>
+        </sc-if>
+        <div
+          style="position:absolute;inset:0;opacity:{{wrapOpacity}};pointer-events:{{wrapPE}};transition:opacity 420ms cubic-bezier(0.7,0,0.84,0);"
+        >
+          <div
+            style="position:absolute;inset:0;background:linear-gradient(115deg,#f4efff 0%,#fdf3f7 30%,#faf6ee 55%,#eff7f3 80%,#f0f2fd 100%);background-size:280% 280%;animation:acc-bg-shift 46s ease-in-out infinite;animation-play-state:{{driftState}};"
+            aria-hidden="true"
+          ></div>
+          <div
+            style="position:absolute;inset:-8%;transform:{{fieldTransform}};transition:transform 900ms cubic-bezier(0.65,0,0.35,1);opacity:{{fieldOpacity}};"
+            aria-hidden="true"
+          >
+            <div
+              style="position:absolute;left:36%;top:-6%;width:520px;height:520px;animation:acc-drift 28s ease-in-out 2280ms infinite reverse;animation-play-state:{{driftState}};"
+            >
+              <div
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  background: #ffe7cf;
+                  filter: blur(100px);
+                  opacity: 0;
+                  animation: acc-bloom-4 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1280ms both;
+                "
+              ></div>
+            </div>
+            <div
+              style="position:absolute;left:-4%;bottom:-2%;width:640px;height:640px;animation:acc-drift 26s ease-in-out 1200ms infinite;animation-play-state:{{driftState}};"
+            >
+              <div
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  background: #d9dfff;
+                  filter: blur(90px);
+                  opacity: 0;
+                  animation: acc-bloom-1 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 200ms both;
+                "
+              ></div>
+            </div>
+            <div
+              style="position:absolute;right:-2%;top:-4%;width:660px;height:660px;animation:acc-drift 30s ease-in-out 1560ms infinite reverse;animation-play-state:{{driftState}};"
+            >
+              <div
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  background: #ffd9e8;
+                  filter: blur(110px);
+                  opacity: 0;
+                  animation: acc-bloom-2 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 560ms both;
+                "
+              ></div>
+            </div>
+            <div
+              style="position:absolute;right:10%;bottom:-10%;width:540px;height:540px;animation:acc-drift 22s ease-in-out 1920ms infinite;animation-play-state:{{driftState}};"
+            >
+              <div
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  background: #d2f2e6;
+                  filter: blur(80px);
+                  opacity: 0;
+                  animation: acc-bloom-3 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 920ms both;
+                "
+              ></div>
+            </div>
+          </div>
+          <div
+            style="
+              position: absolute;
+              inset: 0;
+              overflow: hidden;
+              animation: acc-fade-in 2000ms ease 2600ms both;
+            "
+            aria-hidden="true"
+          >
+            <sc-for list="{{motes}}" as="m" hint-placeholder-count="7">
+              <div
+                style="position:absolute;left:{{m.left}};top:{{m.top}};animation:acc-mote {{m.dur}} linear {{m.delay}} infinite;animation-play-state:{{driftState}};"
+              >
+                <div
+                  style="width:{{m.size}};height:{{m.size}};border-radius:50%;background:{{m.color}};filter:blur({{m.blur}});animation:acc-mote-breathe {{m.breathe}} ease-in-out {{m.delay}} infinite;animation-play-state:{{driftState}};"
+                ></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position: relative; z-index: 1; height: 100%">
+            <sc-if value="{{showProgress}}" hint-placeholder-val="{{false}}">
+              <div
+                style="
+                  position: absolute;
+                  top: 44px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  display: flex;
+                  gap: 6px;
+                  z-index: 2;
+                  animation: acc-fade-in 320ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+                "
+                aria-label="Setup progress"
+              >
+                <sc-for list="{{segs}}" as="s" hint-placeholder-count="8">
+                  <div
+                    style="width:26px;height:3px;border-radius:999px;background:{{s.bg}};transition:background 260ms cubic-bezier(0.65,0,0.35,1);"
+                  ></div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{showWelcome}}" hint-placeholder-val="{{true}}">
+              <div
+                data-screen-label="Onboarding · Welcome"
+                style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:48px;animation:{{welcomeAnim}};"
+              >
+                <div
+                  style="
+                    width: 640px;
+                    max-width: 100%;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 28px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 14px;
+                      font-weight: 600;
+                      letter-spacing: 0.22em;
+                      text-transform: uppercase;
+                      color: #8f83e3;
+                      animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 1250ms both;
+                    "
+                  >
+                    Bloom
+                  </div>
+                  <h1
+                    style="
+                      margin: 0;
+                      font-size: 44px;
+                      font-weight: 600;
+                      letter-spacing: -0.015em;
+                      line-height: 1.15;
+                      color: #2a2438;
+                      animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 1450ms both;
+                    "
+                  >
+                    Hi there.
+                  </h1>
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 17px;
+                      line-height: 1.65;
+                      color: #6b6480;
+                      max-width: 40ch;
+                      text-wrap: pretty;
+                      animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 1700ms both;
+                    "
+                  >
+                    Bloom is a calm place to keep a daily record of the support you give your
+                    students. A few quiet minutes at the end of the day.
+                  </p>
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 13.5px;
+                      line-height: 1.5;
+                      color: #9a93a8;
+                      animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 1900ms both;
+                    "
+                  >
+                    Everything you write stays on this computer.<br />Nothing is ever sent anywhere.
+                  </p>
+                  <button
+                    onClick="{{goAbout}}"
+                    style="
+                      margin-top: 20px;
+                      appearance: none;
+                      border: none;
+                      background: #5b4bd6;
+                      color: #ffffff;
+                      font-family: inherit;
+                      font-size: 15px;
+                      font-weight: 600;
+                      padding: 13px 30px;
+                      border-radius: 999px;
+                      cursor: pointer;
+                      box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+                      transition:
+                        background 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                        transform 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                      animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2200ms both;
+                    "
+                    style-hover="background:#6d5ee6"
+                    style-active="transform:scale(0.98)"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                  >
+                    Let's get started
+                  </button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{showAbout}}" hint-placeholder-val="{{false}}">
+              <div
+                data-screen-label="Onboarding · About you"
+                style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:88px 48px 48px;overflow-y:auto;animation:{{aboutAnim}};"
+              >
+                <div
+                  style="
+                    width: 600px;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    padding: 52px 56px;
+                    background: rgba(255, 255, 255, 0.55);
+                    backdrop-filter: blur(28px) saturate(1.15);
+                    -webkit-backdrop-filter: blur(28px) saturate(1.15);
+                    border: 1px solid rgba(255, 255, 255, 0.7);
+                    border-radius: 20px;
+                    box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 26px;
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 10px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both;
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 11px;
+                        font-weight: 600;
+                        letter-spacing: 0.08em;
+                        text-transform: uppercase;
+                        color: #9a93a8;
+                      "
+                    >
+                      About you
+                    </div>
+                    <h2
+                      style="
+                        margin: 0;
+                        font-size: 26px;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        color: #2a2438;
+                      "
+                    >
+                      What should we call you?
+                    </h2>
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #6b6480;
+                        text-wrap: pretty;
+                      "
+                    >
+                      However you'd like it to read on your printed reports, "Ms. Rivera" and
+                      "Jordan" are both fine.
+                    </p>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 12px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 225ms both;
+                    "
+                  >
+                    <input
+                      value="{{name}}"
+                      onInput="{{onName}}"
+                      placeholder="Ms. Rivera"
+                      aria-label="Your name"
+                      style="
+                        width: 100%;
+                        box-sizing: border-box;
+                        font-family: inherit;
+                        font-size: 17px;
+                        color: #2a2438;
+                        padding: 13px 16px;
+                        border-radius: 10px;
+                        border: 1px solid #d6d0e2;
+                        background: #ffffff;
+                        transition:
+                          border-color 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                          box-shadow 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                      "
+                      style-focus="outline:none;border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                    />
+                    <sc-if value="{{revealedSubjects}}" hint-placeholder-val="{{false}}">
+                      <div
+                        style="
+                          background: #ffffff;
+                          border: 1px solid #e9e5f0;
+                          border-radius: 8px;
+                          padding: 10px 14px;
+                          display: flex;
+                          flex-direction: column;
+                          gap: 3px;
+                          animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                        "
+                      >
+                        <div
+                          style="
+                            font-size: 10px;
+                            font-weight: 600;
+                            letter-spacing: 0.08em;
+                            text-transform: uppercase;
+                            color: #b5aec4;
+                          "
+                        >
+                          On your printed reports
+                        </div>
+                        <div
+                          style="
+                            font-size: 12.5px;
+                            color: #2a2438;
+                            font-variant-numeric: tabular-nums;
+                          "
+                        >
+                          Bloom · Daily Accommodation Record · {{previewName}}
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{revealedSubjects}}" hint-placeholder-val="{{false}}">
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+                      "
+                    >
+                      <div style="font-size: 14px; font-weight: 500; color: #2a2438">
+                        What do you teach?
+                        <span style="font-weight: 400; color: #9a93a8">Pick any that apply.</span>
+                      </div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                        <sc-for list="{{subjectOptions}}" as="s" hint-placeholder-count="9">
+                          <button
+                            onClick="{{s.toggle}}"
+                            style="appearance:none;font-family:inherit;font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;background:{{s.bg}};color:{{s.ink}};border:1px solid {{s.bc}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1),transform 90ms cubic-bezier(0.34,1.28,0.64,1);"
+                            style-hover="border-color:#c9c0f2"
+                            style-active="transform:scale(0.95)"
+                            style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                          >
+                            {{s.label}}
+                          </button>
+                        </sc-for>
+                        <input
+                          value="{{draft}}"
+                          onInput="{{onDraft}}"
+                          onKeyDown="{{onDraftKey}}"
+                          placeholder="Something else…"
+                          aria-label="Add a subject"
+                          style="
+                            width: 130px;
+                            box-sizing: border-box;
+                            font-family: inherit;
+                            font-size: 13px;
+                            color: #2a2438;
+                            padding: 7px 14px;
+                            border-radius: 999px;
+                            border: 1px dashed #d6d0e2;
+                            background: transparent;
+                            transition: border-color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                          "
+                          style-focus="outline:none;border-style:solid;border-color:#5b4bd6"
+                        />
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{revealedGrades}}" hint-placeholder-val="{{false}}">
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+                      "
+                    >
+                      <div style="font-size: 14px; font-weight: 500; color: #2a2438">
+                        Which grades?
+                      </div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                        <sc-for list="{{gradeOptions}}" as="g" hint-placeholder-count="13">
+                          <button
+                            onClick="{{g.toggle}}"
+                            style="appearance:none;font-family:inherit;font-size:13px;font-weight:500;min-width:38px;box-sizing:border-box;padding:7px 10px;border-radius:999px;cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;background:{{g.bg}};color:{{g.ink}};border:1px solid {{g.bc}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1),transform 90ms cubic-bezier(0.34,1.28,0.64,1);"
+                            style-hover="border-color:#c9c0f2"
+                            style-active="transform:scale(0.95)"
+                            style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                          >
+                            {{g.label}}
+                          </button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 24px;
+                      margin-top: 2px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 270ms both;
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 12px;
+                        line-height: 1.5;
+                        color: #9a93a8;
+                        max-width: 36ch;
+                        text-wrap: pretty;
+                      "
+                    >
+                      These only personalize your reports, they're never used to score anything.
+                    </div>
+                    <button
+                      onClick="{{goData}}"
+                      style="appearance:none;border:none;background:#5b4bd6;color:#ffffff;font-family:inherit;font-size:14px;font-weight:600;padding:12px 26px;border-radius:999px;cursor:{{aboutContinueCursor}};opacity:{{aboutContinueOpacity}};box-shadow:0 4px 12px -2px rgba(91,75,214,0.35);transition:background 90ms cubic-bezier(0.65,0,0.35,1),opacity 260ms cubic-bezier(0.65,0,0.35,1),transform 90ms cubic-bezier(0.65,0,0.35,1);white-space:nowrap;"
+                      style-hover="background:#6d5ee6"
+                      style-active="transform:scale(0.98)"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{showData}}" hint-placeholder-val="{{false}}">
+              <div
+                data-screen-label="Onboarding · Data location"
+                style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:88px 48px 48px;overflow-y:auto;animation:{{dataAnim}};"
+              >
+                <div
+                  style="
+                    width: 580px;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    padding: 52px 56px;
+                    background: rgba(255, 255, 255, 0.55);
+                    backdrop-filter: blur(28px) saturate(1.15);
+                    -webkit-backdrop-filter: blur(28px) saturate(1.15);
+                    border: 1px solid rgba(255, 255, 255, 0.7);
+                    border-radius: 20px;
+                    box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 10px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both;
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 11px;
+                        font-weight: 600;
+                        letter-spacing: 0.08em;
+                        text-transform: uppercase;
+                        color: #9a93a8;
+                      "
+                    >
+                      Your records
+                    </div>
+                    <h2
+                      style="
+                        margin: 0;
+                        font-size: 26px;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        color: #2a2438;
+                      "
+                    >
+                      Where should your records live?
+                    </h2>
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #6b6480;
+                        text-wrap: pretty;
+                      "
+                    >
+                      Your record is one small file, created on this computer. It never goes to the
+                      internet. You can change this later in Settings.
+                    </p>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 12px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 225ms both;
+                    "
+                  >
+                    <sc-for list="{{dataOptions}}" as="c" hint-placeholder-count="3">
+                      <button
+                        onClick="{{c.pick}}"
+                        style="appearance:none;font-family:inherit;text-align:left;display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:14px;cursor:pointer;background:{{c.bg}};border:1.5px solid {{c.bc}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1),box-shadow 90ms cubic-bezier(0.65,0,0.35,1);"
+                        style-hover="box-shadow:0 4px 12px -2px rgba(42,36,56,0.10)"
+                        style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                      >
+                        <div
+                          style="flex:none;margin-top:1px;width:18px;height:18px;box-sizing:border-box;border-radius:50%;background:#ffffff;border:{{c.dotBorder}};transition:border 90ms cubic-bezier(0.65,0,0.35,1);"
+                        ></div>
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1">
+                          <div style="display: flex; align-items: center; gap: 8px">
+                            <span style="font-size: 14px; font-weight: 600; color: #2a2438"
+                              >{{c.title}}</span
+                            >
+                            <sc-if value="{{c.badge}}" hint-placeholder-val="{{false}}">
+                              <span
+                                style="
+                                  font-size: 10.5px;
+                                  font-weight: 600;
+                                  letter-spacing: 0.06em;
+                                  text-transform: uppercase;
+                                  color: #5b4bd6;
+                                  background: #eeebfd;
+                                  padding: 3px 8px;
+                                  border-radius: 999px;
+                                "
+                                >Recommended</span
+                              >
+                            </sc-if>
+                          </div>
+                          <span style="font-size: 13px; line-height: 1.45; color: #6b6480"
+                            >{{c.sub}}</span
+                          >
+                          <sc-if value="{{c.advisory}}" hint-placeholder-val="{{false}}">
+                            <div
+                              style="
+                                margin-top: 6px;
+                                background: #fbf1e2;
+                                color: #a06a2c;
+                                border-radius: 8px;
+                                padding: 10px 12px;
+                                font-size: 12.5px;
+                                line-height: 1.5;
+                                text-wrap: pretty;
+                              "
+                            >
+                              This folder syncs to OneDrive. Your students' information would be
+                              copied off this computer.
+                            </div>
+                          </sc-if>
+                        </div>
+                      </button>
+                    </sc-for>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 24px;
+                      animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 270ms both;
+                    "
+                  >
+                    <button
+                      onClick="{{backToAbout}}"
+                      style="
+                        appearance: none;
+                        border: none;
+                        background: transparent;
+                        color: #6b6480;
+                        font-family: inherit;
+                        font-size: 14px;
+                        padding: 10px 14px;
+                        border-radius: 999px;
+                        cursor: pointer;
+                        transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                      "
+                      style-hover="background:rgba(42,36,56,0.05)"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick="{{goDone}}"
+                      style="
+                        appearance: none;
+                        border: none;
+                        background: #5b4bd6;
+                        color: #ffffff;
+                        font-family: inherit;
+                        font-size: 14px;
+                        font-weight: 600;
+                        padding: 12px 26px;
+                        border-radius: 999px;
+                        cursor: pointer;
+                        box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+                        transition:
+                          background 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                          transform 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                      "
+                      style-hover="background:#6d5ee6"
+                      style-active="transform:scale(0.98)"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{showDone}}" hint-placeholder-val="{{false}}">
+              <div
+                data-screen-label="Onboarding · Done"
+                style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:48px;animation:{{doneAnim}};"
+              >
+                <div
+                  style="
+                    width: 520px;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    text-align: center;
+                    padding: 64px 56px;
+                    background: rgba(255, 255, 255, 0.55);
+                    backdrop-filter: blur(28px) saturate(1.15);
+                    -webkit-backdrop-filter: blur(28px) saturate(1.15);
+                    border: 1px solid rgba(255, 255, 255, 0.7);
+                    border-radius: 20px;
+                    box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                  "
+                >
+                  <div
+                    style="display: flex; flex-direction: column; align-items: center; gap: 18px"
+                  >
+                    <h2
+                      style="
+                        margin: 0;
+                        font-size: 28px;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        color: #2a2438;
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both;
+                      "
+                    >
+                      You're all set
+                    </h2>
+                    <div
+                      style="
+                        font-size: 13px;
+                        color: #6b6480;
+                        background: rgba(255, 255, 255, 0.8);
+                        border: 1px solid #e9e5f0;
+                        border-radius: 999px;
+                        padding: 9px 18px;
+                        font-variant-numeric: tabular-nums;
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 225ms both;
+                      "
+                    >
+                      {{doneSummary}}
+                    </div>
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 14px;
+                        line-height: 1.5;
+                        color: #6b6480;
+                        max-width: 36ch;
+                        text-wrap: pretty;
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 270ms both;
+                      "
+                    >
+                      Periods, your roster, and your accommodation list come next, a few minutes,
+                      whenever you're ready.
+                    </p>
+                    <button
+                      onClick="{{openBoard}}"
+                      style="
+                        margin-top: 8px;
+                        appearance: none;
+                        border: none;
+                        background: #5b4bd6;
+                        color: #ffffff;
+                        font-family: inherit;
+                        font-size: 15px;
+                        font-weight: 600;
+                        padding: 13px 30px;
+                        border-radius: 999px;
+                        cursor: pointer;
+                        box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+                        transition:
+                          background 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                          transform 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                        animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) 315ms both;
+                      "
+                      style-hover="background:#6d5ee6"
+                      style-active="transform:scale(0.98)"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                    >
+                      Open my board
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </x-dc>
+    <script
+      type="text/x-dc"
+      data-dc-script
+      data-props='{"$preview":{"width":1440,"height":900},"startOnAboutStep":{"editor":"boolean","default":false,"tsType":"boolean","section":"Flow"},"driftEnabled":{"editor":"boolean","default":true,"tsType":"boolean","section":"Aurora"},"auroraStrength":{"editor":"range","default":1,"min":0.3,"max":1,"step":0.05,"tsType":"number","section":"Aurora"}}'
+    >
+      class Component extends DCLogic {
+        state = {
+          step: 'welcome', leaving: null, board: false,
+          name: '', draft: '', subjects: [], grades: [],
+          revealedSubjects: false, revealedGrades: false,
+          dataChoice: 'local',
+        };
+        componentDidMount() {
+          if (this.props.startOnAboutStep && this.state.step === 'welcome') this.setState({ step: 'about' });
+        }
+        goTo(next) {
+          clearTimeout(this._t);
+          this.setState({ leaving: this.state.step, step: next });
+          this._t = setTimeout(() => this.setState({ leaving: null }), 560);
+        }
+        toggle(key, label) {
+          this.setState((st) => {
+            const has = st[key].includes(label);
+            const arr = has ? st[key].filter((x) => x !== label) : [...st[key], label];
+            return { [key]: arr, revealedGrades: st.revealedGrades || (key === 'subjects' && arr.length > 0) };
+          });
+        }
+        gradeSummary() {
+          const ORDER = ['K','1','2','3','4','5','6','7','8','9','10','11','12'];
+          const idx = this.state.grades.map((g) => ORDER.indexOf(g)).sort((a, b) => a - b);
+          const parts = [];
+          for (let i = 0; i < idx.length; ) {
+            let j = i;
+            while (j + 1 < idx.length && idx[j + 1] === idx[j] + 1) j++;
+            parts.push(j > i ? ORDER[idx[i]] + '–' + ORDER[idx[j]] : ORDER[idx[i]]);
+            i = j + 1;
+          }
+          return parts.join(', ');
+        }
+        renderVals() {
+          const s = this.state;
+          const ENTER = 'acc-screen-in 320ms cubic-bezier(0.16,1,0.3,1) 120ms both';
+          const EXIT = 'acc-exit 200ms cubic-bezier(0.7,0,0.84,0) both';
+          const show = (k) => s.step === k || s.leaving === k;
+          const anim = (k) => (s.leaving === k ? EXIT : s.step === k && s.leaving ? ENTER : 'none');
+          const shifts = {
+            welcome: 'translate(0,0) scale(1)',
+            about: 'translate(-3%,-2%) scale(1.05)',
+            data: 'translate(3%,-4%) scale(1.03)',
+            done: 'translate(0,-1%) scale(1.09)',
+          };
+          const SUBJECTS = ['Math', 'ELA', 'Science', 'Social Studies', 'Special Education', 'Art', 'Music', 'PE', 'World Languages'];
+          const GRADES = ['K','1','2','3','4','5','6','7','8','9','10','11','12'];
+          const chip = (on) => ({
+            bg: on ? '#eeeafd' : 'rgba(255,255,255,0.75)',
+            ink: on ? '#5b4bd6' : '#6b6480',
+            bc: on ? '#c9c0f2' : '#d6d0e2',
+          });
+          const allSubjects = [...SUBJECTS, ...s.subjects.filter((x) => !SUBJECTS.includes(x))];
+          const subjectOptions = allSubjects.map((label) => ({ label, ...chip(s.subjects.includes(label)), toggle: () => this.toggle('subjects', label) }));
+          const gradeOptions = GRADES.map((label) => ({ label, ...chip(s.grades.includes(label)), toggle: () => this.toggle('grades', label) }));
+          const DATA = [
+            { id: 'local', title: 'On this computer', sub: 'A private local folder that never syncs anywhere. The safest home for student information.', badge: true, advisory: false },
+            { id: 'documents', title: 'Documents', sub: 'Familiar and easy to back up.', badge: false, advisory: true },
+            { id: 'choose', title: 'Choose a folder…', sub: 'Pick anywhere on this computer with the file browser.', badge: false, advisory: false },
+          ];
+          const dataOptions = DATA.map((c) => {
+            const on = s.dataChoice === c.id;
+            return {
+              ...c,
+              bg: on ? '#eeeafd' : 'rgba(255,255,255,0.8)',
+              bc: on ? '#5b4bd6' : '#e9e5f0',
+              dotBorder: on ? '5px solid #5b4bd6' : '1.5px solid #d6d0e2',
+              pick: () => this.setState({ dataChoice: c.id }),
+            };
+          });
+          const MOTES = [
+            { left: '12%', top: '78%', size: '10px', color: '#c9c0f2', blur: '2px', dur: '38s', delay: '0s', breathe: '7s' },
+            { left: '26%', top: '92%', size: '16px', color: '#f6cade', blur: '4px', dur: '46s', delay: '-12s', breathe: '9s' },
+            { left: '41%', top: '84%', size: '7px', color: '#bfe6d6', blur: '1.5px', dur: '34s', delay: '-22s', breathe: '6s' },
+            { left: '58%', top: '96%', size: '13px', color: '#f7dfc2', blur: '3px', dur: '52s', delay: '-6s', breathe: '8s' },
+            { left: '71%', top: '88%', size: '9px', color: '#c9c0f2', blur: '2px', dur: '40s', delay: '-30s', breathe: '7.5s' },
+            { left: '84%', top: '80%', size: '18px', color: '#f6cade', blur: '5px', dur: '58s', delay: '-18s', breathe: '10s' },
+            { left: '92%', top: '94%', size: '8px', color: '#bfe6d6', blur: '2px', dur: '36s', delay: '-26s', breathe: '6.5s' },
+            { left: '6%', top: '90%', size: '12px', color: '#f7dfc2', blur: '3px', dur: '44s', delay: '-38s', breathe: '8.5s' },
+          ];
+          const segsOn = { about: 2, data: 3, done: 8 }[s.step] || 1;
+          const segs = Array.from({ length: 8 }, (_, i) => ({ bg: i < segsOn ? '#8f83e3' : '#e5dff0' }));
+          const hasName = s.name.trim().length > 0;
+          const previewName = s.name.trim() || 'Ms. Rivera';
+          const summaryParts = [previewName];
+          if (s.subjects.length) summaryParts.push(s.subjects.join(', '));
+          if (s.grades.length) summaryParts.push('Grades ' + this.gradeSummary());
+          return {
+            board: s.board,
+            wrapOpacity: s.board ? 0 : 1,
+            wrapPE: s.board ? 'none' : 'auto',
+            fieldTransform: shifts[s.step] || shifts.welcome,
+            fieldOpacity: s.board ? 1 : (this.props.auroraStrength ?? 1),
+            driftState: (this.props.driftEnabled ?? true) ? 'running' : 'paused',
+            motes: MOTES,
+            showProgress: s.step !== 'welcome' && !s.board,
+            segs,
+            showWelcome: show('welcome'), welcomeAnim: anim('welcome'),
+            showAbout: show('about'), aboutAnim: anim('about'),
+            showData: show('data'), dataAnim: anim('data'),
+            showDone: show('done'), doneAnim: anim('done'),
+            name: s.name, draft: s.draft, previewName,
+            revealedSubjects: s.revealedSubjects, revealedGrades: s.revealedGrades,
+            subjectOptions, gradeOptions, dataOptions,
+            aboutContinueOpacity: hasName ? 1 : 0.45,
+            aboutContinueCursor: hasName ? 'pointer' : 'default',
+            doneSummary: summaryParts.join(' · '),
+            goAbout: () => this.goTo('about'),
+            goData: () => { if (this.state.name.trim()) this.goTo('data'); },
+            goDone: () => this.goTo('done'),
+            backToAbout: () => this.goTo('about'),
+            openBoard: () => { this.setState({ board: true }); setTimeout(() => { window.location.href = 'Bloom Board.dc.html'; }, 440); },
+            onName: (e) => {
+              const v = e.target.value;
+              this.setState((st) => ({ name: v, revealedSubjects: st.revealedSubjects || v.trim().length > 0 }));
+            },
+            onDraft: (e) => this.setState({ draft: e.target.value }),
+            onDraftKey: (e) => {
+              if (e.key === 'Enter' && this.state.draft.trim()) {
+                const v = this.state.draft.trim();
+                this.setState((st) => ({
+                  subjects: st.subjects.includes(v) ? st.subjects : [...st.subjects, v],
+                  draft: '', revealedGrades: true,
+                }));
+              }
+            },
+          };
+        }
+      }
+    </script>
+  </body>
+</html>

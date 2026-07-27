@@ -3,8 +3,12 @@ import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import LocationChooser from './components/onboarding/LocationChooser.jsx';
 import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
-import SettingsPanel from './components/shell/SettingsPanel.jsx';
+import ProfileModal from './components/shell/ProfileModal.jsx';
 import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
+import DayNotesPanel from './components/shell/DayNotesPanel.jsx';
+import Modal from './components/shared/Modal.jsx';
+import AddStudentForm from './components/manage/AddStudentForm.jsx';
+import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { createSampleDoc } from './domain/sampleData.js';
 import { openDay } from './domain/mutations.js';
 import { deriveNotifications } from './domain/notifications.js';
@@ -91,35 +95,36 @@ function StartGate() {
   );
 }
 
-function AppRoutes() {
-  const { doc, loadState, meta, repairs, dismissRepairs } = useData();
+/** The shell, once a document is loaded and onboarding is done. */
+function AppShell() {
+  const { doc, meta, repairs, dismissRepairs } = useData();
+  const { model, search, setSearch, setDateKey } = useBoard();
   const { openPanel, toggle, close } = useHeaderPanel();
+  const [addingStudent, setAddingStudent] = useState(false);
 
-  const notifications = useMemo(() => (doc ? deriveNotifications(doc, { meta }) : []), [doc, meta]);
-
-  if (loadState.status === 'loading') return <Loader loadState={loadState} />;
-
-  if (loadState.status === 'needs-location') {
-    return (
-      <LocationChooser
-        locationStatus={meta.locationStatus}
-        onChosen={() => window.location.reload()}
-      />
-    );
-  }
-
-  // Whether onboarding is done is PERSISTED state, so the document is the source
-  // of truth — not the load-time snapshot. Keying this off loadState would leave
-  // the user stuck on the gate after they complete setup, since finishing
-  // onboarding writes to the doc and never revisits how the app booted.
-  if (!doc || !doc.settings?.onboardingCompletedAt) return <StartGate />;
+  const notifications = useMemo(
+    () => deriveNotifications(doc, { meta, boardModel: model }),
+    [doc, meta, model]
+  );
 
   return (
     <div className="acc-app">
       {/*
-        One container owns the measure. Every chrome element — banners, toolbar,
-        board — lives inside it, so nothing can drift out of alignment the way it
-        does when each piece caps its own width.
+        The page blooms, the board does not. Aurora and the drifting blob field
+        render BEHIND the floating frame; the board card itself stays clean.
+      */}
+      <div className="acc-app__backdrop" aria-hidden="true" />
+      <div className="acc-app__field" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+
+      {/*
+        One container owns the measure. Every chrome element — pill nav, board —
+        lives inside it, so nothing can drift out of alignment the way it does
+        when each piece caps its own width.
       */}
       <div className="acc-app__frame">
         <AppHeader
@@ -127,17 +132,39 @@ function AppRoutes() {
           openPanel={openPanel}
           onOpenSettings={() => toggle('settings')}
           onOpenNotifications={() => toggle('notifications')}
+          onOpenDayNotes={() => toggle('daynotes')}
+          onAddStudent={() => setAddingStudent(true)}
+          hasDayNotes={Boolean(model.dayNotes || model.teacherAbsence)}
+          search={search}
+          onSearchChange={setSearch}
+          matchCount={model.laneCount}
+          hiddenCount={model.hiddenBySearch}
+          studentCount={model.laneCount}
         />
 
-        {openPanel === 'settings' && <SettingsPanel onClose={close} />}
+        {openPanel === 'settings' && <ProfileModal onClose={close} />}
+        {openPanel === 'daynotes' && <DayNotesPanel onClose={close} />}
         {openPanel === 'notifications' && (
           <NotificationsPanel
             notifications={notifications}
             onClose={close}
             onAct={(n) => {
               if (n.act === 'revealFolder') dataBridge.revealFolder();
+              if (n.act === 'openNotes') toggle('daynotes');
+              if (n.act === 'goToDate' && n.payload) setDateKey(n.payload);
             }}
           />
+        )}
+
+        {addingStudent && (
+          <Modal
+            wide
+            title="Add a student"
+            subtitle="Paste their accommodations straight from the IEP, or pick from a starter set."
+            onClose={() => setAddingStudent(false)}
+          >
+            <AddStudentForm onAdded={() => setAddingStudent(false)} />
+          </Modal>
         )}
 
         {meta.tooNew && (
@@ -189,6 +216,35 @@ function AppRoutes() {
         </main>
       </div>
     </div>
+  );
+}
+
+function AppRoutes() {
+  const { doc, loadState, meta } = useData();
+
+  if (loadState.status === 'loading') return <Loader loadState={loadState} />;
+
+  if (loadState.status === 'needs-location') {
+    return (
+      <LocationChooser
+        locationStatus={meta.locationStatus}
+        onChosen={() => window.location.reload()}
+      />
+    );
+  }
+
+  // Whether onboarding is done is PERSISTED state, so the document is the source
+  // of truth — not the load-time snapshot. Keying this off loadState would leave
+  // the user stuck on the gate after they complete setup, since finishing
+  // onboarding writes to the doc and never revisits how the app booted.
+  if (!doc || !doc.settings?.onboardingCompletedAt) return <StartGate />;
+
+  // BoardProvider sits here rather than at the root because it reads the loaded
+  // document; mounting it earlier would build a board model from nothing.
+  return (
+    <BoardProvider>
+      <AppShell />
+    </BoardProvider>
   );
 }
 

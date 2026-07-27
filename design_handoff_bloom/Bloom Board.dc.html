@@ -1,0 +1,3852 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          html,
+          body {
+            margin: 0;
+            height: 100%;
+            background: #faf8fc;
+            color: #2a2438;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: #5b4bd6;
+          }
+          a:hover {
+            color: #6d5ee6;
+          }
+          button {
+            font-family: inherit;
+            cursor: pointer;
+          }
+          input,
+          textarea {
+            font-family: inherit;
+          }
+          input::placeholder,
+          textarea::placeholder {
+            color: #9a93a8;
+          }
+          @keyframes acc-enter {
+            from {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes acc-fade-in {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          @keyframes acc-fade-out {
+            from {
+              opacity: 1;
+            }
+            to {
+              opacity: 0;
+            }
+          }
+          @keyframes acc-exit {
+            from {
+              opacity: 1;
+              transform: translateY(0);
+            }
+            to {
+              opacity: 0;
+              transform: translateY(-6px);
+            }
+          }
+          @keyframes acc-pop-in {
+            from {
+              opacity: 0;
+              transform: scale(0.96);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          @keyframes acc-fade-out {
+            from {
+              opacity: 1;
+            }
+            to {
+              opacity: 0;
+            }
+          }
+          @keyframes acc-exit-down {
+            from {
+              opacity: 1;
+              transform: translateY(0);
+            }
+            to {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+          }
+          @keyframes acc-bg-shift {
+            0% {
+              background-position: 0% 20%;
+            }
+            50% {
+              background-position: 100% 80%;
+            }
+            100% {
+              background-position: 0% 20%;
+            }
+          }
+          @keyframes acc-field-pan {
+            0%,
+            100% {
+              transform: translate3d(0, 0, 0);
+            }
+            50% {
+              transform: translate3d(-2.5%, 2%, 0) scale(1.06);
+            }
+          }
+          @keyframes acc-warn-grow {
+            from {
+              opacity: 0;
+              transform: translateY(-50%) scaleX(0.2);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(-50%) scaleX(1);
+            }
+          }
+          .acc-noscroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .acc-noscroll::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+          }
+          @keyframes acc-drift {
+            0% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+            33% {
+              transform: translate3d(3%, -2.5%, 0) scale(1.05);
+            }
+            66% {
+              transform: translate3d(-2.5%, 2%, 0) scale(0.97);
+            }
+            100% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            * {
+              animation-duration: 0.01ms !important;
+              animation-delay: 0ms !important;
+              transition-duration: 0.01ms !important;
+            }
+          }
+        </style>
+      </helmet>
+      <div
+        data-screen-label="Bloom · Daily board"
+        style="
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          min-height: 600px;
+          background: #faf8fc;
+          overflow: hidden;
+          position: relative;
+          box-sizing: border-box;
+          padding: 16px 16px 0 16px;
+        "
+      >
+        <div
+          aria-hidden="true"
+          style="
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              115deg,
+              #ece2ff 0%,
+              #ffe4ef 25%,
+              #fdf0dc 50%,
+              #dcf3e8 75%,
+              #dfe5ff 100%
+            );
+            background-size: 320% 320%;
+            animation: acc-bg-shift 18s ease-in-out infinite;
+          "
+        ></div>
+        <div
+          aria-hidden="true"
+          style="
+            position: absolute;
+            inset: -8%;
+            pointer-events: none;
+            animation: acc-field-pan 24s ease-in-out infinite;
+          "
+        >
+          <div
+            style="
+              position: absolute;
+              left: -4%;
+              bottom: -2%;
+              width: 640px;
+              height: 640px;
+              border-radius: 50%;
+              background: #d9dfff;
+              filter: blur(90px);
+              opacity: 0.5;
+              animation: acc-drift 26s ease-in-out infinite;
+            "
+          ></div>
+          <div
+            style="
+              position: absolute;
+              right: -2%;
+              top: -4%;
+              width: 660px;
+              height: 660px;
+              border-radius: 50%;
+              background: #ffd9e8;
+              filter: blur(110px);
+              opacity: 0.45;
+              animation: acc-drift 30s ease-in-out infinite reverse;
+            "
+          ></div>
+          <div
+            style="
+              position: absolute;
+              right: 10%;
+              bottom: -10%;
+              width: 540px;
+              height: 540px;
+              border-radius: 50%;
+              background: #d2f2e6;
+              filter: blur(80px);
+              opacity: 0.4;
+              animation: acc-drift 22s ease-in-out infinite;
+            "
+          ></div>
+          <div
+            style="
+              position: absolute;
+              left: 36%;
+              top: -6%;
+              width: 520px;
+              height: 520px;
+              border-radius: 50%;
+              background: #ffe7cf;
+              filter: blur(100px);
+              opacity: 0.35;
+              animation: acc-drift 28s ease-in-out infinite reverse;
+            "
+          ></div>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            position: relative;
+            gap: 12px;
+          "
+        >
+          <header
+            style="
+              position: relative;
+              z-index: 70;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 16px;
+              min-height: 52px;
+              padding: 0 20px;
+              background: rgba(255, 255, 255, 0.3);
+              backdrop-filter: blur(24px) saturate(1.2);
+              -webkit-backdrop-filter: blur(24px) saturate(1.2);
+              border: 1px solid rgba(255, 255, 255, 0.6);
+              border-radius: 999px;
+              box-shadow: 0 4px 12px -2px rgba(42, 36, 56, 0.1);
+              flex-shrink: 0;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+              <span
+                aria-hidden="true"
+                style="
+                  width: 20px;
+                  height: 20px;
+                  border-radius: 4px;
+                  background: linear-gradient(140deg, #5b4bd6, #8f83e3);
+                  flex-shrink: 0;
+                "
+              ></span>
+              <span
+                style="
+                  font-size: 15px;
+                  font-weight: 600;
+                  letter-spacing: -0.01em;
+                  white-space: nowrap;
+                "
+                >Bloom</span
+              >
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                height: 32px;
+                padding: 0 12px;
+                border-radius: 999px;
+                border: 1px solid #e9e5f0;
+                background: #ffffff;
+                flex: 1;
+                min-width: 160px;
+                max-width: 360px;
+                margin: 0 auto;
+                transition:
+                  border-color 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                  box-shadow 90ms cubic-bezier(0.65, 0, 0.35, 1);
+              "
+              style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                width="15"
+                height="15"
+                aria-hidden="true"
+                style="color: #9a93a8; flex-shrink: 0"
+              >
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="4.25"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                ></circle>
+                <path
+                  d="M10.4 10.4L14 14"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+              <input
+                type="search"
+                value="{{search}}"
+                onInput="{{onSearch}}"
+                placeholder="Find a student…"
+                aria-label="Find a student by name"
+                style="
+                  flex: 1;
+                  min-width: 0;
+                  border: none;
+                  background: none;
+                  outline: none;
+                  font-size: 14px;
+                  color: #2a2438;
+                "
+              />
+              <sc-if value="{{searchCount}}" hint-placeholder-val="{{false}}">
+                <span
+                  aria-live="polite"
+                  style="
+                    font-size: 11px;
+                    color: #6b6480;
+                    white-space: nowrap;
+                    font-variant-numeric: tabular-nums;
+                  "
+                  >{{searchCount}}</span
+                >
+              </sc-if>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <button
+                onClick="{{addStudent}}"
+                aria-label="Add student"
+                title="Add student"
+                style="
+                  appearance: none;
+                  display: grid;
+                  place-items: center;
+                  width: 28px;
+                  height: 28px;
+                  border-radius: 999px;
+                  border: 1px solid #d6d0e2;
+                  background: #ffffff;
+                  color: #2a2438;
+                  transition:
+                    background 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                    border-color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                "
+                style-hover="background:#f7f4fb;border-color:#9a93a8"
+                style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+              >
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                  <path
+                    d="M8 3v10M3 8h10"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  ></path>
+                </svg>
+              </button>
+              <span
+                style="
+                  font-size: 11px;
+                  color: #6b6480;
+                  white-space: nowrap;
+                  font-variant-numeric: tabular-nums;
+                "
+                >{{studentCount}}</span
+              >
+              <span
+                role="status"
+                aria-live="polite"
+                style="display:inline-flex;align-items:center;gap:8px;font-size:11px;color:{{saveInk}};white-space:nowrap;"
+              >
+                <span
+                  aria-hidden="true"
+                  style="width: 6px; height: 6px; border-radius: 50%; background: currentColor"
+                ></span
+                >{{saveText}}
+              </span>
+              <button
+                onClick="{{toggleDayNotes}}"
+                aria-expanded="{{dayNotesOpen}}"
+                aria-label="Day notes"
+                title="Day notes, handoff, prep, absences"
+                style="appearance:none;border:none;position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:4px;background:{{notesBtnBg}};color:{{notesBtnInk}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1);"
+                style-hover="background:#f3f0f8;color:#2a2438"
+                style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+              >
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                  <path
+                    d="M3 2.8h10v7.4l-3 3H3V2.8Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M10 13.2v-3h3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M5.4 6h5.2M5.4 8.6h3"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  ></path>
+                </svg>
+                <sc-if value="{{notesDot}}" hint-placeholder-val="{{false}}">
+                  <span
+                    aria-hidden="true"
+                    style="
+                      position: absolute;
+                      top: 3px;
+                      right: 3px;
+                      width: 7px;
+                      height: 7px;
+                      border-radius: 50%;
+                      background: #5b4bd6;
+                      border: 1.5px solid #ffffff;
+                    "
+                  ></span>
+                </sc-if>
+              </button>
+              <button
+                onClick="{{toggleNotifs}}"
+                aria-expanded="{{notifsOpen}}"
+                aria-label="{{bellAria}}"
+                style="appearance:none;border:none;position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:4px;background:{{bellBg}};color:{{bellInk}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1);"
+                style-hover="background:#f3f0f8;color:#2a2438"
+                style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+              >
+                <svg viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
+                  <path
+                    d="M8 2a3.6 3.6 0 0 0-3.6 3.6v2.1L3.2 9.9h9.6l-1.2-2.2V5.6A3.6 3.6 0 0 0 8 2Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M6.5 11.7a1.6 1.6 0 0 0 3 0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  ></path>
+                </svg>
+                <sc-if value="{{notifBadge}}" hint-placeholder-val="{{false}}">
+                  <span
+                    style="
+                      position: absolute;
+                      top: 1px;
+                      right: 1px;
+                      min-width: 15px;
+                      height: 15px;
+                      padding: 0 3px;
+                      box-sizing: border-box;
+                      border-radius: 999px;
+                      background: #a06a2c;
+                      color: #ffffff;
+                      font-size: 9px;
+                      font-weight: 700;
+                      line-height: 15px;
+                      text-align: center;
+                      font-variant-numeric: tabular-nums;
+                    "
+                    >{{notifCount}}</span
+                  >
+                </sc-if>
+              </button>
+              <button
+                onClick="{{toggleSettings}}"
+                aria-expanded="{{settingsOpen}}"
+                aria-label="Your details"
+                title="{{profileTitle}}"
+                style="appearance:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:{{avatarBg}};color:{{avatarInk}};font-size:11px;font-weight:700;letter-spacing:0.02em;border:1px solid {{avatarBc}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                style-hover="border-color:#5b4bd6"
+                style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+              >
+                {{avatarInitial}}
+              </button>
+            </div>
+          </header>
+          <sc-if value="{{panelOpen}}" hint-placeholder-val="{{false}}">
+            <div onMouseDown="{{closePanels}}" style="position: fixed; inset: 0; z-index: 55"></div>
+          </sc-if>
+          <sc-if value="{{notifsOpen}}" hint-placeholder-val="{{false}}">
+            <div
+              role="dialog"
+              aria-label="Notifications"
+              onMouseDown="{{stopProp}}"
+              style="
+                position: absolute;
+                top: 56px;
+                right: 16px;
+                z-index: 60;
+                width: min(420px, calc(100vw - 24px));
+                max-height: min(70vh, 620px);
+                overflow-y: auto;
+                background: #ffffff;
+                border: 1px solid #d6d0e2;
+                border-radius: 14px;
+                box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                animation: acc-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+              "
+            >
+              <header
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 12px 16px;
+                  border-bottom: 1px solid #e9e5f0;
+                  position: sticky;
+                  top: 0;
+                  background: #ffffff;
+                  z-index: 1;
+                "
+              >
+                <span
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #6b6480;
+                  "
+                  >Notifications</span
+                >
+                <button
+                  onClick="{{closePanels}}"
+                  aria-label="Close"
+                  style="
+                    appearance: none;
+                    border: none;
+                    background: transparent;
+                    color: #9a93a8;
+                    font-size: 19px;
+                    line-height: 1;
+                    padding: 2px 6px;
+                  "
+                  style-hover="color:#2a2438"
+                >
+                  ×
+                </button>
+              </header>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px">
+                <sc-if value="{{notifEmpty}}" hint-placeholder-val="{{false}}">
+                  <p
+                    style="
+                      margin: 0;
+                      color: #6b6480;
+                      font-size: 12px;
+                      text-align: center;
+                      padding: 16px 0;
+                    "
+                  >
+                    Nothing needs your attention.
+                  </p>
+                </sc-if>
+                <sc-for list="{{notifItems}}" as="n" hint-placeholder-count="3">
+                  <div
+                    style="padding:12px;border-radius:8px;border-left:3px solid {{n.edge}};background:{{n.bg}};"
+                  >
+                    <p style="margin: 0; font-size: 12px; font-weight: 600; color: #2a2438">
+                      {{n.title}}
+                    </p>
+                    <p
+                      style="
+                        margin: 4px 0 8px;
+                        font-size: 11px;
+                        color: #6b6480;
+                        line-height: 1.45;
+                        text-wrap: pretty;
+                      "
+                    >
+                      {{n.body}}
+                    </p>
+                    <div style="display: flex; gap: 8px">
+                      <sc-if value="{{n.action}}" hint-placeholder-val="{{false}}">
+                        <button
+                          onClick="{{n.onAct}}"
+                          style="
+                            appearance: none;
+                            height: 26px;
+                            padding: 0 12px;
+                            border-radius: 999px;
+                            border: 1px solid #d6d0e2;
+                            background: #ffffff;
+                            color: #2a2438;
+                            font-size: 11px;
+                            font-weight: 500;
+                          "
+                          style-hover="background:#f7f4fb"
+                        >
+                          {{n.action}}
+                        </button>
+                      </sc-if>
+                      <sc-if value="{{n.dismissible}}" hint-placeholder-val="{{false}}">
+                        <button
+                          onClick="{{n.onDismiss}}"
+                          style="
+                            appearance: none;
+                            height: 26px;
+                            padding: 0 12px;
+                            border-radius: 999px;
+                            border: none;
+                            background: transparent;
+                            color: #6b6480;
+                            font-size: 11px;
+                            font-weight: 500;
+                          "
+                          style-hover="background:rgba(42,36,56,0.06);color:#2a2438"
+                        >
+                          Dismiss
+                        </button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{settingsOpen}}" hint-placeholder-val="{{false}}">
+            <div
+              style="position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(42,36,56,0.42);animation:{{profileOverlayAnim}};"
+            >
+              <div
+                role="dialog"
+                aria-modal="{{true}}"
+                aria-label="Your details"
+                onMouseDown="{{stopProp}}"
+                style="width:100%;max-width:480px;padding:24px;box-sizing:border-box;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);display:flex;flex-direction:column;gap:20px;animation:{{profileCardAnim}};"
+              >
+                <header style="display: flex; flex-direction: column; gap: 4px">
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 600;
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      color: #9a93a8;
+                    "
+                    >Your details</span
+                  >
+                  <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #2a2438">
+                    About you
+                  </h2>
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 12px;
+                      color: #6b6480;
+                      line-height: 1.5;
+                      text-wrap: pretty;
+                    "
+                  >
+                    Reports print with this name. Your records live on this computer and never sync
+                    anywhere.
+                  </p>
+                </header>
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <label style="font-size: 12px; font-weight: 500; color: #2a2438">Name</label>
+                  <input
+                    value="{{profName}}"
+                    onInput="{{onProfName}}"
+                    placeholder="Ms. Rivera"
+                    aria-label="Your name"
+                    style="
+                      padding: 10px 12px;
+                      border: 1px solid #d6d0e2;
+                      border-radius: 10px;
+                      background: #ffffff;
+                      font-size: 14px;
+                      color: #2a2438;
+                      outline: none;
+                    "
+                    style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                  />
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <span style="font-size: 12px; font-weight: 500; color: #2a2438">Subjects</span>
+                  <div
+                    role="group"
+                    aria-label="Subjects"
+                    style="display: flex; gap: 6px; flex-wrap: wrap"
+                  >
+                    <sc-for list="{{profSubjectChips}}" as="c" hint-placeholder-count="9">
+                      <button
+                        aria-pressed="{{c.on}}"
+                        onClick="{{c.onClick}}"
+                        style="appearance:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid {{c.bc}};background:{{c.bg}};color:{{c.ink}};font-size:11.5px;font-weight:500;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                        style-hover="border-color:#c9c0f2"
+                        style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                      >
+                        {{c.label}}
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <span style="font-size: 12px; font-weight: 500; color: #2a2438">Grades</span>
+                  <div
+                    role="group"
+                    aria-label="Grades"
+                    style="display: flex; gap: 6px; flex-wrap: wrap"
+                  >
+                    <sc-for list="{{profGradeChips}}" as="g" hint-placeholder-count="13">
+                      <button
+                        aria-pressed="{{g.on}}"
+                        onClick="{{g.onClick}}"
+                        style="appearance:none;height:28px;min-width:36px;box-sizing:border-box;padding:0 10px;border-radius:999px;border:1px solid {{g.bc}};background:{{g.bg}};color:{{g.ink}};font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                        style-hover="border-color:#c9c0f2"
+                        style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                      >
+                        {{g.label}}
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+                <footer
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 8px;
+                    border-top: 1px solid #e9e5f0;
+                    padding-top: 16px;
+                  "
+                >
+                  <button
+                    onClick="{{closeProfile}}"
+                    style="
+                      appearance: none;
+                      height: 34px;
+                      padding: 0 14px;
+                      border-radius: 999px;
+                      border: 1px solid transparent;
+                      background: transparent;
+                      color: #6b6480;
+                      font-size: 12px;
+                      font-weight: 500;
+                    "
+                    style-hover="background:#f3f0f8;color:#2a2438"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick="{{saveProfile}}"
+                    disabled="{{profSaveDisabled}}"
+                    style="appearance:none;height:34px;padding:0 18px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:12px;font-weight:600;opacity:{{profSaveOpacity}};"
+                    style-hover="background:#6d5ee6;border-color:#6d5ee6"
+                  >
+                    Save
+                  </button>
+                </footer>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{dayNotesOpen}}" hint-placeholder-val="{{false}}">
+            <div
+              role="dialog"
+              aria-label="Day notes"
+              onMouseDown="{{stopProp}}"
+              style="
+                position: absolute;
+                top: 56px;
+                right: 16px;
+                z-index: 60;
+                width: min(380px, calc(100vw - 24px));
+                background: #ffffff;
+                border: 1px solid #d6d0e2;
+                border-radius: 14px;
+                box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                animation: acc-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+              "
+            >
+              <header
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 12px 16px;
+                  border-bottom: 1px solid #e9e5f0;
+                "
+              >
+                <span
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #6b6480;
+                  "
+                  >Day notes · {{dateSubFull}}</span
+                >
+                <button
+                  onClick="{{closePanels}}"
+                  aria-label="Close"
+                  style="
+                    appearance: none;
+                    border: none;
+                    background: transparent;
+                    color: #9a93a8;
+                    font-size: 19px;
+                    line-height: 1;
+                    padding: 2px 6px;
+                  "
+                  style-hover="color:#2a2438"
+                >
+                  ×
+                </button>
+              </header>
+              <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 11px;
+                    color: #9a93a8;
+                    line-height: 1.45;
+                    text-wrap: pretty;
+                  "
+                >
+                  For a sub, or for tomorrow-you, anything the next person running this class should
+                  know.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <textarea
+                    value="{{dayNotes}}"
+                    onInput="{{onDayNotes}}"
+                    placeholder="Handoff notes, prep for tomorrow…"
+                    aria-label="Day notes"
+                    rows="{{4}}"
+                    style="
+                      padding: 10px;
+                      border: 1px solid transparent;
+                      border-radius: 8px;
+                      background: #f3f0f8;
+                      font-size: 12px;
+                      line-height: 1.5;
+                      resize: vertical;
+                      outline: none;
+                      color: #2a2438;
+                      transition:
+                        border-color 160ms cubic-bezier(0.65, 0, 0.35, 1),
+                        background 160ms cubic-bezier(0.65, 0, 0.35, 1),
+                        box-shadow 160ms cubic-bezier(0.65, 0, 0.35, 1);
+                    "
+                    style-focus="background:#ffffff;border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                  ></textarea>
+                  <span
+                    aria-live="polite"
+                    style="align-self:flex-end;font-size:11px;color:#2f7d63;opacity:{{dayNotesSavedOpacity}};transition:opacity 160ms cubic-bezier(0.65,0,0.35,1);"
+                    >Saved</span
+                  >
+                </div>
+                <div
+                  style="
+                    border-top: 1px solid #e9e5f0;
+                    padding-top: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                  "
+                >
+                  <sc-if value="{{absReportedText}}" hint-placeholder-val="{{false}}">
+                    <div
+                      style="
+                        display: flex;
+                        align-items: flex-start;
+                        justify-content: space-between;
+                        gap: 12px;
+                      "
+                    >
+                      <p
+                        style="
+                          margin: 0;
+                          font-size: 12px;
+                          color: #6b6480;
+                          line-height: 1.5;
+                          text-wrap: pretty;
+                        "
+                      >
+                        {{absReportedText}}
+                      </p>
+                      <button
+                        onClick="{{undoAbsence}}"
+                        style="
+                          appearance: none;
+                          height: 26px;
+                          padding: 0 12px;
+                          border-radius: 999px;
+                          border: none;
+                          background: transparent;
+                          color: #6b6480;
+                          font-size: 11px;
+                          font-weight: 500;
+                          flex-shrink: 0;
+                        "
+                        style-hover="background:#f3f0f8;color:#2a2438"
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{absShowStart}}" hint-placeholder-val="{{false}}">
+                    <button
+                      onClick="{{openAbsForm}}"
+                      style="
+                        appearance: none;
+                        align-self: flex-start;
+                        height: 28px;
+                        padding: 0 12px;
+                        border-radius: 999px;
+                        border: 1px solid #d6d0e2;
+                        background: #ffffff;
+                        color: #2a2438;
+                        font-size: 11px;
+                        font-weight: 500;
+                      "
+                      style-hover="background:#f7f4fb;border-color:#9a93a8"
+                    >
+                      Report an absence
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{absFormOpen}}" hint-placeholder-val="{{false}}">
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                        animation: acc-enter 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                      "
+                    >
+                      <span style="font-size: 12px; font-weight: 500; color: #2a2438"
+                        >What happened?</span
+                      >
+                      <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                        <sc-for list="{{absReasons}}" as="r" hint-placeholder-count="4">
+                          <button
+                            onClick="{{r.onClick}}"
+                            aria-pressed="{{r.on}}"
+                            style="appearance:none;height:26px;padding:0 12px;border-radius:999px;border:1px solid {{r.bc}};background:{{r.bg}};color:{{r.ink}};font-size:11px;font-weight:500;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                            style-hover="border-color:#c9c0f2"
+                          >
+                            {{r.label}}
+                          </button>
+                        </sc-for>
+                      </div>
+                      <input
+                        value="{{absText}}"
+                        onInput="{{onAbsText}}"
+                        placeholder="Anything to add? (optional)"
+                        aria-label="Absence reason detail"
+                        style="
+                          padding: 8px 10px;
+                          border: 1px solid #d6d0e2;
+                          border-radius: 8px;
+                          background: #ffffff;
+                          font-size: 12px;
+                          color: #2a2438;
+                          outline: none;
+                        "
+                        style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                      />
+                      <button
+                        onClick="{{submitAbsence}}"
+                        disabled="{{absSubmitDisabled}}"
+                        style="appearance:none;width:100%;height:32px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:11px;font-weight:600;opacity:{{absSubmitOpacity}};"
+                        style-hover="background:#6d5ee6"
+                      >
+                        Add to notes
+                      </button>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+              min-height: 0;
+              background: rgba(255, 255, 255, 0.3);
+              backdrop-filter: blur(24px) saturate(1.2);
+              -webkit-backdrop-filter: blur(24px) saturate(1.2);
+              border: 1px solid rgba(255, 255, 255, 0.6);
+              border-bottom: none;
+              border-radius: 20px 20px 0 0;
+              overflow: hidden;
+              box-shadow: 0 4px 12px -2px rgba(42, 36, 56, 0.1);
+            "
+          >
+            <sc-if value="{{sealed}}" hint-placeholder-val="{{false}}">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 16px;
+                  padding: 8px 16px;
+                  font-size: 12px;
+                  border-bottom: 1px solid #e9e5f0;
+                  flex-shrink: 0;
+                  background: #f3f0f8;
+                  color: #6b6480;
+                  animation: acc-fade-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                "
+              >
+                This day is closed out and read-only. Anything still unassigned was recorded as Not
+                Used.
+              </div>
+            </sc-if>
+
+            <sc-if value="{{notice}}" hint-placeholder-val="{{false}}">
+              <div
+                role="status"
+                style="position:fixed;left:min(calc(50vw + 612px), calc(100vw - 236px));bottom:{{noticeBottom}};z-index:65;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:12px 16px;font-size:12px;line-height:1.5;width:220px;box-sizing:border-box;overflow-wrap:break-word;text-wrap:pretty;box-sizing:border-box;border-radius:14px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);background:{{noticeBg}};color:{{noticeInk}};animation:acc-enter 260ms cubic-bezier(0.16,1,0.3,1) both;"
+              >
+                <span>{{noticeText}}</span>
+                <span style="display: flex; gap: 8px; flex-shrink: 0">
+                  <sc-if value="{{noticeConfirm}}" hint-placeholder-val="{{false}}">
+                    <button
+                      onClick="{{onNoticeConfirm}}"
+                      style="
+                        appearance: none;
+                        height: 26px;
+                        padding: 0 12px;
+                        border-radius: 999px;
+                        border: 1px solid #d6d0e2;
+                        background: #ffffff;
+                        color: #2a2438;
+                        font-size: 11px;
+                        font-weight: 500;
+                      "
+                      style-hover="background:#f7f4fb"
+                    >
+                      Overwrite anyway
+                    </button>
+                  </sc-if>
+                  <button
+                    onClick="{{dismissNotice}}"
+                    style="
+                      appearance: none;
+                      height: 26px;
+                      padding: 0 12px;
+                      border-radius: 999px;
+                      border: none;
+                      background: transparent;
+                      color: inherit;
+                      font-size: 11px;
+                      font-weight: 500;
+                    "
+                    style-hover="background:rgba(42,36,56,0.06)"
+                  >
+                    Dismiss
+                  </button>
+                </span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{hasRecord}}" hint-placeholder-val="{{true}}">
+              <div
+                class="acc-noscroll"
+                ref="{{scrollRef}}"
+                onScroll="{{onBoardScroll}}"
+                style="
+                  flex: 1;
+                  min-height: 0;
+                  overflow-y: auto;
+                  overflow-x: hidden;
+                  background: transparent;
+                  padding: 16px 16px 48px;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 16px;
+                  box-sizing: border-box;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    flex-shrink: 0;
+                  "
+                >
+                  <button
+                    onClick="{{foldToggle}}"
+                    aria-label="{{foldAria}}"
+                    title="{{foldAria}}"
+                    style="
+                      appearance: none;
+                      width: 32px;
+                      height: 32px;
+                      display: grid;
+                      place-items: center;
+                      border-radius: 999px;
+                      border: 1px solid #d6d0e2;
+                      background: #ffffff;
+                      color: #6b6480;
+                      transition:
+                        background 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                        color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                    "
+                    style-hover="background:#f7f4fb;color:#2a2438"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="16"
+                      height="16"
+                      aria-hidden="true"
+                      style="transform:rotate({{foldChevron}});transition:transform 260ms cubic-bezier(0.65,0,0.35,1);"
+                    >
+                      <path
+                        d="M6 4l4 4-4 4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                    </svg>
+                  </button>
+
+                  <div style="position: relative">
+                    <button
+                      onClick="{{toggleCal}}"
+                      aria-expanded="{{calOpen}}"
+                      aria-label="Pick a date or range"
+                      style="appearance:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:999px;border:1px solid {{calBtnBc}};background:{{calBtnBg}};color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap;transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                      style-hover="background:#f7f4fb;border-color:#9a93a8"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                        style="color: #6b6480"
+                      >
+                        <rect
+                          x="2"
+                          y="3"
+                          width="12"
+                          height="11"
+                          rx="1.5"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.4"
+                        ></rect>
+                        <path d="M2 6.5h12" stroke="currentColor" stroke-width="1.4"></path>
+                        <path
+                          d="M5.5 1.5v3M10.5 1.5v3"
+                          stroke="currentColor"
+                          stroke-width="1.4"
+                          stroke-linecap="round"
+                        ></path>
+                      </svg>
+                      <span style="font-weight: 600">{{dateTitle}}</span>
+                      <span style="color: #6b6480">{{dateSub}}</span>
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="12"
+                        height="12"
+                        aria-hidden="true"
+                        style="color: #9a93a8"
+                      >
+                        <path
+                          d="M4 6l4 4 4-4"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                      </svg>
+                    </button>
+                    <sc-if value="{{calOpen}}" hint-placeholder-val="{{false}}">
+                      <div
+                        role="dialog"
+                        aria-label="Choose a date"
+                        onMouseDown="{{stopProp}}"
+                        style="
+                          position: absolute;
+                          top: 38px;
+                          left: 0;
+                          z-index: 60;
+                          width: 308px;
+                          box-sizing: border-box;
+                          padding: 12px;
+                          background: #ffffff;
+                          border: 1px solid #d6d0e2;
+                          border-radius: 14px;
+                          box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                          animation: acc-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                        "
+                      >
+                        <div
+                          style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 8px;
+                            margin-bottom: 8px;
+                          "
+                        >
+                          <button
+                            onClick="{{calPrevMonth}}"
+                            aria-label="Previous month"
+                            style="
+                              appearance: none;
+                              border: none;
+                              background: transparent;
+                              width: 28px;
+                              height: 28px;
+                              border-radius: 4px;
+                              color: #6b6480;
+                              font-size: 16px;
+                              line-height: 1;
+                            "
+                            style-hover="background:#f3f0f8;color:#2a2438"
+                          >
+                            ‹
+                          </button>
+                          <span style="font-size: 13px; font-weight: 600; color: #2a2438"
+                            >{{calMonthLabel}}</span
+                          >
+                          <button
+                            onClick="{{calNextMonth}}"
+                            aria-label="Next month"
+                            style="
+                              appearance: none;
+                              border: none;
+                              background: transparent;
+                              width: 28px;
+                              height: 28px;
+                              border-radius: 4px;
+                              color: #6b6480;
+                              font-size: 16px;
+                              line-height: 1;
+                            "
+                            style-hover="background:#f3f0f8;color:#2a2438"
+                          >
+                            ›
+                          </button>
+                        </div>
+                        <div
+                          role="group"
+                          aria-label="Pick mode"
+                          style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 2px;
+                            padding: 2px;
+                            background: #f3f0f8;
+                            border-radius: 6px;
+                            margin-bottom: 10px;
+                          "
+                        >
+                          <sc-for list="{{calModes}}" as="m" hint-placeholder-count="2">
+                            <button
+                              onClick="{{m.onClick}}"
+                              aria-pressed="{{m.on}}"
+                              style="appearance:none;border:none;height:24px;border-radius:4px;font-size:11px;font-weight:{{m.fw}};color:{{m.ink}};background:{{m.bg}};box-shadow:{{m.shadow}};transition:background 90ms cubic-bezier(0.65,0,0.35,1);"
+                            >
+                              {{m.label}}
+                            </button>
+                          </sc-for>
+                        </div>
+                        <div
+                          style="
+                            display: grid;
+                            grid-template-columns: repeat(7, 1fr);
+                            gap: 2px;
+                            margin-bottom: 2px;
+                          "
+                        >
+                          <sc-for list="{{calWeekdays}}" as="w" hint-placeholder-count="7">
+                            <span
+                              style="
+                                text-align: center;
+                                font-size: 10px;
+                                font-weight: 600;
+                                letter-spacing: 0.06em;
+                                color: #9a93a8;
+                                padding: 2px 0;
+                              "
+                              >{{w.label}}</span
+                            >
+                          </sc-for>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px">
+                          <sc-for list="{{calCells}}" as="c" hint-placeholder-count="35">
+                            <button
+                              onClick="{{c.onClick}}"
+                              disabled="{{c.disabled}}"
+                              aria-label="{{c.aria}}"
+                              style="appearance:none;border:none;height:34px;border-radius:{{c.radius}};font-size:12px;font-weight:{{c.fw}};font-variant-numeric:tabular-nums;color:{{c.ink}};background:{{c.bg}};box-shadow:{{c.ring}};cursor:{{c.cursor}};transition:background 90ms cubic-bezier(0.65,0,0.35,1);"
+                              style-hover="background:{{c.hoverBg}}"
+                            >
+                              {{c.label}}
+                            </button>
+                          </sc-for>
+                        </div>
+                        <sc-if value="{{calFooter}}" hint-placeholder-val="{{false}}">
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              justify-content: space-between;
+                              gap: 8px;
+                              margin-top: 10px;
+                              padding-top: 10px;
+                              border-top: 1px solid #e9e5f0;
+                            "
+                          >
+                            <span
+                              style="
+                                font-size: 11px;
+                                color: #6b6480;
+                                font-variant-numeric: tabular-nums;
+                              "
+                              >{{calFooterText}}</span
+                            >
+                            <sc-if value="{{calFooterAction}}" hint-placeholder-val="{{false}}">
+                              <button
+                                onClick="{{calGoRange}}"
+                                style="
+                                  appearance: none;
+                                  height: 26px;
+                                  padding: 0 12px;
+                                  border-radius: 999px;
+                                  border: 1px solid #5b4bd6;
+                                  background: #5b4bd6;
+                                  color: #ffffff;
+                                  font-size: 11px;
+                                  font-weight: 500;
+                                "
+                                style-hover="background:#6d5ee6"
+                              >
+                                View range
+                              </button>
+                            </sc-if>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <button
+                    onClick="{{copyYesterday}}"
+                    disabled="{{locked}}"
+                    title="Set up today's cards the same as the last recorded day. Statuses start unassigned."
+                    style="appearance:none;height:32px;padding:0 14px;border-radius:999px;border:1px solid #d6d0e2;background:#ffffff;color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap;opacity:{{actionOpacity}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                    style-hover="background:#f7f4fb;border-color:#9a93a8"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                  >
+                    Copy yesterday
+                  </button>
+
+                  <div style="flex: 1"></div>
+
+                  <button
+                    onClick="{{closeOutDay}}"
+                    disabled="{{closeDisabled}}"
+                    title="Finish this day. Anything still unassigned is recorded as Not Used."
+                    style="appearance:none;height:32px;padding:0 14px;border-radius:999px;border:1px solid #d6d0e2;background:#ffffff;color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap;opacity:{{closeOpacity}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                    style-hover="background:#f7f4fb;border-color:#9a93a8"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                  >
+                    Close out day
+                  </button>
+                  <div style="position: relative">
+                    <button
+                      onClick="{{togglePeriods}}"
+                      aria-expanded="{{periodsOpen}}"
+                      aria-label="Filter by class period"
+                      style="appearance:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:999px;border:1px solid {{periodBtnBc}};background:{{periodBtnBg}};color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap;transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                      style-hover="background:#f7f4fb;border-color:#9a93a8"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                    >
+                      {{periodFilterLabel}}<svg
+                        viewBox="0 0 16 16"
+                        width="12"
+                        height="12"
+                        aria-hidden="true"
+                        style="color: #9a93a8"
+                      >
+                        <path
+                          d="M4 6l4 4 4-4"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        ></path>
+                      </svg>
+                    </button>
+                    <sc-if value="{{periodsOpen}}" hint-placeholder-val="{{false}}">
+                      <div
+                        onMouseDown="{{closePeriods}}"
+                        style="position: fixed; inset: 0; z-index: 70"
+                      ></div>
+                      <div
+                        role="menu"
+                        aria-label="Filter by class period"
+                        style="
+                          position: absolute;
+                          right: 0;
+                          top: 38px;
+                          z-index: 71;
+                          width: 200px;
+                          padding: 6px;
+                          box-sizing: border-box;
+                          background: #ffffff;
+                          border: 1px solid #d6d0e2;
+                          border-radius: 14px;
+                          box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+                          animation: acc-pop-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                          transform-origin: top right;
+                          display: flex;
+                          flex-direction: column;
+                          gap: 2px;
+                        "
+                      >
+                        <sc-for list="{{periodChips}}" as="p" hint-placeholder-count="4">
+                          <button
+                            role="menuitemcheckbox"
+                            aria-checked="{{p.on}}"
+                            onClick="{{p.onClick}}"
+                            onContextMenu="{{p.onCtx}}"
+                            title="{{p.title}}"
+                            style="appearance:none;border:none;display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:{{p.fw}};color:{{p.ink}};background:{{p.menuBg}};text-align:left;transition:background 90ms cubic-bezier(0.65,0,0.35,1);"
+                            style-hover="background:#f7f4fb"
+                          >
+                            <span
+                              style="
+                                flex: 1;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                              "
+                              >{{p.label}}</span
+                            >
+                            <span
+                              style="
+                                font-size: 11px;
+                                color: #9a93a8;
+                                font-variant-numeric: tabular-nums;
+                              "
+                              >{{p.count}}</span
+                            >
+                            <sc-if value="{{p.on}}" hint-placeholder-val="{{false}}"
+                              ><span style="color: #5b4bd6">✓</span></sc-if
+                            >
+                          </button>
+                        </sc-for>
+                        <p
+                          style="margin: 0; font-size: 10px; color: #9a93a8; padding: 4px 10px 6px"
+                        >
+                          Right-click a period to rename it.
+                        </p>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+
+                <sc-for list="{{lanes}}" as="lane" hint-placeholder-count="4">
+                  <article
+                    style="flex:0 0 auto;background:{{lane.surface}};border:1px solid #e9e5f0;border-radius:14px;box-shadow:0 1px 2px rgba(42,36,56,0.06);overflow:hidden;opacity:{{lane.opacity}};filter:{{lane.filter}};transition:opacity 260ms cubic-bezier(0.65,0,0.35,1),filter 260ms cubic-bezier(0.65,0,0.35,1);animation:acc-enter 260ms cubic-bezier(0.16,1,0.3,1) {{lane.delay}} both;"
+                  >
+                    <header
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        min-height: 44px;
+                        padding: 0 16px;
+                        border-bottom: 1px solid #e9e5f0;
+                      "
+                    >
+                      <button
+                        onClick="{{lane.onToggleCollapse}}"
+                        aria-expanded="{{lane.expanded}}"
+                        style="
+                          appearance: none;
+                          border: none;
+                          background: transparent;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          min-width: 0;
+                          padding: 0;
+                        "
+                        style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd;border-radius:4px"
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                          style="color:#9a93a8;flex-shrink:0;transform:rotate({{lane.chevron}});transition:transform 260ms cubic-bezier(0.65,0,0.35,1);"
+                        >
+                          <path
+                            d="M6 4l4 4-4 4"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                        <span
+                          style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: #2a2438;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                          "
+                          >{{lane.displayName}}</span
+                        >
+                      </button>
+                      <span
+                        style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.02em;background:{{lane.planBg}};color:{{lane.planInk}};"
+                        >{{lane.planType}}</span
+                      >
+                      <span style="font-size: 11px; color: #6b6480; white-space: nowrap"
+                        >{{lane.periodsLabel}}</span
+                      >
+                      <span
+                        style="font-size:11px;color:{{lane.progressInk}};white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:{{lane.progressFw}};"
+                        >{{lane.progressText}}</span
+                      >
+                      <div
+                        style="
+                          margin-left: auto;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          flex-shrink: 0;
+                        "
+                      >
+                        <sc-if value="{{lane.warnText}}" hint-placeholder-val="{{false}}">
+                          <span
+                            style="
+                              font-size: 11px;
+                              font-weight: 500;
+                              color: #a06a2c;
+                              background: #fbf1e2;
+                              padding: 2px 8px;
+                              border-radius: 999px;
+                              white-space: nowrap;
+                            "
+                            >{{lane.warnText}}</span
+                          >
+                        </sc-if>
+                        <button
+                          onClick="{{lane.onToggleAbsent}}"
+                          disabled="{{readOnly}}"
+                          aria-pressed="{{lane.absent}}"
+                          title="{{lane.absentTitle}}"
+                          style="appearance:none;height:26px;padding:0 12px;border-radius:999px;border:1px solid {{lane.absentBc}};background:{{lane.absentBg}};color:{{lane.absentInk}};font-size:11px;font-weight:{{lane.absentFw}};flex-shrink:0;white-space:nowrap;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                          style-hover="background:#f4f2f7;color:#2a2438"
+                          style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                        >
+                          {{lane.absentLabel}}
+                        </button>
+                      </div>
+                    </header>
+                    <sc-if value="{{lane.collapsed}}" hint-placeholder-val="{{false}}">
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 16px;
+                          flex-wrap: wrap;
+                          padding: 12px 16px;
+                          background: #f3f0f8;
+                        "
+                      >
+                        <sc-for list="{{lane.tallies}}" as="t" hint-placeholder-count="3">
+                          <span
+                            style="
+                              display: inline-flex;
+                              align-items: baseline;
+                              gap: 4px;
+                              font-size: 11px;
+                            "
+                          >
+                            <span
+                              style="font-weight:600;font-size:12px;font-variant-numeric:tabular-nums;color:{{t.ink}};"
+                              >{{t.count}}</span
+                            >
+                            <span style="color: #6b6480">{{t.label}}</span>
+                          </span>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{lane.expanded}}" hint-placeholder-val="{{true}}">
+                      <div
+                        style="
+                          display: grid;
+                          grid-template-columns: repeat(4, minmax(150px, 1fr)) 220px;
+                          gap: 1px;
+                          background: #e9e5f0;
+                        "
+                      >
+                        <sc-for list="{{lane.cols}}" as="col" hint-placeholder-count="4">
+                          <section
+                            aria-label="{{col.aria}}"
+                            style="
+                              display: flex;
+                              flex-direction: column;
+                              min-width: 0;
+                              background: #f3f0f8;
+                            "
+                          >
+                            <header
+                              style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px 4px;box-shadow:inset 0 2px 0 {{col.rule}};"
+                            >
+                              <span
+                                style="
+                                  font-size: 11px;
+                                  font-weight: 600;
+                                  letter-spacing: 0.08em;
+                                  text-transform: uppercase;
+                                  color: #6b6480;
+                                "
+                                >{{col.label}}</span
+                              >
+                              <span
+                                style="
+                                  font-size: 11px;
+                                  color: #9a93a8;
+                                  font-variant-numeric: tabular-nums;
+                                "
+                                >{{col.count}}</span
+                              >
+                            </header>
+                            <div
+                              onDragOver="{{col.onDragOver}}"
+                              onDrop="{{col.onDrop}}"
+                              style="display:flex;flex-direction:column;gap:8px;padding:0 8px 12px;min-height:64px;flex:1;border-radius:8px;box-shadow:{{col.dropRing}};transition:box-shadow 160ms cubic-bezier(0.65,0,0.35,1);"
+                            >
+                              <sc-if value="{{col.dropHint}}" hint-placeholder-val="{{false}}">
+                                <div
+                                  style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    min-height: 56px;
+                                    border: 1.5px dashed #c9c0f2;
+                                    border-radius: 8px;
+                                    font-size: 12px;
+                                    color: #8f83e3;
+                                    pointer-events: none;
+                                  "
+                                >
+                                  Drop here
+                                </div>
+                              </sc-if>
+                              <sc-for list="{{col.cards}}" as="card" hint-placeholder-count="2">
+                                <div
+                                  draggable="{{card.draggable}}"
+                                  onDragStart="{{card.onDragStart}}"
+                                  onDragEnd="{{onDragEnd}}"
+                                  onClick="{{card.onClick}}"
+                                  onContextMenu="{{card.onCtx}}"
+                                  title="{{card.cardTitle}}"
+                                  style="position:relative;display:flex;gap:10px;align-items:flex-start;padding:12px;cursor:{{card.cursor}};opacity:{{card.dragOpacity}};background:{{card.bg}};border:1px {{card.borderStyle}} {{card.bc}};border-left:{{card.borderLeft}};border-radius:8px;box-shadow:0 1px 2px rgba(42,36,56,0.06);transition:box-shadow 160ms cubic-bezier(0.65,0,0.35,1),border-color 160ms cubic-bezier(0.65,0,0.35,1),opacity 160ms cubic-bezier(0.65,0,0.35,1);"
+                                  style-hover="border-color:#d6d0e2;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1)"
+                                >
+                                  <div
+                                    aria-hidden="true"
+                                    style="
+                                      flex: none;
+                                      display: flex;
+                                      flex-direction: column;
+                                      justify-content: center;
+                                      gap: 3px;
+                                      padding: 4px 0;
+                                    "
+                                  >
+                                    <span
+                                      style="
+                                        display: block;
+                                        height: 3px;
+                                        width: 3px;
+                                        border-radius: 50%;
+                                        background: #9a93a8;
+                                        box-shadow:
+                                          0 6px 0 #9a93a8,
+                                          0 12px 0 #9a93a8;
+                                        opacity: 0.5;
+                                      "
+                                    ></span>
+                                  </div>
+                                  <div style="flex: 1; min-width: 0">
+                                    <p
+                                      style="
+                                        margin: 0;
+                                        font-size: 13px;
+                                        font-weight: 500;
+                                        line-height: 1.45;
+                                        overflow-wrap: anywhere;
+                                        color: #2a2438;
+                                      "
+                                    >
+                                      {{card.label}}
+                                    </p>
+                                    <div
+                                      style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                        flex-wrap: wrap;
+                                        margin-top: 4px;
+                                      "
+                                    >
+                                      <sc-if
+                                        value="{{card.countChip}}"
+                                        hint-placeholder-val="{{false}}"
+                                      >
+                                        <span
+                                          title="{{card.countTitle}}"
+                                          style="
+                                            position: absolute;
+                                            right: 8px;
+                                            bottom: 8px;
+                                            font-size: 10px;
+                                            font-weight: 700;
+                                            color: #2f7d63;
+                                            background: #e4f4ed;
+                                            padding: 1px 8px;
+                                            border-radius: 999px;
+                                            font-variant-numeric: tabular-nums;
+                                          "
+                                          >{{card.countChip}}</span
+                                        >
+                                      </sc-if>
+                                      <sc-if
+                                        value="{{card.hasDefault}}"
+                                        hint-placeholder-val="{{false}}"
+                                      >
+                                        <span
+                                          title="Starts here every day"
+                                          style="
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            letter-spacing: 0.08em;
+                                            text-transform: uppercase;
+                                            color: #6b6480;
+                                            background: #f3f0f8;
+                                            border: 1px dashed #d6d0e2;
+                                            padding: 1px 8px;
+                                            border-radius: 4px;
+                                          "
+                                          >Default</span
+                                        >
+                                      </sc-if>
+                                      <sc-if
+                                        value="{{card.isCustom}}"
+                                        hint-placeholder-val="{{false}}"
+                                      >
+                                        <span
+                                          style="
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            letter-spacing: 0.08em;
+                                            text-transform: uppercase;
+                                            color: #5b4bd6;
+                                            background: #eeebfd;
+                                            padding: 1px 4px;
+                                            border-radius: 4px;
+                                          "
+                                          >One-off</span
+                                        >
+                                      </sc-if>
+                                      <sc-if value="{{card.chip}}" hint-placeholder-val="{{false}}">
+                                        <span
+                                          title="{{card.chipTitle}}"
+                                          style="font-size:10px;font-weight:500;color:{{card.chipInk}};background:{{card.chipBg}};padding:1px 4px;border-radius:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                          >{{card.chipText}}</span
+                                        >
+                                      </sc-if>
+                                      <sc-if
+                                        value="{{card.resolvedNotUsed}}"
+                                        hint-placeholder-val="{{false}}"
+                                      >
+                                        <span
+                                          style="
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: #a06a2c;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.08em;
+                                          "
+                                          >Not used</span
+                                        >
+                                      </sc-if>
+                                      <sc-if
+                                        value="{{card.notRelevant}}"
+                                        hint-placeholder-val="{{false}}"
+                                      >
+                                        <span
+                                          style="
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: #9a93a8;
+                                            background: #f4f2f7;
+                                            padding: 1px 8px;
+                                            border-radius: 4px;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.08em;
+                                          "
+                                          >Not relevant</span
+                                        >
+                                      </sc-if>
+                                    </div>
+                                  </div>
+                                </div>
+                              </sc-for>
+                              <sc-if value="{{col.isUnassigned}}" hint-placeholder-val="{{false}}">
+                                <sc-if value="{{col.adding}}" hint-placeholder-val="{{false}}">
+                                  <div
+                                    style="
+                                      display: flex;
+                                      flex-direction: column;
+                                      gap: 6px;
+                                      padding: 10px;
+                                      background: #ffffff;
+                                      border: 1.5px dashed #c9c0f2;
+                                      border-radius: 8px;
+                                      animation: acc-enter 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                                    "
+                                  >
+                                    <textarea
+                                      value="{{addAccDraft}}"
+                                      onInput="{{onAddAccDraft}}"
+                                      onKeyDown="{{col.onAddAccKey}}"
+                                      onPaste="{{onAddAccPaste}}"
+                                      autofocus="{{true}}"
+                                      rows="{{1}}"
+                                      placeholder="Type, or paste cells from Excel…"
+                                      aria-label="New accommodation"
+                                      style="
+                                        padding: 6px 8px;
+                                        border: 1px solid #d6d0e2;
+                                        border-radius: 8px;
+                                        background: #ffffff;
+                                        font-size: 12px;
+                                        line-height: 1.4;
+                                        color: #2a2438;
+                                        outline: none;
+                                        resize: none;
+                                        font-family: inherit;
+                                      "
+                                      style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                                    ></textarea>
+                                    <sc-if
+                                      value="{{addAccHasSuggestions}}"
+                                      hint-placeholder-val="{{false}}"
+                                    >
+                                      <div style="display: flex; flex-direction: column; gap: 2px">
+                                        <sc-for
+                                          list="{{addAccSuggestions}}"
+                                          as="sg"
+                                          hint-placeholder-count="3"
+                                        >
+                                          <button
+                                            onClick="{{sg.onPick}}"
+                                            style="
+                                              appearance: none;
+                                              border: none;
+                                              background: transparent;
+                                              display: block;
+                                              width: 100%;
+                                              padding: 5px 8px;
+                                              border-radius: 6px;
+                                              font-size: 11.5px;
+                                              color: #2a2438;
+                                              text-align: left;
+                                              overflow: hidden;
+                                              text-overflow: ellipsis;
+                                              white-space: nowrap;
+                                              transition: background 90ms
+                                                cubic-bezier(0.65, 0, 0.35, 1);
+                                            "
+                                            style-hover="background:#eeebfd"
+                                          >
+                                            {{sg.label}}
+                                          </button>
+                                        </sc-for>
+                                      </div>
+                                    </sc-if>
+                                    <sc-if value="{{addAccMulti}}" hint-placeholder-val="{{false}}">
+                                      <span
+                                        style="font-size: 10px; font-weight: 600; color: #5b4bd6"
+                                        >{{addAccMulti}}</span
+                                      >
+                                    </sc-if>
+                                    <span style="font-size: 10px; color: #9a93a8; line-height: 1.4"
+                                      >Starts today. Earlier days are untouched. Commas or pasted
+                                      cells add several at once.</span
+                                    >
+                                    <button
+                                      onClick="{{col.saveAddAcc}}"
+                                      disabled="{{addAccDisabled}}"
+                                      style="appearance:none;width:100%;height:26px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:11px;font-weight:600;opacity:{{addAccOpacity}};"
+                                      style-hover="background:#6d5ee6"
+                                    >
+                                      {{addAccBtnLabel}}
+                                    </button>
+                                  </div>
+                                </sc-if>
+                                <sc-if value="{{col.showAddBtn}}" hint-placeholder-val="{{false}}">
+                                  <button
+                                    onClick="{{col.startAddAcc}}"
+                                    style="
+                                      appearance: none;
+                                      display: flex;
+                                      align-items: center;
+                                      justify-content: center;
+                                      gap: 6px;
+                                      min-height: 30px;
+                                      border: 1.5px dashed #d6d0e2;
+                                      border-radius: 8px;
+                                      background: transparent;
+                                      color: #9a93a8;
+                                      font-size: 11px;
+                                      font-weight: 500;
+                                      transition:
+                                        border-color 90ms cubic-bezier(0.65, 0, 0.35, 1),
+                                        color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                                    "
+                                    style-hover="border-color:#c9c0f2;color:#5b4bd6"
+                                    style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                                  >
+                                    <svg
+                                      viewBox="0 0 16 16"
+                                      width="11"
+                                      height="11"
+                                      aria-hidden="true"
+                                    >
+                                      <path
+                                        d="M8 3v10M3 8h10"
+                                        stroke="currentColor"
+                                        stroke-width="1.6"
+                                        stroke-linecap="round"
+                                      ></path></svg
+                                    >Add accommodation
+                                  </button>
+                                </sc-if>
+                              </sc-if>
+                            </div>
+                          </section>
+                        </sc-for>
+                        <section
+                          aria-label="{{lane.notesAria}}"
+                          style="
+                            display: flex;
+                            flex-direction: column;
+                            background: #ffffff;
+                            min-width: 0;
+                          "
+                        >
+                          <header
+                            style="
+                              display: flex;
+                              align-items: center;
+                              justify-content: space-between;
+                              padding: 8px 12px 4px;
+                            "
+                          >
+                            <span
+                              style="
+                                font-size: 11px;
+                                font-weight: 600;
+                                letter-spacing: 0.08em;
+                                text-transform: uppercase;
+                                color: #6b6480;
+                              "
+                              >Notes</span
+                            >
+                            <span
+                              aria-live="polite"
+                              style="font-size:11px;color:#2f7d63;opacity:{{lane.savedOpacity}};transition:opacity 160ms cubic-bezier(0.65,0,0.35,1);"
+                              >Saved</span
+                            >
+                          </header>
+                          <textarea
+                            value="{{lane.notes}}"
+                            onInput="{{lane.onNotes}}"
+                            disabled="{{readOnly}}"
+                            placeholder="{{lane.notesPlaceholder}}"
+                            aria-label="{{lane.notesAria}}"
+                            spellcheck="{{true}}"
+                            style="
+                              flex: 1;
+                              min-height: 64px;
+                              margin: 0 8px 8px;
+                              padding: 8px;
+                              border: 1px solid transparent;
+                              border-radius: 4px;
+                              background: #f3f0f8;
+                              font-size: 12px;
+                              line-height: 1.45;
+                              resize: none;
+                              outline: none;
+                              color: #2a2438;
+                              transition:
+                                border-color 160ms cubic-bezier(0.65, 0, 0.35, 1),
+                                box-shadow 160ms cubic-bezier(0.65, 0, 0.35, 1),
+                                background 160ms cubic-bezier(0.65, 0, 0.35, 1);
+                            "
+                            style-focus="background:#ffffff;border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                          ></textarea>
+                        </section>
+                      </div>
+                    </sc-if>
+                  </article>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{showEmpty}}" hint-placeholder-val="{{false}}">
+              <div
+                style="
+                  position: relative;
+                  flex: 1;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  padding: 48px;
+                  overflow: hidden;
+                  background: transparent;
+                "
+              >
+                <div
+                  aria-hidden="true"
+                  style="
+                    position: absolute;
+                    width: 520px;
+                    height: 520px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle, #d9dfff 0%, #ebdcff 45%, transparent 70%);
+                    filter: blur(70px);
+                    opacity: 0.5;
+                    pointer-events: none;
+                    animation: acc-drift 26s ease-in-out infinite;
+                  "
+                ></div>
+                <div
+                  style="
+                    position: relative;
+                    max-width: 460px;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 12px;
+                    animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                  "
+                >
+                  <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #2a2438">
+                    No record for this day
+                  </h2>
+                  <p
+                    style="
+                      margin: 0;
+                      color: #6b6480;
+                      line-height: 1.45;
+                      font-size: 14px;
+                      text-wrap: pretty;
+                    "
+                  >
+                    Nothing was recorded on this date. That is different from the accommodations not
+                    being delivered, and it prints as “no record”, never as “not used”.
+                  </p>
+                  <button
+                    onClick="{{backToToday}}"
+                    style="
+                      appearance: none;
+                      height: 32px;
+                      padding: 0 14px;
+                      border-radius: 999px;
+                      border: 1px solid #5b4bd6;
+                      background: #5b4bd6;
+                      color: #ffffff;
+                      font-size: 12px;
+                      font-weight: 500;
+                    "
+                    style-hover="background:#6d5ee6;border-color:#6d5ee6"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #faf8fc,0 0 0 4px #5b4bd6"
+                  >
+                    Back to today
+                  </button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{rangeActive}}" hint-placeholder-val="{{false}}">
+              <div
+                class="acc-noscroll"
+                ref="{{scrollRef}}"
+                onScroll="{{onBoardScroll}}"
+                style="
+                  flex: 1;
+                  min-height: 0;
+                  overflow-y: auto;
+                  overflow-x: hidden;
+                  background: transparent;
+                  padding: 16px 16px 48px;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 16px;
+                  box-sizing: border-box;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                    flex-shrink: 0;
+                  "
+                >
+                  <span
+                    style="font-size: 13px; font-weight: 600; color: #2a2438; white-space: nowrap"
+                    >{{rangeLabel}}</span
+                  >
+                  <span
+                    style="
+                      font-size: 11px;
+                      color: #6b6480;
+                      font-variant-numeric: tabular-nums;
+                      white-space: nowrap;
+                    "
+                    >{{rangeMeta}}</span
+                  >
+                  <div style="flex: 1"></div>
+                  <button
+                    onClick="{{exitRange}}"
+                    style="
+                      appearance: none;
+                      height: 32px;
+                      padding: 0 14px;
+                      border-radius: 999px;
+                      border: 1px solid #d6d0e2;
+                      background: #ffffff;
+                      color: #2a2438;
+                      font-size: 12px;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                    "
+                    style-hover="background:#f7f4fb;border-color:#9a93a8"
+                    style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                  >
+                    Back to today
+                  </button>
+                </div>
+                <sc-for list="{{rangeSections}}" as="day" hint-placeholder-count="3">
+                  <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 0 4px">
+                      <span
+                        style="
+                          font-size: 12.5px;
+                          font-weight: 600;
+                          color: #2a2438;
+                          white-space: nowrap;
+                        "
+                        >{{day.dateLabel}}</span
+                      >
+                      <span
+                        style="font-size:10.5px;font-weight:600;padding:2px 10px;border-radius:999px;background:{{day.badgeBg}};color:{{day.badgeInk}};white-space:nowrap;"
+                        >{{day.badgeText}}</span
+                      >
+                      <div style="flex: 1; border-top: 1px solid #e9e5f0"></div>
+                      <button
+                        onClick="{{day.onOpen}}"
+                        style="
+                          appearance: none;
+                          height: 26px;
+                          padding: 0 12px;
+                          border-radius: 999px;
+                          border: 1px solid #d6d0e2;
+                          background: #ffffff;
+                          color: #2a2438;
+                          font-size: 11px;
+                          font-weight: 500;
+                          white-space: nowrap;
+                          transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                        "
+                        style-hover="background:#f7f4fb;border-color:#9a93a8"
+                        style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                      >
+                        Open day
+                      </button>
+                    </div>
+                    <sc-if value="{{day.hasRows}}" hint-placeholder-val="{{true}}">
+                      <div
+                        style="
+                          background: #ffffff;
+                          border: 1px solid #e9e5f0;
+                          border-radius: 14px;
+                          overflow: hidden;
+                          box-shadow: 0 1px 2px rgba(42, 36, 56, 0.06);
+                        "
+                      >
+                        <sc-for list="{{day.rows}}" as="r" hint-placeholder-count="4">
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 12px;
+                              flex-wrap: wrap;
+                              padding: 10px 16px;
+                              border-top: 1px solid #f3f0f8;
+                              margin-top: -1px;
+                            "
+                          >
+                            <span
+                              style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #2a2438;
+                                min-width: 110px;
+                              "
+                              >{{r.name}}</span
+                            >
+                            <span
+                              style="display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:4px;font-size:10.5px;font-weight:600;background:{{r.planBg}};color:{{r.planInk}};"
+                              >{{r.planType}}</span
+                            >
+                            <span style="font-size: 11px; color: #6b6480; white-space: nowrap"
+                              >{{r.periodsLabel}}</span
+                            >
+                            <div style="flex: 1"></div>
+                            <sc-for list="{{r.tallies}}" as="t" hint-placeholder-count="3">
+                              <span
+                                style="
+                                  display: inline-flex;
+                                  align-items: baseline;
+                                  gap: 4px;
+                                  font-size: 11px;
+                                  white-space: nowrap;
+                                "
+                              >
+                                <span
+                                  style="font-weight:600;font-size:12px;font-variant-numeric:tabular-nums;color:{{t.ink}};"
+                                  >{{t.count}}</span
+                                >
+                                <span style="color: #6b6480">{{t.label}}</span>
+                              </span>
+                            </sc-for>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{day.emptyText}}" hint-placeholder-val="{{false}}">
+                      <div
+                        style="
+                          padding: 14px 16px;
+                          border: 1px dashed #d6d0e2;
+                          border-radius: 14px;
+                          font-size: 12px;
+                          color: #9a93a8;
+                          background: rgba(255, 255, 255, 0.6);
+                        "
+                      >
+                        {{day.emptyText}}
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <sc-if value="{{sbVisible}}" hint-placeholder-val="{{false}}">
+            <div
+              aria-hidden="true"
+              style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);height:45%;width:6px;border-radius:999px;background:rgba(255,255,255,0.4);opacity:{{sbOpacity}};pointer-events:{{sbPE}};transition:opacity 260ms cubic-bezier(0.65,0,0.35,1);"
+            >
+              <div
+                onMouseDown="{{onThumbDown}}"
+                style="position:absolute;left:0;width:6px;border-radius:999px;background:rgba(91,75,214,0.3);cursor:grab;top:{{sbTop}};height:{{sbH}};transition:background 90ms cubic-bezier(0.65,0,0.35,1);"
+                style-hover="background:rgba(91,75,214,0.5)"
+              ></div>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{periodCtxOpen}}" hint-placeholder-val="{{false}}">
+          <div
+            onMouseDown="{{closePeriodCtx}}"
+            onContextMenu="{{periodCtxOverlay}}"
+            style="position: fixed; inset: 0; z-index: 70"
+          >
+            <div
+              onMouseDown="{{stopProp}}"
+              role="dialog"
+              aria-label="Rename period"
+              style="position:fixed;left:{{periodCtxLeft}};top:{{periodCtxTop}};width:220px;padding:12px;box-sizing:border-box;background:#ffffff;border:1px solid #d6d0e2;border-radius:8px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);animation:acc-pop-in 160ms cubic-bezier(0.16,1,0.3,1) both;transform-origin:top left;display:flex;flex-direction:column;gap:8px;"
+            >
+              <span
+                style="
+                  font-size: 10px;
+                  font-weight: 600;
+                  letter-spacing: 0.08em;
+                  text-transform: uppercase;
+                  color: #9a93a8;
+                "
+                >Rename {{periodCtxOrig}}</span
+              >
+              <input
+                value="{{periodDraft}}"
+                onInput="{{onPeriodDraft}}"
+                onKeyDown="{{onPeriodDraftKey}}"
+                autofocus="{{true}}"
+                placeholder="e.g. Homeroom, Block A"
+                aria-label="Period label"
+                style="
+                  padding: 8px 10px;
+                  border: 1px solid #d6d0e2;
+                  border-radius: 8px;
+                  background: #ffffff;
+                  font-size: 12px;
+                  color: #2a2438;
+                  outline: none;
+                "
+                style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+              />
+              <button
+                onClick="{{savePeriodLabel}}"
+                disabled="{{periodSaveDisabled}}"
+                style="appearance:none;width:100%;height:30px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:11px;font-weight:600;opacity:{{periodSaveOpacity}};"
+                style-hover="background:#6d5ee6"
+              >
+                Save label
+              </button>
+              <span style="font-size: 10.5px; color: #9a93a8; line-height: 1.45"
+                >Shows everywhere this period appears. Clear it to go back to
+                {{periodCtxOrig}}.</span
+              >
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ctxOpen}}" hint-placeholder-val="{{false}}">
+          <div
+            onMouseDown="{{closeCtx}}"
+            onContextMenu="{{ctxOverlayCtx}}"
+            style="position: fixed; inset: 0; z-index: 70"
+          >
+            <div
+              onMouseDown="{{stopProp}}"
+              role="menu"
+              aria-label="{{ctxAria}}"
+              style="position:fixed;z-index:71;left:{{ctxLeft}};top:{{ctxTop}};width:260px;padding:8px;box-sizing:border-box;background:#ffffff;border:1px solid #d6d0e2;border-radius:8px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);animation:acc-pop-in 160ms cubic-bezier(0.16,1,0.3,1) both;transform-origin:top left;"
+            >
+              <p
+                style="
+                  margin: 0;
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: #6b6480;
+                  padding: 4px 8px 8px;
+                  border-bottom: 1px solid #e9e5f0;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                "
+              >
+                {{ctxTitle}}
+              </p>
+              <div role="group" aria-label="Move to" style="padding: 8px 0">
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #9a93a8;
+                    padding: 0 8px 4px;
+                  "
+                >
+                  Move to
+                </p>
+                <sc-for list="{{ctxMoves}}" as="m" hint-placeholder-count="4">
+                  <button
+                    role="menuitem"
+                    onClick="{{m.onClick}}"
+                    style="appearance:none;border:none;background:transparent;display:flex;align-items:center;gap:8px;width:100%;padding:8px;border-radius:4px;font-size:12px;font-weight:{{m.fw}};color:#2a2438;text-align:left;transition:background 90ms cubic-bezier(0.65,0,0.35,1);"
+                    style-hover="background:#f7f4fb"
+                  >
+                    <span
+                      aria-hidden="true"
+                      style="width:9px;height:9px;border-radius:2px;flex-shrink:0;background:{{m.swatch}};"
+                    ></span
+                    >{{m.label}}
+                    <sc-if value="{{m.current}}" hint-placeholder-val="{{false}}"
+                      ><span style="margin-left: auto; color: #5b4bd6">✓</span></sc-if
+                    >
+                  </button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ctxCountable}}" hint-placeholder-val="{{false}}">
+                <div
+                  role="group"
+                  aria-label="Times used"
+                  style="padding: 8px 0; border-top: 1px solid #e9e5f0"
+                >
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 10px;
+                      font-weight: 600;
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      color: #9a93a8;
+                      padding: 0 8px 4px;
+                    "
+                  >
+                    Used more than once
+                  </p>
+                  <div style="display: flex; gap: 4px; padding: 0 8px">
+                    <sc-for list="{{ctxCounts}}" as="cnt" hint-placeholder-count="5">
+                      <button
+                        role="menuitemradio"
+                        aria-checked="{{cnt.on}}"
+                        onClick="{{cnt.onClick}}"
+                        style="appearance:none;flex:1;padding:4px 0;border:1px solid {{cnt.bc}};border-radius:4px;font-size:11px;font-weight:{{cnt.fw}};color:{{cnt.ink}};background:{{cnt.bg}};transition:background 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1);"
+                        style-hover="background:#f7f4fb"
+                      >
+                        {{cnt.label}}
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <div
+                role="group"
+                aria-label="Relevance"
+                style="padding: 8px 0; border-top: 1px solid #e9e5f0"
+              >
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #9a93a8;
+                    padding: 0 8px 4px;
+                  "
+                >
+                  This subject
+                </p>
+                <button
+                  role="menuitem"
+                  onClick="{{ctxToggleRelevant}}"
+                  style="
+                    appearance: none;
+                    border: none;
+                    background: transparent;
+                    display: flex;
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: #2a2438;
+                    text-align: left;
+                    transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                  "
+                  style-hover="background:#f7f4fb"
+                >
+                  {{ctxRelevantLabel}}
+                </button>
+                <sc-if value="{{ctxNotRelevant}}" hint-placeholder-val="{{false}}">
+                  <p
+                    style="
+                      margin: 0;
+                      font-size: 11px;
+                      color: #6b6480;
+                      line-height: 1.45;
+                      padding: 2px 8px 4px;
+                      text-wrap: pretty;
+                    "
+                  >
+                    Excluded from this class's totals, it resolves as not applicable, never as Not
+                    Used.
+                  </p>
+                </sc-if>
+              </div>
+              <div
+                role="group"
+                aria-label="Standing default"
+                style="padding: 8px 0 0; border-top: 1px solid #e9e5f0"
+              >
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 10px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #9a93a8;
+                    padding: 0 8px 4px;
+                  "
+                >
+                  Every day this year
+                </p>
+                <sc-if value="{{ctxCanSetDefault}}" hint-placeholder-val="{{false}}">
+                  <button
+                    role="menuitem"
+                    onClick="{{ctxSetDefault}}"
+                    style="
+                      appearance: none;
+                      border: none;
+                      background: transparent;
+                      display: flex;
+                      width: 100%;
+                      padding: 8px;
+                      border-radius: 4px;
+                      font-size: 12px;
+                      color: #2a2438;
+                      text-align: left;
+                      transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                    "
+                    style-hover="background:#f7f4fb"
+                  >
+                    {{ctxSetDefaultLabel}}
+                  </button>
+                </sc-if>
+                <sc-if value="{{ctxHasDefault}}" hint-placeholder-val="{{false}}">
+                  <button
+                    role="menuitem"
+                    onClick="{{ctxClearDefault}}"
+                    style="
+                      appearance: none;
+                      border: none;
+                      background: transparent;
+                      display: flex;
+                      width: 100%;
+                      padding: 8px;
+                      border-radius: 4px;
+                      font-size: 12px;
+                      color: #a33a30;
+                      text-align: left;
+                      transition: background 90ms cubic-bezier(0.65, 0, 0.35, 1);
+                    "
+                    style-hover="background:#fdecea"
+                  >
+                    {{ctxClearDefaultLabel}}
+                  </button>
+                </sc-if>
+                <sc-for list="{{ctxNotes}}" as="note" hint-placeholder-count="1">
+                  <p
+                    style="margin:0;font-size:11px;color:{{note.ink}};line-height:1.45;padding:2px 8px 4px;text-wrap:pretty;"
+                  >
+                    {{note.text}}
+                  </p>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{addOpen}}" hint-placeholder-val="{{false}}">
+          <div
+            style="position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(42,36,56,0.42);animation:{{addOverlayAnim}};"
+          >
+            <div
+              role="dialog"
+              aria-modal="{{true}}"
+              aria-label="Add a student"
+              onMouseDown="{{stopProp}}"
+              style="width:100%;max-width:560px;max-height:calc(100vh - 48px);overflow-y:auto;padding:24px;box-sizing:border-box;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);display:flex;flex-direction:column;gap:20px;animation:{{addCardAnim}};"
+            >
+              <header style="display: flex; flex-direction: column; gap: 4px">
+                <span
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #9a93a8;
+                  "
+                  >New student</span
+                >
+                <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #2a2438">
+                  Add a student
+                </h2>
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 12px;
+                    color: #6b6480;
+                    line-height: 1.5;
+                    text-wrap: pretty;
+                  "
+                >
+                  Their plan and accommodations set up the daily cards. Everything can be changed
+                  later.
+                </p>
+              </header>
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <label style="font-size: 12px; font-weight: 500; color: #2a2438">Name</label>
+                <input
+                  value="{{addName}}"
+                  onInput="{{onAddName}}"
+                  placeholder="Jordan A."
+                  aria-label="Student name"
+                  style="
+                    padding: 10px 12px;
+                    border: 1px solid #d6d0e2;
+                    border-radius: 10px;
+                    background: #ffffff;
+                    font-size: 14px;
+                    color: #2a2438;
+                    outline: none;
+                  "
+                  style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+                />
+                <span style="font-size: 11px; color: #9a93a8"
+                  >Exactly as it should print on reports.</span
+                >
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; font-weight: 500; color: #2a2438">Plan type</span>
+                <div
+                  role="radiogroup"
+                  aria-label="Plan type"
+                  style="display: flex; gap: 8px; flex-wrap: wrap"
+                >
+                  <sc-for list="{{addPlanChips}}" as="p" hint-placeholder-count="3">
+                    <button
+                      role="radio"
+                      aria-checked="{{p.on}}"
+                      onClick="{{p.onClick}}"
+                      style="appearance:none;height:30px;padding:0 16px;border-radius:999px;border:1px solid {{p.bc}};background:{{p.bg}};color:{{p.ink}};font-size:12px;font-weight:600;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                      style-hover="border-color:#c9c0f2"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                    >
+                      {{p.label}}
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; font-weight: 500; color: #2a2438">Class periods</span>
+                <div
+                  role="group"
+                  aria-label="Class periods"
+                  style="display: flex; gap: 8px; flex-wrap: wrap"
+                >
+                  <sc-for list="{{addPeriodChips}}" as="p" hint-placeholder-count="3">
+                    <button
+                      aria-pressed="{{p.on}}"
+                      onClick="{{p.onClick}}"
+                      style="appearance:none;height:30px;padding:0 16px;border-radius:999px;border:1px solid {{p.bc}};background:{{p.bg}};color:{{p.ink}};font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                      style-hover="border-color:#c9c0f2"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                    >
+                      {{p.label}}
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; font-weight: 500; color: #2a2438"
+                  >Accommodations
+                  <span style="font-weight: 400; color: #9a93a8"
+                    >Pick from your catalog, or add their own.</span
+                  ></span
+                >
+                <div
+                  role="group"
+                  aria-label="Accommodations"
+                  style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"
+                >
+                  <sc-for list="{{addCatChips}}" as="c" hint-placeholder-count="9">
+                    <button
+                      aria-pressed="{{c.on}}"
+                      onClick="{{c.onClick}}"
+                      style="appearance:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid {{c.bc}};background:{{c.bg}};color:{{c.ink}};font-size:11.5px;font-weight:500;transition:background 90ms cubic-bezier(0.65,0,0.35,1),color 90ms cubic-bezier(0.65,0,0.35,1),border-color 90ms cubic-bezier(0.65,0,0.35,1);"
+                      style-hover="border-color:#c9c0f2"
+                      style-focus="outline:none;box-shadow:0 0 0 2px #eeebfd"
+                    >
+                      {{c.label}}
+                    </button>
+                  </sc-for>
+                  <sc-for list="{{addCustomChips}}" as="c" hint-placeholder-count="1">
+                    <button
+                      onClick="{{c.onRemove}}"
+                      title="Remove"
+                      style="
+                        appearance: none;
+                        height: 28px;
+                        padding: 0 12px;
+                        border-radius: 999px;
+                        border: 1px dashed #c9c0f2;
+                        background: #eeeafd;
+                        color: #5b4bd6;
+                        font-size: 11.5px;
+                        font-weight: 500;
+                      "
+                      style-hover="background:#e4defb"
+                    >
+                      {{c.label}} ×
+                    </button>
+                  </sc-for>
+                  <input
+                    value="{{addCustomDraft}}"
+                    onInput="{{onAddCustomDraft}}"
+                    onKeyDown="{{onAddCustomKey}}"
+                    placeholder="Something else… press Enter"
+                    aria-label="Add a custom accommodation"
+                    style="
+                      width: 180px;
+                      box-sizing: border-box;
+                      height: 28px;
+                      padding: 0 12px;
+                      border-radius: 999px;
+                      border: 1px dashed #d6d0e2;
+                      background: transparent;
+                      font-size: 11.5px;
+                      color: #2a2438;
+                      outline: none;
+                    "
+                    style-focus="border-style:solid;border-color:#5b4bd6"
+                  />
+                </div>
+                <span style="font-size: 11px; color: #9a93a8"
+                  >Custom entries are marked one-off and always ask for a written detail.</span
+                >
+              </div>
+              <footer
+                style="
+                  display: flex;
+                  justify-content: flex-end;
+                  gap: 8px;
+                  border-top: 1px solid #e9e5f0;
+                  padding-top: 16px;
+                "
+              >
+                <button
+                  onClick="{{closeAdd}}"
+                  style="
+                    appearance: none;
+                    height: 34px;
+                    padding: 0 14px;
+                    border-radius: 999px;
+                    border: 1px solid transparent;
+                    background: transparent;
+                    color: #6b6480;
+                    font-size: 12px;
+                    font-weight: 500;
+                  "
+                  style-hover="background:#f3f0f8;color:#2a2438"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick="{{submitAddStudent}}"
+                  disabled="{{addSubmitDisabled}}"
+                  style="appearance:none;height:34px;padding:0 18px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:12px;font-weight:600;opacity:{{addSubmitOpacity}};"
+                  style-hover="background:#6d5ee6;border-color:#6d5ee6"
+                >
+                  Add student
+                </button>
+              </footer>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{detailCard}}" hint-placeholder-val="{{false}}">
+          <div
+            style="position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(42,36,56,0.42);animation:{{detailOverlayAnim}};"
+          >
+            <div
+              role="dialog"
+              aria-modal="{{true}}"
+              aria-label="{{detailAria}}"
+              onMouseDown="{{stopProp}}"
+              style="width:100%;max-width:520px;padding:20px;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);display:flex;flex-direction:column;gap:12px;animation:{{detailCardAnim}};"
+            >
+              <header>
+                <span
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: #6b6480;
+                  "
+                  >Used with detail</span
+                >
+                <h2 style="margin: 4px 0 0; font-size: 15px; font-weight: 600; color: #2a2438">
+                  {{detailTitle}}
+                </h2>
+              </header>
+              <textarea
+                value="{{detailText}}"
+                onInput="{{onDetailText}}"
+                placeholder="{{detailPrompt}}"
+                rows="{{5}}"
+                autofocus="{{true}}"
+                style="
+                  padding: 12px;
+                  border: 1px solid #d6d0e2;
+                  border-radius: 8px;
+                  background: #f3f0f8;
+                  font-size: 14px;
+                  line-height: 1.45;
+                  resize: vertical;
+                  outline: none;
+                  color: #2a2438;
+                "
+                style-focus="background:#ffffff;border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"
+              ></textarea>
+              <p style="margin: 0; font-size: 11px; color: #6b6480; line-height: 1.45">
+                This text is reproduced verbatim in the printed report, so write it for whoever
+                reads the record later.
+              </p>
+              <footer style="display: flex; justify-content: flex-end; gap: 8px">
+                <button
+                  onClick="{{cancelDetail}}"
+                  style="
+                    appearance: none;
+                    height: 32px;
+                    padding: 0 14px;
+                    border-radius: 999px;
+                    border: 1px solid transparent;
+                    background: transparent;
+                    color: #6b6480;
+                    font-size: 12px;
+                    font-weight: 500;
+                  "
+                  style-hover="background:#f3f0f8;color:#2a2438"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick="{{saveDetail}}"
+                  disabled="{{detailSaveDisabled}}"
+                  style="appearance:none;height:32px;padding:0 14px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#ffffff;font-size:12px;font-weight:500;opacity:{{detailSaveOpacity}};"
+                  style-hover="background:#6d5ee6;border-color:#6d5ee6"
+                >
+                  Save detail
+                </button>
+              </footer>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </x-dc>
+    <script
+      type="text/x-dc"
+      data-dc-script
+      data-props='{"startSealed":{"editor":"boolean","default":false,"tsType":"boolean","section":"Demo state"},"startFolded":{"editor":"boolean","default":false,"tsType":"boolean","section":"Demo state"}}'
+    >
+      class Component extends DCLogic {
+        constructor(props) {
+          super(props);
+          const CATALOG = [
+            ['Extended time (1.5x) on assessments', false],
+            ['Preferential seating (front, near instruction)', false],
+            ['Text read aloud', true],
+            ['Small-group testing', false],
+            ['Frequent breaks', false],
+            ['Copy of teacher notes / guided notes', false],
+            ['Calculator permitted', false],
+            ['Reduced-item assignments', true],
+            ['Check for understanding / restate directions', false],
+          ];
+          const STUDENTS = [
+            ['Jordan A.', 'IEP', [0, 2, 5]],
+            ['Priya R.', '504', [0, 1, 6]],
+            ['Marcus B.', 'IEP', [0, 3, 4, 8]],
+            ['Sofía N.', '504', [1, 6]],
+            ['Devon P.', 'IEP', [0, 2, 3, 7]],
+            ['Amelia C.', '504', [4, 8]],
+            ['Tobias O.', 'IEP', [0, 1, 5, 6]],
+            ['Hana Y.', '504', [2, 8]],
+          ];
+          const periodsFor = (i) => (i % 3 === 0 ? ['P1'] : i % 3 === 1 ? ['P1', 'P3'] : ['P5']);
+          this.students = STUDENTS.map(([displayName, planType, cats], i) => ({
+            id: 'stu_' + i, displayName, planType, periods: periodsFor(i),
+            cards: cats.map((c) => ({
+              id: 'asg_' + i + '_' + c, label: CATALOG[c][0], requiresDetail: CATALOG[c][1],
+              isCustom: false, prompt: 'What was provided, and how?',
+            })),
+          }));
+          this.catalog = CATALOG;
+          this.students[0].cards.push({
+            id: 'asg_custom_0', label: 'Sensory break pass, up to 2 per class period',
+            requiresDetail: true, isCustom: true, prompt: 'How many breaks, and roughly when?',
+          });
+          const st = {};
+          const set = (id, status, detail) => { st[id] = { status, detail: detail || '' }; };
+          this.students.forEach((s) => s.cards.forEach((c) => set(c.id, 'unassigned')));
+          set('asg_0_0', 'used'); set('asg_0_2', 'used_with_detail', 'Read aloud passages 2–4 during independent work.');
+          set('asg_custom_0', 'used_with_detail', '');
+          set('asg_1_0', 'used'); set('asg_1_1', 'used');
+          set('asg_2_3', 'used'); set('asg_2_4', 'refused');
+          set('asg_3_1', 'used'); set('asg_3_6', 'used');
+          set('asg_4_0', 'used');
+          set('asg_6_0', 'used'); set('asg_6_1', 'used'); set('asg_6_6', 'used');
+          set('asg_7_2', 'used_with_detail', 'Read word problems aloud one at a time.');
+          this.state = {
+            statuses: st, notes: { stu_2: 'Left early for dentist, missed the last 20 minutes.' },
+            collapsed: {}, absent: {}, saved: {},
+            useCounts: { asg_0_2: 2 }, defaults: { asg_1_1: 'used' },
+            search: '', periods: [], dayOffset: 0,
+            sealed: this.props.startSealed ?? false,
+            saveState: 'idle', notice: null, detail: null, detailText: '',
+            dragging: null, openPanel: null, ctx: null, dismissedNotifs: {}, notRelevant: {},
+            selected: {}, selAnchor: null, selStudent: null, warnOpen: false,
+            dayNotes: '', dayNotesSaved: false, absenceReported: null, absFormOpen: false, absReason: null, absText: '',
+            addOpen: false, addName: '', addPlan: null, addPeriods: [], addCats: [], addCustoms: [], addCustomDraft: '',
+            rangeView: null, sb: { top: 0, h: 0, visible: false }, sbActive: false,
+            periodLabels: {}, periodCtx: null, periodDraft: '', periodsOpen: false,
+            addingAccFor: null, addAccDraft: '',
+            profile: { name: 'Ms. Rivera', subjects: ['Math'], grades: ['6', '7', '8'] },
+            profName: '', profSubjects: [], profGrades: [], closingProfile: false,
+            closingAdd: false, closingDetail: false,
+            calOpen: false, calMode: 'day', calMonth: 6, calYear: 2026, rangeStart: null, rangeEnd: null,
+          };
+          if (this.props.startFolded) this.state.collapsed = Object.fromEntries(this.students.map((s) => [s.id, true]));
+        }
+        componentDidMount() {
+          this._onKey = (e) => {
+            if (e.key !== 'Escape') return;
+            const st = this.state;
+            if (st.detail) { this.cancelDetailModal(); return; }
+            if (st.addOpen) { this.closeAddModal(); return; }
+            if (st.periodCtx) { this.setState({ periodCtx: null }); return; }
+            if (st.periodsOpen) { this.setState({ periodsOpen: false }); return; }
+            if (st.ctx) { this.setState({ ctx: null }); return; }
+            if (st.openPanel === 'settings') { this.closeProfileModal(); return; }
+            if (st.calOpen || st.openPanel) { this.setState({ calOpen: false, openPanel: null }); return; }
+            if (st.rangeView) this.setState({ rangeView: null });
+          };
+          window.addEventListener('keydown', this._onKey);
+        }
+        componentWillUnmount() {
+          window.removeEventListener('keydown', this._onKey);
+        }
+        closeAddModal() {
+          if (this.state.closingAdd || !this.state.addOpen) return;
+          this.setState({ closingAdd: true });
+          setTimeout(() => this.setState({ addOpen: false, closingAdd: false, addName: '', addPlan: null, addPeriods: [], addCats: [], addCustoms: [], addCustomDraft: '' }), 180);
+        }
+        closeDetailModal() {
+          if (this.state.closingDetail) return;
+          this.setState({ closingDetail: true });
+          setTimeout(() => this.setState({ detail: null, detailText: '', closingDetail: false }), 180);
+        }
+        cancelDetailModal() {
+          const det = this.state.detail;
+          if (!det || this.state.closingDetail) return;
+          if (!this.state.detailText.trim() && det.revertTo) this.setStatus(det.cardId, det.revertTo);
+          this.closeDetailModal();
+        }
+        parseAccDraft() {
+          return this.state.addAccDraft.split(/[,\t\n]+/).map((x) => x.trim()).filter(Boolean);
+        }
+        saveNewAccommodation(stuId) {
+          const items = this.parseAccDraft();
+          if (!items.length) return;
+          const st = this.students.find((x) => x.id === stuId);
+          if (!st) return;
+          const statuses = { ...this.state.statuses };
+          let added = 0;
+          items.forEach((label, i) => {
+            if (st.cards.some((c) => c.label.toLowerCase() === label.toLowerCase())) return;
+            const known = this.catalog.find(([l]) => l.toLowerCase() === label.toLowerCase());
+            const card = { id: 'asg_add_' + Date.now() + '_' + i, label: known ? known[0] : label, requiresDetail: known ? known[1] : false, isCustom: !known, prompt: 'What was provided, and how?', addedOn: 'today' };
+            st.cards.push(card);
+            statuses[card.id] = { status: 'unassigned', detail: '' };
+            added += 1;
+          });
+          this.mutate({
+            statuses, addingAccFor: null, addAccDraft: '',
+            notice: { tone: 'ok', text: added === 0 ? 'Already on ' + st.displayName + "'s list, nothing added." : (added === 1 ? '"' + items[0] + '" added' : added + ' accommodations added') + ' for ' + st.displayName + '. Records from today onward; earlier days are untouched.' },
+          });
+        }
+        savePeriodLabel() {
+          const ctx = this.state.periodCtx;
+          if (!ctx) return;
+          const v = this.state.periodDraft.trim();
+          const labels = { ...this.state.periodLabels };
+          if (!v || v === ctx.id) delete labels[ctx.id]; else labels[ctx.id] = v;
+          this.mutate({ periodLabels: labels, periodCtx: null, periodDraft: '' });
+        }
+        closeProfileModal() {
+          if (this.state.closingProfile || this.state.openPanel !== 'settings') return;
+          this.setState({ closingProfile: true });
+          setTimeout(() => this.setState({ openPanel: null, closingProfile: false }), 180);
+        }
+        gradeSummary(grades) {
+          const ORDER = ['K','1','2','3','4','5','6','7','8','9','10','11','12'];
+          const idx = grades.map((g) => ORDER.indexOf(g)).sort((a, b) => a - b);
+          const parts = [];
+          for (let i = 0; i < idx.length; ) {
+            let j = i;
+            while (j + 1 < idx.length && idx[j + 1] === idx[j] + 1) j++;
+            parts.push(j > i ? ORDER[idx[i]] + '–' + ORDER[idx[j]] : ORDER[idx[i]]);
+            i = j + 1;
+          }
+          return parts.join(', ');
+        }
+        measureScroll(el) {
+          if (!el) return;
+          const visible = el.scrollHeight > el.clientHeight + 2;
+          const top = visible ? (el.scrollTop / el.scrollHeight) * 100 : 0;
+          const h = visible ? (el.clientHeight / el.scrollHeight) * 100 : 0;
+          const sb = this.state.sb;
+          if (sb.visible !== visible || Math.abs(sb.top - top) > 0.1 || Math.abs(sb.h - h) > 0.5) this.setState({ sb: { top, h, visible } });
+        }
+        componentDidUpdate() {
+          if (this._scrollEl) this.measureScroll(this._scrollEl);
+        }
+        mutate(patch) {
+          clearTimeout(this._saveT);
+          this.setState({ ...patch, saveState: 'saving' });
+          this._saveT = setTimeout(() => this.setState({ saveState: 'idle' }), 600);
+        }
+        flashSaved(id) {
+          this.setState((s) => ({ saved: { ...s.saved, [id]: true } }));
+          clearTimeout(this._flashT?.[id]);
+          this._flashT = this._flashT || {};
+          this._flashT[id] = setTimeout(() => this.setState((s) => ({ saved: { ...s.saved, [id]: false } })), 1400);
+        }
+        setStatus(cardId, status, detail) {
+          this.mutate({ statuses: { ...this.state.statuses, [cardId]: { status, detail: detail !== undefined ? detail : (this.state.statuses[cardId]?.detail || '') } } });
+        }
+        toggleSelect(stuId, cardId) {
+          const s = this.state;
+          const sel = s.selStudent === stuId ? { ...s.selected } : {};
+          if (sel[cardId]) delete sel[cardId]; else sel[cardId] = true;
+          const any = Object.keys(sel).length > 0;
+          this.setState({ selected: sel, selAnchor: any ? cardId : null, selStudent: any ? stuId : null });
+        }
+        rangeSelect(stuId, colId, cardId) {
+          const s = this.state;
+          const st = this.students.find((x) => x.id === stuId);
+          const colCards = st.cards.filter((c) => (s.statuses[c.id]?.status || 'unassigned') === colId && !s.notRelevant[c.id]).map((c) => c.id);
+          const anchor = s.selStudent === stuId && s.selAnchor && colCards.includes(s.selAnchor) ? s.selAnchor : cardId;
+          const a = colCards.indexOf(anchor), b = colCards.indexOf(cardId);
+          const [lo, hi] = a < b ? [a, b] : [b, a];
+          const sel = s.selStudent === stuId ? { ...s.selected } : {};
+          for (let i = lo; i <= hi; i++) sel[colCards[i]] = true;
+          this.setState({ selected: sel, selAnchor: anchor, selStudent: stuId });
+        }
+        cardDef(cardId) {
+          for (const st of this.students) { const c = st.cards.find((x) => x.id === cardId); if (c) return c; }
+          return null;
+        }
+        dateFor(offset) {
+          const base = new Date(2026, 6, 27);
+          let d = new Date(base), n = Math.abs(offset), dir = offset < 0 ? -1 : 1;
+          while (n > 0) { d.setDate(d.getDate() + dir); const wd = d.getDay(); if (wd !== 0 && wd !== 6) n -= 1; }
+          return d;
+        }
+        offsetFor(date) {
+          const base = new Date(2026, 6, 27);
+          const a = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          if (+a === +base) return 0;
+          const dir = a > base ? 1 : -1;
+          let n = 0; const cur = new Date(base);
+          while (+cur !== +a && Math.abs(n) < 400) {
+            cur.setDate(cur.getDate() + dir);
+            const wd = cur.getDay();
+            if (wd !== 0 && wd !== 6) n += dir;
+          }
+          return n;
+        }
+        schoolDaysBetween(a, b) {
+          let n = 0; const cur = new Date(a);
+          while (+cur <= +b) { const wd = cur.getDay(); if (wd !== 0 && wd !== 6) n += 1; cur.setDate(cur.getDate() + 1); }
+          return n;
+        }
+        renderVals() {
+          const s = this.state;
+          const locked = s.sealed;
+          const hasRecord = s.dayOffset === 0;
+          const COLS = [
+            { id: 'unassigned', label: 'Unassigned', rule: '#f2eff7', swatch: '#7a7391' },
+            { id: 'used', label: 'Used', rule: '#e4f4ed', swatch: '#2f7d63' },
+            { id: 'used_with_detail', label: 'Used with Detail', rule: '#eeebfd', swatch: '#5b4bd6' },
+            { id: 'refused', label: 'Refused', rule: '#e8f0f4', swatch: '#4a6b7a' },
+          ];
+          const STATUS_LABEL = { unassigned: 'Unassigned', used: 'Used', used_with_detail: 'Used with detail', refused: 'Refused' };
+          const PLAN = { IEP: ['#e8eeff', '#3d5bbf'], 504: ['#f0e9fd', '#6b4bb8'], Other: ['#f3f0f8', '#6b6480'] };
+          const q = s.search.trim().toLowerCase();
+          const chipCounts = {};
+          this.students.forEach((st) => st.periods.forEach((p) => { chipCounts[p] = (chipCounts[p] || 0) + 1; }));
+          const allPeriods = Object.keys(chipCounts).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+          const pl = (id) => s.periodLabels[id] || id;
+          const visible = this.students.filter((st) =>
+            (!q || st.displayName.toLowerCase().includes(q)) &&
+            (s.periods.length === 0 || st.periods.some((p) => s.periods.includes(p)))
+          );
+          let detailsMissing = 0;
+          let anyTouched = false;
+          let delayIdx = 0;
+          const lanes = visible.map((st) => {
+            const absent = !!s.absent[st.id];
+            const laneLocked = locked || absent;
+            const collapsed = !!s.collapsed[st.id];
+            if (absent || (s.notes[st.id] || '').length > 0) anyTouched = true;
+            const cols = COLS.map((col) => {
+              const cards = st.cards.filter((c) => (s.statuses[c.id]?.status || 'unassigned') === col.id).map((c) => {
+                const entry = s.statuses[c.id];
+                if (entry.status !== 'unassigned') anyTouched = true;
+                const needsDetail = entry.status === 'used_with_detail' && !entry.detail.trim();
+                const hasDetail = entry.status === 'used_with_detail' && !!entry.detail.trim();
+                const notRel = !!s.notRelevant[c.id];
+                const resolvedNotUsed = s.sealed && entry.status === 'unassigned' && !notRel;
+                if (needsDetail && !absent && !notRel) detailsMissing += 1;
+                const useCount = s.useCounts[c.id] || 1;
+                const defaultStatus = s.defaults[c.id] || null;
+                return {
+                  label: c.label, isCustom: c.isCustom,
+                  borderStyle: defaultStatus ? 'dashed' : 'solid',
+                  borderLeft: c.isCustom ? '3px solid #5b4bd6' : (needsDetail ? '1px solid #a06a2c' : '1px ' + (defaultStatus ? 'dashed' : 'solid') + ' ' + (resolvedNotUsed ? '#fbf1e2' : '#e9e5f0')),
+                  bg: s.selected[c.id] ? '#eeeafd' : (resolvedNotUsed ? '#fbf1e2' : '#ffffff'),
+                  bc: s.selected[c.id] ? '#5b4bd6' : (needsDetail ? '#a06a2c' : (resolvedNotUsed ? '#fbf1e2' : '#e9e5f0')),
+                  resolvedNotUsed,
+                  countChip: useCount > 1 ? '×' + useCount : null,
+                  countTitle: 'Used ' + useCount + ' times today',
+                  hasDefault: !!defaultStatus,
+                  chip: hasDetail || needsDetail,
+                  chipText: hasDetail ? 'Detail added' : 'Detail needed',
+                  chipTitle: entry.detail || 'Add the narrative',
+                  chipInk: hasDetail ? '#2f7d63' : '#a06a2c',
+                  chipBg: hasDetail ? '#e4f4ed' : '#fbf1e2',
+                  notRelevant: notRel,
+                  draggable: !laneLocked && !notRel,
+                  cursor: laneLocked || notRel ? 'default' : 'grab',
+                  dragOpacity: notRel ? 0.45 : (s.dragging && (s.dragging === c.id || (s.selected[c.id] && s.selected[s.dragging])) ? 0.45 : 1),
+                  cardTitle: laneLocked ? '' : notRel ? 'Not relevant to this subject, right-click to change.' : 'Drag to a column. Right-click for more.',
+                  onDragStart: (e) => {
+                    if (laneLocked || notRel) { e.preventDefault(); return; }
+                    e.dataTransfer.effectAllowed = 'move';
+                    const sel = this.state.selected;
+                    if (sel[c.id]) this._dragGroup = Object.keys(sel);
+                    else { this._dragGroup = [c.id]; if (Object.keys(sel).length) this.setState({ selected: {}, selAnchor: null, selStudent: null }); }
+                    this.setState({ dragging: c.id });
+                  },
+                  onClick: (e) => {
+                    if (laneLocked || notRel) return;
+                    if (e.ctrlKey || e.metaKey) { this.toggleSelect(st.id, c.id); return; }
+                    if (e.shiftKey) { this.rangeSelect(st.id, col.id, c.id); return; }
+                    if (Object.keys(this.state.selected).length) this.setState({ selected: {}, selAnchor: null, selStudent: null });
+                    if (entry.status === 'used_with_detail') this.setState({ detail: { cardId: c.id, label: c.label, prompt: c.prompt, revertTo: null }, detailText: entry.detail });
+                  },
+                  onCtx: (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (laneLocked) return;
+                    this.setState({ ctx: { cardId: c.id, x: e.clientX, y: e.clientY } });
+                  },
+                };
+              });
+              const dragHere = !!s.dragging && st.cards.some((c) => c.id === s.dragging) && !laneLocked;
+              const isUnassigned = col.id === 'unassigned' && !laneLocked;
+              return { id: col.id, label: col.label, rule: col.rule, count: cards.length, cards, aria: col.label + ', ' + cards.length,
+                isUnassigned,
+                adding: isUnassigned && s.addingAccFor === st.id,
+                showAddBtn: isUnassigned && s.addingAccFor !== st.id,
+                startAddAcc: () => this.setState({ addingAccFor: st.id, addAccDraft: '' }),
+                saveAddAcc: () => this.saveNewAccommodation(st.id),
+                onAddAccKey: (e) => {
+                  if (e.key === 'Enter') this.saveNewAccommodation(st.id);
+                  if (e.key === 'Escape') { e.stopPropagation(); this.setState({ addingAccFor: null, addAccDraft: '' }); }
+                },
+                dropHint: dragHere && cards.length === 0,
+                dropRing: dragHere ? 'inset 0 0 0 1.5px #c9c0f2' : 'none',
+                onDragOver: (e) => { if (dragHere) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
+                onDrop: (e) => {
+                  e.preventDefault();
+                  const id = this.state.dragging;
+                  this.setState({ dragging: null });
+                  if (!id || !dragHere) return;
+                  const group = this._dragGroup && this._dragGroup.includes(id) ? this._dragGroup : [id];
+                  const prev = this.state.statuses[id];
+                  const statuses = { ...this.state.statuses };
+                  let moved = 0;
+                  group.forEach((cid) => {
+                    const en = statuses[cid];
+                    if (!en || en.status === col.id || !st.cards.some((c) => c.id === cid)) return;
+                    statuses[cid] = { status: col.id, detail: en.detail };
+                    moved += 1;
+                  });
+                  if (!moved) return;
+                  this.mutate({ statuses, selected: {}, selAnchor: null, selStudent: null });
+                  if (col.id === 'used_with_detail') {
+                    const cd = st.cards.find((c) => c.id === id);
+                    this.setState({ detail: { cardId: id, label: cd.label, prompt: cd.prompt, revertTo: group.length === 1 ? prev.status : null }, detailText: prev.detail });
+                  }
+                },
+              };
+            });
+            const applicable = st.cards.filter((c) => !s.notRelevant[c.id]);
+            const recorded = applicable.filter((c) => ['used', 'used_with_detail', 'refused'].includes(s.statuses[c.id]?.status)).length;
+            const laneMissing = st.cards.filter((c) => { const e = s.statuses[c.id]; return e.status === 'used_with_detail' && !e.detail.trim(); }).length;
+            const tallyDefs = [
+              ['used', 'Used', '#2f7d63'], ['used_with_detail', 'Used with detail', '#5b4bd6'], ['refused', 'Refused', '#4a6b7a'], ['unassigned', s.sealed ? 'Not used' : 'Unassigned', s.sealed ? '#a06a2c' : '#7a7391'],
+            ];
+            const tallies = tallyDefs.map(([id, label, ink]) => ({ label, ink, count: applicable.filter((c) => s.statuses[c.id]?.status === id).length })).filter((t) => t.count > 0);
+            const nrCount = st.cards.length - applicable.length;
+            if (nrCount > 0) tallies.push({ label: 'Not relevant', ink: '#9a93a8', count: nrCount });
+            const delay = Math.min(delayIdx * 45, 400) + 'ms'; delayIdx += 1;
+            return {
+              studentId: st.id, displayName: st.displayName, planType: st.planType,
+              planBg: PLAN[st.planType][0], planInk: PLAN[st.planType][1],
+              periodsLabel: st.periods.map(pl).join(' · '),
+              progressText: absent ? 'Absent' : recorded + ' of ' + applicable.length + ' recorded',
+              progressInk: absent ? '#8a839a' : '#6b6480',
+              progressFw: absent ? 600 : 400,
+              warnText: laneMissing > 0 && !absent ? laneMissing + ' need' + (laneMissing === 1 ? 's' : '') + ' detail' : null,
+              absent, absentLabel: absent ? 'Absent' : 'Mark absent',
+              absentTitle: absent ? 'Mark ' + st.displayName + ' present' : 'Mark ' + st.displayName + ' absent, excluded from compliance totals',
+              absentBg: absent ? '#f4f2f7' : 'transparent',
+              absentBc: absent ? '#8a839a' : '#e9e5f0',
+              absentInk: absent ? '#8a839a' : '#6b6480',
+              absentFw: absent ? 600 : 500,
+              opacity: absent ? 0.55 : 1, filter: absent ? 'saturate(0.4)' : 'none',
+              surface: locked ? 'rgba(243,240,248,0.85)' : 'rgba(255,255,255,0.72)',
+              collapsed, expanded: !collapsed,
+              chevron: collapsed ? '0deg' : '90deg',
+              delay, cols, tallies,
+              notes: s.notes[st.id] || '',
+              notesPlaceholder: locked ? '' : 'Anything worth remembering about today?',
+              notesAria: 'Daily notes for ' + st.displayName,
+              savedOpacity: s.saved[st.id] ? 1 : 0,
+              onToggleCollapse: () => this.setState({ collapsed: { ...s.collapsed, [st.id]: !collapsed } }),
+              onToggleAbsent: () => {
+                if (locked) return;
+                const patch = { absent: { ...s.absent, [st.id]: !absent } };
+                if (!absent) {
+                  const statuses = { ...this.state.statuses };
+                  st.cards.forEach((c) => { statuses[c.id] = { status: 'unassigned', detail: statuses[c.id]?.detail || '' }; });
+                  patch.statuses = statuses;
+                }
+                this.mutate(patch);
+              },
+              onNotes: (e) => {
+                const v = e.target.value;
+                this.mutate({ notes: { ...this.state.notes, [st.id]: v } });
+                clearTimeout(this._noteT); this._noteT = setTimeout(() => this.flashSaved(st.id), 500);
+              },
+            };
+          });
+          const d = this.dateFor(s.dayOffset);
+          const fmt = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const hidden = this.students.length - visible.length;
+          const noticeTones = { ok: ['#e4f4ed', '#2f7d63'], warn: ['#fbf1e2', '#a06a2c'], confirm: ['#fbf1e2', '#a06a2c'] };
+          const det = s.detail;
+          const notifs = [];
+          if (detailsMissing > 0 && hasRecord && !s.sealed) notifs.push({
+            id: 'details-missing', tone: 'warn',
+            title: detailsMissing + ' card' + (detailsMissing === 1 ? '' : 's') + ' need' + (detailsMissing === 1 ? 's' : '') + ' a detail',
+            body: 'Marked “used with detail” but no detail is written. Those print as an unsupported claim.',
+          });
+          notifs.push({
+            id: 'open-past', tone: 'info',
+            title: '2 earlier days not closed out',
+            body: 'Oldest is Thu, Jul 23. Anything left unassigned on those days is recorded as Not Used.',
+            action: 'Go to the oldest', offset: -2,
+          });
+          notifs.push({
+            id: 'sub-day', tone: 'info', dismissible: true,
+            title: 'A substitute covered P3 on Fri, Jul 24',
+            body: 'Nothing was recorded that day. If the sub delivered accommodations, add them before the week closes.',
+            action: 'Go to that day', offset: -1,
+          });
+          notifs.push({
+            id: 'testing', tone: 'warn', dismissible: true,
+            title: 'State testing, Jul 27–31',
+            body: 'P1 meets on a shortened block this week. Testing accommodations still need a daily record.',
+          });
+          if (s.absenceReported) notifs.push({
+            id: 'teacher-absence', tone: 'info',
+            title: 'Absence noted: ' + s.absenceReported.reason,
+            body: 'The reason was added to today\u2019s day notes, so the record shows why entries are thin. Review the day before closing it out.',
+            action: 'Open day notes', act: 'openNotes',
+          });
+          if (hasRecord && !s.sealed && !anyTouched) notifs.push({
+            id: 'nothing-today', tone: 'info',
+            title: 'Nothing recorded today yet',
+            body: 'Drag a card into Used as you deliver each accommodation.',
+          });
+          const notifTones = { warn: ['#a06a2c', '#fbf1e2'], info: ['#5b4bd6', '#eeebfd'], ok: ['#2f7d63', '#e4f4ed'] };
+          const notifItems = notifs.filter((n) => !s.dismissedNotifs[n.id]).map((n) => ({
+            title: n.title, body: n.body,
+            edge: notifTones[n.tone][0], bg: notifTones[n.tone][1],
+            action: n.action || null, dismissible: !!n.dismissible,
+            onAct: () => { if (n.act === 'openNotes') this.setState({ openPanel: 'daynotes' }); else this.setState({ dayOffset: n.offset, openPanel: null }); },
+            onDismiss: () => this.setState({ dismissedNotifs: { ...this.state.dismissedNotifs, [n.id]: true } }),
+          }));
+          const ctx = s.ctx;
+          let ctxVals = { ctxOpen: false, ctxTitle: '', ctxAria: '', ctxLeft: '0px', ctxTop: '0px', ctxMoves: [], ctxCountable: false, ctxCounts: [], ctxCanSetDefault: false, ctxSetDefaultLabel: '', ctxHasDefault: false, ctxClearDefaultLabel: '', ctxNotRelevant: false, ctxRelevantLabel: '', ctxNotes: [] };
+          if (ctx) {
+            const entry = s.statuses[ctx.cardId];
+            const cd = this.cardDef(ctx.cardId);
+            const countable = ['used', 'used_with_detail'].includes(entry.status);
+            const curDefault = s.defaults[ctx.cardId] || null;
+            const useCount = s.useCounts[ctx.cardId] || 1;
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const ctxNotRel = !!s.notRelevant[ctx.cardId];
+            const notes = [];
+            if (!countable && !curDefault && !ctxNotRel) notes.push({ ink: '#6b6480', text: 'Move the card to Used or Used with Detail first, then set it as the default.' });
+            if (curDefault && curDefault === entry.status) notes.push({ ink: '#6b6480', text: 'Already the default. New days start here automatically.' });
+            if (countable && cd.requiresDetail) notes.push({ ink: '#a06a2c', text: 'This accommodation needs a written detail each time, so a default can only pre-set the status, you will still need to describe what you provided.' });
+            ctxVals = {
+              ctxOpen: true,
+              ctxTitle: cd.label,
+              ctxAria: 'Actions for ' + cd.label,
+              ctxLeft: Math.min(ctx.x, vw - 276) + 'px',
+              ctxTop: Math.min(ctx.y, vh - 360) + 'px',
+              ctxMoves: COLS.map((col) => ({
+                label: col.label, swatch: col.swatch, current: entry.status === col.id,
+                fw: entry.status === col.id ? 600 : 400,
+                onClick: () => {
+                  this.setState({ ctx: null });
+                  if (entry.status === col.id) return;
+                  this.setStatus(ctx.cardId, col.id);
+                  if (col.id === 'used_with_detail') this.setState({ detail: { cardId: ctx.cardId, label: cd.label, prompt: cd.prompt, revertTo: entry.status }, detailText: entry.detail });
+                },
+              })),
+              ctxCountable: countable,
+              ctxCounts: [1, 2, 3, 4, 5].map((n) => ({
+                label: n === 1 ? 'Once' : '×' + n, on: useCount === n,
+                fw: useCount === n ? 600 : 500,
+                ink: useCount === n ? '#5b4bd6' : '#6b6480',
+                bg: useCount === n ? '#eeebfd' : 'transparent',
+                bc: useCount === n ? '#5b4bd6' : '#e9e5f0',
+                onClick: () => { this.mutate({ useCounts: { ...this.state.useCounts, [ctx.cardId]: n }, ctx: null }); },
+              })),
+              ctxCanSetDefault: countable && curDefault !== entry.status,
+              ctxSetDefaultLabel: 'Always start as “' + STATUS_LABEL[entry.status] + '”',
+              ctxHasDefault: !!curDefault,
+              ctxClearDefaultLabel: curDefault ? 'Stop defaulting to “' + STATUS_LABEL[curDefault] + '”' : '',
+              ctxNotRelevant: ctxNotRel,
+              ctxRelevantLabel: ctxNotRel ? 'Counts for this subject again' : 'Not relevant to subject',
+              ctxNotes: notes,
+            };
+          }
+          const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+          const selDay = this.dateFor(s.dayOffset);
+          const today = new Date(2026, 6, 27);
+          const first = new Date(s.calYear, s.calMonth, 1);
+          const daysInMonth = new Date(s.calYear, s.calMonth + 1, 0).getDate();
+          const pad = first.getDay();
+          const cells = [];
+          for (let i = 0; i < pad; i++) cells.push({ label: '', disabled: true, bg: 'transparent', hoverBg: 'transparent', ink: 'transparent', fw: 400, radius: '6px', ring: 'none', cursor: 'default', aria: 'empty', onClick: () => {} });
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(s.calYear, s.calMonth, day);
+            const wd = date.getDay();
+            const weekend = wd === 0 || wd === 6;
+            const isToday = +date === +today;
+            const isSel = s.calMode === 'day' && +date === +new Date(selDay.getFullYear(), selDay.getMonth(), selDay.getDate());
+            const rs = s.rangeStart, re = s.rangeEnd;
+            const isStart = s.calMode === 'range' && rs && +date === rs;
+            const isEnd = s.calMode === 'range' && re && +date === re;
+            const inRange = s.calMode === 'range' && rs && re && +date > rs && +date < re;
+            const filled = isSel || isStart || isEnd;
+            cells.push({
+              label: String(day),
+              disabled: weekend,
+              bg: filled ? '#5b4bd6' : inRange ? '#eeebfd' : 'transparent',
+              hoverBg: filled ? '#6d5ee6' : weekend ? 'transparent' : '#f3f0f8',
+              ink: filled ? '#ffffff' : weekend ? '#d6d0e2' : inRange ? '#5b4bd6' : '#2a2438',
+              fw: filled || isToday ? 600 : 400,
+              radius: isStart && re ? '999px 6px 6px 999px' : isEnd ? '6px 999px 999px 6px' : filled ? '999px' : '6px',
+              ring: isToday && !filled ? 'inset 0 0 0 1.5px #c9c0f2' : 'none',
+              cursor: weekend ? 'default' : 'pointer',
+              aria: date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+              onClick: () => {
+                if (weekend) return;
+                if (this.state.calMode === 'day') {
+                  this.setState({ dayOffset: this.offsetFor(date), calOpen: false, rangeView: null });
+                } else {
+                  const t = +date;
+                  const st2 = this.state;
+                  if (!st2.rangeStart || (st2.rangeStart && st2.rangeEnd)) this.setState({ rangeStart: t, rangeEnd: null });
+                  else this.setState({ rangeStart: Math.min(st2.rangeStart, t), rangeEnd: Math.max(st2.rangeStart, t) });
+                }
+              },
+            });
+          }
+          let calFooterText = '';
+          let calFooterAction = false;
+          if (s.calMode === 'range') {
+            if (s.rangeStart && s.rangeEnd) {
+              const a = new Date(s.rangeStart), b = new Date(s.rangeEnd);
+              const n = this.schoolDaysBetween(a, b);
+              calFooterText = a.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' + b.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + n + ' school day' + (n === 1 ? '' : 's');
+              calFooterAction = true;
+            } else {
+              calFooterText = s.rangeStart ? 'Now pick the last day.' : 'Pick the first day of the range.';
+            }
+          }
+          const rangeView = s.rangeView;
+          const rangeSections = [];
+          let rangeLabel = '', rangeMeta = '';
+          if (rangeView) {
+            const ra = new Date(rangeView.start), rb = new Date(rangeView.end);
+            const nDays = this.schoolDaysBetween(ra, rb);
+            rangeLabel = ra.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' to ' + rb.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            rangeMeta = nDays + ' school day' + (nDays === 1 ? '' : 's') + ' · ' + visible.length + ' student' + (visible.length === 1 ? '' : 's');
+            const cur = new Date(ra);
+            while (+cur <= +rb) {
+              const wd = cur.getDay();
+              if (wd !== 0 && wd !== 6) {
+                const date = new Date(cur);
+                const off = this.offsetFor(date);
+                const status = off === 0 ? 'today' : (off > 0 || off === -1) ? 'none' : off >= -3 ? 'open' : 'sealed';
+                const BADGE = { today: ['Today', '#e4f4ed', '#2f7d63'], open: ['Open, not closed out', '#fbf1e2', '#a06a2c'], sealed: ['Closed out', '#f3f0f8', '#6b6480'], none: ['No record', '#f3f0f8', '#9a93a8'] };
+                const rows = status === 'none' ? [] : visible.map((st2, idx) => {
+                  let t;
+                  if (off === 0) {
+                    const cnt = (id) => st2.cards.filter((c) => !s.notRelevant[c.id] && (s.statuses[c.id]?.status || 'unassigned') === id).length;
+                    t = { used: cnt('used'), detail: cnt('used_with_detail'), refused: cnt('refused'), rest: cnt('unassigned') };
+                  } else {
+                    const n = st2.cards.length;
+                    const seed = Math.abs(off) * 31 + idx * 17 + n * 7;
+                    const used = seed % (n + 1);
+                    const dd = (seed >> 3) % (n - used + 1);
+                    t = { used, detail: dd, refused: 0, rest: n - used - dd };
+                  }
+                  const tallies = [
+                    { count: t.used, label: 'Used', ink: '#2f7d63' },
+                    { count: t.detail, label: 'With detail', ink: '#5b4bd6' },
+                    { count: t.refused, label: 'Refused', ink: '#4a6b7a' },
+                    { count: t.rest, label: status === 'sealed' ? 'Not used' : 'Unassigned', ink: status === 'sealed' ? '#a06a2c' : '#7a7391' },
+                  ].filter((x) => x.count > 0);
+                  return { name: st2.displayName, planType: st2.planType, planBg: PLAN[st2.planType][0], planInk: PLAN[st2.planType][1], periodsLabel: st2.periods.map(pl).join(' · '), tallies };
+                });
+                rangeSections.push({
+                  key: date.toISOString().slice(0, 10),
+                  dateLabel: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+                  badgeText: BADGE[status][0], badgeBg: BADGE[status][1], badgeInk: BADGE[status][2],
+                  hasRows: rows.length > 0, rows,
+                  emptyText: rows.length ? null : (off > 0 ? 'Nothing recorded yet. This day has not happened.' : 'Nothing was recorded on this date. It prints as "no record", never as "not used".'),
+                  onOpen: () => this.setState({ dayOffset: off, rangeView: null }),
+                });
+              }
+              cur.setDate(cur.getDate() + 1);
+            }
+          }
+          return {
+            readOnly: locked, locked, sealed: s.sealed, hasRecord: hasRecord && !rangeView, showEmpty: !hasRecord && !rangeView,
+            rangeActive: !!rangeView, rangeLabel, rangeMeta, rangeSections,
+            exitRange: () => this.setState({ rangeView: null, dayOffset: 0 }),
+            scrollRef: (el) => { this._scrollEl = el; if (el) this.measureScroll(el); },
+            onBoardScroll: (e) => {
+              this.measureScroll(e.target);
+              if (!this.state.sbActive) this.setState({ sbActive: true });
+              clearTimeout(this._sbT);
+              this._sbT = setTimeout(() => this.setState({ sbActive: false }), 900);
+            },
+            sbVisible: s.sb.visible,
+            sbOpacity: s.sbActive ? 1 : 0,
+            sbPE: s.sbActive ? 'auto' : 'none',
+            sbTop: s.sb.top + '%',
+            sbH: Math.max(s.sb.h, 5) + '%',
+            onThumbDown: (e) => {
+              e.preventDefault();
+              const el = this._scrollEl;
+              if (!el) return;
+              const startY = e.clientY, startTop = el.scrollTop;
+              const ratio = el.scrollHeight / el.clientHeight;
+              clearTimeout(this._sbT);
+              this.setState({ sbActive: true });
+              const move = (ev) => { el.scrollTop = startTop + (ev.clientY - startY) * ratio; };
+              const up = () => {
+                window.removeEventListener('mousemove', move);
+                window.removeEventListener('mouseup', up);
+                this._sbT = setTimeout(() => this.setState({ sbActive: false }), 900);
+              };
+              window.addEventListener('mousemove', move);
+              window.addEventListener('mouseup', up);
+            },
+            actionOpacity: locked || !hasRecord ? 0.45 : 1,
+            closeDisabled: locked || !hasRecord, closeOpacity: locked || !hasRecord ? 0.45 : 1,
+            dateTitle: s.dayOffset === 0 ? 'Today' : fmt,
+            dateSub: s.dayOffset === 0 ? fmt : 'No record',
+            backToToday: () => this.setState({ dayOffset: 0 }),
+            calOpen: s.calOpen,
+            calBtnBg: s.calOpen ? '#f7f4fb' : '#ffffff',
+            calBtnBc: s.calOpen ? '#9a93a8' : '#d6d0e2',
+            toggleCal: () => this.setState({ calOpen: !s.calOpen, openPanel: null }),
+            calMonthLabel: MONTHS[s.calMonth] + ' ' + s.calYear,
+            calPrevMonth: () => this.setState(s.calMonth === 0 ? { calMonth: 11, calYear: s.calYear - 1 } : { calMonth: s.calMonth - 1 }),
+            calNextMonth: () => this.setState(s.calMonth === 11 ? { calMonth: 0, calYear: s.calYear + 1 } : { calMonth: s.calMonth + 1 }),
+            calModes: [['day', 'Day'], ['range', 'Range']].map(([id, label]) => ({
+              label, on: s.calMode === id,
+              fw: s.calMode === id ? 600 : 500,
+              ink: s.calMode === id ? '#5b4bd6' : '#6b6480',
+              bg: s.calMode === id ? '#ffffff' : 'transparent',
+              shadow: s.calMode === id ? '0 1px 2px rgba(42,36,56,0.06)' : 'none',
+              onClick: () => this.setState({ calMode: id, rangeStart: null, rangeEnd: null }),
+            })),
+            calWeekdays: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((label) => ({ label })),
+            calCells: cells,
+            calFooter: s.calMode === 'range',
+            calFooterText, calFooterAction,
+            calGoRange: () => this.setState({ rangeView: { start: this.state.rangeStart, end: this.state.rangeEnd }, calOpen: false }),
+            addAccDraft: s.addAccDraft,
+            onAddAccDraft: (e) => this.setState({ addAccDraft: e.target.value }),
+            onAddAccPaste: () => {},
+            addAccDisabled: !s.addAccDraft.trim(),
+            addAccOpacity: s.addAccDraft.trim() ? 1 : 0.45,
+            ...(() => {
+              const parts = s.addAccDraft.split(/[,\t\n]+/).map((x) => x.trim()).filter(Boolean);
+              const last = (s.addAccDraft.split(/[,\t\n]+/).pop() || '').trim().toLowerCase();
+              const stAdding = this.students.find((x) => x.id === s.addingAccFor);
+              const sugg = last.length >= 2 && stAdding ? this.catalog
+                .filter(([l]) => l.toLowerCase().includes(last) && !stAdding.cards.some((c) => c.label.toLowerCase() === l.toLowerCase()))
+                .slice(0, 3)
+                .map(([label]) => ({ label, onPick: () => {
+                  const segs = this.state.addAccDraft.split(/([,\t\n]+)/);
+                  segs[segs.length - 1] = label;
+                  this.setState({ addAccDraft: segs.join('') });
+                } })) : [];
+              return {
+                addAccSuggestions: sugg,
+                addAccHasSuggestions: sugg.length > 0,
+                addAccMulti: parts.length > 1 ? parts.length + ' accommodations will be added' : null,
+                addAccBtnLabel: parts.length > 1 ? 'Add all ' + parts.length : 'Add',
+              };
+            })(),
+            periodsOpen: s.periodsOpen,
+            togglePeriods: () => this.setState({ periodsOpen: !s.periodsOpen, calOpen: false, openPanel: null }),
+            closePeriods: () => this.setState({ periodsOpen: false }),
+            periodFilterLabel: s.periods.length === 0 ? 'All periods' : s.periods.map(pl).join(' · '),
+            periodBtnBg: s.periods.length ? '#eeebfd' : '#ffffff',
+            periodBtnBc: s.periods.length ? '#5b4bd6' : '#d6d0e2',
+            periodCtxOpen: !!s.periodCtx,
+            periodCtxOrig: s.periodCtx ? s.periodCtx.id : '',
+            periodCtxLeft: s.periodCtx ? Math.min(s.periodCtx.x, window.innerWidth - 236) + 'px' : '0px',
+            periodCtxTop: s.periodCtx ? Math.min(s.periodCtx.y, window.innerHeight - 190) + 'px' : '0px',
+            closePeriodCtx: () => this.setState({ periodCtx: null }),
+            periodCtxOverlay: (e) => { e.preventDefault(); this.setState({ periodCtx: null }); },
+            periodDraft: s.periodDraft,
+            onPeriodDraft: (e) => this.setState({ periodDraft: e.target.value }),
+            onPeriodDraftKey: (e) => { if (e.key === 'Enter') this.savePeriodLabel(); },
+            savePeriodLabel: () => this.savePeriodLabel(),
+            periodSaveDisabled: false,
+            periodSaveOpacity: 1,
+            periodChips: [{ id: null, label: 'All', count: this.students.length }, ...allPeriods.map((p) => ({ id: p, label: pl(p), count: chipCounts[p] }))].map((p) => {
+              const on = p.id === null ? s.periods.length === 0 : s.periods.includes(p.id);
+              const onCtx = p.id ? (e) => {
+                e.preventDefault(); e.stopPropagation();
+                this.setState({ periodCtx: { id: p.id, x: e.clientX, y: e.clientY }, periodDraft: this.state.periodLabels[p.id] || '' });
+              } : (e) => e.preventDefault();
+              const title = p.id ? 'Right-click to rename' : '';
+              Object.assign(p, { onCtx, title });
+              return { ...p, on, bg: on ? '#eeebfd' : '#ffffff', bc: on ? '#5b4bd6' : '#e9e5f0', ink: on ? '#5b4bd6' : '#6b6480',
+                fw: on ? 600 : 500, menuBg: on ? '#eeebfd' : 'transparent',
+                onClick: () => this.setState({ periods: p.id === null ? [] : (on ? s.periods.filter((x) => x !== p.id) : [...s.periods, p.id]) }) };
+            }),
+            search: s.search,
+            onSearch: (e) => this.setState({ search: e.target.value }),
+            searchCount: q ? visible.length + ' shown' + (hidden ? ', ' + hidden + ' hidden' : '') : null,
+            studentCount: visible.length + ' student' + (visible.length === 1 ? '' : 's'),
+            addStudent: () => this.setState({ addOpen: true }),
+            addOpen: s.addOpen,
+            closeAdd: () => this.closeAddModal(),
+            addOverlayAnim: s.closingAdd ? 'acc-fade-out 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-fade-in 160ms cubic-bezier(0.16,1,0.3,1) both',
+            addCardAnim: s.closingAdd ? 'acc-exit 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-enter 260ms cubic-bezier(0.16,1,0.3,1) both',
+            detailOverlayAnim: s.closingDetail ? 'acc-fade-out 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-fade-in 160ms cubic-bezier(0.16,1,0.3,1) both',
+            detailCardAnim: s.closingDetail ? 'acc-exit 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-enter 260ms cubic-bezier(0.16,1,0.3,1) both',
+            addName: s.addName,
+            onAddName: (e) => this.setState({ addName: e.target.value }),
+            addPlanChips: ['IEP', '504', 'Other'].map((label) => {
+              const on = s.addPlan === label;
+              return { label, on, bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ addPlan: label }) };
+            }),
+            addPeriodChips: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'].map((id) => {
+              const on = s.addPeriods.includes(id);
+              const label = id;
+              return { label: pl(id), on, bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ addPeriods: on ? s.addPeriods.filter((x) => x !== label) : [...s.addPeriods, label] }) };
+            }),
+            addCatChips: this.catalog.map(([label], i) => {
+              const on = s.addCats.includes(i);
+              return { label, on, bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ addCats: on ? s.addCats.filter((x) => x !== i) : [...s.addCats, i] }) };
+            }),
+            addCustomChips: s.addCustoms.map((label, i) => ({ label, onRemove: () => this.setState({ addCustoms: s.addCustoms.filter((_, j) => j !== i) }) })),
+            addCustomDraft: s.addCustomDraft,
+            onAddCustomDraft: (e) => this.setState({ addCustomDraft: e.target.value }),
+            onAddCustomKey: (e) => {
+              if (e.key === 'Enter' && this.state.addCustomDraft.trim()) {
+                const v = this.state.addCustomDraft.trim();
+                this.setState({ addCustoms: this.state.addCustoms.includes(v) ? this.state.addCustoms : [...this.state.addCustoms, v], addCustomDraft: '' });
+              }
+            },
+            addSubmitDisabled: !(s.addName.trim() && s.addPlan && s.addPeriods.length && (s.addCats.length + s.addCustoms.length)),
+            addSubmitOpacity: s.addName.trim() && s.addPlan && s.addPeriods.length && (s.addCats.length + s.addCustoms.length) ? 1 : 0.45,
+            submitAddStudent: () => {
+              const st2 = this.state;
+              const name = st2.addName.trim();
+              if (!name || !st2.addPlan || !st2.addPeriods.length || !(st2.addCats.length + st2.addCustoms.length)) return;
+              const id = 'stu_n' + Date.now();
+              const cards = st2.addCats.map((ci) => ({ id: 'asg_' + id + '_' + ci, label: this.catalog[ci][0], requiresDetail: this.catalog[ci][1], isCustom: false, prompt: 'What was provided, and how?' }));
+              st2.addCustoms.forEach((label, i) => cards.push({ id: 'asg_' + id + '_c' + i, label, requiresDetail: true, isCustom: true, prompt: 'What was provided, and how?' }));
+              this.students.push({ id, displayName: name, planType: st2.addPlan, periods: [...st2.addPeriods].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1))), cards });
+              const statuses = { ...st2.statuses };
+              cards.forEach((c) => { statuses[c.id] = { status: 'unassigned', detail: '' }; });
+              this.mutate({ statuses, notice: { tone: 'ok', text: name + ' added with ' + cards.length + ' accommodation' + (cards.length === 1 ? '' : 's') + '.' } });
+              this.closeAddModal();
+            },
+            foldToggle: () => {
+              const all = this.students.every((x) => this.state.collapsed[x.id]);
+              this.setState({ collapsed: all ? {} : Object.fromEntries(this.students.map((x) => [x.id, true])) });
+            },
+            foldAria: this.students.every((x) => s.collapsed[x.id]) ? 'Unfold all students' : 'Fold all students',
+            foldChevron: this.students.every((x) => s.collapsed[x.id]) ? '0deg' : '90deg',
+            copyYesterday: () => {
+              if (locked || !hasRecord) return;
+              const any = Object.values(this.state.statuses).some((e) => e.status !== 'unassigned');
+              if (any) this.setState({ notice: { tone: 'confirm', text: "You've already recorded something today. Copying will overwrite it." } });
+              else this.setState({ notice: { tone: 'ok', text: "Set up today's cards from Jul 24. Statuses start unassigned." } });
+            },
+            onNoticeConfirm: () => {
+              const st = {}; this.students.forEach((x) => x.cards.forEach((c) => { st[c.id] = { status: 'unassigned', detail: '' }; }));
+              this.mutate({ statuses: st, notice: { tone: 'ok', text: "Set up today's cards from Jul 24. Statuses start unassigned." } });
+            },
+            closeOutDay: () => { if (!locked && hasRecord) this.mutate({ sealed: true, notice: null }); },
+            notice: !!s.notice,
+            noticeText: s.notice?.text || '', noticeConfirm: s.notice?.tone === 'confirm',
+            noticeBg: noticeTones[s.notice?.tone || 'ok'][0], noticeInk: noticeTones[s.notice?.tone || 'ok'][1],
+            dismissNotice: () => this.setState({ notice: null }),
+            warnBanner: detailsMissing > 0 && hasRecord && !s.sealed ? detailsMissing + ' card' + (detailsMissing === 1 ? '' : 's') + ' marked “used with detail” ' + (detailsMissing === 1 ? 'has' : 'have') + ' no detail written. Those print as an unsupported claim.' : null,
+            noticeBottom: '16px',
+
+            warnOpen: s.warnOpen,
+            warnCount: detailsMissing,
+            warnAria: detailsMissing + ' card' + (detailsMissing === 1 ? '' : 's') + ' need' + (detailsMissing === 1 ? 's' : '') + ' a detail',
+            toggleWarn: () => this.setState({ warnOpen: !s.warnOpen }),
+            saveText: locked ? 'Read-only' : s.saveState === 'saving' ? 'Saving…' : 'Saved',
+            saveInk: locked ? '#a06a2c' : '#9a93a8',
+            lanes,
+            onDragEnd: () => { if (this.state.dragging) this.setState({ dragging: null }); },
+            panelOpen: !!s.openPanel || s.calOpen,
+            notifsOpen: s.openPanel === 'notifications',
+            dayNotesOpen: s.openPanel === 'daynotes',
+            toggleDayNotes: () => this.setState({ openPanel: s.openPanel === 'daynotes' ? null : 'daynotes', calOpen: false }),
+            notesBtnBg: s.openPanel === 'daynotes' ? '#f3f0f8' : 'transparent',
+            notesBtnInk: s.openPanel === 'daynotes' ? '#2a2438' : '#6b6480',
+            notesDot: !!(s.dayNotes.trim() || s.absenceReported),
+            dateSubFull: s.dayOffset === 0 ? 'Today, ' + fmt : fmt,
+            dayNotes: s.dayNotes,
+            onDayNotes: (e) => {
+              const v = e.target.value;
+              this.mutate({ dayNotes: v });
+              clearTimeout(this._dayNoteT);
+              this._dayNoteT = setTimeout(() => {
+                this.setState({ dayNotesSaved: true });
+                clearTimeout(this._dayNoteT2);
+                this._dayNoteT2 = setTimeout(() => this.setState({ dayNotesSaved: false }), 1400);
+              }, 500);
+            },
+            dayNotesSavedOpacity: s.dayNotesSaved ? 1 : 0,
+            absReportedText: s.absenceReported ? 'Absence noted: ' + s.absenceReported.reason + (s.absenceReported.text ? ': ' + s.absenceReported.text : '') + '. Added to today\u2019s notes.' : null,
+            absShowStart: !s.absenceReported && !s.absFormOpen,
+            absFormOpen: s.absFormOpen,
+            openAbsForm: () => this.setState({ absFormOpen: true }),
+            cancelAbsForm: () => this.setState({ absFormOpen: false, absReason: null, absText: '' }),
+            absReasons: ['Out sick', 'TDY', 'Left early', 'Sub covered'].map((label) => {
+              const on = s.absReason === label;
+              return { label, on,
+                bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ absReason: on ? null : label }) };
+            }),
+            absText: s.absText,
+            onAbsText: (e) => this.setState({ absText: e.target.value }),
+            absSubmitDisabled: !s.absReason,
+            absSubmitOpacity: s.absReason ? 1 : 0.45,
+            submitAbsence: () => {
+              const st2 = this.state;
+              if (!st2.absReason) return;
+              const text = st2.absText.trim();
+              const line = 'Absence: ' + st2.absReason + (text ? ': ' + text : '');
+              this.mutate({
+                dayNotes: st2.dayNotes.trim() ? st2.dayNotes.replace(/\s+$/, '') + '\n' + line : line,
+                absenceReported: { reason: st2.absReason, text },
+                absFormOpen: false, absReason: null, absText: '',
+              });
+            },
+            undoAbsence: () => {
+              const st2 = this.state;
+              const rep = st2.absenceReported;
+              if (!rep) return;
+              const line = 'Absence: ' + rep.reason + (rep.text ? ': ' + rep.text : '');
+              const notes = st2.dayNotes.split('\n').filter((l) => l.trim() !== line).join('\n');
+              this.mutate({ absenceReported: null, dayNotes: notes });
+            },
+            settingsOpen: s.openPanel === 'settings',
+            profileOverlayAnim: s.closingProfile ? 'acc-fade-out 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-fade-in 160ms cubic-bezier(0.16,1,0.3,1) both',
+            profileCardAnim: s.closingProfile ? 'acc-exit-down 160ms cubic-bezier(0.7,0,0.84,0) both' : 'acc-enter 260ms cubic-bezier(0.16,1,0.3,1) both',
+            profName: s.profName,
+            onProfName: (e) => this.setState({ profName: e.target.value }),
+            profSubjectChips: ['Math', 'ELA', 'Science', 'Social Studies', 'Special Education', 'Art', 'Music', 'PE', 'World Languages'].map((label) => {
+              const on = s.profSubjects.includes(label);
+              return { label, on, bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ profSubjects: on ? s.profSubjects.filter((x) => x !== label) : [...s.profSubjects, label] }) };
+            }),
+            profGradeChips: ['K','1','2','3','4','5','6','7','8','9','10','11','12'].map((label) => {
+              const on = s.profGrades.includes(label);
+              return { label, on, bg: on ? '#eeeafd' : '#ffffff', ink: on ? '#5b4bd6' : '#6b6480', bc: on ? '#c9c0f2' : '#d6d0e2',
+                onClick: () => this.setState({ profGrades: on ? s.profGrades.filter((x) => x !== label) : [...s.profGrades, label] }) };
+            }),
+            profSaveDisabled: !s.profName.trim(),
+            profSaveOpacity: s.profName.trim() ? 1 : 0.45,
+            closeProfile: () => this.closeProfileModal(),
+            saveProfile: () => {
+              if (!this.state.profName.trim()) return;
+              this.mutate({ profile: { name: this.state.profName.trim(), subjects: [...this.state.profSubjects], grades: [...this.state.profGrades] } });
+              this.closeProfileModal();
+            },
+            closePanels: () => this.setState({ openPanel: null, calOpen: false }),
+            toggleNotifs: () => this.setState({ openPanel: s.openPanel === 'notifications' ? null : 'notifications', calOpen: false }),
+            toggleSettings: () => {
+              if (s.openPanel === 'settings') { this.closeProfileModal(); return; }
+              this.setState({ openPanel: 'settings', calOpen: false, profName: s.profile.name, profSubjects: [...s.profile.subjects], profGrades: [...s.profile.grades] });
+            },
+            profileTitle: s.profile.name,
+            avatarInitial: (s.profile.name.trim().replace(/^(Mr|Ms|Mrs|Mx|Dr)\.?\s+/i, '')[0] || 'R').toUpperCase(),
+            bellBg: s.openPanel === 'notifications' ? '#f3f0f8' : 'transparent',
+            bellInk: s.openPanel === 'notifications' ? '#2a2438' : '#6b6480',
+            bellAria: notifItems.length ? 'Notifications, ' + notifItems.length + ' to review' : 'Notifications',
+            notifBadge: notifItems.length > 0,
+            notifCount: notifItems.length > 9 ? '9+' : String(notifItems.length),
+            notifEmpty: notifItems.length === 0,
+            notifItems,
+            avatarBg: s.openPanel === 'settings' ? '#5b4bd6' : '#eeebfd',
+            avatarInk: s.openPanel === 'settings' ? '#ffffff' : '#5b4bd6',
+            avatarBc: s.openPanel === 'settings' ? '#5b4bd6' : 'transparent',
+            closeCtx: () => this.setState({ ctx: null }),
+            ctxOverlayCtx: (e) => { e.preventDefault(); this.setState({ ctx: null }); },
+            ctxSetDefault: () => { if (ctx) this.mutate({ defaults: { ...this.state.defaults, [ctx.cardId]: this.state.statuses[ctx.cardId].status }, ctx: null }); },
+            ctxClearDefault: () => { if (ctx) { const next = { ...this.state.defaults }; delete next[ctx.cardId]; this.mutate({ defaults: next, ctx: null }); } },
+            ctxToggleRelevant: () => {
+              if (!ctx) return;
+              const cur = !!this.state.notRelevant[ctx.cardId];
+              const next = { ...this.state.notRelevant };
+              if (cur) delete next[ctx.cardId]; else next[ctx.cardId] = true;
+              const patch = { notRelevant: next, ctx: null };
+              if (!cur) {
+                patch.statuses = { ...this.state.statuses, [ctx.cardId]: { status: 'unassigned', detail: this.state.statuses[ctx.cardId].detail } };
+                const nd = { ...this.state.defaults }; delete nd[ctx.cardId]; patch.defaults = nd;
+              }
+              this.mutate(patch);
+            },
+            ...ctxVals,
+            detailCard: !!det,
+            detailTitle: det?.label || '', detailPrompt: det?.prompt || 'What was provided, and how?',
+            detailAria: 'Detail for ' + (det?.label || ''),
+            detailText: s.detailText,
+            onDetailText: (e) => this.setState({ detailText: e.target.value }),
+            detailSaveDisabled: !s.detailText.trim(), detailSaveOpacity: s.detailText.trim() ? 1 : 0.45,
+            stopProp: (e) => e.stopPropagation(),
+            saveDetail: () => { if (!s.detailText.trim()) return; this.setStatus(det.cardId, 'used_with_detail', s.detailText); this.closeDetailModal(); },
+            cancelDetail: () => this.cancelDetailModal(),
+          };
+        }
+      }
+    </script>
+  </body>
+</html>

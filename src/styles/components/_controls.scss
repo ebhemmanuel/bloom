@@ -7,9 +7,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--acc-space-2);
-  padding: 0 var(--acc-space-3);
+  padding: 0 var(--acc-space-4);
   height: 32px;
-  border-radius: var(--acc-radius-sm);
+  // Every control is a pill in Bloom.
+  border-radius: var(--acc-radius-pill);
   border: 1px solid var(--acc-border-strong);
   background: var(--acc-surface);
   color: var(--acc-fg);
@@ -52,7 +53,20 @@
 
   &--small {
     height: 26px;
+    padding: 0 var(--acc-space-3);
     font-size: var(--acc-fs-tiny);
+  }
+
+  // 32px circular icon button — the fold-all chevron and friends.
+  &--round {
+    inline-size: 32px;
+    padding: 0;
+    justify-content: center;
+    color: var(--acc-fg-muted);
+
+    &:hover:not(:disabled) {
+      color: var(--acc-fg);
+    }
   }
 }
 

@@ -10,8 +10,10 @@
   // `overflow: hidden` silently clips the cards away — the board renders as a
   // stack of bare headers.
   flex: 0 0 auto;
-  background: var(--acc-surface);
-  border: 1px solid var(--acc-border);
+  // Higher opacity than the container behind it, so card text never has to
+  // compete with the aurora blooming through.
+  background: var(--acc-frost-lane);
+  border: 1px solid var(--acc-frost-border);
   border-radius: var(--acc-radius-lg);
   box-shadow: var(--acc-shadow-card);
   overflow: hidden;
@@ -28,7 +30,7 @@
   }
 
   &--readonly {
-    background: var(--acc-surface-sunken);
+    background: var(--acc-frost-lane-locked);
   }
 
   &__header {
@@ -77,20 +79,31 @@
     font-weight: var(--acc-fw-semibold);
   }
 
+  // Right-aligned group, immediately left of Mark absent.
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    margin-inline-start: auto;
+  }
+
   &__warn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--acc-space-1);
     font-size: var(--acc-fs-tiny);
     font-weight: var(--acc-fw-medium);
     color: var(--acc-warning);
     background: var(--acc-warning-soft);
+    border: 1px solid #e8d9bd;
     padding: 2px var(--acc-space-2);
-    border-radius: var(--acc-radius-sm);
+    border-radius: var(--acc-radius-pill);
     white-space: nowrap;
   }
 
   // Pinned far right, per spec.
   &__absent {
     @include motion.interactive(background-color, color, border-color);
-    margin-left: auto;
     height: 26px;
     padding: 0 var(--acc-space-3);
     border-radius: var(--acc-radius-pill);

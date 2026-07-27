@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initialsOf } from '../components/shell/AppHeader.jsx';
+import { initialsOf } from './initials.js';
 
 describe('initialsOf', () => {
   it('drops a leading honorific along with its period', () => {

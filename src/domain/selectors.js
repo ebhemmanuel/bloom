@@ -112,7 +112,11 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       const cfg = assignmentConfig(assignment, catalogById);
       const entry = studentDay?.entries?.[assignment.id] || null;
       const resolved = effectiveStatus(doc, dateKey, student.id, assignment.id, now, ctx);
-      resolvedStatuses.push(resolved);
+      const notRelevant = Boolean(assignment.notRelevant);
+
+      // Excluded from this class's totals entirely — it is not this teacher's
+      // accommodation to deliver, so counting it either way would be wrong.
+      if (!notRelevant) resolvedStatuses.push(resolved);
 
       // Cards live in a droppable column by their STORED status. A resolved
       // not_used still sits in the Unassigned column, flagged — it must remain
@@ -123,7 +127,10 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       const column = DROPPABLE_STATUSES.includes(stored) ? stored : STATUS.UNASSIGNED;
 
       const needsDetail =
-        cfg.requiresDetail && isDelivered(resolved) && !(entry?.detail || '').trim();
+        !notRelevant &&
+        cfg.requiresDetail &&
+        isDelivered(resolved) &&
+        !(entry?.detail || '').trim();
       if (needsDetail) detailsMissing += 1;
 
       columns[column].push({
@@ -143,6 +150,7 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
         hasDetail: Boolean((entry?.detail || '').trim()),
         needsDetail,
         useCount: entry?.useCount || 1,
+        notRelevant,
         // A standing default for this student, and whether this specific entry
         // came from it rather than from something the teacher observed today.
         defaultStatus: cfg.defaultStatus,
@@ -183,6 +191,8 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
     hasRecord,
     sealed,
     cycleClosed,
+    dayNotes: day?.notes || '',
+    teacherAbsence: day?.teacherAbsence || null,
     editable: hasRecord && !sealed,
     isNonInstructional,
     // No class meets on this date for anyone on the visible roster — a weekend, a

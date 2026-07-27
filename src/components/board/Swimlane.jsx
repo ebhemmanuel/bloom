@@ -20,7 +20,11 @@ function Swimlane({
   onToggleAbsent,
   onOpenDetail,
   onContextMenu,
+  onSelectClick,
+  isSelected,
+  selectionCount,
   onNotesCommit,
+  renderColumnFooter,
 }) {
   const locked = readOnly || lane.absent;
 
@@ -55,8 +59,12 @@ function Swimlane({
               label={col.label}
               cards={lane.columns[col.id]}
               disabled={locked}
+              isSelected={isSelected}
+              selectionCount={selectionCount}
               onOpenDetail={onOpenDetail}
               onContextMenu={onContextMenu}
+              onSelectClick={onSelectClick}
+              footer={renderColumnFooter?.(lane, col.id)}
             />
           ))}
 

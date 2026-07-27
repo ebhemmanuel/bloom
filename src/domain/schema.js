@@ -15,6 +15,9 @@ export const CURRENT_SCHEMA_VERSION = 1;
 
 export const APP_NAME = 'accommodations-tracker';
 
+/** Product name, as it appears in the UI and on printed reports. */
+export const PRODUCT_NAME = 'Bloom';
+
 // --- Coercion helpers ------------------------------------------------------
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -288,8 +291,24 @@ export function normalizeDoc(raw, now = new Date()) {
         defaultStatus: DEFAULTABLE_STATUSES.includes(a.defaultStatus) ? a.defaultStatus : null,
         /** Optional boilerplate detail written alongside a defaulted entry. */
         defaultDetail: asString(a.defaultDetail),
+        /**
+         * Not relevant to THIS teacher's subject.
+         *
+         * A student's plan is written for their whole schedule, so it can list
+         * accommodations that mean nothing in this room — "read aloud" in a PE
+         * class. Marking it excludes the card from this class's totals and makes
+         * it resolve NOT_APPLICABLE, never NOT_USED: the accommodation is not
+         * this teacher's to deliver, so it must never read as one they missed.
+         */
+        notRelevant: asBool(a.notRelevant, false),
         // activeFrom/activeTo are how an accommodation is "removed" without
         // erasing the months of history that reference it.
+        //
+        // activeFrom doubles as the spec's `assignedFrom`: an accommodation added
+        // mid-year records from that day FORWARD only, so earlier days never
+        // retroactively gain a card and get sealed as Not Used. Deliberately one
+        // field rather than two — a second date meaning the same thing is a
+        // correctness hazard the moment they disagree.
         activeFrom: isValidDateKey(a.activeFrom) ? a.activeFrom : null,
         activeTo: isValidDateKey(a.activeTo) ? a.activeTo : null,
         createdAt: asString(a.createdAt, base.app.createdAt),
@@ -373,9 +392,28 @@ export function normalizeDoc(raw, now = new Date()) {
       };
     }
 
+    const rawAbsence = isObj(rawDay.teacherAbsence) ? rawDay.teacherAbsence : null;
+
     days[dateKey] = {
       date: dateKey,
       createdAt: asString(rawDay.createdAt, base.app.createdAt),
+      /**
+       * Whole-day handoff notes — for a substitute, or for tomorrow-you.
+       * Distinct from the per-student notes in `students[].notes`.
+       */
+      notes: asString(rawDay.notes),
+      notesUpdatedAt: asNullableString(rawDay.notesUpdatedAt),
+      /**
+       * The TEACHER was out. Printed in the report header for the date, so a
+       * sparse day carries its own explanation rather than reading as neglect.
+       */
+      teacherAbsence: rawAbsence
+        ? {
+            reason: asString(rawAbsence.reason),
+            text: asString(rawAbsence.text),
+            reportedAt: asNullableString(rawAbsence.reportedAt),
+          }
+        : null,
       seededFrom: isValidDateKey(rawDay.seededFrom) ? rawDay.seededFrom : null,
       seedMode: rawDay.seedMode === SEED_MODE.FULL ? SEED_MODE.FULL : SEED_MODE.STRUCTURE,
       sealed: asBool(rawDay.sealed, false),

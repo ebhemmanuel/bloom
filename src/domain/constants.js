@@ -92,6 +92,19 @@ export const ABSENCE_REASONS = [
   { id: 'partial', label: 'Partial day' },
 ];
 
+/**
+ * Reasons the TEACHER was out — distinct from a student absence above.
+ *
+ * A day the teacher missed explains why the record is thin, which is exactly the
+ * context an auditor needs before reading a sparse day as non-delivery.
+ */
+export const TEACHER_ABSENCE_REASONS = [
+  { id: 'sick', label: 'Out sick' },
+  { id: 'tdy', label: 'TDY' },
+  { id: 'left_early', label: 'Left early' },
+  { id: 'sub', label: 'Sub covered' },
+];
+
 /** Weekday codes, indexed to match Date#getDay(). */
 export const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 

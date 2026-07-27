@@ -49,7 +49,7 @@ export function studentMeetsOn(student, dateKey, ctx) {
  *
  * Precedence, in order:
  *   1. non-instructional date / period doesn't meet / assignment not yet or no
- *      longer in force              → not_applicable
+ *      longer in force / not relevant to this subject → not_applicable
  *   2. no day record exists at all  → no_record
  *   3. student marked absent        → absent
  *   4. entry has a real status      → that status
@@ -77,6 +77,11 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
 
   const assignment = c.assignmentsById.get(assignmentId);
   if (!isAssignmentActiveOn(assignment, dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
+
+  // Not this teacher's to deliver — a plan written for the student's whole
+  // schedule can list things that mean nothing in this room. Checked before any
+  // cycle-end rule below, so it can never become NOT_USED.
+  if (assignment?.notRelevant) return DERIVED_STATUS.NOT_APPLICABLE;
 
   // 2 — nothing was ever recorded for this date
   const day = doc.days?.[dateKey];

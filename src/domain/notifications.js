@@ -55,9 +55,24 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     });
   }
 
-  // 3 — past days still open. Left alone they resolve to Not Used, so it is
-  //     worth surfacing while the teacher can still remember the day.
+  // 3 — the teacher reported being out. Surfaced so they review the day before
+  //     closing it out, rather than sealing a thin record without context.
   const today = todayKey(now);
+  const todayDay = doc.days?.[today];
+
+  if (todayDay?.teacherAbsence) {
+    items.push({
+      id: 'teacher-absence',
+      tone: 'warn',
+      title: `Absence noted — ${todayDay.teacherAbsence.reason}`,
+      body: "The reason was added to today's day notes, so the record shows why entries are thin. Review before closing out.",
+      action: 'Open day notes',
+      act: 'openNotes',
+    });
+  }
+
+  // 4 — past days still open. Left alone they resolve to Not Used, so it is
+  //     worth surfacing while the teacher can still remember the day.
   const openPast = Object.values(doc.days || {})
     .filter((d) => !d.sealed && compareDateKeys(d.date, today) < 0)
     .map((d) => d.date)
@@ -77,9 +92,10 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     });
   }
 
-  // 4 — nothing recorded yet today. A gentle nudge, not an accusation.
-  const todayRecord = doc.days?.[today];
-  if (todayRecord && boardModel && !boardModel.noClassToday) {
+  // 5 — nothing recorded yet today. A gentle nudge, not an accusation, and
+  //     suppressed when an absence already explains the empty day.
+  const todayRecord = todayDay;
+  if (todayRecord && boardModel && !boardModel.noClassToday && !todayRecord.teacherAbsence) {
     const touched = Object.values(todayRecord.students || {}).some(
       (s) => s.absent || (s.notes || '').length > 0 || hasUserEntry(s)
     );

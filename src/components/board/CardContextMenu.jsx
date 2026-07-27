@@ -20,12 +20,14 @@ import {
  */
 export default function CardContextMenu({
   card,
+  selectionCount = 0,
   x,
   y,
   onClose,
   onMove,
   onSetUseCount,
   onSetDefault,
+  onSetNotRelevant,
 }) {
   const ref = useRef(null);
   const [pos, setPos] = useState({ left: x, top: y });
@@ -64,8 +66,10 @@ export default function CardContextMenu({
     };
   }, [onClose]);
 
-  const countable = COUNTABLE_STATUSES.includes(card.status);
-  const defaultable = DEFAULTABLE_STATUSES.includes(card.status);
+  // An irrelevant card has no status to count or default — every other group is
+  // meaningless while it is excluded from this class.
+  const countable = !card.notRelevant && COUNTABLE_STATUSES.includes(card.status);
+  const defaultable = !card.notRelevant && DEFAULTABLE_STATUSES.includes(card.status);
 
   return (
     <div
@@ -75,7 +79,9 @@ export default function CardContextMenu({
       aria-label={`Actions for ${card.label}`}
       style={{ '--acc-ctx-left': `${pos.left}px`, '--acc-ctx-top': `${pos.top}px` }}
     >
-      <p className="acc-ctx__title">{card.label}</p>
+      <p className="acc-ctx__title">
+        {selectionCount > 1 ? `${selectionCount} cards selected` : card.label}
+      </p>
 
       <div className="acc-ctx__group" role="group" aria-label="Move to">
         <p className="acc-ctx__heading">Move to</p>
@@ -167,6 +173,25 @@ export default function CardContextMenu({
             status — you will still need to describe what you provided.
           </p>
         )}
+      </div>
+
+      <div className="acc-ctx__group" role="group" aria-label="This subject">
+        <p className="acc-ctx__heading">This subject</p>
+        <button
+          type="button"
+          role="menuitem"
+          className="acc-ctx__item"
+          onClick={() => {
+            onSetNotRelevant(card, !card.notRelevant);
+            onClose();
+          }}
+        >
+          {card.notRelevant ? 'Counts for this subject again' : 'Not relevant to subject'}
+        </button>
+        <p className="acc-ctx__note">
+          Excluded from this class&rsquo;s totals — it resolves as not applicable, never as Not
+          Used.
+        </p>
       </div>
     </div>
   );

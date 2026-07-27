@@ -131,16 +131,34 @@ export function setStudentNotes(doc, dateKey, studentId, notes, now = new Date()
 /**
  * Mark a student absent (or present again).
  *
- * Recorded statuses are deliberately preserved. Absence excludes the student
- * from the compliance denominator; it does not erase what a teacher already
- * noted, and a mis-click followed by an undo must not destroy data.
+ * Marking absent resets every card to Unassigned — a student who was not there
+ * cannot have received anything, so leaving a "Used" behind would be a false
+ * record. Details are deliberately KEPT: they are the teacher's own words, and a
+ * mis-click followed by an undo must not destroy them.
  */
 export function setStudentAbsent(doc, dateKey, studentId, absent, reason = null) {
-  return replaceStudentDay(doc, dateKey, studentId, (studentDay) => ({
-    ...studentDay,
-    absent: Boolean(absent),
-    absenceReason: absent ? reason : null,
-  }));
+  return replaceStudentDay(doc, dateKey, studentId, (studentDay) => {
+    if (!absent) {
+      return { ...studentDay, absent: false, absenceReason: null };
+    }
+
+    const entries = {};
+    for (const [id, entry] of Object.entries(studentDay.entries || {})) {
+      entries[id] =
+        entry.status === STATUS.UNASSIGNED
+          ? entry
+          : {
+              ...entry,
+              status: STATUS.UNASSIGNED,
+              useCount: 1,
+              resolvedBy: null,
+              resolvedAt: null,
+              updatedAt: null,
+            };
+    }
+
+    return { ...studentDay, absent: true, absenceReason: reason, entries };
+  });
 }
 
 /** Toggle, reading current state from the doc. */
@@ -271,10 +289,169 @@ export function setAssignmentDefault(
   };
 }
 
+// --- subject relevance ------------------------------------------------------
+
+/**
+ * Mark an accommodation as not relevant to this teacher's subject (or undo it).
+ *
+ * Marking it also resets the entry on the day in view to unassigned and clears
+ * any standing default — leaving a "Used" behind on a card that no longer counts
+ * would be a claim about something this teacher does not deliver.
+ */
+export function setAssignmentNotRelevant(
+  doc,
+  assignmentId,
+  notRelevant,
+  { applyToDate = null, now = new Date() } = {}
+) {
+  const next = {
+    ...doc,
+    assignments: doc.assignments.map((a) =>
+      a.id === assignmentId
+        ? {
+            ...a,
+            notRelevant: Boolean(notRelevant),
+            // A default on an irrelevant accommodation would keep re-asserting
+            // delivery every morning, so clear it on the way in.
+            defaultStatus: notRelevant ? null : a.defaultStatus,
+            defaultDetail: notRelevant ? '' : a.defaultDetail,
+          }
+        : a
+    ),
+  };
+
+  if (!notRelevant || !applyToDate) return next;
+
+  const assignment = next.assignments.find((a) => a.id === assignmentId);
+  const day = next.days?.[applyToDate];
+  if (!assignment || !day || day.sealed) return next;
+
+  const studentDay = day.students?.[assignment.studentId];
+  const entry = studentDay?.entries?.[assignmentId];
+  if (!entry) return next;
+
+  return {
+    ...next,
+    days: {
+      ...next.days,
+      [applyToDate]: {
+        ...day,
+        students: {
+          ...day.students,
+          [assignment.studentId]: {
+            ...studentDay,
+            entries: {
+              ...studentDay.entries,
+              [assignmentId]: {
+                ...entry,
+                status: STATUS.UNASSIGNED,
+                // The detail is kept: if this is undone, the teacher's words
+                // should still be there rather than silently destroyed.
+                useCount: 1,
+                resolvedBy: null,
+                resolvedAt: null,
+                updatedAt: null,
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+// --- day notes & teacher absence --------------------------------------------
+
+/** Whole-day handoff notes — for a substitute, or for tomorrow-you. */
+export function setDayNotes(doc, dateKey, notes, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || day.notes === notes) return doc;
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: { ...day, notes, notesUpdatedAt: isoTimestamp(now) },
+    },
+  };
+}
+
+/** The line an absence report appends to the day notes. */
+export function absenceLine(reason, text) {
+  const detail = String(text || '').trim();
+  return `Absence — ${reason}${detail ? `: ${detail}` : ''}`;
+}
+
+/**
+ * Record that the teacher was out, and append that context to the day notes.
+ *
+ * Both halves matter: the structured record drives the notification and the
+ * printed report header, and the appended line means the note itself reads
+ * correctly to a human skimming it.
+ */
+export function reportTeacherAbsence(doc, dateKey, reason, text, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || day.sealed) return doc;
+
+  const line = absenceLine(reason, text);
+  const notes = day.notes ? `${day.notes.replace(/\s*$/, '')}\n${line}` : line;
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: {
+        ...day,
+        notes,
+        notesUpdatedAt: isoTimestamp(now),
+        teacherAbsence: { reason, text: String(text || '').trim(), reportedAt: isoTimestamp(now) },
+      },
+    },
+  };
+}
+
+/** Undo an absence report, removing both the record and the appended line. */
+export function clearTeacherAbsence(doc, dateKey, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || !day.teacherAbsence) return doc;
+
+  const line = absenceLine(day.teacherAbsence.reason, day.teacherAbsence.text);
+  const notes = (day.notes || '')
+    .split('\n')
+    .filter((l) => l.trim() !== line)
+    .join('\n')
+    .replace(/\s*$/, '');
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: { ...day, notes, notesUpdatedAt: isoTimestamp(now), teacherAbsence: null },
+    },
+  };
+}
+
 // --- settings & roster ------------------------------------------------------
 
 export function updateSettings(doc, changes) {
   return { ...doc, settings: { ...doc.settings, ...changes } };
+}
+
+/**
+ * Rename a period. Clearing the name restores the default "Period N".
+ *
+ * The label propagates everywhere it appears because every consumer reads
+ * `period.name` rather than caching a copy.
+ */
+export function renamePeriod(doc, periodId, name) {
+  return {
+    ...doc,
+    periods: doc.periods.map((p) => {
+      if (p.id !== periodId) return p;
+      const trimmed = String(name || '').trim();
+      return { ...p, name: trimmed || `Period ${p.sortOrder}` };
+    }),
+  };
 }
 
 /** Edit the active teacher's own details (name, subjects, grades, school, room). */

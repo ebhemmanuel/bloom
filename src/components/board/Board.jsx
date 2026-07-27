@@ -1,22 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import Swimlane from './Swimlane.jsx';
 import CardDetailPopover from './CardDetailPopover.jsx';
 import BoardToolbar from '../toolbar/BoardToolbar.jsx';
 import EmptyState from '../shared/EmptyState.jsx';
 import useCollapsedLanes from '../../hooks/useCollapsedLanes.js';
+import useCardSelection from '../../hooks/useCardSelection.js';
+import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 import { useData } from '../../context/DataContext.jsx';
-import { buildBoardModel, periodOptions } from '../../domain/selectors.js';
+import { useBoard } from '../../context/BoardContext.jsx';
 import {
   setEntryStatus,
   setEntryUseCount,
   setStudentNotes,
   toggleStudentAbsent,
   setAssignmentDefault,
+  setAssignmentNotRelevant,
+  applyPatches,
 } from '../../domain/mutations.js';
 import CardContextMenu from './CardContextMenu.jsx';
-import Modal from '../shared/Modal.jsx';
-import AddStudentForm from '../manage/AddStudentForm.jsx';
+import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
@@ -31,14 +34,23 @@ function parseDroppable(id) {
 export default function Board() {
   const { doc, mutate, readOnly } = useData();
 
-  const [dateKey, setDateKey] = useState(() => todayKey());
-  const [periodIds, setPeriodIds] = useState([]);
-  const [search, setSearch] = useState('');
+  // Date, period filter and search live in BoardContext because the Bloom shell
+  // splits those controls between the pill nav and the toolbar.
+  const { dateKey, setDateKey, periodIds, setPeriodIds, search, setSearch, model, periods } =
+    useBoard();
+
   const [detailCard, setDetailCard] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
-  const [addingStudent, setAddingStudent] = useState(false);
   const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
+  const {
+    selection,
+    selectionCount,
+    isSelected,
+    handleClick: handleSelectClick,
+    clear: clearSelection,
+  } = useCardSelection();
+  const { scrollRef, bar, onScroll, onThumbPointerDown } = useCustomScrollbar();
 
   /**
    * Mirror drag state onto <body> so global styles (grab cursor, empty-column
@@ -55,12 +67,6 @@ export default function Board() {
     return () => document.body.removeAttribute('data-dragging');
   }, [dragging]);
 
-  const model = useMemo(
-    () => buildBoardModel(doc, { dateKey, periodIds, search }),
-    [doc, dateKey, periodIds, search]
-  );
-
-  const periods = useMemo(() => periodOptions(doc), [doc]);
   const locked = readOnly || model.sealed;
 
   // --- mutations ----------------------------------------------------------
@@ -110,9 +116,39 @@ export default function Board() {
       const card = lane && findCard(lane, assignmentId);
       if (!card) return;
 
+      // Dragging any selected card moves the whole selection in one drop.
+      const group =
+        selection.studentId === studentId && selection.ids.has(assignmentId)
+          ? [...selection.ids].map((id) => findCard(lane, id)).filter((c) => c && !c.notRelevant)
+          : [card];
+
+      if (group.length > 1) {
+        // One batch, so a group move is a single undo step rather than N.
+        mutate((d) =>
+          applyPatches(
+            d,
+            group.map((c) => ({
+              op: 'setStatus',
+              dateKey,
+              studentId,
+              assignmentId: c.assignmentId,
+              status: to.status,
+            }))
+          )
+        );
+        clearSelection();
+        // Detail is only asked for on the card actually grabbed — prompting
+        // once per card would be a modal pile-up.
+        if (to.status === STATUS.USED_WITH_DETAIL) {
+          setDetailCard({ ...card, status: to.status, revertTo: card.status });
+        }
+        return;
+      }
+
+      clearSelection();
       handleStatusChange(card, to.status);
     },
-    [handleStatusChange, model.lanes]
+    [handleStatusChange, model.lanes, selection, mutate, dateKey, clearSelection]
   );
 
   const commitNotes = useCallback(
@@ -181,6 +217,17 @@ export default function Board() {
     [dateKey, locked, mutate]
   );
 
+  const handleSetNotRelevant = useCallback(
+    (card, value) => {
+      if (readOnly) return;
+      mutate((d) =>
+        setAssignmentNotRelevant(d, card.assignmentId, value, { applyToDate: dateKey })
+      );
+      clearSelection();
+    },
+    [dateKey, mutate, readOnly, clearSelection]
+  );
+
   const handleSetDefault = useCallback(
     (card, status) => {
       if (readOnly) return;
@@ -194,6 +241,20 @@ export default function Board() {
       );
     },
     [dateKey, mutate, readOnly]
+  );
+
+  /**
+   * The "+ Add accommodation" affordance at the end of each Unassigned column.
+   * Hidden on sealed days and for absent students — neither is a moment to be
+   * adding new obligations.
+   */
+  const renderAddAccommodation = useCallback(
+    (lane, columnId) => {
+      if (columnId !== STATUS.UNASSIGNED) return null;
+      if (locked || lane.absent) return null;
+      return <AddAccommodationInline studentId={lane.studentId} dateKey={dateKey} />;
+    },
+    [locked, dateKey]
   );
 
   // --- render -------------------------------------------------------------
@@ -213,9 +274,12 @@ export default function Board() {
         readOnly={readOnly}
         onCopyPrevious={copyPrevious}
         onCloseOutDay={closeOutDay}
-        onCollapseAll={() => collapseAll(model.lanes.map((l) => l.studentId))}
-        onExpandAll={expandAll}
-        onAddStudent={() => setAddingStudent(true)}
+        allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
+        onToggleFoldAll={() =>
+          model.lanes.every((l) => collapsed.has(l.studentId))
+            ? expandAll()
+            : collapseAll(model.lanes.map((l) => l.studentId))
+        }
       />
 
       {model.sealed && (
@@ -267,7 +331,7 @@ export default function Board() {
             handleDragEnd(result);
           }}
         >
-          <div className="acc-board__scroll">
+          <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
             <div className="acc-board__lanes acc-cascade">
               {model.lanes.map((lane) => (
                 <Swimlane
@@ -279,39 +343,48 @@ export default function Board() {
                   onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
                   onOpenDetail={setDetailCard}
                   onContextMenu={openContextMenu}
+                  onSelectClick={handleSelectClick}
+                  isSelected={isSelected}
+                  selectionCount={selectionCount}
                   onNotesCommit={commitNotes}
+                  renderColumnFooter={renderAddAccommodation}
                 />
               ))}
             </div>
           </div>
+
+          {bar.height > 0 && (
+            <div
+              className={`acc-scrollbar${bar.visible ? ' acc-scrollbar--visible' : ''}`}
+              style={{ top: `${bar.trackTop}px`, height: `${bar.trackHeight}px` }}
+              aria-hidden="true"
+            >
+              <div
+                className="acc-scrollbar__thumb"
+                style={{ top: `${bar.top}px`, height: `${bar.height}px` }}
+                onPointerDown={onThumbPointerDown}
+              />
+            </div>
+          )}
         </DragDropContext>
       )}
 
       {contextMenu && (
         <CardContextMenu
           card={contextMenu.card}
+          selectionCount={isSelected(contextMenu.card) ? selectionCount : 0}
           x={contextMenu.x}
           y={contextMenu.y}
           onClose={closeContextMenu}
           onMove={handleStatusChange}
           onSetUseCount={handleSetUseCount}
           onSetDefault={handleSetDefault}
+          onSetNotRelevant={handleSetNotRelevant}
         />
       )}
 
       {detailCard && (
         <CardDetailPopover card={detailCard} onSave={saveDetail} onCancel={cancelDetail} />
-      )}
-
-      {addingStudent && (
-        <Modal
-          wide
-          title="Add a student"
-          subtitle="Paste their accommodations straight from the IEP, or pick from a starter set."
-          onClose={() => setAddingStudent(false)}
-        >
-          <AddStudentForm />
-        </Modal>
       )}
     </div>
   );

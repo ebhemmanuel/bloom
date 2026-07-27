@@ -1,39 +1,138 @@
+// ---------------------------------------------------------------------------
+// Bloom app shell.
+//
+// The page blooms; the board does not. An aurora gradient and a drifting blob
+// field animate on the PAGE BACKDROP, behind a floating frosted frame. This is a
+// deliberate override of the "aurora never on a working surface" rule in
+// DESIGN_REQUIREMENTS §1 — the board card itself stays clean and legible, and
+// only what surrounds it moves.
+// ---------------------------------------------------------------------------
+
 .acc-app {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  // Flush at the bottom: the board container runs off the viewport edge.
+  padding: var(--acc-space-4) var(--acc-space-4) 0;
+  background: var(--acc-bg);
+  box-sizing: border-box;
+}
+
+.acc-app__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--acc-aurora-page);
+  background-size: 320% 320%;
+  animation: acc-bg-shift 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.acc-app__field {
+  position: absolute;
+  // Overscan so a drifting blob never reveals a hard edge.
+  inset: -8%;
+  pointer-events: none;
+  animation: acc-field-pan 24s ease-in-out infinite;
+
+  span {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    will-change: transform;
+  }
+
+  // Four blobs on four different periods, two reversed.
+  span:nth-child(1) {
+    inset-inline-start: -4%;
+    inset-block-end: -2%;
+    inline-size: 640px;
+    block-size: 640px;
+    background: var(--acc-aurora-periwinkle);
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: acc-drift 26s ease-in-out infinite;
+  }
+  span:nth-child(2) {
+    inset-inline-end: -2%;
+    inset-block-start: -4%;
+    inline-size: 660px;
+    block-size: 660px;
+    background: var(--acc-aurora-blush);
+    filter: blur(110px);
+    opacity: 0.45;
+    animation: acc-drift 30s ease-in-out infinite reverse;
+  }
+  span:nth-child(3) {
+    inset-inline-end: 10%;
+    inset-block-end: -10%;
+    inline-size: 540px;
+    block-size: 540px;
+    background: var(--acc-aurora-mint);
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: acc-drift 22s ease-in-out infinite;
+  }
+  span:nth-child(4) {
+    inset-inline-start: 36%;
+    inset-block-start: -6%;
+    inline-size: 520px;
+    block-size: 520px;
+    background: var(--acc-aurora-apricot);
+    filter: blur(100px);
+    opacity: 0.35;
+    animation: acc-drift 28s ease-in-out infinite reverse;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-app__backdrop,
+  .acc-app__field,
+  .acc-app__field span {
+    animation: none;
+  }
 }
 
 /**
- * The single container that owns the measure.
- *
- * Everything — banners, toolbar, board — sits inside this, so the header can
- * never end up full width while the lanes are capped. Capping each piece
- * separately is what produces that drift.
- *
- * Side borders make the frame read as a deliberate workspace on a wide monitor
- * rather than a centred column floating in empty space.
+ * The single container that owns the measure. Everything — pill nav, board —
+ * sits inside it, so no piece can drift out of alignment.
  */
 .acc-app__frame {
+  position: relative;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   inline-size: 100%;
   max-inline-size: var(--acc-max-w);
   margin-inline: auto;
-  min-height: 0;
-  flex: 1;
-  background: var(--acc-surface);
-  border-inline: 1px solid var(--acc-border);
+  gap: var(--acc-space-3);
+  box-sizing: border-box;
 }
 
+/**
+ * The board card. Rounded at the top, square and borderless at the bottom
+ * because it runs off the viewport edge — it reads as a surface the page
+ * continues behind rather than a floating panel with an arbitrary end.
+ */
 .acc-app__main {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
+  background: var(--acc-frost);
+  backdrop-filter: var(--acc-frost-blur);
+  -webkit-backdrop-filter: var(--acc-frost-blur);
+  border: 1px solid var(--acc-frost-border);
+  border-block-end: none;
+  border-radius: var(--acc-radius-container) var(--acc-radius-container) 0 0;
+  box-shadow: var(--acc-shadow-raised);
   overflow: hidden;
 }
 
 .acc-board {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -45,14 +144,27 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--acc-bg);
+  padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+  box-sizing: border-box;
+
+  // Native scrollbar is hidden; a custom one is drawn by useCustomScrollbar.
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    inline-size: 0;
+    block-size: 0;
+  }
 }
 
 .acc-board__lanes {
   display: flex;
   flex-direction: column;
   gap: var(--acc-space-4);
-  padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-8);
 }
 
 // While a drag is in flight the cursor stays a grab everywhere, so the whole
@@ -60,7 +172,6 @@
 body[data-dragging='true'] {
   cursor: grabbing;
 
-  // Text selection during a drag is noise — you are moving a card, not reading.
   .acc-card,
   .acc-column,
   .acc-lane__header {

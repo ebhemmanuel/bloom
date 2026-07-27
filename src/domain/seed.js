@@ -129,6 +129,9 @@ export function ensureDay(doc, dateKey, now = new Date()) {
       [dateKey]: {
         date: dateKey,
         createdAt: existing?.createdAt || stamp,
+        notes: existing?.notes ?? '',
+        notesUpdatedAt: existing?.notesUpdatedAt ?? null,
+        teacherAbsence: existing?.teacherAbsence ?? null,
         seededFrom: existing?.seededFrom ?? null,
         seedMode: existing?.seedMode ?? SEED_MODE.STRUCTURE,
         sealed: false,

@@ -1,15 +1,60 @@
 // Top navigation: product name left, notifications + avatar right.
 
+// Detached floating pill nav, sitting on the aurora backdrop above the board.
 .acc-header {
+  position: relative;
+  z-index: 70;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--acc-space-4);
   min-height: 52px;
-  padding: 0 var(--acc-space-4);
-  background: var(--acc-surface);
-  border-bottom: 1px solid var(--acc-border);
+  padding: 0 var(--acc-space-5);
+  background: var(--acc-frost);
+  backdrop-filter: var(--acc-frost-blur);
+  -webkit-backdrop-filter: var(--acc-frost-blur);
+  border: 1px solid var(--acc-frost-border);
+  border-radius: var(--acc-radius-pill);
+  box-shadow: var(--acc-shadow-raised);
   flex-shrink: 0;
+
+  &__count {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+
+  // Small circular action (add student).
+  &__round {
+    display: grid;
+    place-items: center;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: var(--acc-radius-pill);
+    border: 1px solid var(--acc-border-strong);
+    background: var(--acc-surface);
+    color: var(--acc-fg);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      border-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+      border-color: var(--acc-fg-faint);
+    }
+  }
+
+  // Presence indicator for day notes — quieter than the notification count,
+  // because it reports that something exists, not that something is wrong.
+  &__pip {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: 4px;
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: 50%;
+    background: var(--acc-accent);
+  }
 
   &__brand {
     display: flex;
@@ -22,7 +67,7 @@
     inline-size: 20px;
     block-size: 20px;
     border-radius: var(--acc-radius-sm);
-    background: linear-gradient(140deg, var(--acc-accent), var(--acc-status-detail));
+    background: linear-gradient(140deg, #5b4bd6, #8f83e3);
     flex-shrink: 0;
   }
 
@@ -110,8 +155,9 @@
 .acc-popover {
   position: absolute;
   z-index: 60;
-  inset-block-start: 56px;
-  inset-inline-end: var(--acc-space-4);
+  // Clears the floating pill nav rather than the old bordered bar.
+  inset-block-start: 60px;
+  inset-inline-end: 0;
   inline-size: min(420px, calc(100vw - var(--acc-space-6)));
   max-block-size: min(70vh, 620px);
   overflow-y: auto;
@@ -146,6 +192,10 @@
     flex-direction: column;
     gap: var(--acc-space-4);
     padding: var(--acc-space-4);
+  }
+
+  &--notes {
+    inline-size: min(380px, calc(100vw - var(--acc-space-6)));
   }
 
   &__empty {
@@ -267,4 +317,68 @@
   content: '×';
   margin-inline-start: var(--acc-space-1);
   opacity: 0.6;
+}
+
+// --- Day notes + absence ---------------------------------------------------
+
+.acc-daynotes {
+  resize: vertical;
+  min-block-size: 96px;
+  line-height: var(--acc-lh-normal);
+}
+
+.acc-absence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-2);
+  align-items: flex-start;
+  padding: var(--acc-space-3);
+  border-radius: var(--acc-radius-md);
+  background: var(--acc-surface-sunken);
+
+  // Amber advisory, not a red error — being out is a fact to record, not a
+  // mistake to flag.
+  &--recorded {
+    background: var(--acc-warning-soft);
+    border: 1px solid #e8d9bd;
+  }
+
+  &__title {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-warning);
+  }
+
+  &__body {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+  }
+}
+
+.acc-btn--full {
+  inline-size: 100%;
+  justify-content: center;
+}
+
+.acc-modal__body--stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+}
+
+.acc-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--acc-space-4) var(--acc-space-5);
+  border-top: 1px solid var(--acc-border);
+}
+
+// Exits mirror entrances rather than cutting.
+.acc-modal--leaving {
+  animation: acc-exit-down var(--acc-dur-fast) var(--acc-ease-exit) both;
+}
+
+.acc-scrim--leaving {
+  animation: acc-fade-out var(--acc-dur-fast) var(--acc-ease-exit) both;
 }
