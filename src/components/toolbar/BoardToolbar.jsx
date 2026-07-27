@@ -129,6 +129,8 @@ export default function BoardToolbar({
   onAddStudent,
   allFolded,
   onToggleFoldAll,
+  activeFilter,
+  onClearFilter,
 }) {
   const [notice, setNotice] = useState(null);
   const disabled = readOnly || model.sealed;
@@ -193,9 +195,44 @@ export default function BoardToolbar({
           </svg>
         </button>
 
-        <span className="acc-toolbar__count acc-numeric">
-          {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
-        </span>
+        {/*
+          What you are looking at, and a way out of it.
+
+          Ctrl+Space narrows the board to one student or one period, and until
+          now the only sign of that was the roster count quietly reading "1
+          student" - which is indistinguishable from a class of one. The filter
+          says its own name and carries the way to drop it, so nobody can get
+          stuck inside a search they have forgotten making.
+        */}
+        {activeFilter ? (
+          <span className="acc-filterchip">
+            <span className="acc-filterchip__kind">{activeFilter.kind}</span>
+            <span className="acc-filterchip__label">{activeFilter.label}</span>
+            <button
+              type="button"
+              className="acc-filterchip__clear"
+              onClick={onClearFilter}
+              aria-label={`Show everyone again, clearing the ${activeFilter.kind.toLowerCase()} filter`}
+              title="Show everyone again"
+            >
+              {/* Drawn, not typed. The × character sits off its own centre and
+                  carries the font's weight, so it never quite lines up inside a
+                  circle this small. */}
+              <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true">
+                <path
+                  d="M4 4l8 8M12 4l-8 8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </span>
+        ) : (
+          <span className="acc-toolbar__count acc-numeric">
+            {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
+          </span>
+        )}
 
         {/* Equal spacers either side keep the date optically centred in the row
             regardless of how wide the clusters beside it grow. */}

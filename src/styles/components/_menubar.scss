@@ -312,6 +312,9 @@
     align-items: center;
     gap: var(--acc-space-2);
     padding: var(--acc-space-2);
+    inline-size: 100%;
+    min-inline-size: 0;
+    box-sizing: border-box;
     border-radius: var(--acc-radius-sm);
     font-size: var(--acc-fs-sub);
     transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
@@ -325,9 +328,13 @@
     }
   }
 
+  // A floor as well as a ceiling. `min-inline-size: 0` alone lets a greedy
+  // sibling crush the label to nothing, which is exactly what happened; a
+  // wording is the one thing in this row that must stay readable.
   &__label {
-    flex: 1;
-    min-inline-size: 0;
+    flex: 1 1 auto;
+    min-inline-size: 18ch;
+    line-height: var(--acc-lh-normal);
   }
 
   &__cat,
@@ -359,10 +366,17 @@
     flex-shrink: 0;
   }
 
-  // These rows pair a full-height input with a fixed-height button, so they must
-  // centre explicitly - a fixed height cancels the default `stretch` and the
-  // button falls to the top of the row.
-  &__actions,
+  // Rename and Archive, sitting at the end of a row. Sized by its buttons and
+  // nothing else: it was briefly folded in with the two rules below and
+  // inherited `inline-size: 100%`, which let it claim the whole row and squeeze
+  // the label to zero width.
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-1);
+    flex: none;
+  }
+
   // Both hold a single `.acc-inputgroup`, which does the row layout itself.
   &__rename,
   &__add {

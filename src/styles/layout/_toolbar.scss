@@ -1,3 +1,5 @@
+@use '../abstracts/motion' as motion;
+
 // The toolbar floats on the board surface above the first lane - it is no longer
 // a bordered bar, so the lanes read as the content and the tools as something
 // resting on top of them.
@@ -11,6 +13,76 @@
 
   &__spacer {
     flex: 1;
+  }
+
+  &__count {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+}
+
+/**
+ * The narrowing currently in force, standing where the roster count usually is.
+ *
+ * It replaces the count rather than joining it, because "1 student" beside
+ * "Priya R." is the same fact said twice, and the count is the thing that was
+ * misleading in the first place.
+ */
+.acc-filterchip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--acc-space-2);
+  block-size: 28px;
+  padding-inline: var(--acc-space-3) var(--acc-space-1);
+  border-radius: var(--acc-radius-pill);
+  background: var(--acc-accent-soft);
+  border: 1px solid var(--acc-accent);
+  color: var(--acc-accent);
+  white-space: nowrap;
+  @include motion.entrance(var(--acc-dur-fast));
+
+  &__kind {
+    font-size: 9px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    opacity: 0.75;
+  }
+
+  &__label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    max-inline-size: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /**
+   * A real target, not a glyph: this is the way out, and it is the whole reason
+   * the chip exists.
+   *
+   * Quiet at rest and only filling on hover. Wearing the solid accent all the
+   * time made a small dismiss button the loudest thing in the toolbar, which is
+   * backwards - the chip is there to say what is filtered, not to press.
+   */
+  &__clear {
+    @include motion.interactive(background-color, color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    inline-size: 18px;
+    block-size: 18px;
+    border-radius: 50%;
+    color: var(--acc-accent);
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+      background: var(--acc-accent);
+      color: var(--acc-accent-fg);
+    }
   }
 }
 

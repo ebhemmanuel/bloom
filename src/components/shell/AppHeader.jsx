@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { PRODUCT_NAME } from '../../domain/schema.js';
 import { initialsOf } from '../../domain/initials.js';
 import MenuBar from './MenuBar.jsx';
+import BloomMark from '../onboarding/BloomMark.jsx';
 
 function Icon({ path, size = 16 }) {
   return (
@@ -86,7 +87,9 @@ export default function AppHeader({
   return (
     <header className="acc-header">
       <div className="acc-header__brand">
-        <span className="acc-header__mark" aria-hidden="true" />
+        {/* The same mark onboarding ends on, so the logo the teacher just
+            watched bloom is the one that stays with them. */}
+        <BloomMark size={22} />
         <span className="acc-header__name">{PRODUCT_NAME}</span>
         <MenuBar menus={menus} />
       </div>

@@ -45,27 +45,31 @@ export default function MenuBar({ menus }) {
 
           {open === menu.id && (
             <div className="acc-menubar__menu acc-enter" role="menu" aria-label={menu.label}>
-              {menu.items.map((item, i) =>
-                item.separator ? (
-                  // eslint-disable-next-line react/no-array-index-key
-                  <hr className="acc-menubar__sep" key={`sep${i}`} />
-                ) : (
-                  <button
-                    key={item.label}
-                    type="button"
-                    role="menuitem"
-                    className="acc-menubar__item"
-                    disabled={item.disabled}
-                    onClick={() => {
-                      setOpen(null);
-                      item.onSelect?.();
-                    }}
-                  >
-                    <span>{item.label}</span>
-                    {item.hint && <span className="acc-menubar__hint">{item.hint}</span>}
-                  </button>
-                )
-              )}
+              {/* `hidden` drops an item that cannot do anything here, such as
+                  quitting from a browser tab, rather than showing it disabled. */}
+              {menu.items
+                .filter((item) => !item.hidden)
+                .map((item, i) =>
+                  item.separator ? (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <hr className="acc-menubar__sep" key={`sep${i}`} />
+                  ) : (
+                    <button
+                      key={item.label}
+                      type="button"
+                      role="menuitem"
+                      className="acc-menubar__item"
+                      disabled={item.disabled}
+                      onClick={() => {
+                        setOpen(null);
+                        item.onSelect?.();
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      {item.hint && <span className="acc-menubar__hint">{item.hint}</span>}
+                    </button>
+                  )
+                )}
             </div>
           )}
         </div>

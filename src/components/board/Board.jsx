@@ -303,6 +303,28 @@ export default function Board({ onAddStudent }) {
 
   // --- render -------------------------------------------------------------
 
+  /**
+   * The narrowing currently in force, if any.
+   *
+   * Ctrl+Space sets exactly one of these and clears the other, so there is never
+   * more than one to show. Naming it in the toolbar is what stops a teacher
+   * being stuck inside a search they no longer remember making: before this the
+   * only trace was the roster count reading "1 student", which looks exactly
+   * like a class that genuinely has one.
+   */
+  const activeFilter = search.trim()
+    ? { kind: 'Student', label: search.trim() }
+    : periodIds.length === 1
+      ? { kind: 'Period', label: periods.find((p) => p.id === periodIds[0])?.name || 'Period' }
+      : periodIds.length > 1
+        ? { kind: 'Periods', label: `${periodIds.length} selected` }
+        : null;
+
+  const clearFilter = useCallback(() => {
+    setSearch('');
+    setPeriodIds([]);
+  }, [setSearch, setPeriodIds]);
+
   const toolbar = (
     <BoardToolbar
       dateKey={dateKey}
@@ -316,6 +338,8 @@ export default function Board({ onAddStudent }) {
       onCopyPrevious={copyPrevious}
       onCloseOutDay={closeOutDay}
       onAddStudent={onAddStudent}
+      activeFilter={activeFilter}
+      onClearFilter={clearFilter}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
       onToggleFoldAll={() =>
         model.lanes.every((l) => collapsed.has(l.studentId))

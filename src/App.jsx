@@ -16,7 +16,7 @@ import CommandPalette, { useCommandPalette } from './components/shell/CommandPal
 import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
-import { dataBridge } from './lib/bridge.js';
+import { dataBridge, appBridge, isDesktop } from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
 /** Startup loader. Real staged progress, then a crossfade into what comes next. */
@@ -78,8 +78,14 @@ function AppShell() {
           { separator: true },
           {
             label: 'Save and exit',
+            // A browser tab cannot close itself, so the item is only shown where
+            // it can actually do something.
+            hidden: !isDesktop,
             // Flush first, then quit. Never rely on the quit handler alone:
             // the whole point is that the last edit is on disk before we go.
+            //
+            // `flush` is awaited rather than fired and forgotten, because the
+            // next thing that happens is the process going away.
             onSelect: async () => {
               await dataBridge.flush();
               await appBridge.quit();

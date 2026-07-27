@@ -63,11 +63,10 @@
     min-width: 0;
   }
 
-  &__mark {
-    inline-size: 20px;
-    block-size: 20px;
-    border-radius: var(--acc-radius-sm);
-    background: linear-gradient(140deg, #5b4bd6, #8f83e3);
+  // The mark is the Bloom flower now, drawn by BloomMark, so there is nothing
+  // to paint here. The gradient square this replaces was a placeholder that
+  // outlived the logo it stood in for.
+  .acc-mark {
     flex-shrink: 0;
   }
 

@@ -47,6 +47,17 @@ $acc-tokens: (
   'accent-soft': #eeebfd,
   'accent-fg': #ffffff,
 
+  // Brand -------------------------------------------------------------------
+  // The five petals of the Bloom mark. Global rather than scoped to onboarding
+  // because the same flower is the logo in the pill nav; they are the one place
+  // in the app where colour is decorative rather than meaningful, which is why
+  // they sit apart from the status ramp below.
+  'petal-1': #b7a6f4,
+  'petal-2': #f8aac9,
+  'petal-3': #ffd39a,
+  'petal-4': #96ddc1,
+  'petal-5': #a9bcf7,
+
   // Status ------------------------------------------------------------------
   // Deliberately NOT a red/green pass-fail axis. "Not Used" is a fact, not a
   // failure - a student may have been absent or simply not needed the support.

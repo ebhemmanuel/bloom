@@ -17,12 +17,8 @@
 // own colours (petals, motes) and mean nothing to the rest of the app.
 
 .acc-ob {
-  --acc-petal-1: #b7a6f4;
-  --acc-petal-2: #f8aac9;
-  --acc-petal-3: #ffd39a;
-  --acc-petal-4: #96ddc1;
-  --acc-petal-5: #a9bcf7;
-
+  // Petals live in the token map, because the same mark is the logo in the pill
+  // nav. Motes stay here: nothing outside this screen has any use for them.
   --acc-mote-1: #c9c0f2;
   --acc-mote-2: #f6cade;
   --acc-mote-3: #bfe6d6;
