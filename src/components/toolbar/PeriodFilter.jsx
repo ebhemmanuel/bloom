@@ -11,7 +11,7 @@ import { renamePeriod, addPeriod } from '../../domain/mutations.js';
  * whatever the timetable looks like.
  *
  * Right-clicking a row renames the period, which propagates everywhere the label
- * appears — lane headers, this filter, the add-student form.
+ * appears - lane headers, this filter, the add-student form.
  */
 export default function PeriodFilter({ periods, selected, onChange }) {
   const { mutate, readOnly } = useData();
@@ -132,7 +132,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
 
           {/*
             Periods are created here rather than in a settings screen, because
-            this popover is where a teacher is already thinking about them — and
+            this popover is where a teacher is already thinking about them - and
             because without it there is no way to create one at all.
           */}
           {!readOnly && (
@@ -164,7 +164,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
           <p className="acc-periods__hint">
             {periods.length
               ? 'Right-click a period to rename it.'
-              : 'Add as many as you teach — “Period 3”, “Block B”, “Homeroom”.'}
+              : 'Add as many as you teach - “Period 3”, “Block B”, “Homeroom”.'}
           </p>
         </div>
       )}

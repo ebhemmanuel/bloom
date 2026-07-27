@@ -182,7 +182,7 @@ function AboutStep({ draft, setDraft, onNext }) {
               than what it says, so it earns a sentence explaining itself. */}
           <span className="acc-ob__hint">
             Bloom will lay out every school day from then until today, ready for your students’
-            accommodations — so you can fill in what has already happened instead of starting from
+            accommodations - so you can fill in what has already happened instead of starting from
             an empty year. Nothing is marked as delivered or missed until you say so.
           </span>
         </label>
@@ -249,7 +249,7 @@ function LocationStep({ onChoose, busy, error }) {
                 )}
                 {option.existingFile && (
                   <span className="acc-ob__location-found">
-                    An existing record was found here — we&rsquo;ll open it.
+                    An existing record was found here - we&rsquo;ll open it.
                   </span>
                 )}
                 {!option.writable && (
@@ -281,7 +281,7 @@ function DoneStep({ summary, onOpen }) {
         <h2 className="acc-ob__done-title">You&rsquo;re all set</h2>
         <div className="acc-ob__done-pill acc-numeric">{summary}</div>
         <p className="acc-ob__done-body">
-          Periods, your roster, and your accommodation list come next — a few minutes, whenever
+          Periods, your roster, and your accommodation list come next - a few minutes, whenever
           you&rsquo;re ready.
         </p>
         <button type="button" className="acc-ob__cta" ref={tilt} onClick={onOpen}>
@@ -296,7 +296,7 @@ function DoneStep({ summary, onOpen }) {
  * First-run setup.
  *
  * Everything is collected into local state and only committed at the end, so a
- * teacher can move back and forth without half a profile being written to disk —
+ * teacher can move back and forth without half a profile being written to disk,
  * and so the data location, which has to exist before anything can be saved, is
  * chosen as part of the same continuous flow rather than as a gate in front of it.
  */
@@ -309,7 +309,7 @@ export default function OnboardingFlow({ needsLocation }) {
     subjects: [],
     gradeLevels: [],
     // Defaults to today, which is the honest answer for a teacher setting up on
-    // day one and a harmless one otherwise — it simply backfills nothing.
+    // day one and a harmless one otherwise - it simply backfills nothing.
     termStart: todayKey(),
   });
   const [busy, setBusy] = useState(false);
@@ -362,7 +362,7 @@ export default function OnboardingFlow({ needsLocation }) {
     doc.settings.lastKnownDate = todayKey(now);
 
     // The start of the year is what the backfill measures from. There is no
-    // roster yet, so no days are laid out here — that happens as students are
+    // roster yet, so no days are laid out here - that happens as students are
     // added, which is the first moment there is anything to lay out.
     doc.schoolCalendar.termStart = draft.termStart || todayKey(now);
 

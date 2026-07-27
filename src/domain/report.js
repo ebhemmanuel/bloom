@@ -10,7 +10,7 @@ import { matchesSearch, buildSearchIndex } from './selectors.js';
  *
  * The report is a DIFFERENT model from the board: the board is an input surface
  * keyed by status, this is a document keyed by date. They deliberately share no
- * markup, only `effectiveStatus` — which is what guarantees the paper and the
+ * markup, only `effectiveStatus` - which is what guarantees the paper and the
  * screen can never disagree.
  */
 
@@ -23,7 +23,7 @@ export function schoolDaysIn(doc, from, to) {
 /**
  * The two scopes a teacher actually asks for.
  *
- * "Everything so far" covers the year-end case without needing a third option —
+ * "Everything so far" covers the year-end case without needing a third option:
  * at the end of the year, everything so far IS the year.
  */
 export function resolveScope(doc, scope, now = new Date()) {

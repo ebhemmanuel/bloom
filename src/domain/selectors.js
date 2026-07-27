@@ -62,7 +62,7 @@ export function matchesSearch(index, studentId, query) {
  *
  * Returns lanes even when no day record exists, so the UI can show the roster
  * with an honest "no record for this day" state rather than an empty screen.
- * That distinction is the whole point — see resolve.js.
+ * That distinction is the whole point - see resolve.js.
  */
 export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now = new Date() }) {
   const ctx = buildResolveContext(doc);
@@ -76,7 +76,7 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
   const periodFilter = new Set(periodIds);
 
   const isNonInstructional = ctx.nonInstructional.has(dateKey);
-  // School is either in session on a date or it is not — it is not a per-student
+  // School is either in session on a date or it is not - it is not a per-student
   // question, because a period records which class someone is in, not when it
   // runs. Kept per-lane on the model so the UI does not have to know that.
   const meetsToday = !isNonInstructional && !isWeekend(dateKey);
@@ -113,15 +113,15 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       const resolved = effectiveStatus(doc, dateKey, student.id, assignment.id, now, ctx);
       const notRelevant = Boolean(assignment.notRelevant);
 
-      // Excluded from this class's totals entirely — it is not this teacher's
+      // Excluded from this class's totals entirely - it is not this teacher's
       // accommodation to deliver, so counting it either way would be wrong.
       if (!notRelevant) resolvedStatuses.push(resolved);
 
       // Cards live in a droppable column by their STORED status. A resolved
-      // not_used still sits in the Unassigned column, flagged — it must remain
+      // not_used still sits in the Unassigned column, flagged - it must remain
       // visible and correctable, not vanish off the board.
       // Cards sit in a column by their STORED status. A resolved not_used still
-      // sits in Unassigned, flagged — it must stay visible and correctable.
+      // sits in Unassigned, flagged - it must stay visible and correctable.
       const stored = entry?.status || STATUS.UNASSIGNED;
       const column = DROPPABLE_STATUSES.includes(stored) ? stored : STATUS.UNASSIGNED;
 
@@ -191,7 +191,7 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
    * Students who had not joined this class yet on this date.
    *
    * Shown, but locked and empty, carrying the date they enrolled. Nothing about
-   * them counts toward the day's totals — there was no obligation — and the
+   * them counts toward the day's totals - there was no obligation - and the
    * board says so rather than leaving a gap the teacher has to explain to
    * themselves.
    */
@@ -239,7 +239,7 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
     teacherAbsence: day?.teacherAbsence || null,
     editable: hasRecord && !sealed,
     isNonInstructional,
-    // No class meets on this date for anyone on the visible roster — a weekend, a
+    // No class meets on this date for anyone on the visible roster - a weekend, a
     // holiday, or a day none of these periods run. Without this the board would
     // show a wall of ghosted, un-droppable cards and no reason why.
     noClassToday: lanes.length > 0 && !anyMeeting,

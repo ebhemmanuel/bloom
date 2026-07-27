@@ -115,7 +115,7 @@
     flex-shrink: 0;
   }
 
-  // Advisory, not accusation — amber family, never danger red.
+  // Advisory, not accusation - amber family, never danger red.
   &--warn,
   &--confirm {
     background: var(--acc-warning-soft);
@@ -193,7 +193,7 @@
 // --- Detail popover --------------------------------------------------------
 
 // One sheet behind every dialog, frosted the same way Ctrl+Space frosts the
-// board. Always portalled to <body> — see Scrim.jsx for why rendering it in
+// board. Always portalled to <body> - see Scrim.jsx for why rendering it in
 // place leaves the header and the page margins undimmed.
 .acc-scrim {
   position: fixed;

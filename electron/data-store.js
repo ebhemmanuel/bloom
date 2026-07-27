@@ -6,8 +6,8 @@
  * Deliberate split of responsibility: this module handles PATHS, ATOMICITY,
  * BACKUPS and RECOVERY. It does not know the schema. Parsing, migration and
  * normalisation happen in the renderer's pure domain layer (`src/domain`), which
- * is ESM and exhaustively tested. Main only ever asks "is this valid JSON?" —
- * a byte-level question — and otherwise moves text around safely.
+ * is ESM and exhaustively tested. Main only ever asks "is this valid JSON?",
+ * a byte-level question, and otherwise moves text around safely.
  *
  * That split is what keeps this file small enough to reason about, and keeps the
  * schema logic in the layer that can be unit-tested without an Electron process.
@@ -39,7 +39,7 @@ const RENAME_BACKOFF_MS = [25, 50, 100, 200, 400];
  * How long the exit flush may block, in total.
  *
  * Windows gives a process being shut down roughly a second or two before it
- * kills it, so a longer budget does not buy more durability — it just means the
+ * kills it, so a longer budget does not buy more durability - it just means the
  * recovery file never gets written either. Bounded by wall clock rather than by
  * attempt count, because the rename retries inside each attempt already vary.
  */
@@ -49,7 +49,7 @@ const EXIT_BUDGET_MS = 1600;
  * Backoff between whole retry passes, when an entire write failed.
  *
  * Runs on a timer, not a spin, so the app stays responsive while it keeps
- * trying. Caps at 5s and then repeats forever — a save is never abandoned.
+ * trying. Caps at 5s and then repeats forever - a save is never abandoned.
  */
 const RETRY_BACKOFF_MS = [200, 500, 1000, 2000, 5000];
 
@@ -162,7 +162,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     if (!fs.existsSync(filePath)) {
       // A .tmp with no data.json means we died during the very first write.
       if (fs.existsSync(tmpPath) && isValidJson(safeRead(tmpPath))) {
-        log.warn?.('[data-store] recovered from .tmp — no primary file present');
+        log.warn?.('[data-store] recovered from .tmp - no primary file present');
         const text = safeRead(tmpPath);
         return { status: 'recovered', text, from: tmpPath, meta: baseMeta() };
       }
@@ -262,14 +262,14 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
       return { ok: false, reason: 'invalid-json' };
     }
 
-    // 1 — something else touched the file since we last read or wrote it.
+    // 1 - something else touched the file since we last read or wrote it.
     //
     // This used to refuse the write. That protected a foreign edit at the cost
     // of the teacher's own, which is the wrong trade for a single-user app: the
     // realistic causes are a sync client, a backup agent or AV rewriting the
     // file, and the outcome was autosave silently stalling for the rest of the
-    // session. Now BOTH versions survive — the on-disk one is copied into
-    // backups first, then ours is written — and saving continues to work.
+    // session. Now BOTH versions survive - the on-disk one is copied into
+    // backups first, then ours is written - and saving continues to work.
     const currentMtime = statMtime(filePath);
     if (knownMtimeMs !== null && currentMtime !== null && currentMtime !== knownMtimeMs) {
       log.warn?.('[data-store] external modification detected; preserving it and continuing');
@@ -287,7 +287,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     try {
       fs.mkdirSync(dirPath, { recursive: true });
 
-      // 2 — back up the version we are about to replace
+      // 2 - back up the version we are about to replace
       if (fs.existsSync(filePath)) {
         try {
           fs.mkdirSync(backupDir, { recursive: true });
@@ -299,7 +299,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
         }
       }
 
-      // 3/4 — write and flush to the platter, in the SAME directory as the
+      // 3/4 - write and flush to the platter, in the SAME directory as the
       // target: rename is only atomic within a single volume.
       const fd = fs.openSync(tmpPath, 'w');
       try {
@@ -309,7 +309,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
         fs.closeSync(fd);
       }
 
-      // 5/6 — swap into place, retrying past transient AV locks
+      // 5/6 - swap into place, retrying past transient AV locks
       let lastErr = null;
       for (let attempt = 0; attempt <= RENAME_BACKOFF_MS.length; attempt += 1) {
         try {
@@ -361,7 +361,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
   /**
    * Keep trying until it lands.
    *
-   * A save that fails is not an event to report and move on from — the teacher's
+   * A save that fails is not an event to report and move on from - the teacher's
    * edit is still only in memory, and the next thing to happen may well be the
    * lid closing. So a failed write keeps its payload and comes back for it, on
    * an escalating timer, forever. The only things that end the loop are success
@@ -424,7 +424,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
       return result;
     }
 
-    // Read-only is not a failure to retry past — there is nowhere to write and
+    // Read-only is not a failure to retry past - there is nowhere to write and
     // no amount of trying changes that. Everything else gets another go.
     if (result.reason === 'readonly') {
       pendingText = null;
@@ -438,7 +438,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
   /**
    * The last chance. Called on quit, suspend and lock-screen.
    *
-   * The timer-based retry above is useless here — the process is going away, so
+   * The timer-based retry above is useless here - the process is going away, so
    * anything not on disk within the next moment or two is gone. This therefore
    * blocks, retrying synchronously for up to ~2s, and if it still cannot write
    * to the real location it dumps the text somewhere it almost certainly can.

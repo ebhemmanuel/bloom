@@ -23,7 +23,7 @@ describe('labelKey', () => {
   });
 });
 
-describe('parseCatalogPaste — delimiters', () => {
+describe('parseCatalogPaste - delimiters', () => {
   it('splits Google Sheets tab-separated paste', () => {
     const text = 'Small-group testing\tsetting\tno\nFrequent breaks\tenvironment\tno';
     const r = parseCatalogPaste(text, []);
@@ -49,7 +49,7 @@ describe('parseCatalogPaste — delimiters', () => {
     // fallback only engages when it plausibly is a CSV.
     const text = 'Read aloud, verbatim\nSmall-group testing';
     const r = parseCatalogPaste(text, []);
-    // Comma fallback engages, so the first row splits — label is the first cell.
+    // Comma fallback engages, so the first row splits - label is the first cell.
     expect(r.toAdd.map((x) => x.label)).toEqual(['Read aloud', 'Small-group testing']);
   });
 
@@ -74,7 +74,7 @@ describe('parseCatalogPaste — delimiters', () => {
   });
 });
 
-describe('parseCatalogPaste — headers', () => {
+describe('parseCatalogPaste - headers', () => {
   it('skips a recognised header row', () => {
     const text = 'Accommodation\tCategory\tNeeds detail\nFrequent breaks\tenvironment\tno';
     const r = parseCatalogPaste(text, []);
@@ -90,7 +90,7 @@ describe('parseCatalogPaste — headers', () => {
   });
 });
 
-describe('parseCatalogPaste — duplicates are never imported', () => {
+describe('parseCatalogPaste - duplicates are never imported', () => {
   it('detects a duplicate of an existing catalog entry', () => {
     const r = parseCatalogPaste('Extended time (1.5x) on assessments', existing);
     expect(r.toAdd).toHaveLength(0);
@@ -133,7 +133,7 @@ describe('parseCatalogPaste — duplicates are never imported', () => {
   });
 });
 
-describe('parseCatalogPaste — extra columns', () => {
+describe('parseCatalogPaste - extra columns', () => {
   it('resolves a category by id or by label', () => {
     const r = parseCatalogPaste('A\ttiming\nB\tTiming & scheduling\nC\tnonsense', []);
     expect(r.toAdd.map((x) => x.category)).toEqual(['timing', 'timing', 'other']);
@@ -154,7 +154,7 @@ describe('parseCatalogPaste — extra columns', () => {
   });
 });
 
-describe('parseCatalogPaste — junk handling', () => {
+describe('parseCatalogPaste - junk handling', () => {
   it('ignores blank lines', () => {
     const r = parseCatalogPaste('A\n\n\nB\n   \n', []);
     expect(r.toAdd).toHaveLength(2);

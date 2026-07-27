@@ -4,14 +4,14 @@ import { useEffect, useRef } from 'react';
  * Make a button lean toward the cursor.
  *
  * The element tips on two axes depending on where the pointer sits over it, and
- * lifts slightly while hovered — the same reflex as nudging a physical object
+ * lifts slightly while hovered - the same reflex as nudging a physical object
  * and feeling it give. It is the ambient register having a bit of fun on the one
  * screen that is allowed to; the working board stays still.
  *
  * Published as custom properties rather than a written-out transform, so the
  * stylesheet still owns the look: how far it tips, how much it lifts and how it
  * settles back are all decided in SCSS. That keeps this to "where is the
- * pointer" and keeps the design tokens in the one place the design lives — see
+ * pointer" and keeps the design tokens in the one place the design lives - see
  * the no-inline-styles rule in CLAUDE.md, whose exception is exactly this.
  *
  * @param {number} max degrees of tilt at the very edge of the element

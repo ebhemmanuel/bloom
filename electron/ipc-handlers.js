@@ -108,7 +108,7 @@ function registerIpcHandlers({ getMainWindow } = {}) {
     const result = s.load();
 
     // A cloud-synced location is not fatal, but the renderer must be able to
-    // keep saying so — this is student PII leaving the machine.
+    // keep saying so - this is student PII leaving the machine.
     const sync = paths.detectSync(resolved.dirPath);
 
     return {
@@ -133,7 +133,7 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
   /**
    * Save and exit. Flushes synchronously before quitting rather than trusting
-   * the quit handler — a pending debounced write is exactly the edit a teacher
+   * the quit handler - a pending debounced write is exactly the edit a teacher
    * would be most upset to lose.
    */
   ipcMain.handle('app:quit', () => {
@@ -189,7 +189,7 @@ function registerIpcHandlers({ getMainWindow } = {}) {
   //
   // Both paths print the window that is already showing the report, so the paper
   // and the screen cannot disagree. Chromium's own title-and-URL header is
-  // replaced by ours in pdf-export.js — without that, a compliance record goes
+  // replaced by ours in pdf-export.js - without that, a compliance record goes
   // to the district with a localhost URL across the top.
 
   ipcMain.handle('pdf:export', async (_e, payload = {}) => {

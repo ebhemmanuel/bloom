@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Per-student, per-day notes — the LAST column of the swimlane.
+ * Per-student, per-day notes - the LAST column of the swimlane.
  *
  * Notes belong to the student's day, not to any single accommodation, which is
  * why this is a lane cell and not a card field.

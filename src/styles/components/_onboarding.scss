@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// Onboarding — the AMBIENT register, spent freely. This is the one moment the
+// Onboarding - the AMBIENT register, spent freely. This is the one moment the
 // product gets to feel like a welcome rather than a duty.
 // ---------------------------------------------------------------------------
 
-// Each blob blooms in individually — that staggered arrival IS the effect — then
+// Each blob blooms in individually - that staggered arrival IS the effect - then
 // drifts forever on its own period. Separate keyframes per blob because each
 // enters from a different direction and settles at a different opacity.
 @keyframes acc-bloom-1 {
@@ -74,7 +74,7 @@
     will-change: transform, opacity;
   }
 
-  // Settle curve gives each arrival a barely-perceptible overshoot — the "pop".
+  // Settle curve gives each arrival a barely-perceptible overshoot - the "pop".
   &__blob--1 {
     inset-inline-start: -4%;
     inset-block-end: -2%;
@@ -211,7 +211,7 @@
 .acc-ob__screen--welcome .acc-ob__cta {
   margin-block-start: var(--acc-space-5);
   // `backwards`, not `both`. A forwards fill keeps the final keyframe's
-  // transform applied forever, which would silently outrank the tilt — the same
+  // transform applied forever, which would silently outrank the tilt - the same
   // trap `--acc-enter-to-opacity` exists for. The end state and the resting
   // state are identical here, so nothing looks different for dropping it.
   animation: acc-enter 700ms var(--acc-ease-entrance) 2200ms backwards;
@@ -223,7 +223,7 @@
  * This is the ambient register, and the one screen where the app is allowed to
  * be pleased to see you: it leans toward the cursor and springs up a little
  * under it. The angles come from `useTilt`, which publishes only where the
- * pointer is — everything about how that FEELS is decided here.
+ * pointer is - everything about how that FEELS is decided here.
  *
  * Nothing like this belongs on the board. A control a teacher hits two hundred
  * times an afternoon should be still.
@@ -575,7 +575,7 @@
     animation: none;
   }
 
-  // useTilt already refuses to attach here, so the angles never move — this
+  // useTilt already refuses to attach here, so the angles never move - this
   // drops the lift and the spring too, leaving a plain colour change.
   .acc-ob__cta {
     transform: none;

@@ -9,7 +9,7 @@ const BoardContext = createContext(null);
  * Board view state: which date, which periods, what search.
  *
  * Lifted out of <Board> because the Bloom shell splits these controls across two
- * places — search lives in the pill nav, the date picker and period filter live
+ * places - search lives in the pill nav, the date picker and period filter live
  * in the board toolbar, and the header shows the roster count. Threading all of
  * that through props would mean passing board internals up into the header.
  */

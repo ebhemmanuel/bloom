@@ -116,7 +116,7 @@ describe('buildBoardModel', () => {
   });
 
   it('treats every student as in class on a school day, whatever their period', () => {
-    // A period records which class a student is in, not when it runs — so no
+    // A period records which class a student is in, not when it runs - so no
     // weekday can put one lane out of scope and leave another in it.
     const model = buildBoardModel(makeDoc(), { dateKey: TUE, now });
     expect(model.noClassToday).toBe(false);

@@ -65,7 +65,7 @@ const SEARCH_ICON = (
  * Left: brand and menus. Right: search, day notes, notifications, avatar.
  *
  * Search is an icon rather than a field. It opens the same overlay Ctrl+Space
- * does — one search, one behaviour, reached two ways — instead of a second
+ * does - one search, one behaviour, reached two ways - instead of a second
  * always-visible box that did a narrower job in a worse place.
  */
 export default function AppHeader({
@@ -131,7 +131,7 @@ export default function AppHeader({
           type="button"
           className={`acc-avatar${openPanel === 'settings' ? ' acc-avatar--on' : ''}`}
           onClick={onOpenSettings}
-          aria-label={`Your details — ${teacher?.displayName || 'set up your name'}`}
+          aria-label={`Your details - ${teacher?.displayName || 'set up your name'}`}
           aria-expanded={openPanel === 'settings'}
           title={teacher?.displayName || 'Your details'}
         >

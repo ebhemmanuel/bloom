@@ -10,7 +10,7 @@ import useDismissAnimation from '../../hooks/useDismissAnimation.js';
  * as an unsupported claim. Cancelling with existing text keeps it.
  *
  * The `standing` variant writes the detail once for a standing default, where it
- * is then reused every day for the rest of the year — same field, different
+ * is then reused every day for the rest of the year - same field, different
  * promise, so the copy has to say so.
  */
 export default function CardDetailPopover({ card, standing = false, onSave, onCancel }) {
@@ -45,7 +45,7 @@ export default function CardDetailPopover({ card, standing = false, onSave, onCa
       >
         <header className="acc-detail__header">
           <span className="acc-subhead">
-            {standing ? 'Standing detail — written once' : 'Used with detail'}
+            {standing ? 'Standing detail - written once' : 'Used with detail'}
           </span>
           <h2 className="acc-detail__title">{card.label}</h2>
         </header>

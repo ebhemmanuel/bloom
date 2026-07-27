@@ -4,11 +4,11 @@
 // Motion primitives. See docs/DESIGN_REQUIREMENTS.md §4.
 //
 // House rules encoded here so no component has to reinvent them:
-//   - Nothing cuts. Screen changes crossfade with overlap.
-//   - Things arrive, they don't appear: opacity + a small 8px settle.
-//   - Cascades are capped at 400ms total. An uncapped stagger makes a 30-lane
-//     board take 1.4s to assemble — delightful once, infuriating by Wednesday.
-//   - prefers-reduced-motion drops every transform and every stagger. This app
+// - Nothing cuts. Screen changes crossfade with overlap.
+// - Things arrive, they don't appear: opacity + a small 8px settle.
+// - Cascades are capped at 400ms total. An uncapped stagger makes a 30-lane
+//     board take 1.4s to assemble - delightful once, infuriating by Wednesday.
+// - prefers-reduced-motion drops every transform and every stagger. This app
 //     documents disability accommodations; shipping motion sickness in it would
 //     be indefensible.
 //
@@ -22,7 +22,7 @@
 //
 // The `to` opacity is a variable, not a literal 1. Because entrances run with
 // `fill-mode: both`, the animation's end state permanently overrides any
-// declarative `opacity` on the same element — so a state modifier like
+// declarative `opacity` on the same element - so a state modifier like
 // `.acc-lane--absent { opacity: 0.55 }` would silently lose. Elements with a
 // resting opacity below 1 set `--acc-enter-to-opacity` and the two agree.
 @keyframes acc-enter {
@@ -77,7 +77,7 @@
   }
 }
 
-// Aurora blob arrival — the individual "pop" of onboarding. Scale is authored
+// Aurora blob arrival - the individual "pop" of onboarding. Scale is authored
 // per-blob via --acc-blob-scale-from so each one enters differently.
 @keyframes acc-bloom-in {
   from {
@@ -90,7 +90,7 @@
   }
 }
 
-// Ambient drift. Amplitude stays under 6% of viewport — perceptible only if you
+// Ambient drift. Amplitude stays under 6% of viewport - perceptible only if you
 // look for it. Periods are desynchronised per blob so the field never repeats.
 @keyframes acc-drift {
   0% {
@@ -188,7 +188,7 @@
 }
 
 /// Crossfade between two co-present states. The incoming delay is shorter than
-/// the outgoing duration on purpose — the ~80ms overlap is what removes the
+/// the outgoing duration on purpose - the ~80ms overlap is what removes the
 /// sense of a jump.
 @mixin screen-enter {
   animation: acc-enter var(--acc-dur-slow) var(--acc-ease-entrance) 120ms both;
@@ -200,7 +200,7 @@
 
 /// Soft interactive transition for hover/press states.
 @mixin interactive($properties...) {
-  // Explicit @if rather than the global if() — modern Sass parses a bare if()
+  // Explicit @if rather than the global if() - modern Sass parses a bare if()
   // as the CSS function and errors out.
   @if list.length($properties) > 0 {
     transition-property: $properties;
@@ -218,8 +218,8 @@
 }
 
 /// The mirror of `.acc-enter`, for anything that leaves the screen. Faster than
-/// the entrance on purpose — an arrival is worth watching and a departure is
-/// not — but the same path, so a panel retreats into whatever it came out of.
+/// the entrance on purpose - an arrival is worth watching and a departure is
+/// not - but the same path, so a panel retreats into whatever it came out of.
 /// Pair it with `useDismissAnimation`, which holds the unmount for the duration.
 .acc-leave {
   @include exit-down;

@@ -3,7 +3,7 @@ import Scrim from './Scrim.jsx';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
 export default function Modal({ title, subtitle, wide, onClose, children }) {
-  // Leaves the way it arrived. Every exit — ×, click-outside, Escape — routes
+  // Leaves the way it arrived. Every exit - ×, click-outside, Escape - routes
   // through `dismiss`, so no one path cuts while the others ease out.
   const { leaving, dismiss } = useDismissAnimation(onClose);
 

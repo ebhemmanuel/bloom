@@ -9,7 +9,7 @@ const KEY = 'acc-collapsed-lanes';
  * compliance record; whether a teacher likes a lane folded is a UI preference
  * and has no business in an audited document.
  *
- * Keyed by student id rather than by date — a teacher who folds a lane means
+ * Keyed by student id rather than by date - a teacher who folds a lane means
  * "keep this folded", not "keep it folded on 16 September".
  */
 export default function useCollapsedLanes() {
@@ -26,7 +26,7 @@ export default function useCollapsedLanes() {
     try {
       localStorage.setItem(KEY, JSON.stringify([...collapsed]));
     } catch {
-      /* private mode or quota — a lost preference is not worth surfacing */
+      /* private mode or quota - a lost preference is not worth surfacing */
     }
   }, [collapsed]);
 

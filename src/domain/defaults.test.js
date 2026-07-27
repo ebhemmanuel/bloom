@@ -11,7 +11,7 @@ const THU = '2026-09-17';
 const before = new Date(2026, 8, 16, 9, 0);
 const nextDay = new Date(2026, 8, 17, 7, 45);
 
-describe('Refused — compliance treatment', () => {
+describe('Refused - compliance treatment', () => {
   it('counts toward the denominator', () => {
     // The duty is to OFFER the accommodation. A student declining it is not the
     // teacher failing to provide it.
@@ -52,7 +52,7 @@ describe('Refused — compliance treatment', () => {
   });
 });
 
-describe('use count — "used more than once"', () => {
+describe('use count - "used more than once"', () => {
   it('records a repeat count on a used entry', () => {
     const doc = withDay(makeDoc(), WED, {
       [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.USED } },
@@ -85,7 +85,7 @@ describe('use count — "used more than once"', () => {
     });
     const count = (d) => d.days[WED].students[T.jordan].entries[T.asgJordanExtTime].useCount;
 
-    // Nothing below 1 — a "used" card cannot claim zero uses.
+    // Nothing below 1 - a "used" card cannot claim zero uses.
     expect(count(setEntryUseCount(doc, WED, T.jordan, T.asgJordanExtTime, -5))).toBe(1);
     expect(count(setEntryUseCount(doc, WED, T.jordan, T.asgJordanExtTime, 0))).toBe(1);
     // Capped, so a stray paste cannot claim an absurd number on an audited record.
@@ -156,7 +156,7 @@ describe('standing defaults', () => {
   it('carries its standing detail into every new day', () => {
     // The whole point of a default is that the teacher stops doing this. An
     // accommodation that requires a written detail must therefore be written
-    // ONCE, when the default is set — not re-typed on all 180 days.
+    // ONCE, when the default is set - not re-typed on all 180 days.
     let doc = setAssignmentDefault(makeDoc(), T.asgJordanReadAloud, STATUS.USED_WITH_DETAIL, {
       detail: 'Aide reads all written directions aloud.',
     });

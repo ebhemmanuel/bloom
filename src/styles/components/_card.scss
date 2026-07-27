@@ -1,5 +1,5 @@
 // The whole card is the drag handle, Jira-style. There is no per-card status
-// widget — status changes by moving the card between columns, full stop.
+// widget - status changes by moving the card between columns, full stop.
 
 .acc-card {
   position: relative;
@@ -22,7 +22,7 @@
     box-shadow: 0 4px 12px -2px rgba(42, 36, 56, 0.1);
   }
 
-  // Grip dots. Three 3px circles drawn with one element plus two shadows —
+  // Grip dots. Three 3px circles drawn with one element plus two shadows,
   // the same trick the prototype uses.
   &__grip {
     flex: none;
@@ -61,7 +61,7 @@
     outline-offset: 2px;
   }
 
-  // The lift. Scale stays subtle — a card that balloons feels toy-like.
+  // The lift. Scale stays subtle - a card that balloons feels toy-like.
   &--dragging {
     box-shadow: var(--acc-shadow-drag);
     border-color: var(--acc-accent);
@@ -73,7 +73,7 @@
   }
 
   // A card that resolved to Not Used keeps the ordinary card surface. The state
-  // is carried by the `__resolved` label alone — the card has not changed, only
+  // is carried by the `__resolved` label alone - the card has not changed, only
   // what the closed-out day says about it, and repainting the whole Unassigned
   // column at 4pm reads as an alarm rather than as a day ending.
   &--not-used {
@@ -89,7 +89,7 @@
   }
 
   // Not this teacher's to deliver. Dimmed and inert, but still legible and
-  // still reversible — it must never look deleted.
+  // still reversible - it must never look deleted.
   &--irrelevant {
     opacity: 0.45;
     cursor: default;
@@ -160,7 +160,7 @@
     padding: 1px var(--acc-space-2);
     border-radius: var(--acc-radius-sm);
 
-    // A standing default is pre-set, not observed — kept visually quieter than a
+    // A standing default is pre-set, not observed - kept visually quieter than a
     // recorded fact so it never reads as something the teacher confirmed today.
     &--default {
       color: var(--acc-fg-muted);

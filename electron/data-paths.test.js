@@ -40,7 +40,7 @@ afterEach(() => {
   delete process.env.ACCOMMODATIONS_DATA_DIR;
 });
 
-describe('detectSync — the OneDrive guard', () => {
+describe('detectSync - the OneDrive guard', () => {
   it('flags a plain OneDrive folder', () => {
     const r = detectSync('C:\\Users\\jrivera\\OneDrive\\Documents\\Accommodations Tracker');
     expect(r.synced).toBe(true);
@@ -100,7 +100,7 @@ describe('probeWritable', () => {
   });
 
   it('reports a reason when the path cannot be used', () => {
-    // A file where a directory is expected — mkdir fails with a real errno.
+    // A file where a directory is expected - mkdir fails with a real errno.
     const filePath = path.join(tmp, 'a-file');
     fs.writeFileSync(filePath, 'x');
     const r = probeWritable(path.join(filePath, 'nested'));
@@ -194,7 +194,7 @@ describe('resolveDataDir', () => {
     expect(r.dirPath).toBe(path.resolve(dir));
   });
 
-  it('reports missing — never silently starts fresh — when the folder is gone', () => {
+  it('reports missing - never silently starts fresh - when the folder is gone', () => {
     // The scenario: re-imaged machine, or a Documents folder that lived on a
     // drive that is no longer attached. Starting a blank record here would be
     // indistinguishable from losing a year of compliance data.

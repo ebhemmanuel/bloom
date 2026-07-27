@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  *
  * The native bar is hidden in CSS. This draws a 6px pill that appears while
  * scrolling and fades ~900ms after it stops, so a board at rest has no chrome on
- * its edge — which matters when the container is translucent and a permanent
+ * its edge - which matters when the container is translucent and a permanent
  * grey bar would cut across the aurora behind it.
  */
 export default function useCustomScrollbar() {

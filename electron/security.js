@@ -8,7 +8,7 @@
  * know the app cannot phone home, point them here.
  *
  * Four independent layers, each sufficient on its own:
- *   1. CSP with `connect-src 'none'` — no fetch/XHR/WebSocket/EventSource, at all.
+ *   1. CSP with `connect-src 'none'` - no fetch/XHR/WebSocket/EventSource, at all.
  *   2. A request filter that cancels every scheme except file:/devtools:/blob:.
  *   3. Permission handlers that deny everything (geolocation, media, notifications…).
  *   4. Navigation + window-open handlers that refuse any non-file: destination.
@@ -84,7 +84,7 @@ function hardenSession(targetSession = session.defaultSession) {
     callback({ cancel: true });
   });
 
-  // Deny every permission request outright — the app needs none of them.
+  // Deny every permission request outright - the app needs none of them.
   targetSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
     callback(false);
   });

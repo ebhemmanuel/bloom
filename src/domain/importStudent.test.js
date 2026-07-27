@@ -12,7 +12,7 @@ const catalog = [
   { id: 'cat_2', label: 'Preferential seating (front, near instruction)' },
 ];
 
-describe('splitAccommodationList — delimiters', () => {
+describe('splitAccommodationList - delimiters', () => {
   it('splits a pasted column on newlines', () => {
     const r = splitAccommodationList('Extended time\nSmall-group testing\nFrequent breaks');
     expect(r).toEqual(['Extended time', 'Small-group testing', 'Frequent breaks']);

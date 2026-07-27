@@ -10,7 +10,7 @@ import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '../../domain/constants.js';
  * The teacher's own details, opened from the avatar.
  *
  * A centred modal rather than a dropdown: this is a form with real content, and
- * click-outside deliberately does NOT close it once anything has been typed —
+ * click-outside deliberately does NOT close it once anything has been typed:
  * losing a half-finished profile to a stray click is a bad trade for the
  * convenience of dismissing an empty one.
  */

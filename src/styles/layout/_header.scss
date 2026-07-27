@@ -44,7 +44,7 @@
     }
   }
 
-  // Presence indicator for day notes — quieter than the notification count,
+  // Presence indicator for day notes - quieter than the notification count,
   // because it reports that something exists, not that something is wrong.
   &__pip {
     position: absolute;
@@ -105,7 +105,7 @@
     }
   }
 
-  // Count badge. Amber, not red — these are advisories, not alarms.
+  // Count badge. Amber, not red - these are advisories, not alarms.
   &__dot {
     position: absolute;
     inset-block-start: 1px;
@@ -313,7 +313,7 @@
     min-inline-size: 0;
   }
 
-  // A wide field beside a narrow one — a date next to its plan type, say. The
+  // A wide field beside a narrow one - a date next to its plan type, say. The
   // ratio is on the ROW rather than baked into `.acc-field`, so the same field
   // component can sit in any proportion its context calls for.
   &--80-20 > .acc-field {
@@ -330,7 +330,7 @@
   flex-wrap: wrap;
   gap: var(--acc-space-1);
 
-  // Layout comes from `.acc-inputgroup`, which the element also carries — the
+  // Layout comes from `.acc-inputgroup`, which the element also carries - the
   // input and its Add button share one border there, so any gap here would
   // prise them back apart.
   &__add {

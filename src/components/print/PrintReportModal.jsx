@@ -11,8 +11,8 @@ import { pdfBridge, isDesktop } from '../../lib/bridge.js';
 /**
  * Choose what to print.
  *
- * Two scopes, not three. "Everything so far" already covers the year-end case —
- * at the end of the year, everything so far IS the year — so a separate
+ * Two scopes, not three. "Everything so far" already covers the year-end case:
+ * at the end of the year, everything so far IS the year, so a separate
  * "whole year" option would be a third button that does the same thing as one
  * that is already there.
  */
@@ -49,7 +49,7 @@ export default function PrintReportModal({ onClose }) {
    * Mount the report, let it lay out, then hand the window to the print path.
    *
    * The print stylesheet hides everything except this portal, so what reaches
-   * the paper is the same DOM the preview counted — there is no second render
+   * the paper is the same DOM the preview counted - there is no second render
    * that could drift from the numbers shown here.
    *
    * Two frames before printing, not one: the first commits the portal, the
@@ -185,7 +185,7 @@ export default function PrintReportModal({ onClose }) {
           )}
           {error && (
             <p className="acc-printopts__error" role="status">
-              That didn’t work ({error}). Your records are untouched — try again, or use Print.
+              That didn’t work ({error}). Your records are untouched - try again, or use Print.
             </p>
           )}
 

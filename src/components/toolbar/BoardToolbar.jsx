@@ -28,7 +28,7 @@ function Chevron({ down }) {
 /**
  * Day-level actions, tucked behind a three-dot menu.
  *
- * "Copy yesterday" and "Close out day" are consequential and infrequent — one
+ * "Copy yesterday" and "Close out day" are consequential and infrequent - one
  * rewrites the whole board, the other seals it read-only. Keeping them out of
  * the always-visible row means neither is a stray click away while a teacher is
  * moving cards.
@@ -111,8 +111,8 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
 /**
  * The board's tools, as a single floating row above the first lane.
  *
- * Left: what you are looking at and how much of it — roster count, add, fold.
- * Right: what you are looking at it FOR — the date, the period filter, and the
+ * Left: what you are looking at and how much of it - roster count, add, fold.
+ * Right: what you are looking at it FOR - the date, the period filter, and the
  * consequential day actions behind a three-dot menu.
  */
 export default function BoardToolbar({

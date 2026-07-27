@@ -11,13 +11,13 @@ import { ensureDay } from '../../domain/seed.js';
  * Add an accommodation to one student, from inside their lane.
  *
  * Three inputs in one field, because a teacher's source varies mid-year:
- *   - type 2+ characters → suggestions from the catalog they already use
- *   - type anything else → a new accommodation, which joins the catalog so the
+ * - type 2+ characters → suggestions from the catalog they already use
+ * - type anything else → a new accommodation, which joins the catalog so the
  *     next student can reuse the same wording
- *   - paste several (commas / tabs / newlines from a spreadsheet) → "Add all N"
+ * - paste several (commas / tabs / newlines from a spreadsheet) → "Add all N"
  *
  * Everything added here is dated from the day in view FORWARD. Earlier days never
- * gain the card, so they cannot seal it as Not Used — the teacher must never be
+ * gain the card, so they cannot seal it as Not Used - the teacher must never be
  * documented as missing something that had not been assigned yet.
  */
 export default function AddAccommodationInline({ studentId, dateKey }) {
@@ -121,7 +121,7 @@ export default function AddAccommodationInline({ studentId, dateKey }) {
         </div>
 
         <p className="acc-addacc__hint">
-          Records from {dateKey} forward — earlier days are untouched.
+          Records from {dateKey} forward - earlier days are untouched.
         </p>
       </form>
     </li>

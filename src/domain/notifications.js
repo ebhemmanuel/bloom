@@ -3,7 +3,7 @@ import { compareDateKeys, todayKey, formatDateMedium } from './dates.js';
 /**
  * Derive the notification list from the document. Pure.
  *
- * Every item is computed from data we already hold — there is no feed and no
+ * Every item is computed from data we already hold - there is no feed and no
  * network. The bar for inclusion is that a teacher could act on it, so this stays
  * a short list of real problems rather than an activity log nobody reads.
  */
@@ -11,7 +11,7 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
   const items = [];
   if (!doc) return items;
 
-  // 1 — student data is syncing off the machine. The most serious thing we can
+  // 1 - student data is syncing off the machine. The most serious thing we can
   //     tell them, so it goes first.
   if (meta.synced) {
     items.push({
@@ -44,7 +44,7 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     });
   }
 
-  // 2 — a claim on today's board that the printed report cannot support.
+  // 2 - a claim on today's board that the printed report cannot support.
   if (boardModel?.detailsMissing > 0) {
     const n = boardModel.detailsMissing;
     items.push({
@@ -55,7 +55,7 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     });
   }
 
-  // 3 — the teacher reported being out. Surfaced so they review the day before
+  // 3 - the teacher reported being out. Surfaced so they review the day before
   //     closing it out, rather than sealing a thin record without context.
   const today = todayKey(now);
   const todayDay = doc.days?.[today];
@@ -64,14 +64,14 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     items.push({
       id: 'teacher-absence',
       tone: 'warn',
-      title: `Absence noted — ${todayDay.teacherAbsence.reason}`,
+      title: `Absence noted - ${todayDay.teacherAbsence.reason}`,
       body: "The reason was added to today's day notes, so the record shows why entries are thin. Review before closing out.",
       action: 'Open day notes',
       act: 'openNotes',
     });
   }
 
-  // 4 — past days still open. Left alone they resolve to Not Used, so it is
+  // 4 - past days still open. Left alone they resolve to Not Used, so it is
   //     worth surfacing while the teacher can still remember the day.
   const openPast = Object.values(doc.days || {})
     .filter((d) => !d.sealed && compareDateKeys(d.date, today) < 0)
@@ -92,7 +92,7 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     });
   }
 
-  // 5 — nothing recorded yet today. A gentle nudge, not an accusation, and
+  // 5 - nothing recorded yet today. A gentle nudge, not an accusation, and
   //     suppressed when an absence already explains the empty day.
   const todayRecord = todayDay;
   if (todayRecord && boardModel && !boardModel.noClassToday && !todayRecord.teacherAbsence) {
@@ -109,7 +109,7 @@ export function deriveNotifications(doc, { meta = {}, boardModel = null, now = n
     }
   }
 
-  // 5 — setup is incomplete, so the board cannot be useful.
+  // 5 - setup is incomplete, so the board cannot be useful.
   if ((doc.students || []).length === 0) {
     items.push({
       id: 'no-students',

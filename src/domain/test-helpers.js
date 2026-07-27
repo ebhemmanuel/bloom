@@ -47,7 +47,7 @@ export function makeDoc(overrides = {}) {
     {
       id: T.p1,
       teacherId: T.teacher,
-      name: 'Period 1 — Algebra I',
+      name: 'Period 1 - Algebra I',
       shortName: 'P1',
       sortOrder: 1,
       archivedAt: null,
@@ -55,7 +55,7 @@ export function makeDoc(overrides = {}) {
     {
       id: T.p3,
       teacherId: T.teacher,
-      name: 'Period 3 — Geometry',
+      name: 'Period 3 - Geometry',
       shortName: 'P3',
       sortOrder: 3,
       archivedAt: null,
@@ -130,7 +130,7 @@ export function makeDoc(overrides = {}) {
       studentId: T.jordan,
       source: 'custom',
       catalogId: null,
-      label: 'Sensory break pass — up to 2 per period',
+      label: 'Sensory break pass - up to 2 per period',
       category: 'behavior',
       requiresDetail: true,
       detailPrompt: 'How many breaks, and roughly when?',

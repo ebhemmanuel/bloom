@@ -5,7 +5,7 @@ import { STATUS, STATUS_LABEL } from '../../domain/constants.js';
 /**
  * One accommodation for one student on one day.
  *
- * The WHOLE card is the drag handle, the way a Jira card behaves — you grab it
+ * The WHOLE card is the drag handle, the way a Jira card behaves - you grab it
  * anywhere and drop it in a column. Status is changed by moving the card and
  * only by moving the card; there is no per-card status widget.
  *
@@ -13,7 +13,7 @@ import { STATUS, STATUS_LABEL } from '../../domain/constants.js';
  * keyboard dragging for free (Space to lift, arrows to move, Space to drop) with
  * live-region announcements, which is the same interaction model Jira ships.
  *
- * Clicking without dragging opens the detail editor — the library distinguishes a
+ * Clicking without dragging opens the detail editor - the library distinguishes a
  * click from a drag, so both live on the same element.
  *
  * Memoised on the fields that affect the render: with ~240 cards on a full board,
@@ -62,7 +62,7 @@ export function CardShell({
       {...provided.draggableProps}
       {...provided.dragHandleProps}
       // The library's own transform. The ONLY permitted inline style in the
-      // app — everything else is a BEM modifier, per CLAUDE.md.
+      // app - everything else is a BEM modifier, per CLAUDE.md.
       style={provided.draggableProps.style}
       className={`${classes}${snapshot.isDragging ? ' acc-card--dragging' : ''}`}
       onClick={(event) => {
@@ -71,13 +71,13 @@ export function CardShell({
         if (!card.notRelevant) onOpenDetail?.(card);
       }}
       onContextMenu={(event) => {
-        // Suppress the browser menu — right-click belongs to our own.
+        // Suppress the browser menu - right-click belongs to our own.
         event.preventDefault();
         event.stopPropagation();
         if (!disabled) onContextMenu?.(card, event.clientX, event.clientY);
       }}
       aria-selected={selected || undefined}
-      aria-label={`${card.label} — ${STATUS_LABEL[card.resolved] || ''}${
+      aria-label={`${card.label} - ${STATUS_LABEL[card.resolved] || ''}${
         card.useCount > 1 ? `, used ${card.useCount} times` : ''
       }`}
     >

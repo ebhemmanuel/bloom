@@ -2,7 +2,7 @@ import { CATEGORIES } from './constants.js';
 
 /**
  * Import accommodations pasted from a spreadsheet (Google Sheets, Excel, or a
- * plain list). Pure — no I/O, no clipboard access; the UI hands over text.
+ * plain list). Pure - no I/O, no clipboard access; the UI hands over text.
  *
  * Google Sheets puts TAB-separated values on the clipboard, so tabs are the
  * primary delimiter. Commas are only used as a fallback when the paste contains
@@ -28,7 +28,7 @@ const TRUTHY = ['yes', 'y', 'true', '1', 'x', 'required'];
  * Fold a label to a comparison key.
  *
  * Case, accents, surrounding whitespace, internal whitespace runs, and trailing
- * punctuation are all ignored — those are the ways the same accommodation gets
+ * punctuation are all ignored - those are the ways the same accommodation gets
  * typed differently across a district's spreadsheets. Deliberately conservative
  * beyond that: internal punctuation is preserved, because "Extended time (1.5x)"
  * and "Extended time (2x)" are genuinely different accommodations and must not
@@ -45,7 +45,7 @@ export function labelKey(value) {
 }
 
 /**
- * Rows are NOT trimmed — only fully blank ones are dropped.
+ * Rows are NOT trimmed - only fully blank ones are dropped.
  *
  * Trimming a row strips a leading tab, which silently deletes an empty first
  * column and shifts every remaining field one place left. A spreadsheet with a
@@ -111,7 +111,7 @@ export function parseCatalogPaste(text, existingCatalog = []) {
   const hasTabs = rows.some((r) => r.includes('\t'));
   const delimiter = hasTabs ? '\t' : rows.some((r) => r.includes(',')) ? ',' : null;
 
-  // Existing labels, plus archived ones — re-importing something a teacher
+  // Existing labels, plus archived ones - re-importing something a teacher
   // deliberately archived should not silently resurrect it as a new entry.
   const existingByKey = new Map();
   for (const entry of existingCatalog) {

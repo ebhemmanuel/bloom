@@ -28,7 +28,7 @@ function init(userDataPath) {
         fs.renameSync(logPath, path.join(userDataPath, 'app.prev.log'));
       }
     } catch {
-      /* no existing log — first run */
+      /* no existing log - first run */
     }
 
     stream = fs.createWriteStream(logPath, { flags: 'a' });

@@ -8,8 +8,8 @@ import AccommodationCard, { CardShell } from './AccommodationCard.jsx';
  *
  * The droppable `type` is scoped per student (`lane-<studentId>`). That makes the
  * "a card belongs to exactly one student" rule an invariant enforced by the drag
- * library itself — other students' columns are not even highlighted during a
- * drag — rather than a rejection branch in onDragEnd that the user only
+ * library itself - other students' columns are not even highlighted during a
+ * drag - rather than a rejection branch in onDragEnd that the user only
  * discovers by trying and failing.
  */
 function StatusColumn({
@@ -39,7 +39,7 @@ function StatusColumn({
        * While dragging, the library positions the item `fixed`. The board card
        * carries `backdrop-filter`, which makes it a containing block for fixed
        * descendants, and each lane sets `overflow: hidden` for its rounded
-       * corners — so an in-place drag element gets clipped by its own lane and
+       * corners - so an in-place drag element gets clipped by its own lane and
        * simply vanishes. Rendering the clone outside both is the fix.
        */
       renderClone={(provided, snapshot, rubric) =>
@@ -61,7 +61,7 @@ function StatusColumn({
           className={`acc-column acc-column--${status.replace(/_/g, '-')}${
             snapshot.isDraggingOver ? ' acc-column--over' : ''
           }`}
-          aria-label={`${label} — ${cards.length}`}
+          aria-label={`${label} - ${cards.length}`}
         >
           <header className="acc-column__header">
             <span className="acc-subhead">{label}</span>

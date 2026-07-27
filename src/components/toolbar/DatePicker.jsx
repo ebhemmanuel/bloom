@@ -26,7 +26,7 @@ function monthGrid(anchor) {
  * Date control: a pill button that opens a calendar popover.
  *
  * Two modes. Day picks the board's date. Range picks a start and end for the
- * range report, and reports how many SCHOOL days that spans — a teacher asked for
+ * range report, and reports how many SCHOOL days that spans - a teacher asked for
  * "last week" means five days, not seven, and the difference matters on a
  * compliance denominator.
  */
@@ -131,7 +131,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
           {/*
             Just the date. A "Today"/"Tomorrow" prefix changes the label's width
             as you step through the week, which shoves every control to its right
-            around — the row must not move while you are clicking through it.
+            around - the row must not move while you are clicking through it.
           */}
           <strong>{formatDateMedium(dateKey)}</strong>
           <svg

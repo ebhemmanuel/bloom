@@ -7,7 +7,7 @@ import { PRODUCT_NAME } from '../../domain/schema.js';
  *
  * The AUSTERE register: black on white, hairline rules, glyphs plus text. This
  * gets photocopied, scanned and read at arm's length, so nothing here may depend
- * on colour — and it shares no markup with the board, because the board is an
+ * on colour - and it shares no markup with the board, because the board is an
  * input surface and this is a document.
  */
 export default function PrintReport({ report }) {
@@ -60,7 +60,7 @@ export default function PrintReport({ report }) {
           </h2>
 
           {/*
-            Why a row of n/a runs down part of this table. Printed, not implied —
+            Why a row of n/a runs down part of this table. Printed, not implied:
             an auditor reading a gap should not have to ask anyone what it means.
           */}
           {(s.enrolledFrom || s.unenrolledFrom) && (
@@ -120,7 +120,7 @@ export default function PrintReport({ report }) {
                 {s.details.map((d, i) => (
                   // eslint-disable-next-line react/no-array-index-key
                   <li key={`${d.date}-${i}`}>
-                    <b>{formatDateMedium(d.date)}</b> — {d.label}: {d.detail}
+                    <b>{formatDateMedium(d.date)}</b> - {d.label}: {d.detail}
                   </li>
                 ))}
               </ul>
@@ -133,7 +133,7 @@ export default function PrintReport({ report }) {
               <ul>
                 {s.notes.map((n) => (
                   <li key={n.date}>
-                    <b>{formatDateMedium(n.date)}</b> — {n.text}
+                    <b>{formatDateMedium(n.date)}</b> - {n.text}
                   </li>
                 ))}
               </ul>
@@ -156,7 +156,7 @@ export default function PrintReport({ report }) {
                 {d.teacherAbsence && (
                   <span className="acc-print__absence">
                     {' '}
-                    — Absence: {d.teacherAbsence.reason}
+                    - Absence: {d.teacherAbsence.reason}
                     {d.teacherAbsence.text ? `: ${d.teacherAbsence.text}` : ''}
                   </span>
                 )}

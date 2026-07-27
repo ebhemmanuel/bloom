@@ -15,7 +15,7 @@ export const isDesktop = Boolean(native);
 /**
  * Browser fallback for `npm run dev`. Persists to localStorage so the board is
  * usable in a normal browser tab while building UI, without pretending to be the
- * real store — `meta.browserFallback` is surfaced as a banner so nobody mistakes
+ * real store - `meta.browserFallback` is surfaced as a banner so nobody mistakes
  * a dev session for a real one.
  */
 const BROWSER_KEY = 'acc-dev-doc';

@@ -15,7 +15,7 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
 /**
  * Split a pasted accommodation list.
  *
- * Delimiter precedence — newlines and tabs first, commas only as a last resort:
+ * Delimiter precedence - newlines and tabs first, commas only as a last resort:
  *
  * Real accommodation wording is full of commas ("Preferential seating (front,
  * near instruction)"), so splitting on them eagerly would shred labels. When
@@ -31,7 +31,7 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
  * per student rather than a first and last name.
  *
  * The point is that a teacher pasting a column out of their roster gets a
- * roster, not one student with a very long name — which is what a plain trim of
+ * roster, not one student with a very long name - which is what a plain trim of
  * the field would give them.
  */
 export function splitStudentNames(text) {
@@ -167,7 +167,7 @@ export function addStudentWithAccommodations(
     id: studentId,
     teacherId: doc.settings?.activeTeacherId || doc.teachers[0]?.id || null,
     // A single display label on purpose. Teachers are encouraged to use whatever
-    // identifies the student to them — initials or a code work fine — so the file
+    // identifies the student to them - initials or a code work fine - so the file
     // need not hold a full legal name.
     firstName: '',
     lastName: displayName || '',
@@ -180,7 +180,7 @@ export function addStudentWithAccommodations(
     sortOrder: doc.students.length,
     active: true,
     // When they joined THIS class, which is not the same as when the row was
-    // typed in. Null means "since the start of the year" — the common case, and
+    // typed in. Null means "since the start of the year" - the common case, and
     // the one that needs no explaining on a report.
     enrolledFrom: enrolledFrom || null,
     unenrolledFrom: null,
@@ -261,7 +261,7 @@ export function addStudentWithAccommodations(
  *
  * `activeFrom` is the whole point: a card added in March records from March
  * forward. Earlier days never gain it, so they cannot retroactively seal it as
- * Not Used — the teacher would be documented as having missed something that had
+ * Not Used - the teacher would be documented as having missed something that had
  * not been assigned yet.
  *
  * @returns {{ doc: object, report: {added: number, created: number, reused: number, skipped: number} }}
@@ -356,7 +356,7 @@ export function addAccommodationsToStudent(
  * usually looks, then apply it across a group and adjust individually.
  *
  * Only accommodations still in force are copied, and only ones the target does
- * not already have — so running it twice is a no-op rather than a duplicate
+ * not already have - so running it twice is a no-op rather than a duplicate
  * pile-up. Everything lands dated from `effectiveFrom` forward, so no earlier day
  * gains a card it can then be sealed against.
  */
@@ -400,7 +400,7 @@ export function copyAccommodationsBetweenStudents(
 /**
  * Catalog suggestions for the in-lane autocomplete.
  *
- * Excludes anything the student already has — offering a duplicate is only ever
+ * Excludes anything the student already has - offering a duplicate is only ever
  * a mis-click waiting to happen.
  */
 export function suggestAccommodations(doc, studentId, query, limit = 3) {

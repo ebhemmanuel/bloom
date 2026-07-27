@@ -5,7 +5,7 @@ import { isAssignmentActiveOn } from './schema.js';
 /**
  * End-of-cycle resolution. The compliance-correctness core of the app.
  *
- * Everything — the board on screen and the printed PDF — reads status through
+ * Everything - the board on screen and the printed PDF - reads status through
  * `effectiveStatus`, so there is exactly one source of truth and no way for what
  * a teacher sees to disagree with what an auditor reads.
  *
@@ -45,7 +45,7 @@ export function buildResolveContext(doc) {
  * or of the assignment's own date range.
  *
  * Note on 1 vs 2: `not_applicable` is checked before `no_record` because it is
- * strictly more informative — a holiday should print "n/a", not "no record",
+ * strictly more informative - a holiday should print "n/a", not "no record",
  * because there was never an obligation to record anything. Neither can ever
  * become `not_used`, so the guarantee below holds either way.
  *
@@ -54,11 +54,11 @@ export function buildResolveContext(doc) {
 export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new Date(), ctx) {
   const c = ctx || buildResolveContext(doc);
 
-  // 1 — no obligation on this date. School is not in session, for anyone.
+  // 1 - no obligation on this date. School is not in session, for anyone.
   if (isWeekend(dateKey) || c.nonInstructional.has(dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
 
   // The student was not in the program yet, or has already left it. Days outside
-  // their enrolment carry no obligation at all — checked before every cycle-end
+  // their enrolment carry no obligation at all - checked before every cycle-end
   // rule below so they can never resolve to "not used". Documenting a student as
   // having been denied support before they enrolled is a plain falsehood.
   const student = c.studentsById.get(studentId);
@@ -72,27 +72,27 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
   const assignment = c.assignmentsById.get(assignmentId);
   if (!isAssignmentActiveOn(assignment, dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
 
-  // Not this teacher's to deliver — a plan written for the student's whole
+  // Not this teacher's to deliver - a plan written for the student's whole
   // schedule can list things that mean nothing in this room. Checked before any
   // cycle-end rule below, so it can never become NOT_USED.
   if (assignment?.notRelevant) return DERIVED_STATUS.NOT_APPLICABLE;
 
-  // 2 — nothing was ever recorded for this date
+  // 2 - nothing was ever recorded for this date
   const day = doc.days?.[dateKey];
   if (!day) return DERIVED_STATUS.NO_RECORD;
 
   const studentDay = day.students?.[studentId];
   if (!studentDay) return DERIVED_STATUS.NO_RECORD;
 
-  // 3 — absent students are excluded from the compliance denominator entirely
+  // 3 - absent students are excluded from the compliance denominator entirely
   if (studentDay.absent) return DERIVED_STATUS.ABSENT;
 
-  // 4 — an explicit decision always wins
+  // 4 - an explicit decision always wins
   const entry = studentDay.entries?.[assignmentId];
   if (!entry) return DERIVED_STATUS.NO_RECORD;
   if (entry.status && entry.status !== STATUS.UNASSIGNED) return entry.status;
 
-  // 5 — the teacher was out.
+  // 5 - the teacher was out.
   //
   // Checked BEFORE any cycle-end rule, so nothing left blank on a day they were
   // not in the building can resolve to "not used". Documenting a teacher as
@@ -104,13 +104,13 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
   if (day.teacherAbsence) return DERIVED_STATUS.TEACHER_ABSENT;
 
   // The day's structure was created in bulk back to the start of the year, and
-  // nobody has touched this entry. The record exists so it CAN be filled in —
-  // that is the whole point of the backfill — but its existence is not itself a
+  // nobody has touched this entry. The record exists so it CAN be filled in,
+  // which is the whole point of the backfill, but its existence is not itself a
   // claim. An untouched backfilled entry is missing data, not documented
   // non-delivery, and the difference is the same one `no_record` was built for.
   if (day.backfilled) return DERIVED_STATUS.NO_RECORD;
 
-  // 6/7/8 — the cycle closed with nothing recorded
+  // 6/7/8 - the cycle closed with nothing recorded
   if (day.sealed) return STATUS.NOT_USED;
   if (isCycleComplete(dateKey, doc.settings?.cycleEndTime, now)) return STATUS.NOT_USED;
 
@@ -149,7 +149,7 @@ export const countsTowardCompliance = (status) => !NOT_COUNTED.has(status);
  * Absences, non-applicable days, and days with no record are excluded from BOTH
  * numerator and denominator. A teacher must never be scored down for a day a
  * student wasn't there, and must never be scored down for a day nobody recorded
- * — the second one is a data gap, not a delivery failure, and the report says so
+ * - the second one is a data gap, not a delivery failure, and the report says so
  * separately.
  */
 export function summarise(statuses) {
@@ -179,10 +179,10 @@ export function summarise(statuses) {
     total: statuses.length,
     counted: denominator,
     delivered: numerator,
-    /** delivered + refused — the teacher met their obligation either way. */
+    /** delivered + refused - the teacher met their obligation either way. */
     addressed,
     // null, not 0, when there is nothing to measure. A report must be able to
-    // print "—" rather than a damning "0%" for a week that was all holidays.
+    // print "-" rather than a damning "0%" for a week that was all holidays.
     rate: denominator > 0 ? numerator / denominator : null,
     /**
      * The figure that belongs on a compliance report. A student refusing support
@@ -199,14 +199,14 @@ export function summarise(statuses) {
 
 /**
  * Materialise `not_used` onto every still-unassigned entry of a completed day,
- * then mark the day sealed. Pure — returns a new doc, never mutates the input.
+ * then mark the day sealed. Pure - returns a new doc, never mutates the input.
  *
  * THE CRITICAL CONSTRAINT: this only ever touches dates that ALREADY have a
  * record in `doc.days`. Dates with no record are left absent from the map and
  * resolve to `no_record`.
  *
  * Why that matters: a teacher returns after three weeks off. A naive rollover
- * would stamp 15 days × every student × every accommodation as "not used" — on
+ * would stamp 15 days × every student × every accommodation as "not used" - on
  * paper, a catastrophic compliance failure they never committed. "No data was
  * recorded" and "the accommodation was not delivered" are different claims and
  * this function must never turn the first into the second.
@@ -271,7 +271,7 @@ export function sealDay(doc, dateKey, now = new Date(), sealedBy = RESOLVED_BY.A
  * Seal every unsealed PAST day. Runs at startup and on the rollover tick.
  *
  * Deliberately never seals today, even once the clock is past `cycleEndTime`.
- * Teachers do this paperwork in the evening — sealing at 16:00 would make the
+ * Teachers do this paperwork in the evening - sealing at 16:00 would make the
  * board read-only exactly when it is being used, forcing an Amend (with an audit
  * entry) for ordinary same-day data entry. Today still *displays* unassigned
  * entries as "Not Used" via `effectiveStatus` rules 6-7, so the teacher sees the

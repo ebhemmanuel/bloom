@@ -35,7 +35,7 @@ function Loader({ loadState }) {
         <div className="acc-splash__track">
           {/*
             Sets a CSS custom property rather than a real property. That keeps the
-            no-inline-styles rule intact — the stylesheet still owns how progress
+            no-inline-styles rule intact - the stylesheet still owns how progress
             is drawn, this only supplies the value.
           */}
           <div
@@ -75,7 +75,7 @@ function AppShell() {
           { separator: true },
           {
             label: 'Save and exit',
-            // Flush first, then quit. Never rely on the quit handler alone —
+            // Flush first, then quit. Never rely on the quit handler alone:
             // the whole point is that the last edit is on disk before we go.
             onSelect: async () => {
               await dataBridge.flush();
@@ -124,7 +124,7 @@ function AppShell() {
       </div>
 
       {/*
-        One container owns the measure. Every chrome element — pill nav, board —
+        One container owns the measure. Every chrome element (pill nav, board)
         lives inside it, so nothing can drift out of alignment the way it does
         when each piece caps its own width.
       */}
@@ -196,7 +196,7 @@ function AppShell() {
               </p>
               <p>
                 Everything lives in one file on this computer. There is no account, no database and
-                no network — the app cannot send your students&rsquo; information anywhere, by
+                no network - the app cannot send your students&rsquo; information anywhere, by
                 design.
               </p>
               <dl className="acc-about__facts">
@@ -269,7 +269,7 @@ function AppRoutes() {
   // one is needed and skips it when a folder is already configured.
   //
   // Whether onboarding is done is PERSISTED state, so the document is the source
-  // of truth — not the load-time snapshot. Keying this off loadState would leave
+  // of truth - not the load-time snapshot. Keying this off loadState would leave
   // the user stuck after they complete setup, since finishing writes to the doc
   // and never revisits how the app booted.
   const needsLocation =

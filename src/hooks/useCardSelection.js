@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from 'react';
  * Ctrl/Cmd+click toggles one; Shift+click extends a range within the same
  * column; a plain click clears.
  *
- * Selection is scoped to ONE student — selecting in another lane resets it.
+ * Selection is scoped to ONE student - selecting in another lane resets it.
  * That is a correctness guard, not a convenience: a bulk move that silently
  * spanned two students would write one child's record onto another's, and
  * nothing about the gesture would have warned you.

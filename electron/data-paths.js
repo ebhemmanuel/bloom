@@ -6,7 +6,7 @@
  * Two hard rules:
  *
  * 1. NEVER beside the .exe. The portable build unpacks to a random %TEMP%
- *    directory and runs from there — verified empirically, the unpack path shows
+ *    directory and runs from there - verified empirically, the unpack path shows
  *    up in app.log. `process.execPath` therefore points at the temp dir, not at
  *    the folder the teacher sees. Beyond that, the USB stick is a delivery
  *    vehicle for the app only: the record is born on the teacher's machine and
@@ -32,7 +32,7 @@ const PROBE_FILENAME = '.acc-write-test';
  * This matters far more than it looks. On a school Microsoft 365 tenant,
  * Known Folder Redirection points Documents at OneDrive BY DEFAULT. A teacher
  * who accepts a Documents default would silently sync student names, plan types,
- * and disability accommodations to the cloud — breaking the one promise the
+ * and disability accommodations to the cloud - breaking the one promise the
  * product is built on. Detecting this is the highest-value check in the app.
  */
 const SYNC_PATTERNS = [
@@ -53,7 +53,7 @@ function detectSync(dirPath) {
     return { synced: false, provider: null, network: false };
   }
 
-  // UNC path — a network share is off-machine by definition.
+  // UNC path - a network share is off-machine by definition.
   const network = /^\\\\/.test(dirPath) || /^\/\//.test(dirPath);
 
   for (const p of SYNC_PATTERNS) {
@@ -121,7 +121,7 @@ function probeLocation(dirPath) {
  * Candidate folders to offer at onboarding, best first.
  *
  * `documents` is the familiar, discoverable choice a teacher can back up
- * themselves — but it is offered SECOND and carries its probe result, because on
+ * themselves - but it is offered SECOND and carries its probe result, because on
  * a district machine it is very often redirected into OneDrive.
  */
 function suggestLocations(app) {
@@ -206,12 +206,12 @@ function parseDataDirArg(argv = process.argv) {
  *   1. --data-dir <path>                 (support / testing escape hatch)
  *   2. ACCOMMODATIONS_DATA_DIR env var
  *   3. the pointer file written at onboarding
- *   4. nothing — onboarding has not run
+ *   4. nothing - onboarding has not run
  *
  * Returns a status the renderer can act on. Critically, when the pointer names a
  * folder that has since disappeared (re-imaged machine, a Documents folder that
  * only existed on a since-removed drive) we return 'missing' rather than
- * silently starting fresh — an empty record is indistinguishable from data loss,
+ * silently starting fresh - an empty record is indistinguishable from data loss,
  * and a teacher must be given the chance to go find their file.
  */
 function resolveDataDir(app, argv = process.argv) {

@@ -164,7 +164,7 @@ export default function StudentContextMenu({
               </button>
               <p className="acc-ctx__note">
                 They stop appearing from this date on. Every earlier day keeps their record exactly
-                as it is — nothing is deleted.
+                as it is - nothing is deleted.
               </p>
             </>
           )}

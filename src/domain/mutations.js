@@ -6,7 +6,7 @@ import { ensureDay } from './seed.js';
 /**
  * Board mutations. Every function is pure and returns a new document.
  *
- * Each one refuses to touch a sealed day — corrections to history go through
+ * Each one refuses to touch a sealed day - corrections to history go through
  * `amendEntry` in resolve.js, which leaves an audit trail. Silently editing a
  * sealed day is precisely what an auditor looks for.
  */
@@ -29,7 +29,7 @@ function replaceStudentDay(doc, dateKey, studentId, updater) {
         ...day,
         // The teacher has now worked this day, so it is no longer just structure
         // created in bulk. Clearing the flag is what lets the day resolve
-        // normally again — including letting anything still blank on it seal as
+        // normally again - including letting anything still blank on it seal as
         // not_used, which is correct once someone has actually been here.
         backfilled: false,
         students: { ...day.students, [studentId]: next },
@@ -82,7 +82,7 @@ export function setEntryStatus(
 /**
  * Record that an accommodation was used more than once in the day.
  *
- * Only valid on Used / Used with Detail — a count on Refused or Unassigned would
+ * Only valid on Used / Used with Detail - a count on Refused or Unassigned would
  * be claiming repeated use of something that was not used.
  */
 export function setEntryUseCount(doc, dateKey, studentId, assignmentId, count, now = new Date()) {
@@ -126,7 +126,7 @@ export function setEntryDetail(doc, dateKey, studentId, assignmentId, detail, no
   });
 }
 
-/** Per-student, per-day notes — the last column of the swimlane. */
+/** Per-student, per-day notes - the last column of the swimlane. */
 export function setStudentNotes(doc, dateKey, studentId, notes, now = new Date()) {
   return replaceStudentDay(doc, dateKey, studentId, (studentDay) => {
     if (studentDay.notes === notes) return studentDay;
@@ -137,7 +137,7 @@ export function setStudentNotes(doc, dateKey, studentId, notes, now = new Date()
 /**
  * Mark a student absent (or present again).
  *
- * Marking absent resets every card to Unassigned — a student who was not there
+ * Marking absent resets every card to Unassigned - a student who was not there
  * cannot have received anything, so leaving a "Used" behind would be a false
  * record. Details are deliberately KEPT: they are the teacher's own words, and a
  * mis-click followed by an undo must not destroy them.
@@ -177,7 +177,7 @@ export function toggleStudentAbsent(doc, dateKey, studentId, reason = null) {
  * Apply a batch of patches as one operation.
  *
  * Bulk actions return patches rather than mutating, so the whole batch folds
- * into a single document version — which is what makes one Ctrl+Z undo an entire
+ * into a single document version - which is what makes one Ctrl+Z undo an entire
  * bulk action instead of unwinding it one card at a time.
  */
 export function applyPatches(doc, patches, now = new Date()) {
@@ -233,7 +233,7 @@ export function applyPatches(doc, patches, now = new Date()) {
  * 180 times a year. Pass `status: null` to clear.
  *
  * Only affects days created AFTER this point, plus optionally the day in view via
- * `applyToDate`. It deliberately does not walk backwards over history — silently
+ * `applyToDate`. It deliberately does not walk backwards over history - silently
  * rewriting weeks of past records because a default was added in March is exactly
  * the kind of retroactive edit the amendment log exists to prevent.
  */
@@ -255,7 +255,7 @@ export function setAssignmentDefault(
   if (!applyToDate) return next;
 
   // Apply to the visible day too, but only if the teacher hasn't already decided
-  // this entry themselves — a default must never overwrite an observation.
+  // this entry themselves - a default must never overwrite an observation.
   const day = next.days?.[applyToDate];
   const assignment = next.assignments.find((a) => a.id === assignmentId);
   if (!day || day.sealed || !assignment) return next;
@@ -301,7 +301,7 @@ export function setAssignmentDefault(
  * Mark an accommodation as not relevant to this teacher's subject (or undo it).
  *
  * Marking it also resets the entry on the day in view to unassigned and clears
- * any standing default — leaving a "Used" behind on a card that no longer counts
+ * any standing default - leaving a "Used" behind on a card that no longer counts
  * would be a claim about something this teacher does not deliver.
  */
 export function setAssignmentNotRelevant(
@@ -368,7 +368,7 @@ export function setAssignmentNotRelevant(
 
 // --- day notes & teacher absence --------------------------------------------
 
-/** Whole-day handoff notes — for a substitute, or for tomorrow-you. */
+/** Whole-day handoff notes - for a substitute, or for tomorrow-you. */
 export function setDayNotes(doc, dateKey, notes, now = new Date()) {
   const day = doc.days?.[dateKey];
   if (!day || day.notes === notes) return doc;
@@ -385,7 +385,7 @@ export function setDayNotes(doc, dateKey, notes, now = new Date()) {
 /** The line an absence report appends to the day notes. */
 export function absenceLine(reason, text) {
   const detail = String(text || '').trim();
-  return `Absence — ${reason}${detail ? `: ${detail}` : ''}`;
+  return `Absence - ${reason}${detail ? `: ${detail}` : ''}`;
 }
 
 /**
@@ -443,7 +443,7 @@ export function clearTeacherAbsence(doc, dateKey, now = new Date()) {
  * Unenrol a student from `fromDate` onward, or re-enrol them.
  *
  * Never a delete. They stop appearing on that day and after, and every earlier
- * day keeps them exactly as recorded — so the year-to-date record survives while
+ * day keeps them exactly as recorded - so the year-to-date record survives while
  * upcoming days stop being polluted by someone who left.
  */
 export function setStudentEnrollment(doc, studentId, unenrolledFrom) {
@@ -530,7 +530,7 @@ export function renameAccommodation(doc, assignmentId, label) {
 
 /**
  * Rename a preset. Every student using it moves together, and days already
- * recorded keep their `labelSnapshot` — so old reports still read as signed.
+ * recorded keep their `labelSnapshot` - so old reports still read as signed.
  */
 export function renameCatalogEntry(doc, catalogId, label) {
   const trimmed = String(label || '').trim();
@@ -552,7 +552,7 @@ export function updateCatalogEntry(doc, catalogId, changes) {
  * Archive a preset rather than deleting it.
  *
  * A hard delete would orphan every assignment pointing at it, and normalizeDoc
- * would then drop those assignments — taking their history with them. Archiving
+ * would then drop those assignments - taking their history with them. Archiving
  * only hides it from future pickers.
  */
 export function setCatalogArchived(doc, catalogId, archived) {
@@ -608,7 +608,7 @@ export function updateSettings(doc, changes) {
  * business deciding which. `shortName` is what fits in a lane header; it is
  * derived from the name when not given.
  *
- * Duplicate names are allowed on purpose — two sections of the same course are a
+ * Duplicate names are allowed on purpose - two sections of the same course are a
  * real thing, and refusing the second one would be the app arguing with the
  * timetable.
  */
@@ -637,7 +637,7 @@ export function addPeriod(doc, { name, shortName } = {}) {
 /**
  * A label short enough for a lane header.
  *
- * "Period 3 — Geometry" becomes "P3"; anything without a number falls back to
+ * "Period 3 - Geometry" becomes "P3"; anything without a number falls back to
  * its initials, so "Morning Block" reads "MB" rather than being truncated into
  * something unrecognisable.
  */

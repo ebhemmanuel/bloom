@@ -1,5 +1,5 @@
 /**
- * Domain vocabulary. Pure data — no React, no Electron, no I/O.
+ * Domain vocabulary. Pure data - no React, no Electron, no I/O.
  */
 
 /** Statuses that are actually written to data.json. */
@@ -11,7 +11,7 @@ export const STATUS = {
    * Offered, and the student declined it.
    *
    * Counts toward compliance. The obligation is on the teacher to provide the
-   * accommodation, not on the student to accept it — so a documented refusal is
+   * accommodation, not on the student to accept it - so a documented refusal is
    * what protects the teacher, and it must never be filed as a failure to
    * deliver. Reported as "addressed" but not as "delivered", because nothing was
    * actually used.
@@ -32,7 +32,7 @@ export const DERIVED_STATUS = {
    * The TEACHER was out that day.
    *
    * Anything left unrecorded on a day the teacher was absent must never resolve
-   * to "not used" — that would document them as failing to deliver support on a
+   * to "not used" - that would document them as failing to deliver support on a
    * day they were not in the building. Excluded from the compliance denominator,
    * and reported as its own reason so the record explains itself rather than
    * merely staying silent.
@@ -80,7 +80,7 @@ export const DROPPABLE_STATUSES = BOARD_COLUMNS.map((c) => c.id);
 
 /**
  * Single-character glyphs for the printed report. Status must never be conveyed
- * by color alone — these sheets get photocopied in monochrome.
+ * by color alone - these sheets get photocopied in monochrome.
  */
 export const STATUS_GLYPH = {
   [STATUS.UNASSIGNED]: '·',
@@ -115,7 +115,7 @@ export const ABSENCE_REASONS = [
 ];
 
 /**
- * Reasons the TEACHER was out — distinct from a student absence above.
+ * Reasons the TEACHER was out - distinct from a student absence above.
  *
  * A day the teacher missed explains why the record is thin, which is exactly the
  * context an auditor needs before reading a sparse day as non-delivery.

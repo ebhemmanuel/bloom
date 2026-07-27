@@ -3,7 +3,7 @@ import { useState } from 'react';
 /**
  * Multi-select chips with optional free entry.
  *
- * Used for subjects and grade levels — both are genuinely multi-valued
+ * Used for subjects and grade levels - both are genuinely multi-valued
  * (secondary teachers routinely teach two subjects across three grades), so a
  * single-select dropdown would be wrong.
  */

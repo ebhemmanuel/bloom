@@ -2,7 +2,7 @@
  * Floating action notice.
  *
  * Anchored just outside the board container and expanding upward, rather than
- * pushing into the flow as a banner — a notice about an action you just took
+ * pushing into the flow as a banner - a notice about an action you just took
  * should not shove the lanes you are reading down the page.
  */
 export default function Toast({ tone = 'ok', text, confirmLabel, onConfirm, onDismiss }) {

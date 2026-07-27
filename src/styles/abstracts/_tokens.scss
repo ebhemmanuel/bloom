@@ -9,7 +9,7 @@
 // palette swap is a token-only edit.
 //
 // Direction: warm, low-saturation, violet-leaning neutrals with pastel status
-// accents — morning light on paper, not a SaaS dashboard. Softness lives in
+// accents - morning light on paper, not a SaaS dashboard. Softness lives in
 // color, radius, shadow and motion; it never costs contrast.
 //
 // Light is primary on purpose. This is a daylight classroom tool that prints
@@ -34,7 +34,7 @@ $acc-tokens: (
   'border-focus': #5b4bd6,
 
   // Text -------------------------------------------------------------------
-  // Never pure black — #2a2438 carries the same violet warmth as the surfaces,
+  // Never pure black - #2a2438 carries the same violet warmth as the surfaces,
   // so text sits in the palette instead of punching a hole through it.
   'fg': #2a2438,
   'fg-muted': #6b6480,
@@ -49,7 +49,7 @@ $acc-tokens: (
 
   // Status ------------------------------------------------------------------
   // Deliberately NOT a red/green pass-fail axis. "Not Used" is a fact, not a
-  // failure — a student may have been absent or simply not needed the support.
+  // failure - a student may have been absent or simply not needed the support.
   // Amber reads as "note this"; red would read as "you failed a disabled child",
   // which is both wrong and cruel on a report a teacher has to sign.
   'status-unassigned': #7a7391,
@@ -141,17 +141,17 @@ $acc-tokens: (
   'space-7': 32px,
   'space-8': 48px,
 
-  // Radii — larger than a typical app scale; a meaningful part of "soft".
+  // Radii - larger than a typical app scale; a meaningful part of "soft".
   'radius-sm': 4px,
   'radius-md': 8px,
   'radius-lg': 14px,
   'radius-xl': 20px,
-  // The board card's top corners. Bottom stays square — it runs off the
+  // The board card's top corners. Bottom stays square - it runs off the
   // viewport edge rather than ending.
   'radius-container': 20px,
   'radius-pill': 999px,
 
-  // Elevation — violet-tinted, never neutral grey-black.
+  // Elevation - violet-tinted, never neutral grey-black.
   'shadow-card': 0 1px 2px rgba(42, 36, 56, 0.06),
   'shadow-raised': 0 4px 12px -2px rgba(42, 36, 56, 0.1),
   'shadow-overlay': 0 12px 32px -8px rgba(42, 36, 56, 0.18),
@@ -169,7 +169,7 @@ $acc-tokens: (
   'dur-slow': 420ms,
   'dur-ambient': 900ms,
   'dur-drift': 24s,
-  // Cascade: 45ms between siblings, total capped at 400ms (~8 items) — past
+  // Cascade: 45ms between siblings, total capped at 400ms (~8 items) - past
   // that, remaining items share the final step. An uncapped stagger makes a
   // 30-lane board take 1.4s to assemble: delightful once, infuriating daily.
   'stagger-step': 45ms,
@@ -188,7 +188,7 @@ $acc-tokens: (
   'notes-col-w': 220px
 );
 
-// Dark theme deltas. Only values that actually change are listed — the rest
+// Dark theme deltas. Only values that actually change are listed - the rest
 // fall through to the base map.
 $acc-tokens-dark: (
   'bg': #191621,

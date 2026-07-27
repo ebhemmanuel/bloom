@@ -1,5 +1,5 @@
 // Day notes popover. Values taken directly from the prototype rather than
-// approximated from the token scale — this panel has its own tighter type.
+// approximated from the token scale - this panel has its own tighter type.
 
 .acc-daypanel {
   position: absolute;
@@ -59,7 +59,7 @@
     gap: 4px;
   }
 
-  // Borderless on a sunken fill until focused — the resting state should read as
+  // Borderless on a sunken fill until focused - the resting state should read as
   // a place to write, not as a form control.
   &__textarea {
     padding: 10px;
@@ -212,7 +212,7 @@
     }
   }
 
-  // Full width, and no Cancel beside it — closing the popover cancels.
+  // Full width, and no Cancel beside it - closing the popover cancels.
   &__submit {
     inline-size: 100%;
     height: 34px;

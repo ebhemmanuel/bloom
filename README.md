@@ -10,9 +10,9 @@ A standalone, fully offline Windows desktop app for teachers to record daily IEP
 
 | If you are…             | Read                                                                                                                                     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Designing this**      | [`docs/DESIGN_REQUIREMENTS.md`](docs/DESIGN_REQUIREMENTS.md) — palette, motion system, screen-by-screen specs, and what's fixed vs. open |
-| **Building this**       | [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — architecture, the `data.json` schema, phased order                        |
-| **Working in the code** | [`CLAUDE.md`](CLAUDE.md) — conventions and the rules that must not be broken                                                             |
+| **Designing this**      | [`docs/DESIGN_REQUIREMENTS.md`](docs/DESIGN_REQUIREMENTS.md) - palette, motion system, screen-by-screen specs, and what's fixed vs. open |
+| **Building this**       | [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) - architecture, the `data.json` schema, phased order                        |
+| **Working in the code** | [`CLAUDE.md`](CLAUDE.md) - conventions and the rules that must not be broken                                                             |
 
 ---
 
@@ -26,7 +26,7 @@ npm install
 npm run dev
 ```
 
-Renderer only, in a browser at `http://localhost:5180`. The Electron bridge is stubbed to `localStorage`, so the board is usable for UI work but is **not** the real data store — a banner says so.
+Renderer only, in a browser at `http://localhost:5180`. The Electron bridge is stubbed to `localStorage`, so the board is usable for UI work but is **not** the real data store - a banner says so.
 
 ```bash
 npm run dev:electron
@@ -56,14 +56,14 @@ The domain suite. Should stay green at all times.
 npm run electron:build
 ```
 
-Produces `dist-electron/Accommodations-Tracker.exe` — a single portable file, no installer.
+Produces `dist-electron/Accommodations-Tracker.exe` - a single portable file, no installer.
 
 ---
 
 ## Architecture in one page
 
 ```
-electron/          main process — CommonJS
+electron/          main process - CommonJS
   main.js          window, lifecycle, single-instance lock
   security.js      CSP + network kill switch  ← the offline guarantee
   preload.js       the entire main↔renderer contract, one namespace
@@ -74,7 +74,7 @@ electron/          main process — CommonJS
 src/
   domain/          PURE. no React, no Electron, no I/O. the test target.
   components/      React + SCSS/BEM
-  print/           the PDF views — deliberately share no markup with the board
+  print/           the PDF views - deliberately share no markup with the board
   styles/          tokens, motion primitives, component styles
 ```
 
@@ -82,14 +82,14 @@ src/
 
 ### Where the data file lives, and why
 
-Not next to the `.exe` — ever. Two reasons:
+Not next to the `.exe` - ever. Two reasons:
 
 1. The portable build unpacks to a random `%TEMP%` directory and runs from there, so `process.execPath` points at the temp dir, not the folder the teacher sees.
 2. The USB stick is a delivery vehicle for the _app_. The record is born on the teacher's machine and stays there, so copying the app folder never carries student data with it.
 
 Instead, onboarding asks for a folder and writes a **pointer** to `%APPDATA%\Accommodations Tracker\location.json`. That is on the local machine and scoped per Windows account, so it's inherently per-teacher on a shared computer and cannot travel on the stick.
 
-> **The OneDrive problem.** On a school Microsoft 365 tenant, Known Folder Redirection points Documents at OneDrive **by default**. Defaulting there would sync student names, plan types, and disability accommodations to the cloud. `data-paths.js` detects this — including the tenant-branded `OneDrive - Northside ISD` shape — and offers a local-only alternative. This is the highest-value check in the app.
+> **The OneDrive problem.** On a school Microsoft 365 tenant, Known Folder Redirection points Documents at OneDrive **by default**. Defaulting there would sync student names, plan types, and disability accommodations to the cloud. `data-paths.js` detects this - including the tenant-branded `OneDrive - Northside ISD` shape - and offers a local-only alternative. This is the highest-value check in the app.
 
 ### How "not used" is decided
 
@@ -99,7 +99,7 @@ An accommodation left unassigned when the school day's cycle closes resolves to 
 
 _No data was recorded_ and _the accommodation was not delivered_ are different claims, and conflating them would manufacture a compliance failure the teacher never committed. `sealDay` only ever touches dates that already have a record, so a teacher returning from three weeks' absence finds fifteen days of "no record" rather than fifteen days of documented failure. If one decision in this codebase is load-bearing, it is that one.
 
-Sealed days are read-only. Correcting one requires an explicit **Amend** action that appends to a per-day audit log and leaves the day sealed — IEP records get audited, and an append-only amendment trail is what makes a correction defensible rather than suspicious.
+Sealed days are read-only. Correcting one requires an explicit **Amend** action that appends to a per-day audit log and leaves the day sealed - IEP records get audited, and an append-only amendment trail is what makes a correction defensible rather than suspicious.
 
 ---
 
@@ -107,15 +107,15 @@ Sealed days are read-only. Correcting one requires an explicit **Amend** action 
 
 | Phase                            | State                                                                                                                                                                                         |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0 — Skeleton, configs, packaging | **Done.** Portable exe builds, launches, renders; smoke gate in place                                                                                                                         |
-| 1 — Domain layer + data store    | **In progress.** `constants` `dates` `ids` `schema` `resolve` + `data-paths` done, 91 tests green. Remaining: `data-store` `seed` `selectors` `mutations` `bulkActions` `report` `migrations` |
-| 2 — Kanban board MVP             | Not started                                                                                                                                                                                   |
-| 3 — Catalog, roster, assignments | Not started                                                                                                                                                                                   |
-| 4 — Cycle logic and sealing      | Not started                                                                                                                                                                                   |
-| 5 — Bulk actions                 | Not started                                                                                                                                                                                   |
-| 6 — PDF export                   | Not started                                                                                                                                                                                   |
-| 7 — Splash + onboarding          | Not started                                                                                                                                                                                   |
-| 8 — Hardening and ship           | Not started                                                                                                                                                                                   |
+| 0 - Skeleton, configs, packaging | **Done.** Portable exe builds, launches, renders; smoke gate in place                                                                                                                         |
+| 1 - Domain layer + data store    | **In progress.** `constants` `dates` `ids` `schema` `resolve` + `data-paths` done, 91 tests green. Remaining: `data-store` `seed` `selectors` `mutations` `bulkActions` `report` `migrations` |
+| 2 - Kanban board MVP             | Not started                                                                                                                                                                                   |
+| 3 - Catalog, roster, assignments | Not started                                                                                                                                                                                   |
+| 4 - Cycle logic and sealing      | Not started                                                                                                                                                                                   |
+| 5 - Bulk actions                 | Not started                                                                                                                                                                                   |
+| 6 - PDF export                   | Not started                                                                                                                                                                                   |
+| 7 - Splash + onboarding          | Not started                                                                                                                                                                                   |
+| 8 - Hardening and ship           | Not started                                                                                                                                                                                   |
 
 The Phase 0 boot screen in `src/App.jsx` is scaffolding and gets replaced in Phase 2.
 

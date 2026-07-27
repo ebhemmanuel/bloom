@@ -14,7 +14,7 @@ import { formatDateMedium } from '../../domain/dates.js';
  * then apply that shape across a group and adjust the individuals afterwards.
  *
  * Copying only ADDS. It never removes what a target already has, and it skips
- * anything they already have — so running it twice changes nothing, and a
+ * anything they already have - so running it twice changes nothing, and a
  * mis-click cannot wipe out a student's existing plan.
  */
 export default function CopyAccommodationsModal({ onClose }) {
@@ -61,7 +61,7 @@ export default function CopyAccommodationsModal({ onClose }) {
     <Modal
       wide
       title="Copy accommodations"
-      subtitle="Use one student as a template for others. Copying only adds — nothing is removed or overwritten."
+      subtitle="Use one student as a template for others. Copying only adds - nothing is removed or overwritten."
       onClose={onClose}
     >
       <div className="acc-copymod">

@@ -12,7 +12,7 @@
  * happen.
  *
  * The header and footer are ours, not Chromium's. Left alone, Chromium prints
- * the document title top-left and the page URL top-right — so a teacher's
+ * the document title top-left and the page URL top-right - so a teacher's
  * compliance record went to the district with "http://localhost:5180/" across
  * the top of it. `displayHeaderFooter` with our own templates is the only way to
  * suppress that AND still get a page number, because Chromium does not support

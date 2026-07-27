@@ -14,7 +14,7 @@ import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
  *
  * CRITICAL: nothing in here may be called automatically for an arbitrary past
  * date. Creating a record retroactively converts `no_record` into `unassigned`,
- * which the next seal turns into `not_used` — silently manufacturing documented
+ * which the next seal turns into `not_used` - silently manufacturing documented
  * non-delivery for a day nobody ever worked on. `ensureDay` is therefore an
  * explicit action: it runs for today, or when a teacher deliberately opens a
  * past day and asks to start a record for it.
@@ -25,7 +25,7 @@ import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
  *
  * Deliberately NOT filtered by `createdAt`. That field records when the row was
  * typed into the app, which is not the same as when the student joined the class
- * — and treating it as an enrolment date breaks the most ordinary workflow there
+ * - and treating it as an enrolment date breaks the most ordinary workflow there
  * is: set up the roster today, then backfill last week. Every student would
  * silently disappear from every past board.
  *
@@ -41,7 +41,7 @@ export function activeStudentsFor(doc, dateKey) {
       // untouched while upcoming days stop carrying them.
       .filter((s) => !s.unenrolledFrom || dateKey < s.unenrolledFrom)
       // Enrolment is the mirror. A student added in January gets no entries
-      // written for September — there is nothing to record for a day they were
+      // written for September - there is nothing to record for a day they were
       // not in the program, and writing blank entries would only invite them to
       // be sealed into non-delivery later.
       .filter((s) => !s.enrolledFrom || dateKey >= s.enrolledFrom)
@@ -80,7 +80,7 @@ export function activeAssignmentsFor(doc, studentId, dateKey) {
  *
  * If the student has a standing default on this accommodation, the entry starts
  * at that status with `resolvedBy: 'default'` rather than `'user'`. The teacher
- * did not observe anything yet, and the record has to say so — otherwise a
+ * did not observe anything yet, and the record has to say so - otherwise a
  * permanent arrangement and a same-day observation become indistinguishable on an
  * audited document.
  */
@@ -208,7 +208,7 @@ export function dayHasWork(doc, dateKey) {
  * status to unassigned. `full` also copies statuses and details.
  *
  * The default must be `structure`. Copying yesterday's "Used" into today
- * produces a record asserting delivery that did not happen — that is a
+ * produces a record asserting delivery that did not happen - that is a
  * fabricated compliance claim, not a convenience. `full` remains available
  * because some teachers genuinely run identical daily routines, but it is gated
  * behind an explicit confirmation and stamps `seedMode` for provenance.
@@ -299,7 +299,7 @@ export function copyFromPreviousDay(
  * other, and a backfilled day the teacher has worked on stops being backfilled.
  *
  * Without that marker this function would be the exact catastrophe `sealDay` is
- * written to avoid — 60 school days × every student × every accommodation,
+ * written to avoid - 60 school days × every student × every accommodation,
  * stamped as documented non-delivery by an app the teacher had just installed.
  *
  * Existing days are never touched, sealed or not. Weekends and non-instructional

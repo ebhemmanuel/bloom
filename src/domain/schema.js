@@ -70,7 +70,7 @@ export function createEmptyDoc(now = new Date()) {
 // --- Normalisation ---------------------------------------------------------
 
 /**
- * Forgiving, coercing normaliser — NOT a validator.
+ * Forgiving, coercing normaliser - NOT a validator.
  *
  * It repairs whatever it can and reports what it did. It must never throw and
  * must never refuse to open a file. For a compliance tool, "your record won't
@@ -88,7 +88,7 @@ export function normalizeDoc(raw, now = new Date()) {
   if (!isObj(raw)) {
     return {
       doc: createEmptyDoc(now),
-      repairs: ['File was not a JSON object — started a new record.'],
+      repairs: ['File was not a JSON object - started a new record.'],
     };
   }
 
@@ -233,12 +233,12 @@ export function normalizeDoc(raw, now = new Date()) {
          *
          * A soft end, never a delete: they disappear from that day FORWARD while
          * every earlier day keeps them exactly as recorded. Deleting the row
-         * instead would take their year-to-date compliance history with it —
+         * instead would take their year-to-date compliance history with it,
          * which is the one thing this file exists to preserve.
          */
         unenrolledFrom: isValidDateKey(st.unenrolledFrom) ? st.unenrolledFrom : null,
         /**
-         * The student joined this class on this date — the mirror of the above.
+         * The student joined this class on this date - the mirror of the above.
          *
          * Set when a student is added part-way through the year. Every day before
          * it resolves as `not_applicable`, never `not_used`: they were not in the
@@ -301,7 +301,7 @@ export function normalizeDoc(raw, now = new Date()) {
          * day is seeded with this status instead of `unassigned`, so a permanent
          * arrangement does not have to be re-marked 180 times.
          *
-         * Only `used` and `used_with_detail` are defaultable — defaulting
+         * Only `used` and `used_with_detail` are defaultable - defaulting
          * `not_used` would fabricate non-delivery.
          */
         defaultStatus: DEFAULTABLE_STATUSES.includes(a.defaultStatus) ? a.defaultStatus : null,
@@ -311,7 +311,7 @@ export function normalizeDoc(raw, now = new Date()) {
          * Not relevant to THIS teacher's subject.
          *
          * A student's plan is written for their whole schedule, so it can list
-         * accommodations that mean nothing in this room — "read aloud" in a PE
+         * accommodations that mean nothing in this room - "read aloud" in a PE
          * class. Marking it excludes the card from this class's totals and makes
          * it resolve NOT_APPLICABLE, never NOT_USED: the accommodation is not
          * this teacher's to deliver, so it must never read as one they missed.
@@ -323,7 +323,7 @@ export function normalizeDoc(raw, now = new Date()) {
         // activeFrom doubles as the spec's `assignedFrom`: an accommodation added
         // mid-year records from that day FORWARD only, so earlier days never
         // retroactively gain a card and get sealed as Not Used. Deliberately one
-        // field rather than two — a second date meaning the same thing is a
+        // field rather than two - a second date meaning the same thing is a
         // correctness hazard the moment they disagree.
         activeFrom: isValidDateKey(a.activeFrom) ? a.activeFrom : null,
         activeTo: isValidDateKey(a.activeTo) ? a.activeTo : null,
@@ -414,7 +414,7 @@ export function normalizeDoc(raw, now = new Date()) {
       date: dateKey,
       createdAt: asString(rawDay.createdAt, base.app.createdAt),
       /**
-       * Whole-day handoff notes — for a substitute, or for tomorrow-you.
+       * Whole-day handoff notes - for a substitute, or for tomorrow-you.
        * Distinct from the per-student notes in `students[].notes`.
        */
       notes: asString(rawDay.notes),
@@ -436,8 +436,8 @@ export function normalizeDoc(raw, now = new Date()) {
        * This day's structure was created in bulk back to the start of the year,
        * not by a teacher working that day.
        *
-       * It is what lets the grid exist for every school day — so nothing has to
-       * be created before it can be filled in — WITHOUT the mere existence of the
+       * It is what lets the grid exist for every school day - so nothing has to
+       * be created before it can be filled in - WITHOUT the mere existence of the
        * record asserting that nothing was delivered. An entry nobody has touched
        * on a backfilled day resolves as `no_record`, not `not_used`. The moment
        * the teacher records anything on that entry, it behaves like any other.
@@ -482,7 +482,7 @@ export function assignmentLabel(assignment, catalogById) {
  * Note `defaultStatus` / `defaultDetail` always come from the ASSIGNMENT, never
  * the catalog entry, in both branches. A standing default is a decision about one
  * student ("Marcus always has preferential seating"), not a property of the
- * accommodation itself — putting it on the catalog would silently apply it to
+ * accommodation itself - putting it on the catalog would silently apply it to
  * every student who shares that accommodation.
  */
 export function assignmentConfig(assignment, catalogById) {
@@ -507,7 +507,7 @@ export function assignmentConfig(assignment, catalogById) {
     detailPrompt: c?.detailPrompt ?? null,
     bulkEligible: Boolean(c?.bulkEligible),
     bulkActions: c?.bulkActions || [],
-    // From the assignment, not the catalog — see the note above.
+    // From the assignment, not the catalog - see the note above.
     defaultStatus: assignment.defaultStatus ?? null,
     defaultDetail: assignment.defaultDetail || '',
   };

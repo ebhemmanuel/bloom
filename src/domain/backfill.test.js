@@ -73,7 +73,7 @@ describe('backfilling the year', () => {
 
   /**
    * Once a teacher has actually worked a day, it is a real day. Anything still
-   * blank on it resolves normally — that is a genuine "I was here and this did
+   * blank on it resolves normally - that is a genuine "I was here and this did
    * not happen", which is exactly what not_used is for.
    */
   it('stops being backfilled the moment the teacher records anything', () => {
@@ -108,7 +108,7 @@ describe('a student enrolled part-way through the year', () => {
   /**
    * The line that must not be crossed. A student who was not in the class cannot
    * have been denied an accommodation in it, so their earlier days are not
-   * applicable — never "not used", which would be a documented failure the
+   * applicable - never "not used", which would be a documented failure the
    * teacher did not commit against a student who was not there.
    */
   it('resolves every earlier day as not applicable, never not used', () => {

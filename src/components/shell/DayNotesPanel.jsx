@@ -25,7 +25,7 @@ export default function DayNotesPanel({ onClose }) {
   const [detail, setDetail] = useState('');
   const timer = useRef(null);
   const latest = useRef(model.dayNotes || '');
-  // What the debounce is holding, plus a live handle on the writer — the
+  // What the debounce is holding, plus a live handle on the writer - the
   // unmount cleanup can't read either from the closure it was created in.
   const pending = useRef(null);
   const flush = useRef(null);
@@ -129,7 +129,7 @@ export default function DayNotesPanel({ onClose }) {
           {absence ? (
             <div className="acc-daypanel__reported">
               <p className="acc-daypanel__reported-text">
-                Absence noted — {absence.reason}
+                Absence noted - {absence.reason}
                 {absence.text ? `: ${absence.text}` : ''}. This prints in the report header, so
                 whoever reads the record knows why entries are thin.
               </p>
@@ -165,7 +165,7 @@ export default function DayNotesPanel({ onClose }) {
                 placeholder="Anything to add? (optional)"
                 onKeyDown={(e) => e.key === 'Enter' && submitAbsence()}
               />
-              {/* No Cancel — closing the popover cancels. */}
+              {/* No Cancel - closing the popover cancels. */}
               <button type="button" className="acc-daypanel__submit" onClick={submitAbsence}>
                 Add to notes
               </button>

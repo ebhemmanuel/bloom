@@ -41,7 +41,7 @@ function SwimlaneHeader({
   return (
     <header
       className="acc-lane__header"
-      // Right-click anywhere on the header row, not just the text — the name is
+      // Right-click anywhere on the header row, not just the text - the name is
       // a small target and the row is what reads as "this student".
       onContextMenu={(event) => {
         event.preventDefault();
@@ -110,7 +110,7 @@ function SwimlaneHeader({
         title={
           lane.absent
             ? `Mark ${lane.displayName} present`
-            : `Mark ${lane.displayName} absent — excluded from compliance totals`
+            : `Mark ${lane.displayName} absent - excluded from compliance totals`
         }
       >
         {lane.absent ? 'Absent' : 'Mark absent'}

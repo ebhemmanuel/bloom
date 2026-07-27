@@ -23,7 +23,7 @@ import { todayKey, formatDateMedium, addDays } from '../../domain/dates.js';
  * Look a student up, then manage their accommodations and their enrolment.
  *
  * Nothing here hard-deletes. Removing an accommodation ends it from a date, and
- * unenroling a student ends them from a date — both keep every earlier day
+ * unenroling a student ends them from a date - both keep every earlier day
  * exactly as recorded, because this file is a compliance history first and a
  * roster second.
  */
@@ -250,7 +250,7 @@ export default function StudentAccommodationsModal({ onClose }) {
                     disabled={readOnly}
                   />
                   <span className="acc-field__hint">
-                    Records from {formatDateMedium(dateKey)} forward — earlier days are untouched.
+                    Records from {formatDateMedium(dateKey)} forward - earlier days are untouched.
                   </span>
                 </label>
 
@@ -311,7 +311,7 @@ export default function StudentAccommodationsModal({ onClose }) {
                   </button>
                 )}
                 <span className="acc-stumod__foot-hint">
-                  Nothing here deletes history — both actions are dated, so past days keep every
+                  Nothing here deletes history - both actions are dated, so past days keep every
                   record exactly as it was.
                 </span>
               </footer>

@@ -8,14 +8,14 @@ import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 /**
  * Ctrl+Space: jump to a student.
  *
- * A frosted sheet over the whole app rather than a dropdown — on a board of
+ * A frosted sheet over the whole app rather than a dropdown - on a board of
  * thirty lanes the fastest way to reach one student is to stop looking at the
  * other twenty-nine, so the overlay deliberately obscures what is behind it.
  *
  * Selecting a student filters the board to them and clears when dismissed, so
  * this is navigation rather than a filter the teacher has to remember to undo.
  *
- * Mounted only while open — App renders it conditionally rather than passing an
+ * Mounted only while open - App renders it conditionally rather than passing an
  * `open` prop. Unmounting is what resets the dismiss animation, so the sheet can
  * be closed on its second opening as well as its first.
  */
@@ -34,7 +34,7 @@ export default function CommandPalette({ onClose }) {
    * sizes as results filter instead of snapping to each one.
    *
    * This has to be measured. A CSS transition needs two lengths to interpolate
-   * between, and a box sized by its contents is `auto` before and after — there
+   * between, and a box sized by its contents is `auto` before and after - there
    * is nothing to animate. So the content is measured and published as a custom
    * property that the stylesheet transitions.
    */
@@ -51,7 +51,7 @@ export default function CommandPalette({ onClose }) {
   // size rather than growing into it.
   useLayoutEffect(measure);
 
-  // Backstop for size changes that happen without a render — a font finishing
+  // Backstop for size changes that happen without a render - a font finishing
   // loading, a long student name rewrapping when the window narrows.
   useEffect(() => {
     const content = contentRef.current;
@@ -79,7 +79,7 @@ export default function CommandPalette({ onClose }) {
    * Students and periods in one list.
    *
    * A teacher navigating mid-lesson thinks in whichever unit is in front of them
-   * — "where's Priya" or "pull up period 3" — so making them choose a mode first
+   * - "where's Priya" or "pull up period 3" - so making them choose a mode first
    * would be asking them to translate their own question before asking it.
    * Periods sort above students, since a period is a bigger jump.
    */
@@ -142,7 +142,7 @@ export default function CommandPalette({ onClose }) {
       return;
     }
     // Ctrl+Space closes as well as opens, and it has to fade out the same way
-    // Escape does — which is why the global shortcut below only ever opens.
+    // Escape does - which is why the global shortcut below only ever opens.
     if (e.code === 'Space' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       dismiss();
@@ -243,7 +243,7 @@ export default function CommandPalette({ onClose }) {
 /**
  * Ctrl/Cmd+Space anywhere in the app.
  *
- * Opens only. Closing belongs to the palette itself, which animates its exit —
+ * Opens only. Closing belongs to the palette itself, which animates its exit;
  * a toggle here would unmount it mid-fade, so the same keystroke would open
  * gently and close with a cut.
  */

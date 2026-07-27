@@ -54,7 +54,7 @@ export function DataProvider({ children }) {
 
       if (result.status === 'unconfigured' || result.status === 'missing') {
         // Onboarding has not run, or the pointer names a folder that has gone.
-        // Deliberately do NOT create an empty record here — an empty record is
+        // Deliberately do NOT create an empty record here - an empty record is
         // indistinguishable from data loss, and the user must get a real choice.
         setMeta({ ...(result.meta || {}), locationStatus: result.status });
         setLoadState({ status: 'needs-location', stage: 'locating', progress: 1 });
@@ -80,7 +80,7 @@ export function DataProvider({ children }) {
 
       stage('preparing', 0.85);
 
-      // Seal any completed day that already has a record — but only if the clock
+      // Seal any completed day that already has a record - but only if the clock
       // is trustworthy. A wrong BIOS clock or a district re-image must never be
       // able to rewrite history.
       let next = normalised;
@@ -95,7 +95,7 @@ export function DataProvider({ children }) {
         // does not have a record yet, so the teacher never has to create a day
         // before they can fill it in. Every day this creates is flagged
         // `backfilled`, which is what stops a laid-out day from reading as
-        // documented non-delivery — see backfillDays.
+        // documented non-delivery - see backfillDays.
         //
         // Runs AFTER sealing on purpose: sealing must only ever see days a
         // teacher actually worked, never ones this just created.
@@ -140,7 +140,7 @@ export function DataProvider({ children }) {
 
   useEffect(() => dataBridge.onStatus?.(setSaveStatus), []);
 
-  // Flush on hide. Never rely on a clean quit — the real failure mode is a
+  // Flush on hide. Never rely on a clean quit - the real failure mode is a
   // laptop lid closing or district policy shutting the machine down.
   useEffect(() => {
     const flush = () => dataBridge.flush?.();
@@ -159,7 +159,7 @@ export function DataProvider({ children }) {
 
   /**
    * Apply a pure domain function to the document.
-   * `mutate((doc) => nextDoc)` — returning the same reference is a no-op.
+   * `mutate((doc) => nextDoc)` - returning the same reference is a no-op.
    */
   const mutate = useCallback((fn) => {
     setDoc((current) => {

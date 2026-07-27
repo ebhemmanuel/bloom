@@ -1,7 +1,7 @@
 /**
  * Initials for the avatar. "Ms. Rivera" → R, "Jordan Alvarez" → JA.
  *
- * A leading honorific is dropped WITH its trailing period — otherwise "Ms."
+ * A leading honorific is dropped WITH its trailing period - otherwise "Ms."
  * leaves a bare "." behind and the avatar reads ".R". Only word-initial letters
  * are used, so punctuation can never reach the avatar.
  *

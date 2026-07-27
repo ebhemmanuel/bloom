@@ -12,7 +12,7 @@ import {
   relativeDayLabel,
 } from './dates.js';
 
-describe('toDateKey — local calendar, never UTC', () => {
+describe('toDateKey - local calendar, never UTC', () => {
   it('uses local date components', () => {
     expect(toDateKey(new Date(2026, 8, 15, 10, 30))).toBe('2026-09-15');
   });
@@ -26,7 +26,7 @@ describe('toDateKey — local calendar, never UTC', () => {
     expect(toDateKey(evening)).toBe('2026-09-15');
 
     if (evening.getTimezoneOffset() > 0) {
-      // Only meaningful in a western timezone — assert the naive approach really
+      // Only meaningful in a western timezone - assert the naive approach really
       // would have been wrong, so the test proves something.
       expect(evening.toISOString().slice(0, 10)).not.toBe(toDateKey(evening));
     }
@@ -68,7 +68,7 @@ describe('isValidDateKey', () => {
   });
 });
 
-describe('addDays — DST and boundary safety', () => {
+describe('addDays - DST and boundary safety', () => {
   it('crosses the US spring-forward boundary without losing a day', () => {
     // 2027-03-14 is the US DST start. A naive +86400000ms lands on the 14th twice.
     expect(addDays('2027-03-13', 1)).toBe('2027-03-14');

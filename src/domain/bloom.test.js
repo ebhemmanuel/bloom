@@ -212,12 +212,12 @@ describe('day notes and teacher absence', () => {
       reason: 'Out sick',
       text: 'Back Thursday',
     });
-    expect(doc.days[WED].notes).toBe('Quiz moved to Friday.\nAbsence — Out sick: Back Thursday');
+    expect(doc.days[WED].notes).toBe('Quiz moved to Friday.\nAbsence - Out sick: Back Thursday');
   });
 
   it('works when there were no notes yet', () => {
     const doc = reportTeacherAbsence(withDay(makeDoc(), WED, {}), WED, 'TDY', '');
-    expect(doc.days[WED].notes).toBe('Absence — TDY');
+    expect(doc.days[WED].notes).toBe('Absence - TDY');
   });
 
   it('undo removes both the record and the appended line', () => {
@@ -243,8 +243,8 @@ describe('day notes and teacher absence', () => {
   });
 
   it('formats the absence line consistently', () => {
-    expect(absenceLine('TDY', '')).toBe('Absence — TDY');
-    expect(absenceLine('Out sick', 'back Thu')).toBe('Absence — Out sick: back Thu');
+    expect(absenceLine('TDY', '')).toBe('Absence - TDY');
+    expect(absenceLine('Out sick', 'back Thu')).toBe('Absence - Out sick: back Thu');
   });
 });
 
@@ -282,7 +282,7 @@ describe('a day the TEACHER was out never resolves to Not Used', () => {
   });
 
   it('keeps whatever the teacher DID record before leaving', () => {
-    // "Left early" and "Sub covered" are partial days — real entries still stand.
+    // "Left early" and "Sub covered" are partial days - real entries still stand.
     let doc = withDay(makeDoc(), WED, {
       [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.USED } },
     });

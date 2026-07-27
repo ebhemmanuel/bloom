@@ -47,7 +47,7 @@ function createWindow() {
       sandbox: true,
       webviewTag: false,
       // No remote content is ever loaded, so there is nothing to isolate against
-      // besides our own renderer — but keep the defaults strict regardless.
+      // besides our own renderer - but keep the defaults strict regardless.
       spellcheck: false,
     },
   });
@@ -122,7 +122,7 @@ if (!gotLock) {
   });
 }
 
-// Durability. The real failure mode is not a clean quit — it is a lid closing or
+// Durability. The real failure mode is not a clean quit - it is a lid closing or
 // district policy shutting the machine down mid-edit, so flush on every exit path
 // we can observe rather than trusting 'before-quit' alone.
 app.on('before-quit', flushPendingWrites);

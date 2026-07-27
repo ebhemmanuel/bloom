@@ -22,7 +22,7 @@ const nextMorning = new Date(2026, 8, 17, 7, 45); // Thu 07:45
 
 const status = (doc, date, student, asg, now) => effectiveStatus(doc, date, student, asg, now);
 
-describe('effectiveStatus — precedence chain', () => {
+describe('effectiveStatus - precedence chain', () => {
   it('returns no_record when the day was never opened', () => {
     const doc = makeDoc();
     expect(status(doc, WED, T.jordan, T.asgJordanExtTime, beforeCycle)).toBe(
@@ -54,7 +54,7 @@ describe('effectiveStatus — precedence chain', () => {
   it('resolves unassigned to not_used once the cycle closes, WITHOUT persisting it', () => {
     const doc = withDay(makeDoc(), WED, {});
     expect(status(doc, WED, T.jordan, T.asgJordanExtTime, afterCycle)).toBe(STATUS.NOT_USED);
-    // The stored value is untouched — resolution is lazy.
+    // The stored value is untouched - resolution is lazy.
     expect(doc.days[WED].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
       STATUS.UNASSIGNED
     );
@@ -264,7 +264,7 @@ describe('sealDay', () => {
   });
 });
 
-describe('summarise — compliance math', () => {
+describe('summarise - compliance math', () => {
   it('excludes absences from the denominator', () => {
     const s = summarise([STATUS.USED, STATUS.USED, DERIVED_STATUS.ABSENT, STATUS.NOT_USED]);
     expect(s.counted).toBe(3);
@@ -290,7 +290,7 @@ describe('summarise — compliance math', () => {
   });
 
   it('returns a null rate rather than 0% when nothing is measurable', () => {
-    // A week of holidays must print "—", not a damning "0%".
+    // A week of holidays must print "-", not a damning "0%".
     const s = summarise([DERIVED_STATUS.NOT_APPLICABLE, DERIVED_STATUS.NO_RECORD]);
     expect(s.counted).toBe(0);
     expect(s.rate).toBeNull();
@@ -334,7 +334,7 @@ describe('amendEntry', () => {
       T.jordan,
       T.asgJordanExtTime,
       { status: STATUS.USED },
-      'Recorded late — quiz accommodation was delivered.'
+      'Recorded late - quiz accommodation was delivered.'
     );
 
     const day = amended.days[TUE];
@@ -346,7 +346,7 @@ describe('amendEntry', () => {
       assignmentId: T.asgJordanExtTime,
       from: STATUS.UNASSIGNED,
       to: STATUS.USED,
-      reason: 'Recorded late — quiz accommodation was delivered.',
+      reason: 'Recorded late - quiz accommodation was delivered.',
     });
     expect(day.students[T.jordan].entries[T.asgJordanExtTime].status).toBe(STATUS.USED);
   });

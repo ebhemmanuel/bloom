@@ -1,8 +1,8 @@
 /**
  * Ambient-register empty state: warm, one sentence, one action.
  *
- * Used for the two states that matter most — "no record for this day" and "no
- * students match" — so the wording carries real weight. See the design doc §5.11.
+ * Used for the two states that matter most - "no record for this day" and "no
+ * students match" - so the wording carries real weight. See the design doc §5.11.
  */
 export default function EmptyState({ title, body, actionLabel, onAction }) {
   return (

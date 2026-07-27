@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
  *
  * First, it has to be portalled to <body>. Cards, the header and the content
  * frame all carry `backdrop-filter`, and an element with a backdrop filter
- * becomes a containing block for `position: fixed` descendants — so a scrim
+ * becomes a containing block for `position: fixed` descendants - so a scrim
  * rendered in place covers only its own container and leaves the header and the
  * page margins bright, which is exactly the half-dimmed look this replaces.
  *

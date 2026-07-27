@@ -4,7 +4,7 @@ import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 /**
  * Notifications, opened from the bell.
  *
- * These are real, derived advisories — not a feed. Nothing here is invented or
+ * These are real, derived advisories - not a feed. Nothing here is invented or
  * fetched (there is no network); every item is computed from the document by
  * `deriveNotifications` and each one has something the teacher can act on.
  */

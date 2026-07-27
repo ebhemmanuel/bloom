@@ -16,7 +16,7 @@ import { useBoard } from '../../context/BoardContext.jsx';
  * Add one student and their whole accommodation list in a single pass.
  *
  * Three ways in, because a teacher's source material varies:
- *   1. Paste from the IEP spreadsheet — the realistic bulk path.
+ *   1. Paste from the IEP spreadsheet - the realistic bulk path.
  *   2. Pick from starter sets we ship.
  *   3. Type one at a time.
  *
@@ -56,8 +56,8 @@ export default function AddStudentForm({ onAdded }) {
    * A teacher setting up in September has their roster in front of them, and the
    * natural thing to do is paste the column. Splitting here means that produces
    * a roster; without it, it produced one student whose name was the whole list.
-   * Everything else on the form — plan type, periods, enrolment date and the
-   * accommodations — applies to all of them, which is exactly right for a class
+   * Everything else on the form - plan type, periods, enrolment date and the
+   * accommodations - applies to all of them, which is exactly right for a class
    * being set up in one go and is editable per student afterwards.
    */
   const names = useMemo(() => splitStudentNames(displayName), [displayName]);
@@ -112,7 +112,7 @@ export default function AddStudentForm({ onAdded }) {
 
       // Seed them into the day on screen. Without this a student appears on the
       // board but has no entries in the day record, so every card silently
-      // refuses to move — the mutation finds nothing to update.
+      // refuses to move - the mutation finds nothing to update.
       return ensureDay(filled, dateKey);
     });
 
@@ -143,7 +143,7 @@ export default function AddStudentForm({ onAdded }) {
           />
           <span className="acc-field__hint">
             Whatever you&rsquo;ll recognise on the board and on a printed report. Initials or a code
-            work fine — the file does not need a full legal name. Paste a whole list, separated by
+            work fine - the file does not need a full legal name. Paste a whole list, separated by
             commas or one per line, to add them together.
           </span>
         </label>
@@ -195,7 +195,7 @@ export default function AddStudentForm({ onAdded }) {
 
         <span className="acc-field__hint">
           {enrolledFrom
-            ? `Every day before ${formatDateMedium(enrolledFrom)} stays locked and reads “not applicable — enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
+            ? `Every day before ${formatDateMedium(enrolledFrom)} stays locked and reads “not applicable - enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
             : 'Leave the date blank if they have been in this class since the start of the year. Set one and everything before it is locked, with the reason on the record.'}
         </span>
 
@@ -229,7 +229,7 @@ export default function AddStudentForm({ onAdded }) {
             // Previously this whole block was hidden when no periods existed,
             // which left no sign that periods were a thing at all.
             <span className="acc-field__hint">
-              No periods yet — add them from the periods menu above the board, then come back and
+              No periods yet - add them from the periods menu above the board, then come back and
               assign them here.
             </span>
           )}
@@ -250,7 +250,7 @@ export default function AddStudentForm({ onAdded }) {
             }
           />
           <span className="acc-field__hint">
-            Commas inside brackets are safe — “Preferential seating (front, near instruction)” stays
+            Commas inside brackets are safe - “Preferential seating (front, near instruction)” stays
             in one piece.
           </span>
         </label>
@@ -279,8 +279,8 @@ export default function AddStudentForm({ onAdded }) {
         <div className="acc-starters">
           <p className="acc-field__label">Or add from a starter set</p>
           <p className="acc-field__hint">
-            Common wordings to get going. Edit them to match what the student's plan actually says —
-            the plan is what counts, not our phrasing.
+            Common wordings to get going. Edit them to match what the student&rsquo;s plan actually
+            says; the plan is what counts, not our phrasing.
           </p>
 
           {STARTER_SETS.map((set) => {
@@ -354,7 +354,7 @@ export default function AddStudentForm({ onAdded }) {
       {result && (
         <p className="acc-addstudent__result acc-fade-enter" role="status">
           Added <strong>{result.names.join(', ')}</strong>
-          {result.names.length > 1 ? ' — each' : ''} with {result.report.added} accommodation
+          {result.names.length > 1 ? ' - each' : ''} with {result.report.added} accommodation
           {result.report.added === 1 ? '' : 's'}
           {result.report.reused > 0 && ` (${result.report.reused} reused from your list)`}.
         </p>

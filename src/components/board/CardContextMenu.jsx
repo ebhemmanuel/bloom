@@ -14,14 +14,14 @@ import {
  *
  * Three groups:
  *   1. Move to a track (the columns), for when dragging is not convenient.
- *   2. Used more than once — a repeat count, only on statuses where usage
+ *   2. Used more than once - a repeat count, only on statuses where usage
  *      actually happened.
  *   3. Set as this student's standing default, so the accommodation is pre-set
  *      every new day for the rest of the year.
  *
  * A default has to be genuinely standing to be worth anything. If the
  * accommodation requires a written detail, that detail is captured ONCE when the
- * default is set and reused from then on — the board must not ask a teacher to
+ * default is set and reused from then on - the board must not ask a teacher to
  * retype the same sentence 180 times for an arrangement that never changes.
  */
 export default function CardContextMenu({
@@ -56,7 +56,7 @@ export default function CardContextMenu({
   const left = Math.min(x, window.innerWidth - 276);
   const top = Math.min(y, window.innerHeight - 360);
 
-  // An irrelevant card has no status to count or default — every other group is
+  // An irrelevant card has no status to count or default - every other group is
   // meaningless while it is excluded from this class.
   const countable = !card.notRelevant && COUNTABLE_STATUSES.includes(card.status);
   const defaultable = !card.notRelevant && DEFAULTABLE_STATUSES.includes(card.status);
@@ -65,7 +65,7 @@ export default function CardContextMenu({
    * Rendered into <body>, NOT in place.
    *
    * The board card carries `backdrop-filter`, which creates a containing block
-   * for fixed-position descendants — so a `position: fixed` menu rendered inside
+   * for fixed-position descendants - so a `position: fixed` menu rendered inside
    * it is positioned against the board rather than the viewport, and lands far
    * from the card that was clicked. A portal is the only way to get true
    * viewport coordinates back.
@@ -149,7 +149,7 @@ export default function CardContextMenu({
             {card.notRelevant ? 'Counts for this subject again' : 'Not relevant to subject'}
           </button>
           <p className="acc-ctx__note">
-            Excluded from this class&rsquo;s totals — it resolves as not applicable, never as Not
+            Excluded from this class&rsquo;s totals - it resolves as not applicable, never as Not
             Used.
           </p>
         </div>

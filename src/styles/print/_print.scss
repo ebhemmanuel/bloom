@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // The AUSTERE register.
 //
-// Everything the rest of the app does — aurora, frost, pastel status fills, soft
-// violet greys — is suspended here. This is a legal document that gets
+// Everything the rest of the app does - aurora, frost, pastel status fills, soft
+// violet greys - is suspended here. This is a legal document that gets
 // photocopied, scanned and read at arm's length, so it is black on white with
 // hairline rules, and status is carried by a GLYPH plus text, never by colour.
 // ---------------------------------------------------------------------------
@@ -17,19 +17,19 @@
 @media print {
   // Only reached by the browser fallback. The desktop print path sets its own
   // page size and margins (electron/pdf-export.js) so it can also replace
-  // Chromium's title-and-URL header with a page number — matched here so the
+  // Chromium's title-and-URL header with a page number - matched here so the
   // two look the same. The deeper bottom is the footer's band.
   @page {
     size: Letter landscape;
     margin: 0.5in 0.45in 0.62in;
   }
 
-  // Hide the app, show only the report — same DOM the preview counted, so the
+  // Hide the app, show only the report - same DOM the preview counted, so the
   // paper can never disagree with the numbers on screen.
   //
   // Everything except the report, not just `#root`. Scrims, dialogs, the command
   // palette and the context menus are all portalled to <body> as direct
-  // siblings of the app — they have to be, because `backdrop-filter` on the
+  // siblings of the app - they have to be, because `backdrop-filter` on the
   // board makes it a containing block for `position: fixed`. Hiding `#root`
   // alone therefore left the Print dialog itself on the page, and printing from
   // it produced a sheet of the modal instead of the report.

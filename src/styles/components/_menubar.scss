@@ -171,8 +171,8 @@
   // Grows and shrinks with the result list instead of snapping between heights.
   //
   // The height has to be a measured length. `auto` cannot be transitioned
-  // against `auto` — even with `interpolate-size`, which only helps when the
-  // declared value itself changes — so the component measures its content and
+  // against `auto` - even with `interpolate-size`, which only helps when the
+  // declared value itself changes - so the component measures its content and
   // publishes it as `--acc-palette-h`. That is a custom property, not styling:
   // every colour, radius and duration below still comes from the token system.
   &__sheet {
@@ -229,7 +229,7 @@
     overflow-y: auto;
     padding: var(--acc-space-2);
 
-    // Only on the opening list — the component drops `acc-cascade` as soon as
+    // Only on the opening list - the component drops `acc-cascade` as soon as
     // anything is typed, so results never re-stagger while the sheet resizes.
     &.acc-cascade > li {
       animation: acc-enter var(--acc-dur-fast) var(--acc-ease-entrance) both;
@@ -360,7 +360,7 @@
   }
 
   // These rows pair a full-height input with a fixed-height button, so they must
-  // centre explicitly — a fixed height cancels the default `stretch` and the
+  // centre explicitly - a fixed height cancels the default `stretch` and the
   // button falls to the top of the row.
   &__actions,
   // Both hold a single `.acc-inputgroup`, which does the row layout itself.

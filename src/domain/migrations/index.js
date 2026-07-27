@@ -18,7 +18,7 @@ export { CURRENT_SCHEMA_VERSION };
  * Bring a document up to the current version.
  *
  * A document from a NEWER version is returned untouched with
- * `status: 'too-new'`. The caller must then open read-only — writing would
+ * `status: 'too-new'`. The caller must then open read-only - writing would
  * silently strip fields this build does not know about, which on a compliance
  * record is data loss disguised as a successful save.
  *

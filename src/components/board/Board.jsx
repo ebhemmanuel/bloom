@@ -145,7 +145,7 @@ export default function Board({ onAddStudent }) {
           )
         );
         clearSelection();
-        // Detail is only asked for on the card actually grabbed — prompting
+        // Detail is only asked for on the card actually grabbed - prompting
         // once per card would be a modal pile-up.
         if (to.status === STATUS.USED_WITH_DETAIL) {
           setDetailCard({ ...card, status: to.status, revertTo: card.status });
@@ -251,7 +251,7 @@ export default function Board({ onAddStudent }) {
   );
 
   /**
-   * Set a standing default — and make it actually standing.
+   * Set a standing default - and make it actually standing.
    *
    * The point of a default is that the teacher stops doing this. So when the
    * accommodation is one that requires a written detail, we ask for that detail
@@ -289,7 +289,7 @@ export default function Board({ onAddStudent }) {
 
   /**
    * The "+ Add accommodation" affordance at the end of each Unassigned column.
-   * Hidden on sealed days and for absent students — neither is a moment to be
+   * Hidden on sealed days and for absent students - neither is a moment to be
    * adding new obligations.
    */
   const renderAddAccommodation = useCallback(
@@ -329,7 +329,7 @@ export default function Board({ onAddStudent }) {
     <div className="acc-board">
       {model.sealed && (
         <div className="acc-banner acc-banner--sealed acc-fade-enter">
-          This day is closed out and read-only. Use <strong>Amend</strong> on a card to correct it —
+          This day is closed out and read-only. Use <strong>Amend</strong> on a card to correct it;
           the change is logged.
         </div>
       )}

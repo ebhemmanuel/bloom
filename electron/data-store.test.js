@@ -37,7 +37,7 @@ describe('load', () => {
   });
 });
 
-describe('writeNow — atomicity', () => {
+describe('writeNow - atomicity', () => {
   it('writes and leaves no .tmp behind', () => {
     expect(store.writeNow(doc(1)).ok).toBe(true);
     expect(fs.existsSync(store.filePath)).toBe(true);
@@ -135,7 +135,7 @@ describe('a save is never abandoned', () => {
 
   it('keeps the edit in hand when the write fails', () => {
     // The bug this replaces: flush() cleared the pending text BEFORE writing, so
-    // one EPERM discarded the edit entirely — the renderer had moved on, nothing
+    // one EPERM discarded the edit entirely - the renderer had moved on, nothing
     // was queued, and the change existed nowhere but in memory.
     store.save(doc(7));
     const spy = failRename();
@@ -272,9 +272,9 @@ describe('selectBackupsToPrune', () => {
     const names = [
       ...today,
       'data-20260910-080000.json',
-      'data-20260910-170000.json', // newest of Sep 10 — keep
+      'data-20260910-170000.json', // newest of Sep 10 - keep
       'data-20260909-080000.json',
-      'data-20260909-170000.json', // newest of Sep 9 — keep
+      'data-20260909-170000.json', // newest of Sep 9 - keep
     ];
 
     const pruned = selectBackupsToPrune(names, now);
@@ -315,7 +315,7 @@ describe('corrupt-file recovery', () => {
     expect(fs.existsSync(store.filePath)).toBe(false);
   });
 
-  it('prefers .tmp over a backup — a .tmp means we crashed AFTER writing it', () => {
+  it('prefers .tmp over a backup - a .tmp means we crashed AFTER writing it', () => {
     fs.mkdirSync(store.backupDir, { recursive: true });
     fs.writeFileSync(path.join(store.backupDir, 'data-20260915-090000.json'), doc(1));
     fs.writeFileSync(store.filePath, 'corrupt!!');

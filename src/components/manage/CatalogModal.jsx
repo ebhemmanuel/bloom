@@ -12,7 +12,7 @@ import { CATEGORIES } from '../../domain/constants.js';
 import { normalizeSearch } from '../../domain/selectors.js';
 
 /**
- * The shared accommodation list — the presets every student picks from.
+ * The shared accommodation list - the presets every student picks from.
  *
  * Renaming here moves every student using that wording together, which is the
  * point: one district rewording should not require editing thirty students. Days

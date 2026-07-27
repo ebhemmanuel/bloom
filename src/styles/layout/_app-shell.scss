@@ -4,7 +4,7 @@
 // The page blooms; the board does not. An aurora gradient and a drifting blob
 // field animate on the PAGE BACKDROP, behind a floating frosted frame. This is a
 // deliberate override of the "aurora never on a working surface" rule in
-// DESIGN_REQUIREMENTS §1 — the board card itself stays clean and legible, and
+// DESIGN_REQUIREMENTS §1 - the board card itself stays clean and legible, and
 // only what surrounds it moves.
 // ---------------------------------------------------------------------------
 
@@ -95,8 +95,8 @@
 }
 
 /**
- * The single container that owns the measure. Everything — pill nav, board —
- * sits inside it, so no piece can drift out of alignment.
+ * The single container that owns the measure. Everything (pill nav, board) sits
+ * inside it, so no piece can drift out of alignment.
  */
 .acc-app__frame {
   position: relative;
@@ -113,7 +113,7 @@
 
 /**
  * The board card. Rounded at the top, square and borderless at the bottom
- * because it runs off the viewport edge — it reads as a surface the page
+ * because it runs off the viewport edge - it reads as a surface the page
  * continues behind rather than a floating panel with an arbitrary end.
  */
 .acc-app__main {

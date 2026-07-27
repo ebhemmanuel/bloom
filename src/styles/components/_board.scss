@@ -7,7 +7,7 @@
   // Lanes live in a column flex container that scrolls. Without this they are
   // flex items with the default flex-shrink: 1, so instead of overflowing into
   // the scroll area they get squeezed to a fraction of their height and
-  // `overflow: hidden` silently clips the cards away — the board renders as a
+  // `overflow: hidden` silently clips the cards away - the board renders as a
   // stack of bare headers.
   flex: 0 0 auto;
   // Higher opacity than the container behind it, so card text never has to
@@ -34,7 +34,7 @@
   }
 
   // Not in this class yet on the date being viewed. Set back, but deliberately
-  // NOT as far as an absent lane — this is an explanation, not a warning, and it
+  // NOT as far as an absent lane - this is an explanation, not a warning, and it
   // has to stay readable enough to answer "where is that student".
   &--preenrolment {
     --acc-enter-to-opacity: 0.7;
@@ -271,7 +271,7 @@
   }
 
   // Status glow: a 2px inset bar in the SOFT tint, exactly as the prototype has
-  // it. Not a gradient, and not the full-strength ink — the pastel is what makes
+  // it. Not a gradient, and not the full-strength ink - the pastel is what makes
   // it read as a glow rather than a hard divider.
   &--unassigned &__header {
     box-shadow: inset 0 2px 0 var(--acc-status-unassigned-soft);

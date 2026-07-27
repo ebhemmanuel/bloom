@@ -5,7 +5,7 @@
  * up embedded in years of day records, so they must never be recycled and never
  * be derived from mutable content (a student's name can change; their id cannot).
  *
- * Format: `<prefix>_<base36 time><counter><random>` — sortable-ish by creation,
+ * Format: `<prefix>_<base36 time><counter><random>` - sortable-ish by creation,
  * short enough to stay readable when hand-inspecting the JSON.
  */
 

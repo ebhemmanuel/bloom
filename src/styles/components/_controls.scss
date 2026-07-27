@@ -60,7 +60,7 @@
     font-size: var(--acc-fs-tiny);
   }
 
-  // 32px circular icon button — the fold-all chevron and friends.
+  // 32px circular icon button - the fold-all chevron and friends.
   &--round {
     inline-size: 32px;
     padding: 0;
@@ -73,12 +73,12 @@
   }
 
   /**
-   * Open state for anything that opens a panel — date picker, period filter,
+   * Open state for anything that opens a panel - date picker, period filter,
    * day actions.
    *
    * Deliberately identical to the search field's focus ring. An open dropdown
-   * and a focused input are the same thing to a user — "this is where I am" —
-   * so they should not be two different visual languages.
+   * and a focused input are the same thing to a user, "this is where I am", so
+   * they should not be two different visual languages.
    */
   &--on {
     border-color: var(--acc-accent);
@@ -98,7 +98,7 @@
  *
  * Used for every inline "type something, then Save/Add" pair. Two upsides over a
  * detached pill: the button reads as belonging to the field it acts on, and
- * `align-items: stretch` makes the heights identical by construction — the
+ * `align-items: stretch` makes the heights identical by construction - the
  * misalignment bug that kept recurring is not expressible in this shape.
  */
 .acc-inputgroup {

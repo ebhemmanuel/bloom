@@ -3,8 +3,8 @@
 /**
  * Headless-ish renderer smoke check.
  *
- * Loads the built bundle exactly as the real app does — over file://, with the
- * production CSP and the real preload attached — then asserts that React actually
+ * Loads the built bundle exactly as the real app does - over file://, with the
+ * production CSP and the real preload attached - then asserts that React actually
  * mounted and that nothing errored. Exits non-zero on failure so it can gate a
  * build.
  *
@@ -33,7 +33,7 @@ function fail(msg) {
 
 app.whenReady().then(async () => {
   if (!fs.existsSync(RENDERER)) {
-    fail(`renderer bundle missing at ${RENDERER} — run "npm run build" first`);
+    fail(`renderer bundle missing at ${RENDERER} - run "npm run build" first`);
     return finish();
   }
 
@@ -97,19 +97,18 @@ app.whenReady().then(async () => {
   `);
 
   if (!result.rootExists) fail('#root element is missing from the document');
-  if (result.childCount === 0) fail('React did not mount — #root has no children (blank window)');
+  if (result.childCount === 0) fail('React did not mount - #root has no children (blank window)');
   if (!result.bridgeAttached)
-    fail('preload bridge not attached — window.accommodations is missing');
-  if (result.stylesheetCount === 0) fail('no stylesheet loaded — CSS did not reach the renderer');
+    fail('preload bridge not attached - window.accommodations is missing');
+  if (result.stylesheetCount === 0) fail('no stylesheet loaded - CSS did not reach the renderer');
   // The token system sets a warm near-white. A transparent/default body background
   // means the SCSS custom properties never applied.
   if (result.styledBg === 'rgba(0, 0, 0, 0)')
-    fail('body background unstyled — tokens did not apply');
-  if (consoleErrors.length)
-    fail(`renderer console errors:\n    - ${consoleErrors.join('\n    - ')}`);
+    fail('body background unstyled - tokens did not apply');
+  if (consoleErrors.length) fail(`renderer console errors:\n - ${consoleErrors.join('\n - ')}`);
 
   console.log('\n  renderer report');
-  console.log('  ---------------');
+  console.log(' ---------------');
   console.log(`  root children     : ${result.childCount}`);
   console.log(`  preload bridge    : ${result.bridgeAttached ? 'attached' : 'MISSING'}`);
   console.log(`  stylesheets       : ${result.stylesheetCount}`);
@@ -126,7 +125,7 @@ function finish() {
     console.error('');
     app.exit(1);
   } else {
-    console.log('\n  ✓ smoke check passed — renderer mounted over file:// with CSP active\n');
+    console.log('\n  ✓ smoke check passed - renderer mounted over file:// with CSP active\n');
     app.exit(0);
   }
 }

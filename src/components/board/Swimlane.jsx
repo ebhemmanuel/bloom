@@ -10,7 +10,7 @@ import { formatDateMedium } from '../../domain/dates.js';
  * One student's row: three status columns plus their notes cell.
  *
  * An absent student's columns are locked but their recorded statuses stay
- * visible — absence excludes them from the compliance denominator, it does not
+ * visible - absence excludes them from the compliance denominator, it does not
  * erase what was already noted.
  */
 function Swimlane({
@@ -55,11 +55,11 @@ function Swimlane({
         Not in this class yet on this date. Shown rather than hidden: a lane that
         silently disappears from an October board leaves the teacher wondering
         whether they lost a student, where a locked one with a date answers it.
-        Nothing here counts toward the day — there was no obligation.
+        Nothing here counts toward the day - there was no obligation.
       */}
       {lane.preEnrolment ? (
         <p className="acc-lane__enrolnote">
-          Enrolled {formatDateMedium(lane.enrolledFrom)} — nothing is recorded for this student
+          Enrolled {formatDateMedium(lane.enrolledFrom)} - nothing is recorded for this student
           before then.
         </p>
       ) : collapsed ? (
