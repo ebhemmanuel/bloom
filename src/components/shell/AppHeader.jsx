@@ -91,6 +91,14 @@ export default function AppHeader({
             watched bloom is the one that stays with them. */}
         <BloomMark size={22} />
         <span className="acc-header__name">{PRODUCT_NAME}</span>
+      </div>
+
+      {/*
+        Centred on the bar itself rather than between the two clusters, so the
+        menus stay put as the brand and the icon row change width. They moved
+        here to fill the middle the search field left when it became an icon.
+      */}
+      <div className="acc-header__menus">
         <MenuBar menus={menus} />
       </div>
 

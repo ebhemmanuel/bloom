@@ -6,8 +6,11 @@
   z-index: 70;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--acc-space-4);
+  // Everything sits together in the middle rather than being pushed to the two
+  // ends. On a 1200px bar with only a wordmark, three menus and four icons in
+  // it, space-between left a corridor of nothing between them.
+  justify-content: center;
+  gap: var(--acc-space-5);
   min-height: 52px;
   padding: 0 var(--acc-space-5);
   background: var(--acc-frost);
@@ -17,6 +20,13 @@
   border-radius: var(--acc-radius-pill);
   box-shadow: var(--acc-shadow-raised);
   flex-shrink: 0;
+
+  // File / Edit / About, in the middle of the cluster. An ordinary flex child:
+  // the whole row is centred, so nothing here needs its own offset.
+  &__menus {
+    display: flex;
+    align-items: center;
+  }
 
   &__count {
     font-size: var(--acc-fs-tiny);

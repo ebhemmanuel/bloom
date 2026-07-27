@@ -4,7 +4,8 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-inline-start: var(--acc-space-3);
+  // No inline margin: it sat beside the wordmark once and is centred on the bar
+  // now, where any offset would push it off centre by exactly that much.
 
   &__slot {
     position: relative;
