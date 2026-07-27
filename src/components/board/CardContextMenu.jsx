@@ -18,6 +18,11 @@ import {
  *      actually happened.
  *   3. Set as this student's standing default, so the accommodation is pre-set
  *      every new day for the rest of the year.
+ *
+ * A default has to be genuinely standing to be worth anything. If the
+ * accommodation requires a written detail, that detail is captured ONCE when the
+ * default is set and reused from then on — the board must not ask a teacher to
+ * retype the same sentence 180 times for an arrangement that never changes.
  */
 export default function CardContextMenu({
   card,
@@ -190,10 +195,11 @@ export default function CardContextMenu({
             <p className="acc-ctx__note">Already the default. New days start here automatically.</p>
           )}
 
-          {defaultable && card.requiresDetail && (
-            <p className="acc-ctx__note acc-ctx__note--warn">
-              This accommodation needs a written detail each time, so a default can only pre-set the
-              status — you will still need to describe what you provided.
+          {defaultable && card.requiresDetail && card.defaultStatus !== card.status && (
+            <p className="acc-ctx__note">
+              {card.detail?.trim() || card.defaultDetail
+                ? 'The detail already on this card becomes the standing one, reused every day.'
+                : 'You will write the detail once, and every day after that starts with it already filled in.'}
             </p>
           )}
         </div>

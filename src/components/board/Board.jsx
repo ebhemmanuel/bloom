@@ -44,6 +44,8 @@ export default function Board({ onAddStudent }) {
     useBoard();
 
   const [detailCard, setDetailCard] = useState(null);
+  // Set when a standing default needs its one-time boilerplate detail.
+  const [defaultPrompt, setDefaultPrompt] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [laneMenu, setLaneMenu] = useState(null);
   const [confirmUnenrol, setConfirmUnenrol] = useState(null);
@@ -234,19 +236,55 @@ export default function Board({ onAddStudent }) {
     [dateKey, mutate, readOnly, clearSelection]
   );
 
-  const handleSetDefault = useCallback(
-    (card, status) => {
-      if (readOnly) return;
+  const commitDefault = useCallback(
+    (card, status, detail) => {
       mutate((d) =>
         setAssignmentDefault(d, card.assignmentId, status, {
-          detail: card.detail || '',
+          detail,
           // Apply to the day in view too, so the change is visible immediately
           // rather than only showing up tomorrow.
           applyToDate: dateKey,
         })
       );
     },
-    [dateKey, mutate, readOnly]
+    [dateKey, mutate]
+  );
+
+  /**
+   * Set a standing default — and make it actually standing.
+   *
+   * The point of a default is that the teacher stops doing this. So when the
+   * accommodation is one that requires a written detail, we ask for that detail
+   * ONCE, here, and store it as the default's own text. Every day seeded from it
+   * then arrives already written and never flags "detail needed" again.
+   *
+   * A single day can still be edited by clicking its card; this only sets what
+   * each new day starts as.
+   */
+  const handleSetDefault = useCallback(
+    (card, status) => {
+      if (readOnly) return;
+
+      const needsStandingDetail =
+        status && card.requiresDetail && !(card.detail || '').trim() && !(card.defaultDetail || '');
+
+      if (needsStandingDetail) {
+        setDefaultPrompt({ card, status });
+        return;
+      }
+
+      commitDefault(card, status, status ? card.detail || card.defaultDetail || '' : '');
+    },
+    [commitDefault, readOnly]
+  );
+
+  const saveDefaultDetail = useCallback(
+    (text) => {
+      if (!defaultPrompt) return;
+      commitDefault(defaultPrompt.card, defaultPrompt.status, text);
+      setDefaultPrompt(null);
+    },
+    [commitDefault, defaultPrompt]
   );
 
   /**
@@ -440,6 +478,15 @@ export default function Board({ onAddStudent }) {
 
       {detailCard && (
         <CardDetailPopover card={detailCard} onSave={saveDetail} onCancel={cancelDetail} />
+      )}
+
+      {defaultPrompt && (
+        <CardDetailPopover
+          standing
+          card={defaultPrompt.card}
+          onSave={saveDefaultDetail}
+          onCancel={() => setDefaultPrompt(null)}
+        />
       )}
     </div>
   );

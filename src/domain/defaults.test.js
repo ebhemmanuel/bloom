@@ -3,6 +3,7 @@ import { STATUS, DERIVED_STATUS, RESOLVED_BY } from './constants.js';
 import { summarise, sealDay, effectiveStatus } from './resolve.js';
 import { ensureDay, dayHasWork } from './seed.js';
 import { setAssignmentDefault, setEntryStatus, setEntryUseCount } from './mutations.js';
+import { buildBoardModel } from './selectors.js';
 import { makeDoc, withDay, deepFreeze, T } from './test-helpers.js';
 
 const WED = '2026-09-16';
@@ -150,6 +151,42 @@ describe('standing defaults', () => {
     doc = ensureDay(doc, THU, nextDay);
     doc = setEntryStatus(doc, THU, T.jordan, T.asgJordanReadAloud, STATUS.USED);
     expect(dayHasWork(doc, THU)).toBe(true);
+  });
+
+  it('carries its standing detail into every new day', () => {
+    // The whole point of a default is that the teacher stops doing this. An
+    // accommodation that requires a written detail must therefore be written
+    // ONCE, when the default is set — not re-typed on all 180 days.
+    let doc = setAssignmentDefault(makeDoc(), T.asgJordanReadAloud, STATUS.USED_WITH_DETAIL, {
+      detail: 'Aide reads all written directions aloud.',
+    });
+    doc = ensureDay(doc, THU, nextDay);
+    const entry = doc.days[THU].students[T.jordan].entries[T.asgJordanReadAloud];
+    expect(entry.status).toBe(STATUS.USED_WITH_DETAIL);
+    expect(entry.detail).toBe('Aide reads all written directions aloud.');
+  });
+
+  it('a defaulted detail satisfies the board’s detail-needed check', () => {
+    // Read-aloud is the requiresDetail catalog item, so this is the case that
+    // used to nag every single morning.
+    let doc = setAssignmentDefault(makeDoc(), T.asgJordanReadAloud, STATUS.USED_WITH_DETAIL, {
+      detail: 'Aide reads all written directions aloud.',
+    });
+    doc = ensureDay(doc, THU, nextDay);
+    const model = buildBoardModel(doc, { dateKey: THU, now: nextDay });
+    const lane = model.lanes.find((l) => l.studentId === T.jordan);
+    expect(lane.detailsMissing).toBe(0);
+  });
+
+  it('clearing the default drops its standing detail with it', () => {
+    let doc = setAssignmentDefault(makeDoc(), T.asgJordanReadAloud, STATUS.USED_WITH_DETAIL, {
+      detail: 'Aide reads all written directions aloud.',
+    });
+    doc = setAssignmentDefault(doc, T.asgJordanReadAloud, null);
+    doc = ensureDay(doc, THU, nextDay);
+    const entry = doc.days[THU].students[T.jordan].entries[T.asgJordanReadAloud];
+    expect(entry.status).toBe(STATUS.UNASSIGNED);
+    expect(entry.detail).toBe('');
   });
 
   it('clearing the default returns new days to unassigned', () => {

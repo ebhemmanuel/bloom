@@ -152,7 +152,11 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
         notRelevant,
         // A standing default for this student, and whether this specific entry
         // came from it rather than from something the teacher observed today.
+        // `defaultDetail` is the boilerplate written once when the default was
+        // set, which is what keeps a daily accommodation from asking for the
+        // same sentence 180 times.
         defaultStatus: cfg.defaultStatus,
+        defaultDetail: cfg.defaultDetail || '',
         fromDefault: entry?.resolvedBy === 'default',
         notApplicable: resolved === DERIVED_STATUS.NOT_APPLICABLE,
         noRecord: resolved === DERIVED_STATUS.NO_RECORD,

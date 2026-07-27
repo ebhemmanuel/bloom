@@ -8,8 +8,12 @@ import useDismissAnimation from '../../hooks/useDismissAnimation.js';
  * Cancelling with an empty field reverts the card to its pre-drag status:
  * `used_with_detail` carrying no detail is a meaningless record and would print
  * as an unsupported claim. Cancelling with existing text keeps it.
+ *
+ * The `standing` variant writes the detail once for a standing default, where it
+ * is then reused every day for the rest of the year — same field, different
+ * promise, so the copy has to say so.
  */
-export default function CardDetailPopover({ card, onSave, onCancel }) {
+export default function CardDetailPopover({ card, standing = false, onSave, onCancel }) {
   const [text, setText] = useState(card.detail || '');
   const inputRef = useRef(null);
   const { leaving, dismiss, dismissThen } = useDismissAnimation(onCancel);
@@ -40,7 +44,9 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className="acc-detail__header">
-          <span className="acc-subhead">Used with detail</span>
+          <span className="acc-subhead">
+            {standing ? 'Standing detail — written once' : 'Used with detail'}
+          </span>
           <h2 className="acc-detail__title">{card.label}</h2>
         </header>
 
@@ -49,13 +55,18 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
           className="acc-detail__input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={card.detailPrompt || 'What was provided, and how?'}
+          placeholder={
+            standing
+              ? card.detailPrompt || 'What you provide every day, in one line'
+              : card.detailPrompt || 'What was provided, and how?'
+          }
           rows={5}
         />
 
         <p className="acc-detail__hint">
-          This text is reproduced verbatim in the printed report, so write it for whoever reads the
-          record later.
+          {standing
+            ? 'Written once and reused on every new day, so this accommodation never asks again. You can still change any single day by clicking its card.'
+            : 'This text is reproduced verbatim in the printed report, so write it for whoever reads the record later.'}
         </p>
 
         <footer className="acc-detail__actions">
@@ -68,7 +79,7 @@ export default function CardDetailPopover({ card, onSave, onCancel }) {
             onClick={save}
             disabled={!text.trim()}
           >
-            Save detail
+            {standing ? 'Save as the default' : 'Save detail'}
           </button>
         </footer>
       </div>
