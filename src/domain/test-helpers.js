@@ -186,6 +186,7 @@ export function withDay(doc, dateKey, spec = {}) {
       entries[a.id] = {
         status,
         detail: (typeof raw === 'object' && raw?.detail) || '',
+        useCount: (typeof raw === 'object' && raw?.useCount) || 1,
         labelSnapshot: a.source === 'custom' ? a.label : 'snapshot',
         resolvedBy: status === STATUS.UNASSIGNED ? null : 'user',
         resolvedAt: null,

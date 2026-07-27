@@ -92,6 +92,28 @@
     background: var(--acc-status-detail-soft);
     padding: 1px var(--acc-space-2);
     border-radius: var(--acc-radius-sm);
+
+    // A standing default is pre-set, not observed — kept visually quieter than a
+    // recorded fact so it never reads as something the teacher confirmed today.
+    &--default {
+      color: var(--acc-fg-muted);
+      background: var(--acc-surface-sunken);
+      border: 1px dashed var(--acc-border-strong);
+    }
+  }
+
+  // Repeat-use count.
+  &__count {
+    font-size: 10px;
+    font-weight: var(--acc-fw-bold);
+    color: var(--acc-status-used);
+    background: var(--acc-status-used-soft);
+    padding: 1px var(--acc-space-2);
+    border-radius: var(--acc-radius-pill);
+  }
+
+  &--defaulted {
+    border-style: dashed;
   }
 
   &__detail-chip {

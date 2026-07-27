@@ -5,10 +5,13 @@
 @use 'base/typography';
 
 @use 'layout/app-shell';
+@use 'layout/header';
 @use 'layout/toolbar';
 
 @use 'components/controls';
 @use 'components/board';
 @use 'components/card';
 @use 'components/feedback';
+@use 'components/context-menu';
+@use 'components/manage';
 @use 'components/ambient';

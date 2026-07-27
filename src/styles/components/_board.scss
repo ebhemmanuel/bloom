@@ -117,11 +117,11 @@
     }
   }
 
-  // Three status columns + the notes column.
+  // Four status columns + the notes column.
   &__body {
     display: grid;
     grid-template-columns:
-      repeat(3, minmax(var(--acc-column-min-w), 1fr))
+      repeat(4, minmax(var(--acc-column-min-w), 1fr))
       var(--acc-notes-col-w);
     gap: 1px;
     background: var(--acc-border);
@@ -163,6 +163,9 @@
   }
   &--used-with-detail &__count {
     color: var(--acc-status-detail);
+  }
+  &--refused &__count {
+    color: var(--acc-status-refused);
   }
   &--unassigned &__count {
     color: var(--acc-status-unassigned);
@@ -237,13 +240,19 @@
   }
 
   // Status accent as a top rule — carries meaning without tinting the whole well.
+  // Full-strength ink rather than the soft fill: with four columns the rule is
+  // the fastest way to tell them apart, and the soft tints were too faint to do
+  // that job.
   &--unassigned &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-unassigned-soft);
+    box-shadow: inset 0 2px 0 var(--acc-status-unassigned);
   }
   &--used &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-used-soft);
+    box-shadow: inset 0 2px 0 var(--acc-status-used);
   }
   &--used-with-detail &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-detail-soft);
+    box-shadow: inset 0 2px 0 var(--acc-status-detail);
+  }
+  &--refused &__header {
+    box-shadow: inset 0 2px 0 var(--acc-status-refused);
   }
 }

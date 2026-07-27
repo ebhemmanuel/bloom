@@ -20,6 +20,7 @@ export default function BoardToolbar({
   onCloseOutDay,
   onCollapseAll,
   onExpandAll,
+  onAddStudent,
 }) {
   const [notice, setNotice] = useState(null);
   const disabled = readOnly || model.sealed;
@@ -54,20 +55,16 @@ export default function BoardToolbar({
 
   return (
     <>
+      {/*
+        Row 1 — the date being recorded, and the actions that apply to that day.
+        Row 2 — the filters, sitting directly above the first card so it reads as
+        narrowing the list below rather than changing the day above.
+      */}
       <div className="acc-toolbar">
         <DatePicker
           dateKey={dateKey}
           onChange={onDateChange}
           nonInstructionalDates={nonInstructionalDates}
-        />
-
-        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
-
-        <StudentSearch
-          value={search}
-          onChange={onSearchChange}
-          matchCount={model.laneCount}
-          hiddenCount={model.hiddenBySearch}
         />
 
         <div className="acc-toolbar__actions">
@@ -100,6 +97,33 @@ export default function BoardToolbar({
         </div>
 
         <SaveStatusPill />
+      </div>
+
+      <div className="acc-filters">
+        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
+
+        <StudentSearch
+          value={search}
+          onChange={onSearchChange}
+          matchCount={model.laneCount}
+          hiddenCount={model.hiddenBySearch}
+        />
+
+        <div className="acc-filters__spacer" />
+
+        <span className="acc-filters__count acc-numeric">
+          {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
+        </span>
+
+        <button
+          type="button"
+          className="acc-btn"
+          onClick={onAddStudent}
+          disabled={readOnly}
+          title="Add a student and paste their accommodations in one go"
+        >
+          Add student
+        </button>
       </div>
 
       {model.detailsMissing > 0 && (

@@ -56,6 +56,11 @@ $acc-tokens: (
   'status-used-soft': #e4f4ed,
   'status-detail': #5b4bd6,
   'status-detail-soft': #eeebfd,
+  // Refused is about the student declining, not the teacher failing, so it must
+  // not carry any warning weight. Steel blue keeps it factual and distinct from
+  // the green / violet / amber already in play.
+  'status-refused': #4a6b7a,
+  'status-refused-soft': #e8f0f4,
   'status-not-used': #a06a2c,
   'status-not-used-soft': #fbf1e2,
   'status-absent': #8a839a,
@@ -155,8 +160,10 @@ $acc-tokens: (
   'max-w': 1200px,
   'toolbar-h': 56px,
   'lane-header-h': 44px,
-  'column-min-w': 220px,
-  'notes-col-w': 280px
+  // Four status columns plus notes inside 1200px, so columns are narrower than
+  // they were at three.
+  'column-min-w': 150px,
+  'notes-col-w': 220px
 );
 
 // Dark theme deltas. Only values that actually change are listed — the rest
@@ -184,6 +191,8 @@ $acc-tokens-dark: (
   'status-used-soft': #1c3a30,
   'status-detail': #a595ff,
   'status-detail-soft': #302a54,
+  'status-refused': #8fb3c4,
+  'status-refused-soft': #1f2f38,
   'status-not-used': #e0aa63,
   'status-not-used-soft': #3b2d18,
   'status-absent': #8a839a,

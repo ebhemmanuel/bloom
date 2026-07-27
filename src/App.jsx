@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import LocationChooser from './components/onboarding/LocationChooser.jsx';
+import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
+import SettingsPanel from './components/shell/SettingsPanel.jsx';
+import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
 import { createSampleDoc } from './domain/sampleData.js';
 import { openDay } from './domain/mutations.js';
+import { deriveNotifications } from './domain/notifications.js';
 import { todayKey } from './domain/dates.js';
-import { isDesktop } from './lib/bridge.js';
+import { isDesktop, dataBridge } from './lib/bridge.js';
 
 /**
  * Interim loader. Replaced in Phase 7 by the full splash: aurora blobs entering
@@ -89,6 +93,9 @@ function StartGate() {
 
 function AppRoutes() {
   const { doc, loadState, meta, repairs, dismissRepairs } = useData();
+  const { openPanel, toggle, close } = useHeaderPanel();
+
+  const notifications = useMemo(() => (doc ? deriveNotifications(doc, { meta }) : []), [doc, meta]);
 
   if (loadState.status === 'loading') return <Loader loadState={loadState} />;
 
@@ -115,6 +122,24 @@ function AppRoutes() {
         does when each piece caps its own width.
       */}
       <div className="acc-app__frame">
+        <AppHeader
+          notifications={notifications}
+          openPanel={openPanel}
+          onOpenSettings={() => toggle('settings')}
+          onOpenNotifications={() => toggle('notifications')}
+        />
+
+        {openPanel === 'settings' && <SettingsPanel onClose={close} />}
+        {openPanel === 'notifications' && (
+          <NotificationsPanel
+            notifications={notifications}
+            onClose={close}
+            onAct={(n) => {
+              if (n.act === 'revealFolder') dataBridge.revealFolder();
+            }}
+          />
+        )}
+
         {meta.tooNew && (
           <div className="acc-banner acc-banner--warn">
             This file was written by a newer version of the app. It is open read-only so nothing is

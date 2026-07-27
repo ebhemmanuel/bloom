@@ -19,6 +19,7 @@ function Swimlane({
   onToggleCollapse,
   onToggleAbsent,
   onOpenDetail,
+  onContextMenu,
   onNotesCommit,
 }) {
   const locked = readOnly || lane.absent;
@@ -55,6 +56,7 @@ function Swimlane({
               cards={lane.columns[col.id]}
               disabled={locked}
               onOpenDetail={onOpenDetail}
+              onContextMenu={onContextMenu}
             />
           ))}
 

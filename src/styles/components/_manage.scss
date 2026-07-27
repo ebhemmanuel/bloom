@@ -1,0 +1,189 @@
+// Add-student flow: identity on the left, accommodations on the right.
+
+.acc-addstudent {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.3fr);
+  gap: var(--acc-space-5);
+  align-items: start;
+
+  &__identity,
+  &__accoms {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-4);
+    min-inline-size: 0;
+  }
+
+  &__footer {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-4);
+    padding-block-start: var(--acc-space-4);
+    border-top: 1px solid var(--acc-border);
+  }
+
+  &__count {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
+  &__result {
+    grid-column: 1 / -1;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-success-soft);
+    color: var(--acc-success);
+    font-size: var(--acc-fs-sub);
+  }
+
+  // Single column once the two halves stop fitting side by side.
+  @media (max-inline-size: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acc-paste {
+  font-family: var(--acc-font-mono);
+  font-size: var(--acc-fs-sub);
+  line-height: var(--acc-lh-normal);
+  resize: vertical;
+  min-block-size: 110px;
+}
+
+// --- Paste preview ---------------------------------------------------------
+// Shows exactly what will be created before anything is committed.
+
+.acc-preview {
+  padding: var(--acc-space-3);
+  border: 1px solid var(--acc-border);
+  border-radius: var(--acc-radius-md);
+  background: var(--acc-surface-sunken);
+
+  &__summary {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    margin-block-end: var(--acc-space-2);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-1);
+    max-block-size: 200px;
+    overflow-y: auto;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-2);
+    font-size: var(--acc-fs-sub);
+  }
+
+  &__label {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__tag {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    padding: 1px var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+
+    &--new {
+      color: var(--acc-status-used);
+      background: var(--acc-status-used-soft);
+    }
+
+    // Reuse is the good outcome — it means the catalog is not fragmenting.
+    &--reuse {
+      color: var(--acc-fg-muted);
+      background: var(--acc-surface);
+    }
+  }
+}
+
+// --- Starter sets ----------------------------------------------------------
+
+.acc-starters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-2);
+}
+
+.acc-starter {
+  border: 1px solid var(--acc-border);
+  border-radius: var(--acc-radius-md);
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    text-align: start;
+    background: var(--acc-surface);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+  }
+
+  &__name {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__badge {
+    margin-inline-start: auto;
+    min-inline-size: 18px;
+    padding: 0 5px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-accent);
+    color: var(--acc-accent-fg);
+    font-size: 10px;
+    font-weight: var(--acc-fw-bold);
+    text-align: center;
+  }
+
+  &__chevron {
+    margin-inline-start: auto;
+    color: var(--acc-fg-faint);
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  &__badge + &__chevron {
+    margin-inline-start: var(--acc-space-2);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    align-items: flex-start;
+    padding: var(--acc-space-3);
+    border-top: 1px solid var(--acc-border);
+    background: var(--acc-surface-sunken);
+    animation: acc-enter var(--acc-dur-normal) var(--acc-ease-entrance) both;
+  }
+}

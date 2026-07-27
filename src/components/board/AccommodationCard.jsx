@@ -20,7 +20,7 @@ import { STATUS, STATUS_LABEL } from '../../domain/constants.js';
  * re-rendering all of them on every keystroke in the search box is the difference
  * between fluid and sluggish.
  */
-function AccommodationCard({ card, index, disabled, onOpenDetail }) {
+function AccommodationCard({ card, index, disabled, onOpenDetail, onContextMenu }) {
   const resolvedNotUsed = card.resolved === STATUS.NOT_USED;
 
   const classes = [
@@ -30,6 +30,7 @@ function AccommodationCard({ card, index, disabled, onOpenDetail }) {
     card.needsDetail && 'acc-card--needs-detail',
     card.notApplicable && 'acc-card--na',
     disabled && 'acc-card--locked',
+    card.defaultStatus && 'acc-card--defaulted',
   ]
     .filter(Boolean)
     .join(' ');
@@ -50,11 +51,35 @@ function AccommodationCard({ card, index, disabled, onOpenDetail }) {
           style={provided.draggableProps.style}
           className={`${classes}${snapshot.isDragging ? ' acc-card--dragging' : ''}`}
           onClick={() => onOpenDetail(card)}
-          aria-label={`${card.label} — ${STATUS_LABEL[card.resolved] || ''}`}
+          onContextMenu={(event) => {
+            // Suppress the browser menu — right-click belongs to our own.
+            event.preventDefault();
+            event.stopPropagation();
+            if (!disabled) onContextMenu(card, event.clientX, event.clientY);
+          }}
+          aria-label={`${card.label} — ${STATUS_LABEL[card.resolved] || ''}${
+            card.useCount > 1 ? `, used ${card.useCount} times` : ''
+          }`}
         >
           <p className="acc-card__label">{card.label}</p>
 
           <div className="acc-card__meta">
+            {card.useCount > 1 && (
+              <span
+                className="acc-card__count acc-numeric"
+                title={`Used ${card.useCount} times today`}
+              >
+                ×{card.useCount}
+              </span>
+            )}
+            {card.defaultStatus && (
+              <span
+                className="acc-card__badge acc-card__badge--default"
+                title="Starts here every day"
+              >
+                Default
+              </span>
+            )}
             {card.isCustom && <span className="acc-card__badge">One-off</span>}
             {card.hasDetail && (
               <span className="acc-card__detail-chip" title={card.detail}>
@@ -87,6 +112,8 @@ export default memo(AccommodationCard, (a, b) => {
     x.resolved === y.resolved &&
     x.label === y.label &&
     x.detail === y.detail &&
-    x.needsDetail === y.needsDetail
+    x.needsDetail === y.needsDetail &&
+    x.useCount === y.useCount &&
+    x.defaultStatus === y.defaultStatus
   );
 });

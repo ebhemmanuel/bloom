@@ -1,4 +1,4 @@
-import { STATUS, SEED_MODE } from './constants.js';
+import { STATUS, SEED_MODE, RESOLVED_BY } from './constants.js';
 import { isoTimestamp, addDays, compareDateKeys } from './dates.js';
 import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
 
@@ -41,17 +41,29 @@ export function activeAssignmentsFor(doc, studentId, dateKey) {
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+/**
+ * A fresh entry for a new day.
+ *
+ * If the student has a standing default on this accommodation, the entry starts
+ * at that status with `resolvedBy: 'default'` rather than `'user'`. The teacher
+ * did not observe anything yet, and the record has to say so — otherwise a
+ * permanent arrangement and a same-day observation become indistinguishable on an
+ * audited document.
+ */
 function blankEntry(assignment, catalogById, stamp) {
   const cfg = assignmentConfig(assignment, catalogById);
+  const hasDefault = Boolean(cfg.defaultStatus);
+
   return {
-    status: STATUS.UNASSIGNED,
-    detail: '',
+    status: hasDefault ? cfg.defaultStatus : STATUS.UNASSIGNED,
+    detail: hasDefault ? cfg.defaultDetail || '' : '',
+    useCount: 1,
     // Captured now and never updated. This is what makes a report printed in
     // June still say what the accommodation was called in September.
     labelSnapshot: cfg.label,
-    resolvedBy: null,
+    resolvedBy: hasDefault ? RESOLVED_BY.DEFAULT : null,
     resolvedAt: null,
-    updatedAt: null,
+    updatedAt: hasDefault ? stamp : null,
   };
 }
 
@@ -130,7 +142,14 @@ export function ensureDay(doc, dateKey, now = new Date()) {
   };
 }
 
-/** True if any entry on the day has been touched, or notes/absence recorded. */
+/**
+ * True if the teacher has actually done something on this day.
+ *
+ * An entry seeded from a standing default does NOT count: it is a pre-set value
+ * nobody has looked at yet. Counting it would make every freshly-opened day look
+ * "already worked on", which would then make "Copy yesterday" refuse with a
+ * would-overwrite warning on a day the teacher had not touched.
+ */
 export function dayHasWork(doc, dateKey) {
   const day = doc.days?.[dateKey];
   if (!day) return false;
@@ -138,7 +157,9 @@ export function dayHasWork(doc, dateKey) {
     (s) =>
       s.absent ||
       (s.notes && s.notes.length > 0) ||
-      Object.values(s.entries || {}).some((e) => e.status !== STATUS.UNASSIGNED)
+      Object.values(s.entries || {}).some(
+        (e) => e.status !== STATUS.UNASSIGNED && e.resolvedBy !== RESOLVED_BY.DEFAULT
+      )
   );
 }
 

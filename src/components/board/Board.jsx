@@ -7,7 +7,16 @@ import EmptyState from '../shared/EmptyState.jsx';
 import useCollapsedLanes from '../../hooks/useCollapsedLanes.js';
 import { useData } from '../../context/DataContext.jsx';
 import { buildBoardModel, periodOptions } from '../../domain/selectors.js';
-import { setEntryStatus, setStudentNotes, toggleStudentAbsent } from '../../domain/mutations.js';
+import {
+  setEntryStatus,
+  setEntryUseCount,
+  setStudentNotes,
+  toggleStudentAbsent,
+  setAssignmentDefault,
+} from '../../domain/mutations.js';
+import CardContextMenu from './CardContextMenu.jsx';
+import Modal from '../shared/Modal.jsx';
+import AddStudentForm from '../manage/AddStudentForm.jsx';
 import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
@@ -26,6 +35,8 @@ export default function Board() {
   const [periodIds, setPeriodIds] = useState([]);
   const [search, setSearch] = useState('');
   const [detailCard, setDetailCard] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [addingStudent, setAddingStudent] = useState(false);
   const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
 
@@ -157,6 +168,34 @@ export default function Board() {
     mutate((d) => sealDay(d, dateKey, new Date(), 'user'));
   }, [dateKey, mutate]);
 
+  // --- context menu -------------------------------------------------------
+
+  const openContextMenu = useCallback((card, x, y) => setContextMenu({ card, x, y }), []);
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
+  const handleSetUseCount = useCallback(
+    (card, count) => {
+      if (locked) return;
+      mutate((d) => setEntryUseCount(d, dateKey, card.studentId, card.assignmentId, count));
+    },
+    [dateKey, locked, mutate]
+  );
+
+  const handleSetDefault = useCallback(
+    (card, status) => {
+      if (readOnly) return;
+      mutate((d) =>
+        setAssignmentDefault(d, card.assignmentId, status, {
+          detail: card.detail || '',
+          // Apply to the day in view too, so the change is visible immediately
+          // rather than only showing up tomorrow.
+          applyToDate: dateKey,
+        })
+      );
+    },
+    [dateKey, mutate, readOnly]
+  );
+
   // --- render -------------------------------------------------------------
 
   return (
@@ -176,6 +215,7 @@ export default function Board() {
         onCloseOutDay={closeOutDay}
         onCollapseAll={() => collapseAll(model.lanes.map((l) => l.studentId))}
         onExpandAll={expandAll}
+        onAddStudent={() => setAddingStudent(true)}
       />
 
       {model.sealed && (
@@ -238,6 +278,7 @@ export default function Board() {
                   onToggleCollapse={() => toggle(lane.studentId)}
                   onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
                   onOpenDetail={setDetailCard}
+                  onContextMenu={openContextMenu}
                   onNotesCommit={commitNotes}
                 />
               ))}
@@ -246,8 +287,31 @@ export default function Board() {
         </DragDropContext>
       )}
 
+      {contextMenu && (
+        <CardContextMenu
+          card={contextMenu.card}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={closeContextMenu}
+          onMove={handleStatusChange}
+          onSetUseCount={handleSetUseCount}
+          onSetDefault={handleSetDefault}
+        />
+      )}
+
       {detailCard && (
         <CardDetailPopover card={detailCard} onSave={saveDetail} onCancel={cancelDetail} />
+      )}
+
+      {addingStudent && (
+        <Modal
+          wide
+          title="Add a student"
+          subtitle="Paste their accommodations straight from the IEP, or pick from a starter set."
+          onClose={() => setAddingStudent(false)}
+        >
+          <AddStudentForm />
+        </Modal>
       )}
     </div>
   );

@@ -203,6 +203,47 @@
   background: var(--acc-scrim);
 }
 
+.acc-modal {
+  inline-size: 100%;
+  max-inline-size: 560px;
+  max-block-size: min(88vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--acc-surface);
+  border-radius: var(--acc-radius-xl);
+  box-shadow: var(--acc-shadow-overlay);
+  overflow: hidden;
+
+  &--wide {
+    max-inline-size: 980px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--acc-space-4);
+    padding: var(--acc-space-4) var(--acc-space-5);
+    border-bottom: 1px solid var(--acc-border);
+  }
+
+  &__title {
+    font-size: var(--acc-fs-heading);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__subtitle {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    margin-block-start: var(--acc-space-1);
+  }
+
+  &__body {
+    padding: var(--acc-space-5);
+    overflow-y: auto;
+  }
+}
+
 .acc-detail {
   width: 100%;
   max-width: 520px;

@@ -101,8 +101,17 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
   return STATUS.UNASSIGNED;
 }
 
-/** Statuses that mean "the teacher delivered this". */
+/** Statuses that mean "the accommodation was actually used". */
 const DELIVERED = new Set([STATUS.USED, STATUS.USED_WITH_DETAIL]);
+
+/**
+ * Statuses that mean the teacher met their obligation.
+ *
+ * Includes REFUSED: the duty is to provide the accommodation, not to make the
+ * student accept it. A documented refusal is what protects the teacher, so it
+ * must never read as a failure to deliver.
+ */
+const ADDRESSED = new Set([STATUS.USED, STATUS.USED_WITH_DETAIL, STATUS.REFUSED]);
 
 /** Statuses excluded from the compliance denominator. */
 const NOT_COUNTED = new Set([
@@ -112,6 +121,7 @@ const NOT_COUNTED = new Set([
 ]);
 
 export const isDelivered = (status) => DELIVERED.has(status);
+export const isAddressed = (status) => ADDRESSED.has(status);
 export const countsTowardCompliance = (status) => !NOT_COUNTED.has(status);
 
 /**
@@ -128,6 +138,7 @@ export function summarise(statuses) {
     [STATUS.UNASSIGNED]: 0,
     [STATUS.USED]: 0,
     [STATUS.USED_WITH_DETAIL]: 0,
+    [STATUS.REFUSED]: 0,
     [STATUS.NOT_USED]: 0,
     [DERIVED_STATUS.ABSENT]: 0,
     [DERIVED_STATUS.NOT_APPLICABLE]: 0,
@@ -141,15 +152,24 @@ export function summarise(statuses) {
 
   const denominator = statuses.filter(countsTowardCompliance).length;
   const numerator = statuses.filter(isDelivered).length;
+  const addressed = statuses.filter(isAddressed).length;
 
   return {
     counts,
     total: statuses.length,
     counted: denominator,
     delivered: numerator,
+    /** delivered + refused — the teacher met their obligation either way. */
+    addressed,
     // null, not 0, when there is nothing to measure. A report must be able to
     // print "—" rather than a damning "0%" for a week that was all holidays.
     rate: denominator > 0 ? numerator / denominator : null,
+    /**
+     * The figure that belongs on a compliance report. A student refusing support
+     * is not the teacher failing to offer it, so this is the rate that answers
+     * "did you provide what the plan requires".
+     */
+    addressedRate: denominator > 0 ? addressed / denominator : null,
   };
 }
 

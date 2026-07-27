@@ -24,10 +24,35 @@
   }
 }
 
+// Filter row. Sits between the toolbar and the first card, on the board
+// background rather than the surface, so it reads as belonging to the list it
+// filters instead of to the chrome above it.
+.acc-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-3);
+  flex-wrap: wrap;
+  padding: var(--acc-space-3) var(--acc-space-4);
+  background: var(--acc-bg);
+  border-bottom: 1px solid var(--acc-border);
+  flex-shrink: 0;
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__count {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+}
+
 .acc-periods {
   display: flex;
   align-items: center;
   gap: var(--acc-space-1);
+  flex-wrap: wrap;
 }
 
 .acc-banner {

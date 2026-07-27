@@ -1,4 +1,4 @@
-import { STATUS, RESOLVED_BY } from './constants.js';
+import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES } from './constants.js';
 import { isoTimestamp } from './dates.js';
 import { ensureDay } from './seed.js';
 
@@ -60,12 +60,47 @@ export function setEntryStatus(
       ...entry,
       status,
       detail: nextDetail,
+      // A repeat count only means something for statuses where it was used at
+      // all. Moving a card to Refused or back to Unassigned resets it, so a
+      // stale "×3" can never linger on a card that claims no usage.
+      useCount: COUNTABLE_STATUSES.includes(status) ? entry.useCount || 1 : 1,
       resolvedBy: status === STATUS.UNASSIGNED ? null : RESOLVED_BY.USER,
       resolvedAt: null,
       updatedAt: status === STATUS.UNASSIGNED ? null : stamp,
     };
 
     return { ...studentDay, entries: { ...studentDay.entries, [assignmentId]: nextEntry } };
+  });
+}
+
+/**
+ * Record that an accommodation was used more than once in the day.
+ *
+ * Only valid on Used / Used with Detail — a count on Refused or Unassigned would
+ * be claiming repeated use of something that was not used.
+ */
+export function setEntryUseCount(doc, dateKey, studentId, assignmentId, count, now = new Date()) {
+  const clamped = Math.max(1, Math.min(99, Math.round(Number(count) || 1)));
+  const stamp = isoTimestamp(now);
+
+  return replaceStudentDay(doc, dateKey, studentId, (studentDay) => {
+    const entry = studentDay.entries?.[assignmentId];
+    if (!entry) return studentDay;
+    if (!COUNTABLE_STATUSES.includes(entry.status)) return studentDay;
+    if ((entry.useCount || 1) === clamped) return studentDay;
+
+    return {
+      ...studentDay,
+      entries: {
+        ...studentDay.entries,
+        [assignmentId]: {
+          ...entry,
+          useCount: clamped,
+          resolvedBy: RESOLVED_BY.USER,
+          updatedAt: stamp,
+        },
+      },
+    };
   });
 }
 
@@ -145,6 +180,15 @@ export function applyPatches(doc, patches, now = new Date()) {
           patch.detail,
           now
         );
+      case 'setUseCount':
+        return setEntryUseCount(
+          acc,
+          patch.dateKey,
+          patch.studentId,
+          patch.assignmentId,
+          patch.count,
+          now
+        );
       case 'setNotes':
         return setStudentNotes(acc, patch.dateKey, patch.studentId, patch.notes, now);
       case 'setAbsent':
@@ -155,10 +199,90 @@ export function applyPatches(doc, patches, now = new Date()) {
   }, doc);
 }
 
+// --- standing defaults ------------------------------------------------------
+
+/**
+ * Set (or clear) a standing default for one student's accommodation.
+ *
+ * From the day it is set onward, every newly-seeded day starts this entry at
+ * `status` instead of `unassigned`, so a permanent arrangement is not re-marked
+ * 180 times a year. Pass `status: null` to clear.
+ *
+ * Only affects days created AFTER this point, plus optionally the day in view via
+ * `applyToDate`. It deliberately does not walk backwards over history — silently
+ * rewriting weeks of past records because a default was added in March is exactly
+ * the kind of retroactive edit the amendment log exists to prevent.
+ */
+export function setAssignmentDefault(
+  doc,
+  assignmentId,
+  status,
+  { detail = '', applyToDate = null, now = new Date() } = {}
+) {
+  const next = {
+    ...doc,
+    assignments: doc.assignments.map((a) =>
+      a.id === assignmentId
+        ? { ...a, defaultStatus: status || null, defaultDetail: status ? detail : '' }
+        : a
+    ),
+  };
+
+  if (!applyToDate) return next;
+
+  // Apply to the visible day too, but only if the teacher hasn't already decided
+  // this entry themselves — a default must never overwrite an observation.
+  const day = next.days?.[applyToDate];
+  const assignment = next.assignments.find((a) => a.id === assignmentId);
+  if (!day || day.sealed || !assignment) return next;
+
+  const studentDay = day.students?.[assignment.studentId];
+  const entry = studentDay?.entries?.[assignmentId];
+  if (!entry) return next;
+  if (entry.resolvedBy === RESOLVED_BY.USER) return next;
+
+  const stamp = isoTimestamp(now);
+  const nextEntry = status
+    ? {
+        ...entry,
+        status,
+        detail,
+        resolvedBy: RESOLVED_BY.DEFAULT,
+        resolvedAt: null,
+        updatedAt: stamp,
+      }
+    : { ...entry, status: STATUS.UNASSIGNED, detail: '', resolvedBy: null, updatedAt: null };
+
+  return {
+    ...next,
+    days: {
+      ...next.days,
+      [applyToDate]: {
+        ...day,
+        students: {
+          ...day.students,
+          [assignment.studentId]: {
+            ...studentDay,
+            entries: { ...studentDay.entries, [assignmentId]: nextEntry },
+          },
+        },
+      },
+    },
+  };
+}
+
 // --- settings & roster ------------------------------------------------------
 
 export function updateSettings(doc, changes) {
   return { ...doc, settings: { ...doc.settings, ...changes } };
+}
+
+/** Edit the active teacher's own details (name, subjects, grades, school, room). */
+export function updateTeacher(doc, teacherId, changes) {
+  return {
+    ...doc,
+    teachers: doc.teachers.map((t) => (t.id === teacherId ? { ...t, ...changes } : t)),
+  };
 }
 
 export function touchLastKnownDate(doc, dateKey) {

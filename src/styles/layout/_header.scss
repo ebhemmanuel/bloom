@@ -1,0 +1,270 @@
+// Top navigation: product name left, notifications + avatar right.
+
+.acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--acc-space-4);
+  min-height: 52px;
+  padding: 0 var(--acc-space-4);
+  background: var(--acc-surface);
+  border-bottom: 1px solid var(--acc-border);
+  flex-shrink: 0;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    min-width: 0;
+  }
+
+  &__mark {
+    inline-size: 20px;
+    block-size: 20px;
+    border-radius: var(--acc-radius-sm);
+    background: linear-gradient(140deg, var(--acc-accent), var(--acc-status-detail));
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+
+  &__icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    border-radius: var(--acc-radius-sm);
+    color: var(--acc-fg-muted);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover,
+    &--on {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
+  }
+
+  // Count badge. Amber, not red — these are advisories, not alarms.
+  &__dot {
+    position: absolute;
+    inset-block-start: 1px;
+    inset-inline-end: 1px;
+    min-inline-size: 15px;
+    block-size: 15px;
+    padding: 0 3px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-warning);
+    color: var(--acc-surface);
+    font-size: 9px;
+    font-weight: var(--acc-fw-bold);
+    line-height: 15px;
+    text-align: center;
+  }
+}
+
+.acc-avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 50%;
+  background: var(--acc-accent-soft);
+  color: var(--acc-accent);
+  font-size: var(--acc-fs-tiny);
+  font-weight: var(--acc-fw-bold);
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  transition:
+    background-color var(--acc-dur-instant) var(--acc-ease-standard),
+    border-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+  &:hover {
+    border-color: var(--acc-accent);
+  }
+
+  &--on {
+    background: var(--acc-accent);
+    color: var(--acc-accent-fg);
+    border-color: var(--acc-accent);
+  }
+}
+
+// --- Header popovers -------------------------------------------------------
+
+.acc-popover {
+  position: absolute;
+  z-index: 60;
+  inset-block-start: 56px;
+  inset-inline-end: var(--acc-space-4);
+  inline-size: min(420px, calc(100vw - var(--acc-space-6)));
+  max-block-size: min(70vh, 620px);
+  overflow-y: auto;
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border-strong);
+  border-radius: var(--acc-radius-lg);
+  box-shadow: var(--acc-shadow-overlay);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--acc-space-3) var(--acc-space-4);
+    border-bottom: 1px solid var(--acc-border);
+    position: sticky;
+    inset-block-start: 0;
+    background: var(--acc-surface);
+  }
+
+  &__close {
+    color: var(--acc-fg-faint);
+    font-size: 19px;
+    line-height: 1;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-4);
+    padding: var(--acc-space-4);
+  }
+
+  &__empty {
+    color: var(--acc-fg-muted);
+    font-size: var(--acc-fs-sub);
+    text-align: center;
+    padding: var(--acc-space-4) 0;
+  }
+}
+
+// --- Notifications ---------------------------------------------------------
+
+.acc-notifs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-2);
+}
+
+.acc-notif {
+  padding: var(--acc-space-3);
+  border-radius: var(--acc-radius-md);
+  border-inline-start: 3px solid var(--acc-border-strong);
+  background: var(--acc-surface-sunken);
+
+  &--warn {
+    border-inline-start-color: var(--acc-warning);
+    background: var(--acc-warning-soft);
+  }
+  &--ok {
+    border-inline-start-color: var(--acc-success);
+    background: var(--acc-success-soft);
+  }
+  &--info {
+    border-inline-start-color: var(--acc-accent);
+    background: var(--acc-accent-soft);
+  }
+
+  &__title {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__body {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+    margin-block: var(--acc-space-1) var(--acc-space-2);
+  }
+}
+
+// --- Form fields -----------------------------------------------------------
+
+.acc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-1);
+
+  &__label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__input {
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-sm);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    outline: none;
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+
+    &--inline {
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    &--time {
+      max-inline-size: 130px;
+    }
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &--narrow {
+    max-inline-size: 96px;
+  }
+}
+
+.acc-field-row {
+  display: flex;
+  gap: var(--acc-space-3);
+  align-items: flex-start;
+}
+
+.acc-chipset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--acc-space-1);
+
+  &__add {
+    display: flex;
+    gap: var(--acc-space-2);
+    margin-block-start: var(--acc-space-2);
+  }
+}
+
+.acc-chip--custom::after {
+  content: '×';
+  margin-inline-start: var(--acc-space-1);
+  opacity: 0.6;
+}

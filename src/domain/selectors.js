@@ -117,6 +117,8 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       // Cards live in a droppable column by their STORED status. A resolved
       // not_used still sits in the Unassigned column, flagged — it must remain
       // visible and correctable, not vanish off the board.
+      // Cards sit in a column by their STORED status. A resolved not_used still
+      // sits in Unassigned, flagged — it must stay visible and correctable.
       const stored = entry?.status || STATUS.UNASSIGNED;
       const column = DROPPABLE_STATUSES.includes(stored) ? stored : STATUS.UNASSIGNED;
 
@@ -140,6 +142,11 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
         detail: entry?.detail || '',
         hasDetail: Boolean((entry?.detail || '').trim()),
         needsDetail,
+        useCount: entry?.useCount || 1,
+        // A standing default for this student, and whether this specific entry
+        // came from it rather than from something the teacher observed today.
+        defaultStatus: cfg.defaultStatus,
+        fromDefault: entry?.resolvedBy === 'default',
         notApplicable: resolved === DERIVED_STATUS.NOT_APPLICABLE,
         noRecord: resolved === DERIVED_STATUS.NO_RECORD,
       });

@@ -4,6 +4,7 @@ import {
   RESOLVED_BY,
   WEEKDAYS,
   PLAN_TYPES,
+  DEFAULTABLE_STATUSES,
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_IDLE_LOCK_MINUTES,
 } from './constants.js';
@@ -220,6 +221,8 @@ export function normalizeDoc(raw, now = new Date()) {
         displayName: asString(st.displayName, [first, last].filter(Boolean).join(' ')),
         periodIds: [...new Set(kept)],
         planType: PLAN_TYPES.includes(st.planType) ? st.planType : 'IEP',
+        /** State-Assigned Student ID, as it appears in the district's system. */
+        sasid: asString(st.sasid),
         planRef: asString(st.planRef),
         caseManager: asString(st.caseManager),
         sortOrder: asIntIn(st.sortOrder, 0, 99999, i),
@@ -274,6 +277,17 @@ export function normalizeDoc(raw, now = new Date()) {
         bulkActions:
           source === 'custom' ? asArray(a.bulkActions).filter((x) => typeof x === 'string') : null,
         sortOrder: asIntIn(a.sortOrder, 0, 99999, i * 10),
+        /**
+         * Standing default for this student's accommodation. When set, each new
+         * day is seeded with this status instead of `unassigned`, so a permanent
+         * arrangement does not have to be re-marked 180 times.
+         *
+         * Only `used` and `used_with_detail` are defaultable — defaulting
+         * `not_used` would fabricate non-delivery.
+         */
+        defaultStatus: DEFAULTABLE_STATUSES.includes(a.defaultStatus) ? a.defaultStatus : null,
+        /** Optional boilerplate detail written alongside a defaulted entry. */
+        defaultDetail: asString(a.defaultDetail),
         // activeFrom/activeTo are how an accommodation is "removed" without
         // erasing the months of history that reference it.
         activeFrom: isValidDateKey(a.activeFrom) ? a.activeFrom : null,
@@ -332,14 +346,19 @@ export function normalizeDoc(raw, now = new Date()) {
         entries[asgId] = {
           status,
           detail: asString(rawEntry.detail),
+          /**
+           * How many times it was used that day. 1 unless the teacher recorded a
+           * repeat. Capped at 99 so a stray paste cannot claim an absurd number
+           * on an audited record.
+           */
+          useCount: asIntIn(rawEntry.useCount, 1, 99, 1),
           // Written when the entry is created and never updated. It is what
           // makes an old printed report still say what it said at the time,
           // even after the catalog wording changes.
           labelSnapshot: asString(rawEntry.labelSnapshot),
-          resolvedBy:
-            rawEntry.resolvedBy === RESOLVED_BY.AUTO || rawEntry.resolvedBy === RESOLVED_BY.USER
-              ? rawEntry.resolvedBy
-              : null,
+          resolvedBy: Object.values(RESOLVED_BY).includes(rawEntry.resolvedBy)
+            ? rawEntry.resolvedBy
+            : null,
           resolvedAt: asNullableString(rawEntry.resolvedAt),
           updatedAt: asNullableString(rawEntry.updatedAt),
         };
@@ -392,7 +411,15 @@ export function assignmentLabel(assignment, catalogById) {
   return catalogById.get(assignment.catalogId)?.label || 'Untitled accommodation';
 }
 
-/** Resolves the effective per-assignment config, merging catalog defaults. */
+/**
+ * Resolves the effective per-assignment config, merging catalog defaults.
+ *
+ * Note `defaultStatus` / `defaultDetail` always come from the ASSIGNMENT, never
+ * the catalog entry, in both branches. A standing default is a decision about one
+ * student ("Marcus always has preferential seating"), not a property of the
+ * accommodation itself — putting it on the catalog would silently apply it to
+ * every student who shares that accommodation.
+ */
 export function assignmentConfig(assignment, catalogById) {
   if (!assignment) return null;
   if (assignment.source === 'custom') {
@@ -403,6 +430,8 @@ export function assignmentConfig(assignment, catalogById) {
       detailPrompt: assignment.detailPrompt,
       bulkEligible: Boolean(assignment.bulkEligible),
       bulkActions: assignment.bulkActions || [],
+      defaultStatus: assignment.defaultStatus ?? null,
+      defaultDetail: assignment.defaultDetail || '',
     };
   }
   const c = catalogById.get(assignment.catalogId);
@@ -413,6 +442,9 @@ export function assignmentConfig(assignment, catalogById) {
     detailPrompt: c?.detailPrompt ?? null,
     bulkEligible: Boolean(c?.bulkEligible),
     bulkActions: c?.bulkActions || [],
+    // From the assignment, not the catalog — see the note above.
+    defaultStatus: assignment.defaultStatus ?? null,
+    defaultDetail: assignment.defaultDetail || '',
   };
 }
 

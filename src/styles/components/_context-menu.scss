@@ -1,0 +1,146 @@
+// Custom right-click menu. Replaces the browser's native menu on a card.
+
+.acc-ctx {
+  position: fixed;
+  z-index: 70;
+  inset-inline-start: var(--acc-ctx-left, 0);
+  inset-block-start: var(--acc-ctx-top, 0);
+  inline-size: 260px;
+  padding: var(--acc-space-2);
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border-strong);
+  border-radius: var(--acc-radius-md);
+  box-shadow: var(--acc-shadow-overlay);
+
+  // Grows from the pointer, so it reads as belonging to the card you clicked.
+  &--enter {
+    animation: acc-pop-in var(--acc-dur-fast) var(--acc-ease-entrance) both;
+    transform-origin: top left;
+  }
+
+  &__title {
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-fg-muted);
+    padding: var(--acc-space-1) var(--acc-space-2) var(--acc-space-2);
+    border-bottom: 1px solid var(--acc-border);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__group {
+    padding-block: var(--acc-space-2);
+
+    & + & {
+      border-top: 1px solid var(--acc-border);
+    }
+  }
+
+  &__heading {
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: var(--acc-ls-cap);
+    text-transform: uppercase;
+    color: var(--acc-fg-faint);
+    padding: 0 var(--acc-space-2) var(--acc-space-1);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    text-align: start;
+    color: var(--acc-fg);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--current {
+      font-weight: var(--acc-fw-semibold);
+    }
+
+    &--danger {
+      color: var(--acc-danger);
+
+      &:hover {
+        background: var(--acc-danger-soft);
+      }
+    }
+  }
+
+  &__check {
+    margin-inline-start: auto;
+    color: var(--acc-accent);
+  }
+
+  &__swatch {
+    inline-size: 9px;
+    block-size: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+
+    &--unassigned {
+      background: var(--acc-status-unassigned);
+    }
+    &--used {
+      background: var(--acc-status-used);
+    }
+    &--used-with-detail {
+      background: var(--acc-status-detail);
+    }
+    &--refused {
+      background: var(--acc-status-refused);
+    }
+  }
+
+  &__counts {
+    display: flex;
+    gap: var(--acc-space-1);
+    padding: 0 var(--acc-space-2);
+  }
+
+  &__count {
+    flex: 1;
+    padding: var(--acc-space-1) 0;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg-muted);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      border-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+      color: var(--acc-fg);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+      border-color: var(--acc-accent);
+      color: var(--acc-accent);
+      font-weight: var(--acc-fw-semibold);
+    }
+  }
+
+  &__note {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+    padding: 0 var(--acc-space-2);
+
+    &--warn {
+      color: var(--acc-warning);
+      margin-block-start: var(--acc-space-1);
+    }
+  }
+}

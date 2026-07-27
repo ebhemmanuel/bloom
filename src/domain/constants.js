@@ -7,6 +7,16 @@ export const STATUS = {
   UNASSIGNED: 'unassigned',
   USED: 'used',
   USED_WITH_DETAIL: 'used_with_detail',
+  /**
+   * Offered, and the student declined it.
+   *
+   * Counts toward compliance. The obligation is on the teacher to provide the
+   * accommodation, not on the student to accept it — so a documented refusal is
+   * what protects the teacher, and it must never be filed as a failure to
+   * deliver. Reported as "addressed" but not as "delivered", because nothing was
+   * actually used.
+   */
+  REFUSED: 'refused',
   /** Resolved: the cycle closed with no delivery recorded. */
   NOT_USED: 'not_used',
 };
@@ -32,12 +42,19 @@ export const DERIVED_STATUS = {
 
 export const ALL_STATUSES = { ...STATUS, ...DERIVED_STATUS };
 
-/** The three drop targets on the board, left to right. */
+/** The drop targets on the board, left to right. */
 export const BOARD_COLUMNS = [
   { id: STATUS.UNASSIGNED, label: 'Unassigned' },
   { id: STATUS.USED, label: 'Used' },
   { id: STATUS.USED_WITH_DETAIL, label: 'Used with Detail' },
+  { id: STATUS.REFUSED, label: 'Refused' },
 ];
+
+/** Statuses where a repeat-use count is meaningful. */
+export const COUNTABLE_STATUSES = [STATUS.USED, STATUS.USED_WITH_DETAIL];
+
+/** Offered on the context menu for "used more than once". */
+export const USE_COUNT_OPTIONS = [1, 2, 3, 4, 5];
 
 export const DROPPABLE_STATUSES = BOARD_COLUMNS.map((c) => c.id);
 
@@ -49,6 +66,7 @@ export const STATUS_GLYPH = {
   [STATUS.UNASSIGNED]: '·',
   [STATUS.USED]: 'U',
   [STATUS.USED_WITH_DETAIL]: 'D',
+  [STATUS.REFUSED]: 'R',
   [STATUS.NOT_USED]: '—',
   [DERIVED_STATUS.ABSENT]: 'A',
   [DERIVED_STATUS.NOT_APPLICABLE]: 'n/a',
@@ -59,6 +77,7 @@ export const STATUS_LABEL = {
   [STATUS.UNASSIGNED]: 'Unassigned',
   [STATUS.USED]: 'Used',
   [STATUS.USED_WITH_DETAIL]: 'Used with detail',
+  [STATUS.REFUSED]: 'Refused',
   [STATUS.NOT_USED]: 'Not used',
   [DERIVED_STATUS.ABSENT]: 'Absent',
   [DERIVED_STATUS.NOT_APPLICABLE]: 'Not applicable',
@@ -94,9 +113,26 @@ export const SEED_MODE = {
 };
 
 export const RESOLVED_BY = {
+  /** The teacher set it deliberately. */
   USER: 'user',
+  /** End-of-cycle resolution stamped it. */
   AUTO: 'auto',
+  /**
+   * Pre-set from a standing per-student default.
+   *
+   * Tracked separately from USER on purpose. A default asserts delivery on a day
+   * nobody observed anything, which is legitimate for a permanent arrangement
+   * (preferential seating: the desk is where it is) and misleading for a
+   * conditional one (extended time on assessments, on a day with no assessment).
+   * Keeping the provenance means the report can distinguish "standing
+   * arrangement" from "observed today", instead of quietly inflating a delivery
+   * rate.
+   */
+  DEFAULT: 'default',
 };
+
+/** Statuses that may be used as a standing per-student default. */
+export const DEFAULTABLE_STATUSES = [STATUS.USED, STATUS.USED_WITH_DETAIL];
 
 /** Starter categories for the accommodation catalog. */
 export const CATEGORIES = [
@@ -109,6 +145,22 @@ export const CATEGORIES = [
   { id: 'behavior', label: 'Behavior & regulation' },
   { id: 'other', label: 'Other' },
 ];
+
+/** Starting suggestions for the "what do you teach" question. Free entry allowed. */
+export const SUBJECT_OPTIONS = [
+  'Mathematics',
+  'English / ELA',
+  'Science',
+  'Social Studies',
+  'Special Education',
+  'World Languages',
+  'Art',
+  'Music',
+  'Physical Education',
+  'Technology',
+];
+
+export const GRADE_OPTIONS = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 export const DEFAULT_CYCLE_END_TIME = '16:00';
 export const DEFAULT_IDLE_LOCK_MINUTES = 10;
