@@ -1,24 +1,21 @@
-@use 'app-shell' as shell;
+// Width is owned entirely by .acc-app__frame. Nothing here caps its own measure.
 
 .acc-toolbar {
   display: flex;
   align-items: center;
   gap: var(--acc-space-3);
   min-height: var(--acc-toolbar-h);
-  padding-block: var(--acc-space-2);
+  padding: var(--acc-space-2) var(--acc-space-4);
   background: var(--acc-surface);
   border-bottom: 1px solid var(--acc-border);
   flex-shrink: 0;
 
-  // Full-bleed background, content aligned to the 1200px board.
-  @include shell.shell-width;
-
   // Left: what you are looking at (date, period, student).
   // Right: what you can do about it, then the save state at the very edge.
   //
-  // `margin-inline-start: auto` on the actions rather than a flex spacer — a
-  // spacer div collapses to zero as soon as the row wraps, which quietly drags
-  // the actions back to the middle-left.
+  // `margin-inline-start: auto` rather than a flex spacer div — a spacer
+  // collapses to zero as soon as the row wraps, which quietly drags the actions
+  // back toward the middle-left.
   &__actions {
     display: flex;
     align-items: center;
@@ -33,8 +30,6 @@
   gap: var(--acc-space-1);
 }
 
-// Banners share the board's content alignment while keeping a full-bleed
-// background, so a notice never looks detached from the lanes it refers to.
 .acc-banner {
-  @include shell.shell-width;
+  padding-inline: var(--acc-space-4);
 }

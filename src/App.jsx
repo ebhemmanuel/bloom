@@ -109,53 +109,60 @@ function AppRoutes() {
 
   return (
     <div className="acc-app">
-      {meta.tooNew && (
-        <div className="acc-banner acc-banner--warn">
-          This file was written by a newer version of the app. It is open read-only so nothing is
-          lost.
-        </div>
-      )}
+      {/*
+        One container owns the measure. Every chrome element — banners, toolbar,
+        board — lives inside it, so nothing can drift out of alignment the way it
+        does when each piece caps its own width.
+      */}
+      <div className="acc-app__frame">
+        {meta.tooNew && (
+          <div className="acc-banner acc-banner--warn">
+            This file was written by a newer version of the app. It is open read-only so nothing is
+            lost.
+          </div>
+        )}
 
-      {meta.synced && (
-        <div className="acc-banner acc-banner--warn">
-          Your records are in a folder that syncs to {meta.syncProvider}. Student information is
-          being copied off this computer.
-        </div>
-      )}
+        {meta.synced && (
+          <div className="acc-banner acc-banner--warn">
+            Your records are in a folder that syncs to {meta.syncProvider}. Student information is
+            being copied off this computer.
+          </div>
+        )}
 
-      {meta.recoveredFrom && (
-        <div className="acc-banner acc-banner--ok">
-          Recovered your records from a backup. The unreadable file was kept, not deleted.
-        </div>
-      )}
+        {meta.recoveredFrom && (
+          <div className="acc-banner acc-banner--ok">
+            Recovered your records from a backup. The unreadable file was kept, not deleted.
+          </div>
+        )}
 
-      {repairs.length > 0 && (
-        <div className="acc-banner acc-banner--warn">
-          <span>
-            {repairs[0]}
-            {repairs.length > 1 ? ` (+${repairs.length - 1} more)` : ''}
-          </span>
-          <span className="acc-banner__actions">
-            <button
-              type="button"
-              className="acc-btn acc-btn--small acc-btn--quiet"
-              onClick={dismissRepairs}
-            >
-              Dismiss
-            </button>
-          </span>
-        </div>
-      )}
+        {repairs.length > 0 && (
+          <div className="acc-banner acc-banner--warn">
+            <span>
+              {repairs[0]}
+              {repairs.length > 1 ? ` (+${repairs.length - 1} more)` : ''}
+            </span>
+            <span className="acc-banner__actions">
+              <button
+                type="button"
+                className="acc-btn acc-btn--small acc-btn--quiet"
+                onClick={dismissRepairs}
+              >
+                Dismiss
+              </button>
+            </span>
+          </div>
+        )}
 
-      {!isDesktop && (
-        <div className="acc-banner acc-banner--info">
-          Browser preview — data is kept in this browser only, not in a real record file.
-        </div>
-      )}
+        {!isDesktop && (
+          <div className="acc-banner acc-banner--info">
+            Browser preview — data is kept in this browser only, not in a real record file.
+          </div>
+        )}
 
-      <main className="acc-app__main">
-        <Board />
-      </main>
+        <main className="acc-app__main">
+          <Board />
+        </main>
+      </div>
     </div>
   );
 }

@@ -5,6 +5,28 @@
   overflow: hidden;
 }
 
+/**
+ * The single container that owns the measure.
+ *
+ * Everything — banners, toolbar, board — sits inside this, so the header can
+ * never end up full width while the lanes are capped. Capping each piece
+ * separately is what produces that drift.
+ *
+ * Side borders make the frame read as a deliberate workspace on a wide monitor
+ * rather than a centred column floating in empty space.
+ */
+.acc-app__frame {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: var(--acc-max-w);
+  margin-inline: auto;
+  min-height: 0;
+  flex: 1;
+  background: var(--acc-surface);
+  border-inline: 1px solid var(--acc-border);
+}
+
 .acc-app__main {
   flex: 1;
   min-height: 0;
@@ -18,33 +40,19 @@
   min-height: 0;
 }
 
-/**
- * Centres content to --acc-max-w while letting the element itself stay
- * full-bleed, so a toolbar or banner keeps its edge-to-edge background and
- * border but its content still lines up with the board. Avoids adding a wrapper
- * element to every one of them.
- */
-@mixin shell-width($gutter: var(--acc-space-5)) {
-  padding-inline: max(#{$gutter}, calc((100% - var(--acc-max-w)) / 2));
-}
-
-// The scroll container is full width; the lanes inside it are capped and centred.
-// Keeping the scrollbar at the window edge rather than at 1200px is what makes
-// the board feel like an app instead of a centred web page.
 .acc-board__scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background: var(--acc-bg);
 }
 
 .acc-board__lanes {
-  max-inline-size: var(--acc-max-w);
-  margin-inline: auto;
-  padding: var(--acc-space-4) var(--acc-space-5) var(--acc-space-8);
   display: flex;
   flex-direction: column;
   gap: var(--acc-space-4);
+  padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-8);
 }
 
 // While a drag is in flight the cursor stays a grab everywhere, so the whole
