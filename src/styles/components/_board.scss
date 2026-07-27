@@ -207,12 +207,33 @@
     color: var(--acc-fg-faint);
   }
 
+  // Dragging is the only way to change status, so an empty column has to be an
+  // obvious, comfortably large drop target rather than a thin strip.
   &__list {
     display: flex;
     flex-direction: column;
     gap: var(--acc-space-2);
     padding: 0 var(--acc-space-2) var(--acc-space-3);
-    min-height: 64px;
+    flex: 1;
+    min-height: 84px;
+  }
+
+  // Only shown when the column is empty, and only while a drag is in flight.
+  &__list:empty::after {
+    content: 'Drop here';
+    display: grid;
+    place-items: center;
+    block-size: 68px;
+    border: 1px dashed var(--acc-border-strong);
+    border-radius: var(--acc-radius-md);
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    opacity: 0;
+    transition: opacity var(--acc-dur-fast) var(--acc-ease-standard);
+  }
+
+  body[data-dragging='true'] &__list:empty::after {
+    opacity: 1;
   }
 
   // Status accent as a top rule — carries meaning without tinting the whole well.

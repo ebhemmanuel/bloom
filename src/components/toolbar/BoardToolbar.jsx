@@ -70,8 +70,6 @@ export default function BoardToolbar({
           hiddenCount={model.hiddenBySearch}
         />
 
-        <div className="acc-toolbar__spacer" />
-
         <div className="acc-toolbar__actions">
           <button type="button" className="acc-btn acc-btn--quiet" onClick={onCollapseAll}>
             Fold all

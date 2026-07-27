@@ -1,16 +1,26 @@
 import { memo } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import CardStatusControl from './CardStatusControl.jsx';
 import { STATUS, STATUS_LABEL } from '../../domain/constants.js';
 
 /**
  * One accommodation for one student on one day.
  *
- * Memoised on the fields that actually affect the render — with 240 cards on a
- * full board, re-rendering all of them on every keystroke in the search box is
- * the difference between fluid and sluggish.
+ * The WHOLE card is the drag handle, the way a Jira card behaves — you grab it
+ * anywhere and drop it in a column. Status is changed by moving the card and
+ * only by moving the card; there is no per-card status widget.
+ *
+ * Accessibility is covered without one: @hello-pangea/dnd gives the handle
+ * keyboard dragging for free (Space to lift, arrows to move, Space to drop) with
+ * live-region announcements, which is the same interaction model Jira ships.
+ *
+ * Clicking without dragging opens the detail editor — the library distinguishes a
+ * click from a drag, so both live on the same element.
+ *
+ * Memoised on the fields that affect the render: with ~240 cards on a full board,
+ * re-rendering all of them on every keystroke in the search box is the difference
+ * between fluid and sluggish.
  */
-function AccommodationCard({ card, index, disabled, onStatusChange, onOpenDetail }) {
+function AccommodationCard({ card, index, disabled, onOpenDetail }) {
   const resolvedNotUsed = card.resolved === STATUS.NOT_USED;
 
   const classes = [
@@ -19,6 +29,7 @@ function AccommodationCard({ card, index, disabled, onStatusChange, onOpenDetail
     resolvedNotUsed && 'acc-card--not-used',
     card.needsDetail && 'acc-card--needs-detail',
     card.notApplicable && 'acc-card--na',
+    disabled && 'acc-card--locked',
   ]
     .filter(Boolean)
     .join(' ');
@@ -33,52 +44,32 @@ function AccommodationCard({ card, index, disabled, onStatusChange, onOpenDetail
         <li
           ref={provided.innerRef}
           {...provided.draggableProps}
-          // The library's transform. The ONLY permitted inline style in the app —
-          // everything else is a BEM modifier, per CLAUDE.md.
+          {...provided.dragHandleProps}
+          // The library's own transform. The ONLY permitted inline style in the
+          // app — everything else is a BEM modifier, per CLAUDE.md.
           style={provided.draggableProps.style}
           className={`${classes}${snapshot.isDragging ? ' acc-card--dragging' : ''}`}
+          onClick={() => onOpenDetail(card)}
+          aria-label={`${card.label} — ${STATUS_LABEL[card.resolved] || ''}`}
         >
-          <div className="acc-card__grip" {...provided.dragHandleProps} aria-hidden="true">
-            <span />
-            <span />
+          <p className="acc-card__label">{card.label}</p>
+
+          <div className="acc-card__meta">
+            {card.isCustom && <span className="acc-card__badge">One-off</span>}
+            {card.hasDetail && (
+              <span className="acc-card__detail-chip" title={card.detail}>
+                Detail added
+              </span>
+            )}
+            {card.needsDetail && (
+              <span className="acc-card__detail-chip acc-card__detail-chip--missing">
+                Detail needed
+              </span>
+            )}
+            {resolvedNotUsed && (
+              <span className="acc-card__resolved">{STATUS_LABEL[STATUS.NOT_USED]}</span>
+            )}
           </div>
-
-          <div className="acc-card__body">
-            <p className="acc-card__label">{card.label}</p>
-
-            <div className="acc-card__meta">
-              {card.isCustom && <span className="acc-card__badge">One-off</span>}
-              {card.hasDetail && (
-                <button
-                  type="button"
-                  className="acc-card__detail-chip"
-                  onClick={() => onOpenDetail(card)}
-                  title={card.detail}
-                >
-                  Detail added
-                </button>
-              )}
-              {card.needsDetail && (
-                <button
-                  type="button"
-                  className="acc-card__detail-chip acc-card__detail-chip--missing"
-                  onClick={() => onOpenDetail(card)}
-                >
-                  Detail needed
-                </button>
-              )}
-              {resolvedNotUsed && (
-                <span className="acc-card__resolved">{STATUS_LABEL[STATUS.NOT_USED]}</span>
-              )}
-            </div>
-          </div>
-
-          <CardStatusControl
-            status={card.status}
-            disabled={disabled}
-            label={card.label}
-            onChange={(next) => onStatusChange(card, next)}
-          />
         </li>
       )}
     </Draggable>

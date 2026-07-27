@@ -11,7 +11,7 @@ import AccommodationCard from './AccommodationCard.jsx';
  * drag — rather than a rejection branch in onDragEnd that the user only
  * discovers by trying and failing.
  */
-function StatusColumn({ studentId, status, label, cards, disabled, onStatusChange, onOpenDetail }) {
+function StatusColumn({ studentId, status, label, cards, disabled, onOpenDetail }) {
   return (
     <Droppable
       droppableId={`drop:${studentId}:${status}`}
@@ -37,7 +37,6 @@ function StatusColumn({ studentId, status, label, cards, disabled, onStatusChang
                 card={card}
                 index={index}
                 disabled={disabled}
-                onStatusChange={onStatusChange}
                 onOpenDetail={onOpenDetail}
               />
             ))}

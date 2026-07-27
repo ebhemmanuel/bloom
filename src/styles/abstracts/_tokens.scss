@@ -149,6 +149,10 @@ $acc-tokens: (
   'stagger-cap': 400ms,
 
   // Layout ------------------------------------------------------------------
+  // The board is a reading surface, not a spreadsheet. Past ~1200px the lanes
+  // stretch so wide that a student's name and their notes column end up at
+  // opposite ends of a 27" monitor.
+  'max-w': 1200px,
   'toolbar-h': 56px,
   'lane-header-h': 44px,
   'column-min-w': 220px,

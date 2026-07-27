@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import Swimlane from './Swimlane.jsx';
 import CardDetailPopover from './CardDetailPopover.jsx';
@@ -26,7 +26,23 @@ export default function Board() {
   const [periodIds, setPeriodIds] = useState([]);
   const [search, setSearch] = useState('');
   const [detailCard, setDetailCard] = useState(null);
+  const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
+
+  /**
+   * Mirror drag state onto <body> so global styles (grab cursor, empty-column
+   * drop hints) can react to it.
+   *
+   * Driven by an effect rather than set imperatively in onDragStart/onDragEnd:
+   * if a drag ends abnormally and onDragEnd never fires, an imperatively-set
+   * attribute sticks and the entire app is left with a grabbing cursor and drop
+   * hints showing. The cleanup makes that unleakable.
+   */
+  useEffect(() => {
+    if (!dragging) return undefined;
+    document.body.setAttribute('data-dragging', 'true');
+    return () => document.body.removeAttribute('data-dragging');
+  }, [dragging]);
 
   const model = useMemo(
     () => buildBoardModel(doc, { dateKey, periodIds, search }),
@@ -204,21 +220,28 @@ export default function Board() {
           onAction={() => setSearch('')}
         />
       ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="acc-board__lanes acc-cascade">
-            {model.lanes.map((lane) => (
-              <Swimlane
-                key={lane.studentId}
-                lane={lane}
-                collapsed={collapsed.has(lane.studentId)}
-                readOnly={locked}
-                onToggleCollapse={() => toggle(lane.studentId)}
-                onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
-                onStatusChange={handleStatusChange}
-                onOpenDetail={setDetailCard}
-                onNotesCommit={commitNotes}
-              />
-            ))}
+        <DragDropContext
+          onDragStart={() => setDragging(true)}
+          onDragEnd={(result) => {
+            setDragging(false);
+            handleDragEnd(result);
+          }}
+        >
+          <div className="acc-board__scroll">
+            <div className="acc-board__lanes acc-cascade">
+              {model.lanes.map((lane) => (
+                <Swimlane
+                  key={lane.studentId}
+                  lane={lane}
+                  collapsed={collapsed.has(lane.studentId)}
+                  readOnly={locked}
+                  onToggleCollapse={() => toggle(lane.studentId)}
+                  onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
+                  onOpenDetail={setDetailCard}
+                  onNotesCommit={commitNotes}
+                />
+              ))}
+            </div>
           </div>
         </DragDropContext>
       )}

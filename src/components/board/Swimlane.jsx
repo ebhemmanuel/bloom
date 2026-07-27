@@ -18,7 +18,6 @@ function Swimlane({
   readOnly,
   onToggleCollapse,
   onToggleAbsent,
-  onStatusChange,
   onOpenDetail,
   onNotesCommit,
 }) {
@@ -55,7 +54,6 @@ function Swimlane({
               label={col.label}
               cards={lane.columns[col.id]}
               disabled={locked}
-              onStatusChange={onStatusChange}
               onOpenDetail={onOpenDetail}
             />
           ))}

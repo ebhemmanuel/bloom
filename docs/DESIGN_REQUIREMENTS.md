@@ -333,7 +333,13 @@ Jira-style kanban. One collapsible **swimlane per student**; columns are statuse
 
 **Columns:** sunken wells with generous internal padding. Column headers are `.acc-subhead` style — small, uppercase, tracked, muted. Show a live count per column.
 
-**Cards:** white, `--acc-radius-md`, hairline border, `--acc-shadow-card`. Contents: accommodation label, a category chip, a "custom" badge where applicable, and a detail indicator. Every card also carries a **three-button segmented status control** — drag is the headline interaction, but a tired teacher at 3:55pm will tap buttons, and touchscreen and motor-impaired users need them. Both must feel first-class.
+**Cards:** white, `--acc-radius-md`, hairline border, `--acc-shadow-card`. Contents: accommodation label, a "one-off" badge where applicable, and a detail indicator. Nothing else.
+
+**Status is changed by dragging the card, and only by dragging the card.** There is no per-card status widget — the whole card is the drag handle, exactly as a Jira card behaves. Grab it anywhere, drop it in a column. A click without movement opens the detail editor.
+
+This is a fixed decision. An earlier draft of this document proposed a three-button segmented control on each card as a co-equal affordance; it was built, rejected, and removed. It cluttered the card and it is not what a kanban card does. Do not reintroduce it.
+
+Accessibility does not depend on it: `@hello-pangea/dnd` gives the handle keyboard dragging (Space to lift, arrows to move, Space to drop) with live-region announcements — the same model Jira ships. Design the **lift** and **focus** states explicitly, since keyboard drag is a real path and needs to be legible without a pointer.
 
 **Drag feel:** lift raises the card with `--acc-shadow-drag` and a 1.02 scale over 160ms; the source position collapses smoothly rather than snapping; the destination column tints with its status fill; drop settles with `--acc-ease-settle`. Cards can never be dropped into another student's lane, and the design should make that _unmistakable_ — non-target lanes desaturate slightly during a drag rather than showing a rejection state on drop.
 
@@ -475,7 +481,7 @@ This app documents disability accommodations. It will be reviewed. It must be ex
 - Onboarding copy, in full. It is currently described, not written.
 - Whether the splash wordmark should become a small piece of motion identity rather than a static fade
 - The assignment matrix, which is the hardest unsolved layout in the product
-- Card density and whether the segmented control should be persistent or reveal on hover/focus
+- Card density, and the drag lift / hover / keyboard-focus states
 - An icon and wordmark — none exist yet
 - Illustration style for empty states, if any
 
