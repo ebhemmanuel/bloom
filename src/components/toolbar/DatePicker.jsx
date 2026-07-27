@@ -25,9 +25,14 @@ function monthGrid(anchor) {
 /**
  * Date control: a pill button that opens a calendar popover.
  *
+ * One control, not three. It carried a day-stepping arrow either side once,
+ * which put two single-purpose buttons permanently in the row to do what the
+ * calendar already does in one click, and made the date read as a spinner
+ * rather than as a thing you choose.
+ *
  * Two modes. Day picks the board's date. Range picks a start and end for the
- * range report, and reports how many SCHOOL days that spans - a teacher asked for
- * "last week" means five days, not seven, and the difference matters on a
+ * range report, and reports how many SCHOOL days that spans - a teacher asking
+ * for "last week" means five days, not seven, and the difference matters on a
  * compliance denominator.
  */
 export default function DatePicker({ dateKey, onChange, nonInstructionalDates = [] }) {
@@ -41,17 +46,6 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   const today = todayKey();
 
   const isPickable = (key) => !isWeekend(key) && !skip.has(key);
-
-  const nextSchoolDay = (from, direction) => {
-    let next = addDays(from, direction);
-    for (let i = 0; i < 14; i += 1) {
-      if (isPickable(next)) break;
-      next = addDays(next, direction);
-    }
-    return next;
-  };
-
-  const step = (direction) => onChange((current) => nextSchoolDay(current, direction));
 
   const pick = (key) => {
     if (!isPickable(key)) return;
@@ -92,15 +86,6 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
 
   return (
     <div className="acc-datepicker">
-      <button
-        type="button"
-        className="acc-datepicker__step"
-        onClick={() => step(-1)}
-        aria-label="Previous school day"
-      >
-        ‹
-      </button>
-
       <div className="acc-datepicker__anchor">
         <button
           type="button"
@@ -255,15 +240,6 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
           </div>
         )}
       </div>
-
-      <button
-        type="button"
-        className="acc-datepicker__step"
-        onClick={() => step(1)}
-        aria-label="Next school day"
-      >
-        ›
-      </button>
     </div>
   );
 }

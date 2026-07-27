@@ -234,19 +234,20 @@ export default function BoardToolbar({
           </span>
         )}
 
-        {/* Equal spacers either side keep the date optically centred in the row
-            regardless of how wide the clusters beside it grow. */}
         <div className="acc-toolbar__spacer" />
+
+        {/*
+          What you are looking at, then when. Periods first because the filter
+          is the coarser cut: it decides which lanes exist at all, and the date
+          then chooses among their days.
+        */}
+        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
 
         <DatePicker
           dateKey={dateKey}
           onChange={onDateChange}
           nonInstructionalDates={nonInstructionalDates}
         />
-
-        <div className="acc-toolbar__spacer" />
-
-        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
 
         <OverflowMenu
           disabled={disabled}

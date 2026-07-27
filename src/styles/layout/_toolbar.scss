@@ -100,24 +100,6 @@
 .acc-datepicker {
   display: flex;
   align-items: center;
-  gap: var(--acc-space-1);
-
-  &__step {
-    inline-size: 28px;
-    block-size: 28px;
-    border-radius: var(--acc-radius-pill);
-    color: var(--acc-fg-muted);
-    font-size: 18px;
-    line-height: 1;
-    transition:
-      background-color var(--acc-dur-instant) var(--acc-ease-standard),
-      color var(--acc-dur-instant) var(--acc-ease-standard);
-
-    &:hover {
-      background: var(--acc-surface-hover);
-      color: var(--acc-fg);
-    }
-  }
 
   &__anchor {
     position: relative;
