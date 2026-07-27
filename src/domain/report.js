@@ -1,5 +1,5 @@
 import { STATUS, DERIVED_STATUS, STATUS_GLYPH, STATUS_LABEL } from './constants.js';
-import { buildResolveContext, effectiveStatus, summarise, studentMeetsOn } from './resolve.js';
+import { buildResolveContext, effectiveStatus, summarise } from './resolve.js';
 import { activeStudentsFor, activeAssignmentsFor } from './seed.js';
 import { eachDateInRange, isWeekend, todayKey, isoTimestamp, formatDateLong } from './dates.js';
 import { assignmentConfig } from './schema.js';
@@ -113,8 +113,9 @@ export function buildReport(doc, { scope, periodIds = [], search = '', now = new
       notes,
       details,
       summary: summarise(allStatuses),
-      // Days the student was not expected in this class at all.
-      metDays: dates.filter((d) => studentMeetsOn(student, d, ctx)).length,
+      // Every school day in range is a day this student was expected. Periods
+      // record which class someone is in, not when it runs.
+      metDays: dates.length,
     });
   }
 

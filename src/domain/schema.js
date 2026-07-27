@@ -2,7 +2,6 @@ import {
   STATUS,
   SEED_MODE,
   RESOLVED_BY,
-  WEEKDAYS,
   PLAN_TYPES,
   DEFAULTABLE_STATUSES,
   DEFAULT_CYCLE_END_TIME,
@@ -31,7 +30,6 @@ const asIntIn = (v, min, max, fallback) => {
 const asNullableString = (v) => (typeof v === 'string' && v.length > 0 ? v : null);
 
 const VALID_STATUSES = new Set(Object.values(STATUS));
-const VALID_WEEKDAYS = new Set(WEEKDAYS);
 
 // --- Empty document --------------------------------------------------------
 
@@ -183,16 +181,16 @@ export function normalizeDoc(raw, now = new Date()) {
   doc.periods = asArray(raw.periods)
     .filter(isObj)
     .map((p, i) => {
-      const meeting = asArray(p.meetingDays).filter((d) => VALID_WEEKDAYS.has(d));
+      // A period is a grouping and a filter, nothing more. It carries no
+      // schedule: every period a student is in is one this teacher delivers in,
+      // so nothing about a period can make an accommodation not applicable.
+      // Any `meetingDays` left in an older file is dropped here.
       return {
         id: asString(p.id),
         teacherId: asNullableString(p.teacherId),
         name: asString(p.name, `Period ${i + 1}`),
         shortName: asString(p.shortName, `P${i + 1}`),
         sortOrder: asIntIn(p.sortOrder, 0, 9999, i),
-        // An empty meetingDays list would silently mark every accommodation
-        // "not applicable" forever, so default to the full school week.
-        meetingDays: meeting.length ? [...new Set(meeting)] : ['MO', 'TU', 'WE', 'TH', 'FR'],
         archivedAt: asNullableString(p.archivedAt),
       };
     })

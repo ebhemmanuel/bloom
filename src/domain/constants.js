@@ -41,7 +41,14 @@ export const DERIVED_STATUS = {
    * replaces what would otherwise have become not_used.
    */
   TEACHER_ABSENT: 'teacher_absent',
-  /** Period doesn't meet this weekday, or it's a non-instructional date. */
+  /**
+   * There was no obligation to deliver this: school was not in session (weekend
+   * or non-instructional date), the assignment was not yet or no longer in
+   * force, or it is marked not relevant to this subject.
+   *
+   * Never a period. A period records which class a student is in, not when it
+   * runs, so it cannot put anyone out of scope.
+   */
   NOT_APPLICABLE: 'not_applicable',
   /**
    * No day record exists at all.

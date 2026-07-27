@@ -1,5 +1,5 @@
 import { STATUS, DERIVED_STATUS, RESOLVED_BY } from './constants.js';
-import { isoTimestamp, weekdayCode, isCycleComplete, compareDateKeys, todayKey } from './dates.js';
+import { isoTimestamp, isCycleComplete, compareDateKeys, todayKey, isWeekend } from './dates.js';
 import { isAssignmentActiveOn } from './schema.js';
 
 /**
@@ -24,32 +24,11 @@ export function buildResolveContext(doc) {
 }
 
 /**
- * Does this student have any class on this date?
- *
- * A student may sit in several periods; if ANY of them meets that weekday, the
- * day counts. A student with no periods assigned yet is treated as meeting every
- * day — otherwise a half-finished roster would silently mark a whole term "not
- * applicable" and hide real gaps.
- */
-export function studentMeetsOn(student, dateKey, ctx) {
-  if (!student) return false;
-  const periodIds = student.periodIds || [];
-  if (periodIds.length === 0) return true;
-
-  const weekday = weekdayCode(dateKey);
-  return periodIds.some((pid) => {
-    const period = ctx.periodsById.get(pid);
-    if (!period || period.archivedAt) return false;
-    return (period.meetingDays || []).includes(weekday);
-  });
-}
-
-/**
  * Resolve the status to display or print.
  *
  * Precedence, in order:
- *   1. non-instructional date / period doesn't meet / assignment not yet or no
- *      longer in force / not relevant to this subject → not_applicable
+ *   1. weekend or non-instructional date / assignment not yet or no longer in
+ *      force / not relevant to this subject → not_applicable
  *   2. no day record exists at all  → no_record
  *   3. student marked absent        → absent
  *   4. entry has a real status      → that status
@@ -58,22 +37,24 @@ export function studentMeetsOn(student, dateKey, ctx) {
  *   7. today, past cycleEndTime     → not_used
  *   8. otherwise                    → unassigned
  *
+ * A period never makes anything not applicable. A period records which class a
+ * student is in, not when it runs, so every period a student is in is one this
+ * teacher delivers in. The only per-accommodation exclusion is the explicit
+ * `notRelevant` flag below; everything else in rule 1 is a property of the DATE
+ * or of the assignment's own date range.
+ *
  * Note on 1 vs 2: `not_applicable` is checked before `no_record` because it is
- * strictly more informative. A Wednesday when the class does not meet should
- * print "n/a", not "no record" — there was never an obligation to record
- * anything. Neither can ever become `not_used`, so the guarantee below holds
- * either way.
+ * strictly more informative — a holiday should print "n/a", not "no record",
+ * because there was never an obligation to record anything. Neither can ever
+ * become `not_used`, so the guarantee below holds either way.
  *
  * @returns {string} one of STATUS.* or DERIVED_STATUS.*
  */
 export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new Date(), ctx) {
   const c = ctx || buildResolveContext(doc);
 
-  // 1 — no obligation on this date
-  if (c.nonInstructional.has(dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
-
-  const student = c.studentsById.get(studentId);
-  if (!studentMeetsOn(student, dateKey, c)) return DERIVED_STATUS.NOT_APPLICABLE;
+  // 1 — no obligation on this date. School is not in session, for anyone.
+  if (isWeekend(dateKey) || c.nonInstructional.has(dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
 
   const assignment = c.assignmentsById.get(assignmentId);
   if (!isAssignmentActiveOn(assignment, dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;

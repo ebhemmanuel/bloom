@@ -115,12 +115,12 @@ describe('buildBoardModel', () => {
     expect(model.isNonInstructional).toBe(true);
   });
 
-  it('does not flag noClassToday when at least one student has class', () => {
-    // Tuesday: Jordan's Period 1 meets, Priya's Period 3 does not.
+  it('treats every student as in class on a school day, whatever their period', () => {
+    // A period records which class a student is in, not when it runs — so no
+    // weekday can put one lane out of scope and leave another in it.
     const model = buildBoardModel(makeDoc(), { dateKey: TUE, now });
     expect(model.noClassToday).toBe(false);
-    expect(model.lanes.find((l) => l.studentId === T.jordan).meets).toBe(true);
-    expect(model.lanes.find((l) => l.studentId === T.priya).meets).toBe(false);
+    expect(model.lanes.every((l) => l.meets)).toBe(true);
   });
 
   it('filters by period', () => {

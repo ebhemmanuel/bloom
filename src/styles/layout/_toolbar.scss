@@ -172,7 +172,7 @@
     }
 
     // Weekends and non-instructional dates are not pickable: there is nothing
-    // to record on a day the class does not meet.
+    // to record on a day school was not in session.
     &--off {
       color: var(--acc-status-no-record);
       cursor: default;

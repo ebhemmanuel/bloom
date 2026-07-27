@@ -171,8 +171,7 @@ The single most important deliverable. Design rules, each load-bearing:
                 "idleLockMinutes": 10, "lastKnownDate", "theme" },
   "schoolCalendar": { "termStart", "termEnd", "nonInstructionalDates": ["2026-11-26"] },
   "teachers":    [ { "id", "displayName", "school", "room", "createdAt" } ],
-  "periods":     [ { "id", "teacherId", "name", "shortName", "sortOrder",
-                     "meetingDays": ["MO","WE","FR"], "archivedAt" } ],
+  "periods":     [ { "id", "teacherId", "name", "shortName", "sortOrder", "archivedAt" } ],
   "students":    [ { "id", "teacherId", "firstName", "lastName", "displayName",
                      "periodIds": [], "planType": "IEP" | "504", "planRef",
                      "caseManager", "sortOrder", "active", "archivedAt", "createdAt" } ],
@@ -223,7 +222,9 @@ The single most important deliverable. Design rules, each load-bearing:
 | `used_with_detail` | delivered, narrative in `detail`             | Used with Detail                  |
 | `not_used`         | **resolved** — cycle closed with no delivery | Unassigned, `--not-used` modifier |
 
-Derived only, never persisted (computed by `effectiveStatus`): `absent` (excluded from the compliance denominator), `not_applicable` (period doesn't meet that weekday, or a non-instructional date), `no_record` (no day record exists — prints as "— no record —").
+Derived only, never persisted (computed by `effectiveStatus`): `absent` (excluded from the compliance denominator), `not_applicable` (weekend or non-instructional date, assignment out of its date range, or marked not relevant to this subject — **never** a period), `no_record` (no day record exists — prints as "— no record —").
+
+**A period is a grouping, not a schedule.** It records which class a student is in and nothing about when that class runs, so nothing about a period can make an accommodation not applicable. An earlier draft of this plan gave periods a `meetingDays` list and derived applicability from it; that was invented here rather than asked for, and it greyed out whole student lanes against a timetable nobody had entered. Removed.
 
 ### Versioning & migration
 
@@ -334,7 +335,7 @@ effectiveStatus(doc, date, studentId, assignmentId, now);
 Precedence:
 
 1. no `doc.days[date]` → **`no_record`**
-2. non-instructional date, or student's period doesn't meet that weekday → `not_applicable`
+2. weekend or non-instructional date → `not_applicable` (never a period — see above)
 3. `day.students[sid].absent` → `absent`
 4. `entry.status !== 'unassigned'` → that status
 5. `day.sealed` → `not_used`

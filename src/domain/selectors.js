@@ -1,14 +1,8 @@
 import { STATUS, DERIVED_STATUS, DROPPABLE_STATUSES } from './constants.js';
 import { assignmentConfig } from './schema.js';
-import {
-  buildResolveContext,
-  effectiveStatus,
-  summarise,
-  isDelivered,
-  studentMeetsOn,
-} from './resolve.js';
+import { buildResolveContext, effectiveStatus, summarise, isDelivered } from './resolve.js';
 import { activeStudentsFor, activeAssignmentsFor } from './seed.js';
-import { isCycleComplete } from './dates.js';
+import { isCycleComplete, isWeekend } from './dates.js';
 
 /**
  * Read models for the UI. Pure; the React layer wraps these in useMemo.
@@ -82,6 +76,10 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
   const periodFilter = new Set(periodIds);
 
   const isNonInstructional = ctx.nonInstructional.has(dateKey);
+  // School is either in session on a date or it is not — it is not a per-student
+  // question, because a period records which class someone is in, not when it
+  // runs. Kept per-lane on the model so the UI does not have to know that.
+  const meetsToday = !isNonInstructional && !isWeekend(dateKey);
 
   const lanes = [];
   let matchedButFiltered = 0;
@@ -99,8 +97,9 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
     const studentDay = day?.students?.[student.id] || null;
     const assignments = activeAssignmentsFor(doc, student.id, dateKey);
 
-    const meets = !isNonInstructional && studentMeetsOn(student, dateKey, ctx);
-    if (meets) anyMeeting = true;
+    // A period says which class a student is in, nothing about when it runs, so
+    // the only thing that can put a whole lane out of scope is the date itself.
+    if (meetsToday) anyMeeting = true;
 
     const columns = {};
     for (const col of DROPPABLE_STATUSES) columns[col] = [];
@@ -165,7 +164,7 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
     lanes.push({
       studentId: student.id,
       student,
-      meets,
+      meets: meetsToday,
       displayName: student.displayName || `${student.firstName} ${student.lastName}`.trim(),
       planType: student.planType,
       periodNames: (student.periodIds || [])

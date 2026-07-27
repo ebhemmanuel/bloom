@@ -113,7 +113,6 @@ describe('addStudentWithAccommodations', () => {
         id: 'per_1',
         shortName: 'P1',
         name: 'P1',
-        meetingDays: ['MO'],
         sortOrder: 1,
         archivedAt: null,
       },

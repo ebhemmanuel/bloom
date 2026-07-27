@@ -11,8 +11,8 @@ import { isoTimestamp } from './dates.js';
 
 export const T = {
   teacher: 'tch_1',
-  p1: 'per_1', // meets Mon-Fri
-  p3: 'per_3', // meets Mon/Wed/Fri only
+  p1: 'per_1',
+  p3: 'per_3',
   jordan: 'stu_jordan',
   priya: 'stu_priya',
   catExtTime: 'cat_ext_time',
@@ -50,7 +50,6 @@ export function makeDoc(overrides = {}) {
       name: 'Period 1 — Algebra I',
       shortName: 'P1',
       sortOrder: 1,
-      meetingDays: ['MO', 'TU', 'WE', 'TH', 'FR'],
       archivedAt: null,
     },
     {
@@ -59,7 +58,6 @@ export function makeDoc(overrides = {}) {
       name: 'Period 3 — Geometry',
       shortName: 'P3',
       sortOrder: 3,
-      meetingDays: ['MO', 'WE', 'FR'],
       archivedAt: null,
     },
   ];
@@ -86,7 +84,7 @@ export function makeDoc(overrides = {}) {
       firstName: 'Priya',
       lastName: 'Raman',
       displayName: 'Priya R.',
-      periodIds: [T.p3], // Mon/Wed/Fri only — used to exercise not_applicable
+      periodIds: [T.p3],
       planType: '504',
       planRef: '504-2026-0088',
       caseManager: 'D. Okafor',

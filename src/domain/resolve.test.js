@@ -92,13 +92,12 @@ describe('effectiveStatus — precedence chain', () => {
     );
   });
 
-  it('returns not_applicable when the student’s period does not meet that weekday', () => {
-    // Priya is only in Period 3 (Mon/Wed/Fri). Tuesday does not apply to her.
+  it('never makes a period the reason something is not applicable', () => {
+    // A period records which class a student is in, not when it runs. Every
+    // student in every period is expected on every school day, so a weekday can
+    // never single one lane out.
     const doc = withDay(makeDoc(), TUE, {});
-    expect(status(doc, TUE, T.priya, T.asgPriyaExtTime, nextMorning)).toBe(
-      DERIVED_STATUS.NOT_APPLICABLE
-    );
-    // Jordan is in Period 1 (Mon-Fri), so Tuesday does apply to him.
+    expect(status(doc, TUE, T.priya, T.asgPriyaExtTime, nextMorning)).toBe(STATUS.NOT_USED);
     expect(status(doc, TUE, T.jordan, T.asgJordanExtTime, nextMorning)).toBe(STATUS.NOT_USED);
   });
 
@@ -251,11 +250,10 @@ describe('sealDay', () => {
     expect(sealed.days[TUE].sealed).toBe(true);
   });
 
-  it('does not stamp not_used where the period does not meet', () => {
-    const doc = withDay(makeDoc(), TUE, {});
-    const sealed = sealDay(doc, TUE, nextMorning);
-    // Priya's Period 3 does not meet on Tuesday.
-    expect(sealed.days[TUE].students[T.priya].entries[T.asgPriyaExtTime].status).toBe(
+  it('does not stamp not_used on a day school is not in session', () => {
+    const doc = withDay(makeDoc(), SAT, {});
+    const sealed = sealDay(doc, SAT, nextMorning);
+    expect(sealed.days[SAT].students[T.priya].entries[T.asgPriyaExtTime].status).toBe(
       STATUS.UNASSIGNED
     );
   });
@@ -387,7 +385,7 @@ describe('buildResolveContext', () => {
   it('produces working lookups', () => {
     const ctx = buildResolveContext(makeDoc());
     expect(ctx.studentsById.get(T.jordan).displayName).toBe('Jordan A.');
-    expect(ctx.periodsById.get(T.p3).meetingDays).toEqual(['MO', 'WE', 'FR']);
+    expect(ctx.periodsById.get(T.p3).shortName).toBe('P3');
     expect(ctx.assignmentsById.get(T.asgJordanCustom).source).toBe('custom');
   });
 });
