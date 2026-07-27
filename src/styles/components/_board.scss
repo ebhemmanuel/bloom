@@ -252,20 +252,25 @@
     opacity: 1;
   }
 
-  // Status accent as a top rule — carries meaning without tinting the whole well.
-  // Full-strength ink rather than the soft fill: with four columns the rule is
-  // the fastest way to tell them apart, and the soft tints were too faint to do
-  // that job.
+  // Status glow: the soft tint as a top rule PLUS a wash fading down into the
+  // column. A full-strength solid line reads as a hard divider and fights the
+  // frosted surface; the glow tints the head of the column without ever
+  // competing with the card text below it.
+  @mixin column-glow($soft) {
+    box-shadow: inset 0 2px 0 $soft;
+    background-image: linear-gradient(to bottom, $soft, transparent 60px);
+  }
+
   &--unassigned &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-unassigned);
+    @include column-glow(var(--acc-status-unassigned-soft));
   }
   &--used &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-used);
+    @include column-glow(var(--acc-status-used-soft));
   }
   &--used-with-detail &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-detail);
+    @include column-glow(var(--acc-status-detail-soft));
   }
   &--refused &__header {
-    box-shadow: inset 0 2px 0 var(--acc-status-refused);
+    @include column-glow(var(--acc-status-refused-soft));
   }
 }

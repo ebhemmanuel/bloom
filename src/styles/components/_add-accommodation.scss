@@ -103,13 +103,14 @@
 
 .acc-scrollbar {
   position: absolute;
-  inset-inline-end: 8px;
+  // OUTSIDE the container, floating on the aurora. A bar inside the board would
+  // sit on top of the notes column and cut into the content it is measuring.
+  inset-inline-end: -14px;
   inline-size: 6px;
   border-radius: var(--acc-radius-pill);
-  background: rgba(42, 36, 56, 0.06);
+  background: rgba(255, 255, 255, 0.4);
   opacity: 0;
-  transition: opacity var(--acc-dur-slow) var(--acc-ease-standard);
-  pointer-events: auto;
+  transition: opacity var(--acc-dur-normal) var(--acc-ease-standard);
   z-index: 40;
 
   &--visible {

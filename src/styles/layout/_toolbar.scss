@@ -51,17 +51,20 @@
     position: relative;
   }
 
+  // Fixed measure so stepping through the week never reflows the row.
   &__trigger {
     gap: var(--acc-space-2);
+    inline-size: 170px;
+    justify-content: flex-start;
 
     strong {
       font-weight: var(--acc-fw-semibold);
+      font-variant-numeric: tabular-nums;
     }
   }
 
-  &__sub {
-    color: var(--acc-fg-muted);
-    font-weight: var(--acc-fw-regular);
+  &__caret {
+    margin-inline-start: auto;
   }
 
   &__caret {

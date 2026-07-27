@@ -128,8 +128,12 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
               strokeLinecap="round"
             />
           </svg>
-          <strong>{relative || formatDateMedium(dateKey)}</strong>
-          {relative && <span className="acc-datepicker__sub">{formatDateMedium(dateKey)}</span>}
+          {/*
+            Just the date. A "Today"/"Tomorrow" prefix changes the label's width
+            as you step through the week, which shoves every control to its right
+            around — the row must not move while you are clicking through it.
+          */}
+          <strong>{formatDateMedium(dateKey)}</strong>
           <svg
             viewBox="0 0 16 16"
             width="12"

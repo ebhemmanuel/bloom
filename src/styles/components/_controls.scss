@@ -188,7 +188,12 @@
   border-radius: var(--acc-radius-pill);
   border: 1px solid var(--acc-border);
   background: var(--acc-surface);
-  min-width: 240px;
+  // Centred in the pill nav: grows into the space between brand and actions,
+  // but capped so it never stretches into a letterbox on a wide monitor.
+  flex: 1;
+  min-inline-size: 160px;
+  max-inline-size: 360px;
+  margin-inline: auto;
   @include motion.interactive(border-color, box-shadow);
 
   &:focus-within {

@@ -259,29 +259,29 @@ export default function Board() {
 
   // --- render -------------------------------------------------------------
 
+  const toolbar = (
+    <BoardToolbar
+      dateKey={dateKey}
+      onDateChange={setDateKey}
+      nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
+      periods={periods}
+      selectedPeriodIds={periodIds}
+      onPeriodsChange={setPeriodIds}
+      model={model}
+      readOnly={readOnly}
+      onCopyPrevious={copyPrevious}
+      onCloseOutDay={closeOutDay}
+      allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
+      onToggleFoldAll={() =>
+        model.lanes.every((l) => collapsed.has(l.studentId))
+          ? expandAll()
+          : collapseAll(model.lanes.map((l) => l.studentId))
+      }
+    />
+  );
+
   return (
     <div className="acc-board">
-      <BoardToolbar
-        dateKey={dateKey}
-        onDateChange={setDateKey}
-        nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
-        periods={periods}
-        selectedPeriodIds={periodIds}
-        onPeriodsChange={setPeriodIds}
-        search={search}
-        onSearchChange={setSearch}
-        model={model}
-        readOnly={readOnly}
-        onCopyPrevious={copyPrevious}
-        onCloseOutDay={closeOutDay}
-        allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
-        onToggleFoldAll={() =>
-          model.lanes.every((l) => collapsed.has(l.studentId))
-            ? expandAll()
-            : collapseAll(model.lanes.map((l) => l.studentId))
-        }
-      />
-
       {model.sealed && (
         <div className="acc-banner acc-banner--sealed acc-fade-enter">
           This day is closed out and read-only. Use <strong>Amend</strong> on a card to correct it —
@@ -289,49 +289,53 @@ export default function Board() {
         </div>
       )}
 
-      {model.noClassToday ? (
-        <EmptyState
-          title={
-            model.isNonInstructional
-              ? 'Not a school day'
-              : `No classes meet on ${formatDateLong(dateKey)}`
-          }
-          body={
-            model.isNonInstructional
-              ? 'This date is marked as non-instructional, so there are no accommodations to record. It prints as “n/a”.'
-              : 'None of your class periods meet on this day, so there is nothing to record. It prints as “n/a”, not as a missed accommodation.'
-          }
-          actionLabel="Go to the last school day"
-          onAction={() => setDateKey(previousSchoolDay(dateKey, doc))}
-        />
-      ) : !model.hasRecord ? (
-        <EmptyState
-          title="No record for this day"
-          // The single most important sentence in the product.
-          body="Nothing was recorded on this date. That is different from the accommodations not being delivered, and it prints as “no record”, never as “not used”."
-          actionLabel={readOnly ? null : 'Start a record for this day'}
-          onAction={startRecord}
-        />
-      ) : model.lanes.length === 0 ? (
-        <EmptyState
-          title={search ? 'No students match that search' : 'No students yet'}
-          body={
-            search
-              ? `Nothing matches “${search}”. Try a last name, or clear the filters.`
-              : 'Add students and their accommodations to start tracking.'
-          }
-          actionLabel={search ? 'Clear search' : null}
-          onAction={() => setSearch('')}
-        />
-      ) : (
-        <DragDropContext
-          onDragStart={() => setDragging(true)}
-          onDragEnd={(result) => {
-            setDragging(false);
-            handleDragEnd(result);
-          }}
-        >
-          <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
+      {/* The toolbar lives INSIDE the scroll area, so the container's padding
+          applies to it and nothing sits flush against the top edge. */}
+      <DragDropContext
+        onDragStart={() => setDragging(true)}
+        onDragEnd={(result) => {
+          setDragging(false);
+          handleDragEnd(result);
+        }}
+      >
+        <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
+          {toolbar}
+
+          {model.noClassToday ? (
+            <EmptyState
+              title={
+                model.isNonInstructional
+                  ? 'Not a school day'
+                  : `No classes meet on ${formatDateLong(dateKey)}`
+              }
+              body={
+                model.isNonInstructional
+                  ? 'This date is marked as non-instructional, so there are no accommodations to record. It prints as “n/a”.'
+                  : 'None of your class periods meet on this day, so there is nothing to record. It prints as “n/a”, not as a missed accommodation.'
+              }
+              actionLabel="Go to the last school day"
+              onAction={() => setDateKey(previousSchoolDay(dateKey, doc))}
+            />
+          ) : !model.hasRecord ? (
+            <EmptyState
+              title="No record for this day"
+              // The single most important sentence in the product.
+              body="Nothing was recorded on this date. That is different from the accommodations not being delivered, and it prints as “no record”, never as “not used”."
+              actionLabel={readOnly ? null : 'Start a record for this day'}
+              onAction={startRecord}
+            />
+          ) : model.lanes.length === 0 ? (
+            <EmptyState
+              title={search ? 'No students match that search' : 'No students yet'}
+              body={
+                search
+                  ? `Nothing matches “${search}”. Try a last name, or clear the filters.`
+                  : 'Add students and their accommodations to start tracking.'
+              }
+              actionLabel={search ? 'Clear search' : null}
+              onAction={() => setSearch('')}
+            />
+          ) : (
             <div className="acc-board__lanes acc-cascade">
               {model.lanes.map((lane) => (
                 <Swimlane
@@ -351,23 +355,23 @@ export default function Board() {
                 />
               ))}
             </div>
-          </div>
-
-          {bar.height > 0 && (
-            <div
-              className={`acc-scrollbar${bar.visible ? ' acc-scrollbar--visible' : ''}`}
-              style={{ top: `${bar.trackTop}px`, height: `${bar.trackHeight}px` }}
-              aria-hidden="true"
-            >
-              <div
-                className="acc-scrollbar__thumb"
-                style={{ top: `${bar.top}px`, height: `${bar.height}px` }}
-                onPointerDown={onThumbPointerDown}
-              />
-            </div>
           )}
-        </DragDropContext>
-      )}
+        </div>
+
+        {bar.height > 0 && (
+          <div
+            className={`acc-scrollbar${bar.visible ? ' acc-scrollbar--visible' : ''}`}
+            style={{ top: `${bar.trackTop}px`, height: `${bar.trackHeight}px` }}
+            aria-hidden="true"
+          >
+            <div
+              className="acc-scrollbar__thumb"
+              style={{ top: `${bar.top}px`, height: `${bar.height}px` }}
+              onPointerDown={onThumbPointerDown}
+            />
+          </div>
+        )}
+      </DragDropContext>
 
       {contextMenu && (
         <CardContextMenu

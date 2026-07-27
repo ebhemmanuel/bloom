@@ -128,7 +128,9 @@
   border-block-end: none;
   border-radius: var(--acc-radius-container) var(--acc-radius-container) 0 0;
   box-shadow: var(--acc-shadow-raised);
-  overflow: hidden;
+  // NOT hidden: the custom scrollbar floats outside the right edge, and clipping
+  // here would swallow it. The scroll area below does its own clipping.
+  overflow: visible;
 }
 
 .acc-board {
@@ -144,11 +146,15 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  // The toolbar scrolls with the lanes inside this padding, so nothing ever sits
+  // flush against the top edge of the container.
   padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-8);
   display: flex;
   flex-direction: column;
   gap: var(--acc-space-4);
   box-sizing: border-box;
+  // Keeps the rounded top corners from being overdrawn by scrolling content.
+  border-radius: var(--acc-radius-container) var(--acc-radius-container) 0 0;
 
   // Native scrollbar is hidden; a custom one is drawn by useCustomScrollbar.
   scrollbar-width: none;
