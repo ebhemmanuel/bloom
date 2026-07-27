@@ -7,7 +7,8 @@ import {
 import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
 import { periodOptions } from '../../domain/selectors.js';
-import { ensureDay } from '../../domain/seed.js';
+import { ensureDay, backfillDays, backfillRange } from '../../domain/seed.js';
+import { todayKey, formatDateMedium } from '../../domain/dates.js';
 import { useBoard } from '../../context/BoardContext.jsx';
 
 /**
@@ -30,6 +31,9 @@ export default function AddStudentForm({ onAdded }) {
   const [sasid, setSasid] = useState('');
   const [planType, setPlanType] = useState('IEP');
   const [periodIds, setPeriodIds] = useState([]);
+  // Blank means "has been here since the start of the year", which is the common
+  // case and the one that needs no explanation on a report.
+  const [enrolledFrom, setEnrolledFrom] = useState('');
   const [paste, setPaste] = useState('');
   const [picked, setPicked] = useState([]);
   const [openSet, setOpenSet] = useState(null);
@@ -74,19 +78,33 @@ export default function AddStudentForm({ onAdded }) {
         sasid,
         planType,
         periodIds,
+        enrolledFrom: enrolledFrom || null,
         accommodations: combined,
       });
       report = outcome.report;
+
+      // Lay out every school day this student is entitled to, from whenever
+      // they joined through today. Without this a teacher adding their roster in
+      // November would have a board for today and nothing behind it.
+      const range = backfillRange(outcome.doc);
+      const filled = range
+        ? backfillDays(outcome.doc, {
+            from: enrolledFrom && enrolledFrom > range.from ? enrolledFrom : range.from,
+            to: range.to,
+          }).doc
+        : outcome.doc;
+
       // Seed them into the day on screen. Without this the student appears on
       // the board but has no entries in the day record, so every card silently
       // refuses to move — the mutation finds nothing to update.
-      return ensureDay(outcome.doc, dateKey);
+      return ensureDay(filled, dateKey);
     });
 
     setResult({ name: displayName.trim(), report });
     setDisplayName('');
     setSasid('');
     setPeriodIds([]);
+    setEnrolledFrom('');
     setPaste('');
     setPicked([]);
     setOpenSet(null);
@@ -137,6 +155,24 @@ export default function AddStudentForm({ onAdded }) {
             </select>
           </label>
         </div>
+
+        <label className="acc-field">
+          <span className="acc-field__label">Newly enrolled?</span>
+          <input
+            type="date"
+            className="acc-field__input acc-field__input--date"
+            value={enrolledFrom}
+            min={doc.schoolCalendar?.termStart || undefined}
+            max={todayKey()}
+            onChange={(e) => setEnrolledFrom(e.target.value)}
+            aria-label="First day in this class"
+          />
+          <span className="acc-field__hint">
+            {enrolledFrom
+              ? `Every day before ${formatDateMedium(enrolledFrom)} stays locked and reads “not applicable — enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
+              : 'Leave blank if they have been in this class since the start of the year. Set a date and everything before it is locked, with the reason on the record.'}
+          </span>
+        </label>
 
         {periods.length > 0 && (
           <div className="acc-field">

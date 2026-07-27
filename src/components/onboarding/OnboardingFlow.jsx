@@ -164,6 +164,25 @@ function AboutStep({ draft, setDraft, onNext }) {
           />
         </div>
 
+        <label className="acc-ob__field">
+          <span className="acc-ob__label">When did the school year start?</span>
+          <input
+            type="date"
+            className="acc-ob__input acc-ob__input--date"
+            value={draft.termStart}
+            max={todayKey()}
+            onChange={(e) => setDraft((d) => ({ ...d, termStart: e.target.value }))}
+            aria-label="First day of the school year"
+          />
+          {/* This is the only thing here that changes what the app DOES rather
+              than what it says, so it earns a sentence explaining itself. */}
+          <span className="acc-ob__hint">
+            Bloom will lay out every school day from then until today, ready for your students’
+            accommodations — so you can fill in what has already happened instead of starting from
+            an empty year. Nothing is marked as delivered or missed until you say so.
+          </span>
+        </label>
+
         <button
           type="button"
           className="acc-ob__cta"
@@ -278,7 +297,14 @@ export default function OnboardingFlow({ needsLocation }) {
   const { setDoc } = useData();
 
   const [step, setStep] = useState('welcome');
-  const [draft, setDraft] = useState({ displayName: '', subjects: [], gradeLevels: [] });
+  const [draft, setDraft] = useState({
+    displayName: '',
+    subjects: [],
+    gradeLevels: [],
+    // Defaults to today, which is the honest answer for a teacher setting up on
+    // day one and a harmless one otherwise — it simply backfills nothing.
+    termStart: todayKey(),
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -327,6 +353,11 @@ export default function OnboardingFlow({ needsLocation }) {
     doc.settings.activeTeacherId = teacherId;
     doc.settings.onboardingCompletedAt = isoTimestamp(now);
     doc.settings.lastKnownDate = todayKey(now);
+
+    // The start of the year is what the backfill measures from. There is no
+    // roster yet, so no days are laid out here — that happens as students are
+    // added, which is the first moment there is anything to lay out.
+    doc.schoolCalendar.termStart = draft.termStart || todayKey(now);
 
     setDoc(doc);
   };

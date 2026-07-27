@@ -108,6 +108,16 @@
     margin-inline-start: 8px;
   }
 
+  // Why part of this student's row reads n/a. Boxed rather than italicised:
+  // these sheets get photocopied in monochrome, where a rule survives and a
+  // type treatment does not.
+  &__enrolment {
+    font-size: 8pt;
+    padding: 3px 6px;
+    margin-block-end: 4px;
+    border: 1pt solid #000;
+  }
+
   &__table {
     inline-size: 100%;
     border-collapse: collapse;

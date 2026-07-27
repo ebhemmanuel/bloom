@@ -136,6 +136,7 @@ export function addStudentWithAccommodations(
     planType = 'IEP',
     periodIds = [],
     caseManager = '',
+    enrolledFrom = null,
     accommodations = [],
   },
   now = new Date()
@@ -159,6 +160,11 @@ export function addStudentWithAccommodations(
     caseManager,
     sortOrder: doc.students.length,
     active: true,
+    // When they joined THIS class, which is not the same as when the row was
+    // typed in. Null means "since the start of the year" — the common case, and
+    // the one that needs no explaining on a report.
+    enrolledFrom: enrolledFrom || null,
+    unenrolledFrom: null,
     archivedAt: null,
     createdAt: stamp,
   };

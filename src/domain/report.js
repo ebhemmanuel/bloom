@@ -113,9 +113,16 @@ export function buildReport(doc, { scope, periodIds = [], search = '', now = new
       notes,
       details,
       summary: summarise(allStatuses),
-      // Every school day in range is a day this student was expected. Periods
-      // record which class someone is in, not when it runs.
-      metDays: dates.length,
+      // Days this student was actually enrolled in this class. An auditor
+      // reading a row of n/a down the whole of September needs the reason on the
+      // same page, not in someone's memory.
+      enrolledFrom: student.enrolledFrom || null,
+      unenrolledFrom: student.unenrolledFrom || null,
+      metDays: dates.filter(
+        (d) =>
+          (!student.enrolledFrom || d >= student.enrolledFrom) &&
+          (!student.unenrolledFrom || d < student.unenrolledFrom)
+      ).length,
     });
   }
 

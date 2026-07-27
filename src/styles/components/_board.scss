@@ -33,6 +33,22 @@
     background: var(--acc-frost-lane-locked);
   }
 
+  // Not in this class yet on the date being viewed. Set back, but deliberately
+  // NOT as far as an absent lane — this is an explanation, not a warning, and it
+  // has to stay readable enough to answer "where is that student".
+  &--preenrolment {
+    --acc-enter-to-opacity: 0.7;
+    opacity: 0.7;
+    background: var(--acc-frost-lane-locked);
+  }
+
+  &__enrolnote {
+    padding: var(--acc-space-3) var(--acc-space-4);
+    border-block-start: 1px solid var(--acc-border);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
   &__header {
     display: flex;
     align-items: center;

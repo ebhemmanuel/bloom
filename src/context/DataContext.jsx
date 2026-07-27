@@ -12,6 +12,7 @@ import { createEmptyDoc, normalizeDoc } from '../domain/schema.js';
 import { migrate } from '../domain/migrations/index.js';
 import { sealCompletedDays, clockMovedBackwards } from '../domain/resolve.js';
 import { openDay } from '../domain/mutations.js';
+import { backfillDays, backfillRange } from '../domain/seed.js';
 import { todayKey } from '../domain/dates.js';
 
 const DataContext = createContext(null);
@@ -90,6 +91,17 @@ export function DataProvider({ children }) {
       const today = todayKey();
       const needsOnboarding = !next.settings?.onboardingCompletedAt;
       if (!readOnly && !needsOnboarding) {
+        // Lay out any school day between the start of the year and today that
+        // does not have a record yet, so the teacher never has to create a day
+        // before they can fill it in. Every day this creates is flagged
+        // `backfilled`, which is what stops a laid-out day from reading as
+        // documented non-delivery — see backfillDays.
+        //
+        // Runs AFTER sealing on purpose: sealing must only ever see days a
+        // teacher actually worked, never ones this just created.
+        const range = backfillRange(next);
+        if (range) next = backfillDays(next, range).doc;
+
         next = openDay(next, today);
       }
 

@@ -27,6 +27,11 @@ function replaceStudentDay(doc, dateKey, studentId, updater) {
       ...doc.days,
       [dateKey]: {
         ...day,
+        // The teacher has now worked this day, so it is no longer just structure
+        // created in bulk. Clearing the flag is what lets the day resolve
+        // normally again — including letting anything still blank on it seal as
+        // not_used, which is correct once someone has actually been here.
+        backfilled: false,
         students: { ...day.students, [studentId]: next },
       },
     },

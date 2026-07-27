@@ -1,7 +1,7 @@
 import { STATUS, DERIVED_STATUS, DROPPABLE_STATUSES } from './constants.js';
 import { assignmentConfig } from './schema.js';
 import { buildResolveContext, effectiveStatus, summarise, isDelivered } from './resolve.js';
-import { activeStudentsFor, activeAssignmentsFor } from './seed.js';
+import { activeStudentsFor, activeAssignmentsFor, preEnrolmentStudentsFor } from './seed.js';
 import { isCycleComplete, isWeekend } from './dates.js';
 
 /**
@@ -182,6 +182,47 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       summary,
       detailsMissing,
       hasRecord: Boolean(studentDay),
+      enrolledFrom: student.enrolledFrom || null,
+      preEnrolment: false,
+    });
+  }
+
+  /**
+   * Students who had not joined this class yet on this date.
+   *
+   * Shown, but locked and empty, carrying the date they enrolled. Nothing about
+   * them counts toward the day's totals — there was no obligation — and the
+   * board says so rather than leaving a gap the teacher has to explain to
+   * themselves.
+   */
+  for (const student of preEnrolmentStudentsFor(doc, dateKey)) {
+    if (periodFilter.size > 0 && !(student.periodIds || []).some((p) => periodFilter.has(p))) {
+      continue;
+    }
+    if (!matchesSearch(searchIndex, student.id, search)) continue;
+
+    const columns = {};
+    for (const col of DROPPABLE_STATUSES) columns[col] = [];
+
+    lanes.push({
+      studentId: student.id,
+      student,
+      meets: false,
+      displayName: student.displayName || `${student.firstName} ${student.lastName}`.trim(),
+      planType: student.planType,
+      periodNames: (student.periodIds || [])
+        .map((id) => ctx.periodsById.get(id)?.shortName)
+        .filter(Boolean),
+      absent: false,
+      absenceReason: null,
+      notes: '',
+      columns,
+      assignmentCount: 0,
+      summary: summarise([]),
+      detailsMissing: 0,
+      hasRecord: false,
+      enrolledFrom: student.enrolledFrom,
+      preEnrolment: true,
     });
   }
 

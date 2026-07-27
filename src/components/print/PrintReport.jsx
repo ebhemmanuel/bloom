@@ -59,6 +59,19 @@ export default function PrintReport({ report }) {
             </span>
           </h2>
 
+          {/*
+            Why a row of n/a runs down part of this table. Printed, not implied —
+            an auditor reading a gap should not have to ask anyone what it means.
+          */}
+          {(s.enrolledFrom || s.unenrolledFrom) && (
+            <p className="acc-print__enrolment">
+              {s.enrolledFrom && `Enrolled in this class ${formatDateLong(s.enrolledFrom)}.`}
+              {s.enrolledFrom && s.unenrolledFrom ? ' ' : ''}
+              {s.unenrolledFrom && `Left this class ${formatDateLong(s.unenrolledFrom)}.`} Days
+              outside that are shown as not applicable and are excluded from the totals below.
+            </p>
+          )}
+
           <table className="acc-print__table">
             <thead>
               <tr>

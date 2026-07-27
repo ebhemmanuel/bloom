@@ -4,6 +4,7 @@ import SwimlaneSummaryStrip from './SwimlaneSummaryStrip.jsx';
 import StatusColumn from './StatusColumn.jsx';
 import SwimlaneNotesCell from './SwimlaneNotesCell.jsx';
 import { BOARD_COLUMNS } from '../../domain/constants.js';
+import { formatDateMedium } from '../../domain/dates.js';
 
 /**
  * One student's row: three status columns plus their notes cell.
@@ -27,13 +28,14 @@ function Swimlane({
   onNotesCommit,
   renderColumnFooter,
 }) {
-  const locked = readOnly || lane.absent;
+  const locked = readOnly || lane.absent || lane.preEnrolment;
 
   return (
     <article
       className={[
         'acc-lane',
         lane.absent && 'acc-lane--absent',
+        lane.preEnrolment && 'acc-lane--preenrolment',
         collapsed && 'acc-lane--collapsed',
         readOnly && 'acc-lane--readonly',
       ]
@@ -43,13 +45,24 @@ function Swimlane({
       <SwimlaneHeader
         lane={lane}
         collapsed={collapsed}
-        disabled={readOnly}
+        disabled={readOnly || lane.preEnrolment}
         onToggleCollapse={onToggleCollapse}
         onToggleAbsent={onToggleAbsent}
         onContextMenu={onLaneContextMenu}
       />
 
-      {collapsed ? (
+      {/*
+        Not in this class yet on this date. Shown rather than hidden: a lane that
+        silently disappears from an October board leaves the teacher wondering
+        whether they lost a student, where a locked one with a date answers it.
+        Nothing here counts toward the day — there was no obligation.
+      */}
+      {lane.preEnrolment ? (
+        <p className="acc-lane__enrolnote">
+          Enrolled {formatDateMedium(lane.enrolledFrom)} — nothing is recorded for this student
+          before then.
+        </p>
+      ) : collapsed ? (
         <SwimlaneSummaryStrip summary={lane.summary} />
       ) : (
         <div className="acc-lane__body">

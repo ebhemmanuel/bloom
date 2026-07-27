@@ -237,6 +237,15 @@ export function normalizeDoc(raw, now = new Date()) {
          * which is the one thing this file exists to preserve.
          */
         unenrolledFrom: isValidDateKey(st.unenrolledFrom) ? st.unenrolledFrom : null,
+        /**
+         * The student joined this class on this date — the mirror of the above.
+         *
+         * Set when a student is added part-way through the year. Every day before
+         * it resolves as `not_applicable`, never `not_used`: they were not in the
+         * program, so there was no accommodation to deliver and no failure to
+         * record. The board locks those days and says why.
+         */
+        enrolledFrom: isValidDateKey(st.enrolledFrom) ? st.enrolledFrom : null,
         archivedAt: asNullableString(st.archivedAt),
         createdAt: asString(st.createdAt, base.app.createdAt),
       };
@@ -423,6 +432,17 @@ export function normalizeDoc(raw, now = new Date()) {
         : null,
       seededFrom: isValidDateKey(rawDay.seededFrom) ? rawDay.seededFrom : null,
       seedMode: rawDay.seedMode === SEED_MODE.FULL ? SEED_MODE.FULL : SEED_MODE.STRUCTURE,
+      /**
+       * This day's structure was created in bulk back to the start of the year,
+       * not by a teacher working that day.
+       *
+       * It is what lets the grid exist for every school day — so nothing has to
+       * be created before it can be filled in — WITHOUT the mere existence of the
+       * record asserting that nothing was delivered. An entry nobody has touched
+       * on a backfilled day resolves as `no_record`, not `not_used`. The moment
+       * the teacher records anything on that entry, it behaves like any other.
+       */
+      backfilled: asBool(rawDay.backfilled, false),
       sealed: asBool(rawDay.sealed, false),
       sealedAt: asNullableString(rawDay.sealedAt),
       sealedBy:

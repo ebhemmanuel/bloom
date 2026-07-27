@@ -27,15 +27,16 @@ export function buildResolveContext(doc) {
  * Resolve the status to display or print.
  *
  * Precedence, in order:
- *   1. weekend or non-instructional date / assignment not yet or no longer in
- *      force / not relevant to this subject → not_applicable
- *   2. no day record exists at all  → no_record
- *   3. student marked absent        → absent
- *   4. entry has a real status      → that status
- *   5. day is sealed                → not_used
- *   6. date is in the past          → not_used
- *   7. today, past cycleEndTime     → not_used
- *   8. otherwise                    → unassigned
+ *   1. weekend or non-instructional date / outside the student's enrolment /
+ *      assignment not yet or no longer in force / not relevant to this subject
+ *                                    → not_applicable
+ *   2. no day record exists at all   → no_record
+ *   3. student marked absent         → absent
+ *   4. entry has a real status       → that status
+ *   5. teacher was out               → teacher_absent
+ *   6. untouched on a backfilled day → no_record
+ *   7. day is sealed, or the cycle has closed → not_used
+ *   8. otherwise                     → unassigned
  *
  * A period never makes anything not applicable. A period records which class a
  * student is in, not when it runs, so every period a student is in is one this
@@ -55,6 +56,18 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
 
   // 1 — no obligation on this date. School is not in session, for anyone.
   if (isWeekend(dateKey) || c.nonInstructional.has(dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
+
+  // The student was not in the program yet, or has already left it. Days outside
+  // their enrolment carry no obligation at all — checked before every cycle-end
+  // rule below so they can never resolve to "not used". Documenting a student as
+  // having been denied support before they enrolled is a plain falsehood.
+  const student = c.studentsById.get(studentId);
+  if (student?.enrolledFrom && compareDateKeys(dateKey, student.enrolledFrom) < 0) {
+    return DERIVED_STATUS.NOT_APPLICABLE;
+  }
+  if (student?.unenrolledFrom && compareDateKeys(dateKey, student.unenrolledFrom) >= 0) {
+    return DERIVED_STATUS.NOT_APPLICABLE;
+  }
 
   const assignment = c.assignmentsById.get(assignmentId);
   if (!isAssignmentActiveOn(assignment, dateKey)) return DERIVED_STATUS.NOT_APPLICABLE;
@@ -89,6 +102,13 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
   // Deliberately AFTER rule 4: anything they did record before leaving still
   // stands. This only replaces what would otherwise have become not_used.
   if (day.teacherAbsence) return DERIVED_STATUS.TEACHER_ABSENT;
+
+  // The day's structure was created in bulk back to the start of the year, and
+  // nobody has touched this entry. The record exists so it CAN be filled in —
+  // that is the whole point of the backfill — but its existence is not itself a
+  // claim. An untouched backfilled entry is missing data, not documented
+  // non-delivery, and the difference is the same one `no_record` was built for.
+  if (day.backfilled) return DERIVED_STATUS.NO_RECORD;
 
   // 6/7/8 — the cycle closed with nothing recorded
   if (day.sealed) return STATUS.NOT_USED;

@@ -1,5 +1,12 @@
 import { STATUS, SEED_MODE, RESOLVED_BY } from './constants.js';
-import { isoTimestamp, addDays, compareDateKeys } from './dates.js';
+import {
+  isoTimestamp,
+  addDays,
+  compareDateKeys,
+  eachDateInRange,
+  isWeekend,
+  todayKey,
+} from './dates.js';
 import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
 
 /**
@@ -33,9 +40,30 @@ export function activeStudentsFor(doc, dateKey) {
       // forward and stays put on every earlier one, so year-to-date history is
       // untouched while upcoming days stop carrying them.
       .filter((s) => !s.unenrolledFrom || dateKey < s.unenrolledFrom)
+      // Enrolment is the mirror. A student added in January gets no entries
+      // written for September — there is nothing to record for a day they were
+      // not in the program, and writing blank entries would only invite them to
+      // be sealed into non-delivery later.
+      .filter((s) => !s.enrolledFrom || dateKey >= s.enrolledFrom)
       .slice()
       .sort((a, b) => a.sortOrder - b.sortOrder || a.lastName.localeCompare(b.lastName))
   );
+}
+
+/**
+ * Students who had not joined this class yet on a given date.
+ *
+ * They are kept OFF the day record but ON the board, shown locked with the date
+ * they enrolled. A silently missing lane leaves the teacher wondering whether
+ * they forgot someone; a locked one with a reason answers the question on the
+ * spot, and answers it the same way the printed report will.
+ */
+export function preEnrolmentStudentsFor(doc, dateKey) {
+  return doc.students
+    .filter((s) => s.active && !s.archivedAt)
+    .filter((s) => s.enrolledFrom && dateKey < s.enrolledFrom)
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.lastName.localeCompare(b.lastName));
 }
 
 /** Assignments in force for a student on a date, in display order. */
@@ -140,6 +168,7 @@ export function ensureDay(doc, dateKey, now = new Date()) {
         teacherAbsence: existing?.teacherAbsence ?? null,
         seededFrom: existing?.seededFrom ?? null,
         seedMode: existing?.seedMode ?? SEED_MODE.STRUCTURE,
+        backfilled: existing?.backfilled ?? false,
         sealed: false,
         sealedAt: null,
         sealedBy: null,
@@ -256,6 +285,65 @@ export function copyFromPreviousDay(
     copied,
     sourceDate: from,
   };
+}
+
+/**
+ * Create the day structure for every school day from the start of the year up to
+ * today, so a teacher never has to create a day before they can fill it in.
+ *
+ * This is the one place allowed to create records for arbitrary past dates, and
+ * it is only safe because of what it stamps: every day it creates is marked
+ * `backfilled`, and `effectiveStatus` resolves an untouched entry on such a day
+ * as `no_record` rather than `not_used`. The grid exists; the grid claims
+ * nothing. The moment the teacher records something, that entry behaves like any
+ * other, and a backfilled day the teacher has worked on stops being backfilled.
+ *
+ * Without that marker this function would be the exact catastrophe `sealDay` is
+ * written to avoid — 60 school days × every student × every accommodation,
+ * stamped as documented non-delivery by an app the teacher had just installed.
+ *
+ * Existing days are never touched, sealed or not. Weekends and non-instructional
+ * dates are skipped: there is nothing to record on a day school was not open.
+ *
+ * @returns {{ doc: object, created: number }}
+ */
+export function backfillDays(doc, { from, to, now = new Date() } = {}) {
+  if (!from || !to || compareDateKeys(from, to) > 0) return { doc, created: 0 };
+
+  const skip = new Set(doc.schoolCalendar?.nonInstructionalDates || []);
+  let next = doc;
+  let created = 0;
+
+  for (const dateKey of eachDateInRange(from, to)) {
+    if (isWeekend(dateKey) || skip.has(dateKey)) continue;
+    if (next.days?.[dateKey]) continue;
+
+    const seeded = ensureDay(next, dateKey, now);
+    // A day with no enrolled students and no assignments seeds to nothing; there
+    // is no value in an empty record, and it would only clutter the date picker.
+    if (seeded === next || !seeded.days[dateKey]) continue;
+
+    next = {
+      ...seeded,
+      days: { ...seeded.days, [dateKey]: { ...seeded.days[dateKey], backfilled: true } },
+    };
+    created += 1;
+  }
+
+  return { doc: next, created };
+}
+
+/**
+ * The range a backfill should cover: the start of the school year through today.
+ *
+ * Returns null when no term start has been recorded, because guessing one would
+ * mean inventing the boundary of a compliance record.
+ */
+export function backfillRange(doc, now = new Date()) {
+  const from = doc.schoolCalendar?.termStart;
+  if (!from) return null;
+  const to = todayKey(now);
+  return compareDateKeys(from, to) <= 0 ? { from, to } : null;
 }
 
 /** Walk backwards for the most recent date that already has a record. */
