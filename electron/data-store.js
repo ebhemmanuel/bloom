@@ -22,8 +22,36 @@ const { dataFilePath, backupDirPath } = require('./data-paths');
 const TMP_SUFFIX = '.tmp';
 const DEBOUNCE_MS = 400;
 const MAX_WAIT_MS = 3000;
-const RENAME_RETRIES = 3;
-const RENAME_RETRY_DELAY_MS = 60;
+
+/**
+ * Rename backoff, in milliseconds, one entry per attempt.
+ *
+ * Escalating rather than flat: Defender's post-write scan on a small file
+ * usually clears in well under 100ms, but an on-access scanner mid-signature-
+ * update can hold a handle for the better part of a second. A flat 3 × 60ms
+ * covered the first case and shipped as "it randomly doesn't save" for the
+ * second. Total spend here is ~1.2s, and only on a machine that is already
+ * failing.
+ */
+const RENAME_BACKOFF_MS = [25, 50, 100, 200, 400];
+
+/**
+ * How long the exit flush may block, in total.
+ *
+ * Windows gives a process being shut down roughly a second or two before it
+ * kills it, so a longer budget does not buy more durability — it just means the
+ * recovery file never gets written either. Bounded by wall clock rather than by
+ * attempt count, because the rename retries inside each attempt already vary.
+ */
+const EXIT_BUDGET_MS = 1600;
+
+/**
+ * Backoff between whole retry passes, when an entire write failed.
+ *
+ * Runs on a timer, not a spin, so the app stays responsive while it keeps
+ * trying. Caps at 5s and then repeats forever — a save is never abandoned.
+ */
+const RETRY_BACKOFF_MS = [200, 500, 1000, 2000, 5000];
 
 const KEEP_ROLLING = 10;
 const KEEP_DAILY_DAYS = 30;
@@ -107,9 +135,12 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
   let knownMtimeMs = null;
   let readOnly = false;
 
+  // Held until the bytes are on disk, never merely until a write is attempted.
   let pendingText = null;
   let debounceTimer = null;
   let maxWaitTimer = null;
+  let retryTimer = null;
+  let retryAttempt = 0;
 
   // --- reading -------------------------------------------------------------
 
@@ -231,12 +262,24 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
       return { ok: false, reason: 'invalid-json' };
     }
 
-    // 1 — conflict detection
+    // 1 — something else touched the file since we last read or wrote it.
+    //
+    // This used to refuse the write. That protected a foreign edit at the cost
+    // of the teacher's own, which is the wrong trade for a single-user app: the
+    // realistic causes are a sync client, a backup agent or AV rewriting the
+    // file, and the outcome was autosave silently stalling for the rest of the
+    // session. Now BOTH versions survive — the on-disk one is copied into
+    // backups first, then ours is written — and saving continues to work.
     const currentMtime = statMtime(filePath);
     if (knownMtimeMs !== null && currentMtime !== null && currentMtime !== knownMtimeMs) {
-      log.warn?.('[data-store] external modification detected; refusing to overwrite');
+      log.warn?.('[data-store] external modification detected; preserving it and continuing');
+      try {
+        fs.mkdirSync(backupDir, { recursive: true });
+        fs.copyFileSync(filePath, path.join(backupDir, `data-external-${backupStamp()}.json`));
+      } catch (err) {
+        log.warn?.(`[data-store] could not preserve external copy: ${err.message}`);
+      }
       onStatus({ state: 'conflict', path: filePath });
-      return { ok: false, reason: 'conflict' };
     }
 
     onStatus({ state: 'saving' });
@@ -268,7 +311,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
 
       // 5/6 — swap into place, retrying past transient AV locks
       let lastErr = null;
-      for (let attempt = 0; attempt < RENAME_RETRIES; attempt += 1) {
+      for (let attempt = 0; attempt <= RENAME_BACKOFF_MS.length; attempt += 1) {
         try {
           fs.renameSync(tmpPath, filePath);
           lastErr = null;
@@ -276,7 +319,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
         } catch (err) {
           lastErr = err;
           if (err.code !== 'EPERM' && err.code !== 'EBUSY' && err.code !== 'EACCES') break;
-          sleepSync(RENAME_RETRY_DELAY_MS);
+          if (attempt < RENAME_BACKOFF_MS.length) sleepSync(RENAME_BACKOFF_MS[attempt]);
         }
       }
       if (lastErr) throw lastErr;
@@ -316,6 +359,30 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
   }
 
   /**
+   * Keep trying until it lands.
+   *
+   * A save that fails is not an event to report and move on from — the teacher's
+   * edit is still only in memory, and the next thing to happen may well be the
+   * lid closing. So a failed write keeps its payload and comes back for it, on
+   * an escalating timer, forever. The only things that end the loop are success
+   * or a newer save superseding the text (which starts its own loop).
+   *
+   * Backoff caps rather than gives up: an unplugged network drive or a locked
+   * file can come back at any time, and when it does the edit is still here.
+   */
+  function scheduleRetry() {
+    if (retryTimer || pendingText === null) return;
+    const delay = RETRY_BACKOFF_MS[Math.min(retryAttempt, RETRY_BACKOFF_MS.length - 1)];
+    retryAttempt += 1;
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      flush();
+    }, delay);
+    // Unref so a stuck retry can never hold the process open at quit.
+    retryTimer.unref?.();
+  }
+
+  /**
    * Coalesce rapid edits. 400ms trailing, with a 3s ceiling so a teacher typing
    * continuously in the notes field still gets periodic durability.
    *
@@ -335,12 +402,76 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     return { ok: true, queued: true };
   }
 
+  /**
+   * Write whatever is pending, and KEEP it pending until the write succeeds.
+   *
+   * The order here is the whole point. Clearing `pendingText` before the write
+   * meant a single EPERM discarded the edit: the renderer had already moved on,
+   * nothing was queued, and the change existed nowhere but in memory. The text
+   * is now only released once it is on disk.
+   */
   function flush() {
     clearTimers();
     if (pendingText === null) return { ok: true, noop: true };
+
     const text = pendingText;
-    pendingText = null;
-    return writeNow(text);
+    const result = writeNow(text);
+
+    if (result.ok) {
+      // Only drop it if nothing newer arrived while we were writing.
+      if (pendingText === text) pendingText = null;
+      retryAttempt = 0;
+      return result;
+    }
+
+    // Read-only is not a failure to retry past — there is nowhere to write and
+    // no amount of trying changes that. Everything else gets another go.
+    if (result.reason === 'readonly') {
+      pendingText = null;
+      return result;
+    }
+
+    scheduleRetry();
+    return result;
+  }
+
+  /**
+   * The last chance. Called on quit, suspend and lock-screen.
+   *
+   * The timer-based retry above is useless here — the process is going away, so
+   * anything not on disk within the next moment or two is gone. This therefore
+   * blocks, retrying synchronously for up to ~2s, and if it still cannot write
+   * to the real location it dumps the text somewhere it almost certainly can.
+   * An awkwardly-named recovery file the teacher has to be told about is a bad
+   * outcome; losing an afternoon of a compliance record is a much worse one.
+   */
+  function flushBlocking() {
+    if (pendingText === null) return { ok: true, noop: true };
+
+    const deadline = Date.now() + EXIT_BUDGET_MS;
+    let result = flush();
+    while (!result.ok && result.reason !== 'readonly' && Date.now() < deadline) {
+      sleepSync(100);
+      result = flush();
+    }
+    if (result.ok || result.reason === 'readonly') return result;
+
+    const text = pendingText;
+    if (text === null) return result;
+
+    for (const dir of [dirPath, os.tmpdir()]) {
+      try {
+        const target = path.join(dir, `data.unsaved-${backupStamp()}.json`);
+        fs.writeFileSync(target, text, 'utf8');
+        log.error?.(`[data-store] could not save normally; wrote recovery copy to ${target}`);
+        return { ok: false, reason: result?.reason || 'write-failed', recoveryPath: target };
+      } catch {
+        /* try the next location */
+      }
+    }
+
+    log.error?.('[data-store] could not save, and could not write a recovery copy');
+    return result;
   }
 
   const hasPendingWrite = () => pendingText !== null;
@@ -349,6 +480,8 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     readOnly = Boolean(value);
     if (readOnly) {
       clearTimers();
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = null;
       pendingText = null;
     }
   }
@@ -403,6 +536,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     save,
     flush,
     writeNow,
+    flushBlocking,
     hasPendingWrite,
     setReadOnly,
     isReadOnly: () => readOnly,

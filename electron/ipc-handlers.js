@@ -185,11 +185,20 @@ function registerIpcHandlers({ getMainWindow } = {}) {
   });
 }
 
-/** Force a write before the process goes away. Called from main on quit paths. */
+/**
+ * Force a write before the process goes away. Called from main on quit paths.
+ *
+ * Blocking, and it does not take no for an answer: the ordinary retry runs on a
+ * timer, which is worth nothing once the process is exiting. If it still cannot
+ * write, it leaves a recovery file rather than letting the edit evaporate.
+ */
 function flushPendingWrites() {
-  if (store && store.hasPendingWrite()) {
-    log.info('flushing pending write before exit');
-    store.flush();
+  if (!store || !store.hasPendingWrite()) return;
+
+  log.info('flushing pending write before exit');
+  const result = store.flushBlocking();
+  if (!result.ok && result.recoveryPath) {
+    log.error(`exit flush failed; recovery copy written (${result.reason})`);
   }
 }
 

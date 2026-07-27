@@ -93,24 +93,119 @@ describe('writeNow — atomicity', () => {
     expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(2);
   });
 
-  it('detects an external modification and refuses to clobber it', () => {
+  it('preserves an external modification but still saves', () => {
+    // A sync client, a backup agent or AV rewriting the file used to stall
+    // autosave for the rest of the session. Both versions have to survive AND
+    // the teacher's own edit has to land.
     store.writeNow(doc(1));
-    // Another process writes underneath us. Bump mtime explicitly so the test
-    // does not depend on filesystem timestamp granularity.
     fs.writeFileSync(store.filePath, doc(99));
     const future = new Date(Date.now() + 5000);
     fs.utimesSync(store.filePath, future, future);
 
     const r = store.writeNow(doc(2));
-    expect(r.ok).toBe(false);
-    expect(r.reason).toBe('conflict');
-    expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(99);
+    expect(r.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(2);
+
+    const preserved = fs.readdirSync(store.backupDir).filter((n) => n.startsWith('data-external-'));
+    expect(preserved).toHaveLength(1);
+    expect(JSON.parse(fs.readFileSync(path.join(store.backupDir, preserved[0]), 'utf8')).n).toBe(
+      99
+    );
   });
 
   it('honours read-only mode', () => {
     store.setReadOnly(true);
     expect(store.writeNow(doc(1)).reason).toBe('readonly');
     expect(fs.existsSync(store.filePath)).toBe(false);
+  });
+});
+
+/**
+ * Autosave is the only thing standing between a teacher and a lost afternoon of
+ * a legal record. A failed write is never allowed to be the end of the story.
+ */
+describe('a save is never abandoned', () => {
+  function failRename(code = 'EPERM') {
+    return vi.spyOn(fs, 'renameSync').mockImplementation(() => {
+      const e = new Error('locked');
+      e.code = code;
+      throw e;
+    });
+  }
+
+  it('keeps the edit in hand when the write fails', () => {
+    // The bug this replaces: flush() cleared the pending text BEFORE writing, so
+    // one EPERM discarded the edit entirely — the renderer had moved on, nothing
+    // was queued, and the change existed nowhere but in memory.
+    store.save(doc(7));
+    const spy = failRename();
+    const r = store.flush();
+    spy.mockRestore();
+
+    expect(r.ok).toBe(false);
+    expect(store.hasPendingWrite()).toBe(true);
+  });
+
+  it('lands the same edit once the lock clears', () => {
+    store.save(doc(7));
+    const spy = failRename();
+    store.flush();
+    spy.mockRestore();
+
+    expect(store.flush().ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(7);
+    expect(store.hasPendingWrite()).toBe(false);
+  });
+
+  it('a newer edit supersedes the one that failed', () => {
+    store.save(doc(7));
+    const spy = failRename();
+    store.flush();
+    spy.mockRestore();
+
+    store.save(doc(8));
+    expect(store.flush().ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(8);
+  });
+
+  it('rides out a long AV hold rather than giving up after one blink', () => {
+    store.writeNow(doc(1));
+    const real = fs.renameSync;
+    let calls = 0;
+    const spy = vi.spyOn(fs, 'renameSync').mockImplementation((...args) => {
+      calls += 1;
+      if (calls <= 4) {
+        const e = new Error('locked');
+        e.code = 'EBUSY';
+        throw e;
+      }
+      return real.apply(fs, args);
+    });
+
+    const r = store.writeNow(doc(2));
+    spy.mockRestore();
+    expect(r.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(2);
+  });
+
+  it('writes a recovery copy on exit rather than losing the edit', () => {
+    // Last resort, when the process is going away and the real location still
+    // will not take the write. An awkward recovery file beats a lost afternoon.
+    store.save(doc(7));
+    const spy = failRename('EACCES');
+    const r = store.flushBlocking();
+    spy.mockRestore();
+
+    expect(r.ok).toBe(false);
+    expect(r.recoveryPath).toBeTruthy();
+    expect(JSON.parse(fs.readFileSync(r.recoveryPath, 'utf8')).n).toBe(7);
+    fs.unlinkSync(r.recoveryPath);
+  });
+
+  it('does not retry read-only, because trying again cannot help', () => {
+    store.save(doc(7));
+    store.setReadOnly(true);
+    expect(store.hasPendingWrite()).toBe(false);
   });
 });
 
