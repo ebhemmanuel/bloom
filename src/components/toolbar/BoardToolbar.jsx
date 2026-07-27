@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import DatePicker from './DatePicker.jsx';
 import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
+import Caret from '../shared/Caret.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
 
 function Chevron({ down }) {
@@ -131,6 +132,8 @@ export default function BoardToolbar({
   onToggleFoldAll,
   activeFilter,
   onClearFilter,
+  sort,
+  onToggleSort,
 }) {
   const [notice, setNotice] = useState(null);
   const disabled = readOnly || model.sealed;
@@ -242,6 +245,24 @@ export default function BoardToolbar({
           then chooses among their days.
         */}
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
+
+        {/*
+          Which end of the alphabet the roster starts from. A toggle rather than
+          a menu, because there are only two answers and a dropdown to choose
+          between two things is a click spent on nothing.
+        */}
+        <button
+          type="button"
+          className="acc-btn acc-sortbtn"
+          onClick={onToggleSort}
+          aria-label={
+            sort === 'az' ? 'Sorted A to Z. Switch to Z to A.' : 'Sorted Z to A. Switch to A to Z.'
+          }
+          title={sort === 'az' ? 'Sorted A to Z' : 'Sorted Z to A'}
+        >
+          <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
+          <Caret up={sort === 'za'} />
+        </button>
 
         <DatePicker
           dateKey={dateKey}

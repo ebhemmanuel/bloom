@@ -64,7 +64,10 @@ export function matchesSearch(index, studentId, query) {
  * with an honest "no record for this day" state rather than an empty screen.
  * That distinction is the whole point - see resolve.js.
  */
-export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now = new Date() }) {
+export function buildBoardModel(
+  doc,
+  { dateKey, periodIds = [], search = '', sort = 'az', now = new Date() }
+) {
   const ctx = buildResolveContext(doc);
   const catalogById = new Map(doc.catalog.map((c) => [c.id, c]));
   const searchIndex = buildSearchIndex(doc);
@@ -225,6 +228,20 @@ export function buildBoardModel(doc, { dateKey, periodIds = [], search = '', now
       preEnrolment: true,
     });
   }
+
+  /**
+   * Lane order, applied after both passes so pre-enrolment lanes sort in with
+   * everyone else rather than collecting at the bottom.
+   *
+   * By display name, which is what the teacher is actually scanning for. The
+   * roster's own `sortOrder` is insertion order, and "the order I happened to
+   * type them in" stops being useful the moment there are more than a handful.
+   *
+   * `localeCompare` rather than `<`, so an accented name files where a reader
+   * expects it instead of after Z.
+   */
+  const direction = sort === 'za' ? -1 : 1;
+  lanes.sort((a, b) => direction * a.displayName.localeCompare(b.displayName));
 
   const allStatuses = lanes.flatMap((l) =>
     Object.values(l.columns).flatMap((cards) => cards.map((c) => c.resolved))

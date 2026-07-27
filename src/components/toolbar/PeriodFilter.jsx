@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { renamePeriod, addPeriod } from '../../domain/mutations.js';
+import Caret from '../shared/Caret.jsx';
 
 /**
  * Period filter as a dropdown rather than a chip row.
@@ -55,16 +56,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
         aria-expanded={open}
       >
         {label}
-        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-          <path
-            d="M4 6l4 4 4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Caret up={open} />
       </button>
 
       {open && (

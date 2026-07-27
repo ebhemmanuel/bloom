@@ -97,6 +97,21 @@
 
 // --- Date control ----------------------------------------------------------
 
+/**
+ * A-Z / Z-A, beside the period filter.
+ *
+ * An ordinary `.acc-btn` with the app's own caret in it. It is not a mode the
+ * board is in; it is one more question about what you are looking at, alongside
+ * which periods and which day, so it wears what those wear.
+ */
+.acc-sortbtn__label {
+  // A fixed measure. "A-Z" and "Z-A" render at different widths in a
+  // proportional face, and the row must not twitch when it is pressed.
+  inline-size: 3.4ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .acc-datepicker {
   display: flex;
   align-items: center;

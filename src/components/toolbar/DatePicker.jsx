@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
+import Caret from '../shared/Caret.jsx';
 import {
   addDays,
   toDateKey,
@@ -119,22 +120,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
             around - the row must not move while you are clicking through it.
           */}
           <strong>{formatDateMedium(dateKey)}</strong>
-          <svg
-            viewBox="0 0 16 16"
-            width="12"
-            height="12"
-            aria-hidden="true"
-            className="acc-datepicker__caret"
-          >
-            <path
-              d="M4 6l4 4 4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Caret up={open} />
         </button>
 
         {open && (

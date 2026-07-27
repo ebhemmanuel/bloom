@@ -2,6 +2,23 @@
 
 // --- Buttons ---------------------------------------------------------------
 
+/**
+ * The chevron every control points with.
+ *
+ * One shape, rotated. Three inline copies had already drifted into two
+ * different arrows before this existed.
+ */
+.acc-caret {
+  flex: none;
+  color: var(--acc-fg-muted);
+  transform-origin: 50% 50%;
+  transition: transform var(--acc-dur-normal) var(--acc-ease-settle);
+
+  &--up {
+    transform: rotate(180deg);
+  }
+}
+
 .acc-btn {
   // Eases both ways: the same curve on the way in and on the way out, so a
   // pointer sweeping across a row of controls leaves a settling trail rather

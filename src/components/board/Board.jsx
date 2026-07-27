@@ -40,8 +40,18 @@ export default function Board({ onAddStudent }) {
 
   // Date, period filter and search live in BoardContext because the Bloom shell
   // splits those controls between the pill nav and the toolbar.
-  const { dateKey, setDateKey, periodIds, setPeriodIds, search, setSearch, model, periods } =
-    useBoard();
+  const {
+    dateKey,
+    setDateKey,
+    periodIds,
+    setPeriodIds,
+    search,
+    setSearch,
+    sort,
+    toggleSort,
+    model,
+    periods,
+  } = useBoard();
 
   const [detailCard, setDetailCard] = useState(null);
   // Set when a standing default needs its one-time boilerplate detail.
@@ -340,6 +350,8 @@ export default function Board({ onAddStudent }) {
       onAddStudent={onAddStudent}
       activeFilter={activeFilter}
       onClearFilter={clearFilter}
+      sort={sort}
+      onToggleSort={toggleSort}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
       onToggleFoldAll={() =>
         model.lanes.every((l) => collapsed.has(l.studentId))
