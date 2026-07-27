@@ -278,12 +278,19 @@
     padding: var(--acc-space-1);
   }
 
+  // The only place a period can be created, so it sits in the flow of the list
+  // rather than behind a further click.
+  &__add {
+    padding: var(--acc-space-2);
+    border-top: 1px solid var(--acc-border);
+    margin-block-start: var(--acc-space-1);
+  }
+
   &__hint {
     padding: var(--acc-space-2);
     font-size: 10px;
     color: var(--acc-fg-faint);
-    border-top: 1px solid var(--acc-border);
-    margin-block-start: var(--acc-space-1);
+    line-height: var(--acc-lh-normal);
   }
 }
 

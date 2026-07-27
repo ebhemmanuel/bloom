@@ -1,6 +1,6 @@
 import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES } from './constants.js';
 import { isoTimestamp } from './dates.js';
-import { newCatalogId } from './ids.js';
+import { newCatalogId, newPeriodId } from './ids.js';
 import { ensureDay } from './seed.js';
 
 /**
@@ -598,6 +598,75 @@ export function addCatalogEntry(
 
 export function updateSettings(doc, changes) {
   return { ...doc, settings: { ...doc.settings, ...changes } };
+}
+
+/**
+ * Add a class period.
+ *
+ * There is no cap and no fixed set. A teacher may have two sections or nine,
+ * they may be called "Period 3" or "Block B" or "Homeroom", and the app has no
+ * business deciding which. `shortName` is what fits in a lane header; it is
+ * derived from the name when not given.
+ *
+ * Duplicate names are allowed on purpose — two sections of the same course are a
+ * real thing, and refusing the second one would be the app arguing with the
+ * timetable.
+ */
+export function addPeriod(doc, { name, shortName } = {}) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return doc;
+
+  const sortOrder = doc.periods.reduce((max, p) => Math.max(max, p.sortOrder || 0), 0) + 1;
+
+  return {
+    ...doc,
+    periods: [
+      ...doc.periods,
+      {
+        id: newPeriodId(),
+        teacherId: doc.settings?.activeTeacherId || doc.teachers[0]?.id || null,
+        name: trimmed,
+        shortName: String(shortName || '').trim() || deriveShortName(trimmed, sortOrder),
+        sortOrder,
+        archivedAt: null,
+      },
+    ],
+  };
+}
+
+/**
+ * A label short enough for a lane header.
+ *
+ * "Period 3 — Geometry" becomes "P3"; anything without a number falls back to
+ * its initials, so "Morning Block" reads "MB" rather than being truncated into
+ * something unrecognisable.
+ */
+function deriveShortName(name, sortOrder) {
+  const numbered = name.match(/\b(?:period|block|hour|p)\s*(\d+)/i) || name.match(/\b(\d+)\b/);
+  if (numbered) return `P${numbered[1]}`;
+
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
+  return initials || `P${sortOrder}`;
+}
+
+/**
+ * Retire a period, or bring it back.
+ *
+ * Archived rather than deleted, for the same reason nothing else here deletes:
+ * students still reference it, and past days still name it on their records.
+ */
+export function setPeriodArchived(doc, periodId, archived, now = new Date()) {
+  return {
+    ...doc,
+    periods: doc.periods.map((p) =>
+      p.id === periodId ? { ...p, archivedAt: archived ? isoTimestamp(now) : null } : p
+    ),
+  };
 }
 
 /**

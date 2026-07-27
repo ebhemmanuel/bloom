@@ -174,28 +174,41 @@ export default function AddStudentForm({ onAdded }) {
           </span>
         </label>
 
-        {periods.length > 0 && (
-          <div className="acc-field">
-            <span className="acc-field__label">Which periods?</span>
-            <div className="acc-chipset">
-              {periods.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`acc-chip${periodIds.includes(p.id) ? ' acc-chip--on' : ''}`}
-                  onClick={() =>
-                    setPeriodIds((prev) =>
-                      prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
-                    )
-                  }
-                  aria-pressed={periodIds.includes(p.id)}
-                >
-                  {p.shortName}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="acc-field">
+          <span className="acc-field__label">Which periods?</span>
+          {periods.length > 0 ? (
+            <>
+              <div className="acc-chipset">
+                {periods.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`acc-chip${periodIds.includes(p.id) ? ' acc-chip--on' : ''}`}
+                    onClick={() =>
+                      setPeriodIds((prev) =>
+                        prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
+                      )
+                    }
+                    aria-pressed={periodIds.includes(p.id)}
+                    title={p.name}
+                  >
+                    {p.shortName}
+                  </button>
+                ))}
+              </div>
+              {/* Multi-select, and not a short list: a student can sit in as
+                  many of a teacher's sections as they actually attend. */}
+              <span className="acc-field__hint">Pick as many as this student is in.</span>
+            </>
+          ) : (
+            // Previously this whole block was hidden when no periods existed,
+            // which left no sign that periods were a thing at all.
+            <span className="acc-field__hint">
+              No periods yet — add them from the periods menu above the board, then come back and
+              assign them here.
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="acc-addstudent__accoms">

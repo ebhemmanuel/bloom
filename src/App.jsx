@@ -51,7 +51,7 @@ function Loader({ loadState }) {
 /** The shell, once a document is loaded and onboarding is done. */
 function AppShell() {
   const { doc, meta, repairs, dismissRepairs } = useData();
-  const { model, search, setSearch, setDateKey } = useBoard();
+  const { model, setDateKey } = useBoard();
   const { openPanel, toggle, close } = useHeaderPanel();
   // One slot: only ever one modal at a time, and dismissing is a single action.
   const [modal, setModal] = useState(null);
@@ -136,11 +136,13 @@ function AppShell() {
           onOpenSettings={() => toggle('settings')}
           onOpenNotifications={() => toggle('notifications')}
           onOpenDayNotes={() => toggle('daynotes')}
+          // The search icon opens the same overlay Ctrl+Space does. One search,
+          // reached two ways, rather than two searches that behave differently.
+          onOpenSearch={() => {
+            close();
+            palette.setOpen(true);
+          }}
           hasDayNotes={Boolean(model.dayNotes || model.teacherAbsence)}
-          search={search}
-          onSearchChange={setSearch}
-          matchCount={model.laneCount}
-          hiddenCount={model.hiddenBySearch}
         />
 
         {palette.open && <CommandPalette onClose={palette.close} />}

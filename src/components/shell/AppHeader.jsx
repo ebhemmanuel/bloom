@@ -3,8 +3,6 @@ import { useData } from '../../context/DataContext.jsx';
 import { PRODUCT_NAME } from '../../domain/schema.js';
 import { initialsOf } from '../../domain/initials.js';
 import MenuBar from './MenuBar.jsx';
-import SaveStatusPill from '../shared/SaveStatusPill.jsx';
-import StudentSearch from '../toolbar/StudentSearch.jsx';
 
 function Icon({ path, size = 16 }) {
   return (
@@ -54,16 +52,21 @@ const BELL_ICON = (
   </>
 );
 
-const PLUS_ICON = (
-  <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+const SEARCH_ICON = (
+  <>
+    <circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </>
 );
 
 /**
  * Floating pill nav.
  *
- * Left: brand. Centre: student search — it is the most-reached-for control on a
- * 30-lane board, so it gets the centre rather than being buried in a toolbar.
- * Right: roster count, add, save state, day notes, notifications, avatar.
+ * Left: brand and menus. Right: search, day notes, notifications, avatar.
+ *
+ * Search is an icon rather than a field. It opens the same overlay Ctrl+Space
+ * does — one search, one behaviour, reached two ways — instead of a second
+ * always-visible box that did a narrower job in a worse place.
  */
 export default function AppHeader({
   menus,
@@ -72,11 +75,8 @@ export default function AppHeader({
   onOpenSettings,
   onOpenNotifications,
   onOpenDayNotes,
+  onOpenSearch,
   hasDayNotes,
-  search,
-  onSearchChange,
-  matchCount,
-  hiddenCount,
 }) {
   const { doc } = useData();
   const teacher =
@@ -91,15 +91,16 @@ export default function AppHeader({
         <MenuBar menus={menus} />
       </div>
 
-      <StudentSearch
-        value={search}
-        onChange={onSearchChange}
-        matchCount={matchCount}
-        hiddenCount={hiddenCount}
-      />
-
       <div className="acc-header__right">
-        <SaveStatusPill />
+        <button
+          type="button"
+          className="acc-header__icon"
+          onClick={onOpenSearch}
+          aria-label="Find a student or period"
+          title="Find a student or period  ·  Ctrl+Space"
+        >
+          <Icon path={SEARCH_ICON} size={17} />
+        </button>
 
         <button
           type="button"
