@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { PRODUCT_NAME } from '../../domain/schema.js';
 import { initialsOf } from '../../domain/initials.js';
+import MenuBar from './MenuBar.jsx';
 import SaveStatusPill from '../shared/SaveStatusPill.jsx';
 import StudentSearch from '../toolbar/StudentSearch.jsx';
 
@@ -65,18 +66,17 @@ const PLUS_ICON = (
  * Right: roster count, add, save state, day notes, notifications, avatar.
  */
 export default function AppHeader({
+  menus,
   notifications,
   openPanel,
   onOpenSettings,
   onOpenNotifications,
   onOpenDayNotes,
-  onAddStudent,
   hasDayNotes,
   search,
   onSearchChange,
   matchCount,
   hiddenCount,
-  studentCount,
 }) {
   const { doc } = useData();
   const teacher =
@@ -88,6 +88,7 @@ export default function AppHeader({
       <div className="acc-header__brand">
         <span className="acc-header__mark" aria-hidden="true" />
         <span className="acc-header__name">{PRODUCT_NAME}</span>
+        <MenuBar menus={menus} />
       </div>
 
       <StudentSearch
@@ -98,20 +99,6 @@ export default function AppHeader({
       />
 
       <div className="acc-header__right">
-        <button
-          type="button"
-          className="acc-header__round"
-          onClick={onAddStudent}
-          aria-label="Add student"
-          title="Add student"
-        >
-          <Icon path={PLUS_ICON} size={13} />
-        </button>
-
-        <span className="acc-header__count acc-numeric">
-          {studentCount} student{studentCount === 1 ? '' : 's'}
-        </span>
-
         <SaveStatusPill />
 
         <button

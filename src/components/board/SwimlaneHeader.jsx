@@ -27,17 +27,34 @@ function Chevron({ open }) {
  * Swimlane header: disclosure, name, plan pill, progress readout, and the
  * mark-absent button pinned far right.
  */
-function SwimlaneHeader({ lane, collapsed, disabled, onToggleCollapse, onToggleAbsent }) {
+function SwimlaneHeader({
+  lane,
+  collapsed,
+  disabled,
+  onToggleCollapse,
+  onToggleAbsent,
+  onContextMenu,
+}) {
   const { summary } = lane;
   const recorded = summary.counts.used + summary.counts.used_with_detail;
 
   return (
-    <header className="acc-lane__header">
+    <header
+      className="acc-lane__header"
+      // Right-click anywhere on the header row, not just the text — the name is
+      // a small target and the row is what reads as "this student".
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onContextMenu?.(lane, event.clientX, event.clientY);
+      }}
+    >
       <button
         type="button"
         className="acc-lane__disclosure"
         aria-expanded={!collapsed}
         onClick={onToggleCollapse}
+        title="Right-click for rename, absence and enrolment"
       >
         <Chevron open={!collapsed} />
         <span className="acc-lane__name">{lane.displayName}</span>

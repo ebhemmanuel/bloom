@@ -16,5 +16,8 @@
 @use 'components/day-notes';
 @use 'components/add-accommodation';
 @use 'components/manage';
+@use 'components/menubar';
 @use 'components/ambient';
 @use 'components/onboarding';
+
+@use 'print/print';

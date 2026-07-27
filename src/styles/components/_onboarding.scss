@@ -242,7 +242,10 @@
 }
 
 .acc-ob__ghost {
-  align-self: flex-start;
+  // No align-self here. It used to carry `flex-start` for the location step's
+  // browse button, which then overrode `align-items: center` on the add-a-subject
+  // row and pinned the button to the top of a taller input.
+  flex: none;
   height: 32px;
   padding: 0 var(--acc-space-4);
   border-radius: var(--acc-radius-pill);
@@ -259,6 +262,11 @@
     opacity: 0.5;
     cursor: default;
   }
+}
+
+// Only the panel-level button needs to stop stretching across the column.
+.acc-ob__panel > .acc-ob__ghost {
+  align-self: flex-start;
 }
 
 // --- Frosted panel (about / location) --------------------------------------
@@ -306,7 +314,9 @@
 
 .acc-ob__input {
   padding: 12px var(--acc-space-4);
-  border: 1px solid var(--acc-border-strong);
+  // Matches the search field's resting weight rather than the heavier strong
+  // border, so inputs read consistently across the app.
+  border: 1px solid var(--acc-border);
   border-radius: var(--acc-radius-pill);
   background: var(--acc-surface);
   font-size: var(--acc-fs-subhead);
@@ -320,10 +330,14 @@
     box-shadow: 0 0 0 3px var(--acc-accent-soft);
   }
 
+  // Matched to the button's 32px rather than left to derive its own height from
+  // padding — two controls on one row should share a height, not merely be
+  // centred against each other.
   &--sm {
     flex: 1;
     min-inline-size: 0;
-    padding: var(--acc-space-2) var(--acc-space-4);
+    block-size: 32px;
+    padding: 0 var(--acc-space-4);
     font-size: var(--acc-fs-sub);
   }
 }

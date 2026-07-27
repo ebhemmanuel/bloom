@@ -1,5 +1,6 @@
 import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES } from './constants.js';
 import { isoTimestamp } from './dates.js';
+import { newCatalogId } from './ids.js';
 import { ensureDay } from './seed.js';
 
 /**
@@ -428,6 +429,163 @@ export function clearTeacherAbsence(doc, dateKey, now = new Date()) {
       ...doc.days,
       [dateKey]: { ...day, notes, notesUpdatedAt: isoTimestamp(now), teacherAbsence: null },
     },
+  };
+}
+
+// --- roster & assignment lifecycle ------------------------------------------
+
+/**
+ * Unenrol a student from `fromDate` onward, or re-enrol them.
+ *
+ * Never a delete. They stop appearing on that day and after, and every earlier
+ * day keeps them exactly as recorded — so the year-to-date record survives while
+ * upcoming days stop being polluted by someone who left.
+ */
+export function setStudentEnrollment(doc, studentId, unenrolledFrom) {
+  return {
+    ...doc,
+    students: doc.students.map((s) =>
+      s.id === studentId ? { ...s, unenrolledFrom: unenrolledFrom || null } : s
+    ),
+  };
+}
+
+/**
+ * Rename a student.
+ *
+ * Only the display label changes; their id, and therefore every day already
+ * recorded against them, is untouched.
+ */
+export function renameStudent(doc, studentId, displayName) {
+  const trimmed = String(displayName || '').trim();
+  if (!trimmed) return doc;
+  return {
+    ...doc,
+    students: doc.students.map((s) =>
+      s.id === studentId ? { ...s, displayName: trimmed, lastName: trimmed } : s
+    ),
+  };
+}
+
+/**
+ * Stop an accommodation from a date onward.
+ *
+ * Defaults to ending it AFTER today, so anything already recorded today still
+ * counts. Retroactively hiding an accommodation would silently rewrite days the
+ * teacher has already signed off on.
+ */
+export function retireAssignment(doc, assignmentId, throughDate) {
+  return {
+    ...doc,
+    assignments: doc.assignments.map((a) =>
+      a.id === assignmentId ? { ...a, activeTo: throughDate } : a
+    ),
+  };
+}
+
+/** Undo a retirement, putting the accommodation back in force. */
+export function reinstateAssignment(doc, assignmentId) {
+  return {
+    ...doc,
+    assignments: doc.assignments.map((a) => (a.id === assignmentId ? { ...a, activeTo: null } : a)),
+  };
+}
+
+/**
+ * Rename an accommodation.
+ *
+ * Catalog-backed entries are renamed in the catalog so every student sharing the
+ * wording moves together; one-offs are renamed on the assignment. Either way,
+ * days already recorded keep their `labelSnapshot`, so old reports still read as
+ * they did when they were signed.
+ */
+export function renameAccommodation(doc, assignmentId, label) {
+  const trimmed = String(label || '').trim();
+  if (!trimmed) return doc;
+
+  const assignment = doc.assignments.find((a) => a.id === assignmentId);
+  if (!assignment) return doc;
+
+  if (assignment.source === 'custom') {
+    return {
+      ...doc,
+      assignments: doc.assignments.map((a) =>
+        a.id === assignmentId ? { ...a, label: trimmed } : a
+      ),
+    };
+  }
+
+  return {
+    ...doc,
+    catalog: doc.catalog.map((c) => (c.id === assignment.catalogId ? { ...c, label: trimmed } : c)),
+  };
+}
+
+// --- catalog (the preset list) ----------------------------------------------
+
+/**
+ * Rename a preset. Every student using it moves together, and days already
+ * recorded keep their `labelSnapshot` — so old reports still read as signed.
+ */
+export function renameCatalogEntry(doc, catalogId, label) {
+  const trimmed = String(label || '').trim();
+  if (!trimmed) return doc;
+  return {
+    ...doc,
+    catalog: doc.catalog.map((c) => (c.id === catalogId ? { ...c, label: trimmed } : c)),
+  };
+}
+
+export function updateCatalogEntry(doc, catalogId, changes) {
+  return {
+    ...doc,
+    catalog: doc.catalog.map((c) => (c.id === catalogId ? { ...c, ...changes } : c)),
+  };
+}
+
+/**
+ * Archive a preset rather than deleting it.
+ *
+ * A hard delete would orphan every assignment pointing at it, and normalizeDoc
+ * would then drop those assignments — taking their history with them. Archiving
+ * only hides it from future pickers.
+ */
+export function setCatalogArchived(doc, catalogId, archived) {
+  return updateCatalogEntry(doc, catalogId, { archived: Boolean(archived) });
+}
+
+/** Add a preset to the shared list, ignoring a duplicate wording. */
+export function addCatalogEntry(
+  doc,
+  { label, category = 'other', requiresDetail = false },
+  now = new Date()
+) {
+  const trimmed = String(label || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!trimmed) return doc;
+
+  const key = trimmed.toLowerCase();
+  if (doc.catalog.some((c) => c.label.toLowerCase() === key)) return doc;
+
+  return {
+    ...doc,
+    catalog: [
+      ...doc.catalog,
+      {
+        id: newCatalogId(),
+        label: trimmed,
+        category,
+        requiresDetail,
+        detailPrompt: null,
+        // Anything needing a narrative opts out of bulk automatically: "read
+        // aloud to 28 students identically" is not a one-click claim.
+        bulkEligible: !requiresDetail,
+        bulkActions: requiresDetail ? [] : ['mark_used'],
+        archived: false,
+        createdAt: isoTimestamp(now),
+      },
+    ],
   };
 }
 

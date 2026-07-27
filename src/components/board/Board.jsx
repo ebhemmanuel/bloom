@@ -16,9 +16,12 @@ import {
   toggleStudentAbsent,
   setAssignmentDefault,
   setAssignmentNotRelevant,
+  setStudentEnrollment,
+  renameStudent,
   applyPatches,
 } from '../../domain/mutations.js';
 import CardContextMenu from './CardContextMenu.jsx';
+import StudentContextMenu from './StudentContextMenu.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
@@ -31,7 +34,7 @@ function parseDroppable(id) {
   return { studentId, status };
 }
 
-export default function Board() {
+export default function Board({ onAddStudent }) {
   const { doc, mutate, readOnly } = useData();
 
   // Date, period filter and search live in BoardContext because the Bloom shell
@@ -41,6 +44,7 @@ export default function Board() {
 
   const [detailCard, setDetailCard] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [laneMenu, setLaneMenu] = useState(null);
   const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
   const {
@@ -271,6 +275,7 @@ export default function Board() {
       readOnly={readOnly}
       onCopyPrevious={copyPrevious}
       onCloseOutDay={closeOutDay}
+      onAddStudent={onAddStudent}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
       onToggleFoldAll={() =>
         model.lanes.every((l) => collapsed.has(l.studentId))
@@ -347,6 +352,7 @@ export default function Board() {
                   onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
                   onOpenDetail={setDetailCard}
                   onContextMenu={openContextMenu}
+                  onLaneContextMenu={(l, mx, my) => setLaneMenu({ lane: l, x: mx, y: my })}
                   onSelectClick={handleSelectClick}
                   isSelected={isSelected}
                   selectionCount={selectionCount}
@@ -372,6 +378,24 @@ export default function Board() {
           </div>
         )}
       </DragDropContext>
+
+      {laneMenu && (
+        <StudentContextMenu
+          lane={laneMenu.lane}
+          dateKey={dateKey}
+          unenrolledFrom={
+            doc.students.find((s) => s.id === laneMenu.lane.studentId)?.unenrolledFrom || null
+          }
+          x={laneMenu.x}
+          y={laneMenu.y}
+          onClose={() => setLaneMenu(null)}
+          onRename={(name) => mutate((d) => renameStudent(d, laneMenu.lane.studentId, name))}
+          onToggleAbsent={(reason) => handleToggleAbsent(laneMenu.lane.studentId, reason)}
+          onUnenrol={(from) =>
+            mutate((d) => setStudentEnrollment(d, laneMenu.lane.studentId, from))
+          }
+        />
+      )}
 
       {contextMenu && (
         <CardContextMenu

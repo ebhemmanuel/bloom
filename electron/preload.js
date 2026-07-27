@@ -71,6 +71,8 @@ contextBridge.exposeInMainWorld('accommodations', {
 
   app: {
     getInfo: () => ipcRenderer.invoke('app:getInfo'),
+    /** Save-and-exit. Main flushes any pending write before quitting. */
+    quit: () => ipcRenderer.invoke('app:quit'),
     /** Forces a flush before the window goes away. */
     onBeforeQuit: (cb) => subscribe('app:beforeQuit', cb),
   },

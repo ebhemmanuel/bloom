@@ -20,6 +20,7 @@ function Swimlane({
   onToggleAbsent,
   onOpenDetail,
   onContextMenu,
+  onLaneContextMenu,
   onSelectClick,
   isSelected,
   selectionCount,
@@ -45,6 +46,7 @@ function Swimlane({
         disabled={readOnly}
         onToggleCollapse={onToggleCollapse}
         onToggleAbsent={onToggleAbsent}
+        onContextMenu={onLaneContextMenu}
       />
 
       {collapsed ? (

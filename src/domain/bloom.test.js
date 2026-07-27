@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { STATUS, DERIVED_STATUS } from './constants.js';
-import { effectiveStatus, sealDay } from './resolve.js';
+import { effectiveStatus, sealDay, summarise } from './resolve.js';
 import { buildBoardModel } from './selectors.js';
 import { ensureDay } from './seed.js';
 import {
@@ -245,5 +245,78 @@ describe('day notes and teacher absence', () => {
   it('formats the absence line consistently', () => {
     expect(absenceLine('TDY', '')).toBe('Absence — TDY');
     expect(absenceLine('Out sick', 'back Thu')).toBe('Absence — Out sick: back Thu');
+  });
+});
+
+describe('a day the TEACHER was out never resolves to Not Used', () => {
+  const outSick = (doc, date = WED) => reportTeacherAbsence(doc, date, 'Out sick', '');
+
+  it('unrecorded entries resolve to teacher_absent, not not_used', () => {
+    // The bug this exists to prevent: the teacher is out, nothing gets marked,
+    // the day seals, and the printed report documents them as failing to deliver
+    // support on a day they were not in the building.
+    const doc = outSick(withDay(makeDoc(), WED, {}));
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(
+      DERIVED_STATUS.TEACHER_ABSENT
+    );
+  });
+
+  it('holds through close-out', () => {
+    const doc = outSick(withDay(makeDoc(), WED, {}));
+    const sealed = sealDay(doc, WED, nextDay);
+    expect(sealed.days[WED].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
+      STATUS.UNASSIGNED
+    );
+    expect(effectiveStatus(sealed, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(
+      DERIVED_STATUS.TEACHER_ABSENT
+    );
+  });
+
+  it('sealing never stamps not_used on such a day', () => {
+    const doc = outSick(withDay(makeDoc(), WED, {}));
+    const sealed = sealDay(doc, WED, nextDay);
+    const statuses = Object.values(sealed.days[WED].students).flatMap((s) =>
+      Object.values(s.entries).map((e) => e.status)
+    );
+    expect(statuses).not.toContain(STATUS.NOT_USED);
+  });
+
+  it('keeps whatever the teacher DID record before leaving', () => {
+    // "Left early" and "Sub covered" are partial days — real entries still stand.
+    let doc = withDay(makeDoc(), WED, {
+      [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.USED } },
+    });
+    doc = reportTeacherAbsence(doc, WED, 'Left early', '');
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(STATUS.USED);
+    // …while the untouched one is covered by the absence.
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanReadAloud, nextDay)).toBe(
+      DERIVED_STATUS.TEACHER_ABSENT
+    );
+  });
+
+  it('is excluded from the compliance denominator', () => {
+    const s = summarise([
+      STATUS.USED,
+      DERIVED_STATUS.TEACHER_ABSENT,
+      DERIVED_STATUS.TEACHER_ABSENT,
+    ]);
+    expect(s.counted).toBe(1);
+    expect(s.rate).toBe(1);
+    expect(s.counts[DERIVED_STATUS.TEACHER_ABSENT]).toBe(2);
+  });
+
+  it('undoing the absence puts the day back to normal resolution', () => {
+    let doc = outSick(withDay(makeDoc(), WED, {}));
+    doc = clearTeacherAbsence(doc, WED);
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(STATUS.NOT_USED);
+  });
+
+  it('a student absence still wins over a teacher absence', () => {
+    // Both are non-punitive; the student's own record is the more specific fact.
+    let doc = withDay(makeDoc(), WED, { [T.jordan]: { absent: true } });
+    doc = reportTeacherAbsence(doc, WED, 'Out sick', '');
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(
+      DERIVED_STATUS.ABSENT
+    );
   });
 });

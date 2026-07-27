@@ -242,7 +242,9 @@
     border-radius: var(--acc-radius-sm);
     font-size: var(--acc-fs-sub);
     text-align: start;
-    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
 
     &:hover {
       background: var(--acc-surface-hover);
@@ -274,6 +276,7 @@
 
   &__rename {
     display: flex;
+    align-items: center;
     gap: var(--acc-space-1);
     padding: var(--acc-space-1);
   }

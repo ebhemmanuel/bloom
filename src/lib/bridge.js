@@ -52,6 +52,9 @@ const browserFallback = {
   },
   app: {
     getInfo: async () => ({ version: 'dev', packaged: false, platform: 'browser' }),
+    // A browser tab cannot close itself unless it opened itself, so this is a
+    // no-op in preview rather than a broken-looking action.
+    quit: async () => ({ ok: false, reason: 'browser' }),
     onBeforeQuit: () => () => {},
   },
 };

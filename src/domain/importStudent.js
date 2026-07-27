@@ -325,6 +325,54 @@ export function addAccommodationsToStudent(
 }
 
 /**
+ * Copy one student's accommodations onto others.
+ *
+ * The realistic use is a base template: set one student up the way a plan type
+ * usually looks, then apply it across a group and adjust individually.
+ *
+ * Only accommodations still in force are copied, and only ones the target does
+ * not already have — so running it twice is a no-op rather than a duplicate
+ * pile-up. Everything lands dated from `effectiveFrom` forward, so no earlier day
+ * gains a card it can then be sealed against.
+ */
+export function copyAccommodationsBetweenStudents(
+  doc,
+  fromStudentId,
+  toStudentIds,
+  { effectiveFrom, now = new Date() } = {}
+) {
+  const catalogById = new Map(doc.catalog.map((c) => [c.id, c]));
+
+  const source = doc.assignments
+    .filter((a) => a.studentId === fromStudentId)
+    .filter((a) => !a.activeTo)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((a) => {
+      const c = a.source === 'custom' ? null : catalogById.get(a.catalogId);
+      return {
+        label: a.source === 'custom' ? a.label : c?.label,
+        category: a.source === 'custom' ? a.category : c?.category,
+        requiresDetail: a.source === 'custom' ? a.requiresDetail : c?.requiresDetail,
+      };
+    })
+    .filter((x) => x.label);
+
+  let next = doc;
+  const report = { students: 0, added: 0, skipped: 0 };
+
+  for (const studentId of toStudentIds) {
+    if (studentId === fromStudentId) continue;
+    const outcome = addAccommodationsToStudent(next, studentId, source, { effectiveFrom, now });
+    next = outcome.doc;
+    report.students += 1;
+    report.added += outcome.report.added;
+    report.skipped += outcome.report.skipped;
+  }
+
+  return { doc: next, report, sourceCount: source.length };
+}
+
+/**
  * Catalog suggestions for the in-lane autocomplete.
  *
  * Excludes anything the student already has — offering a duplicate is only ever

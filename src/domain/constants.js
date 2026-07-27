@@ -28,6 +28,19 @@ export const STATUS = {
 export const DERIVED_STATUS = {
   /** Student was absent. Excluded from the compliance denominator. */
   ABSENT: 'absent',
+  /**
+   * The TEACHER was out that day.
+   *
+   * Anything left unrecorded on a day the teacher was absent must never resolve
+   * to "not used" — that would document them as failing to deliver support on a
+   * day they were not in the building. Excluded from the compliance denominator,
+   * and reported as its own reason so the record explains itself rather than
+   * merely staying silent.
+   *
+   * Statuses the teacher DID record before leaving still stand: this only
+   * replaces what would otherwise have become not_used.
+   */
+  TEACHER_ABSENT: 'teacher_absent',
   /** Period doesn't meet this weekday, or it's a non-instructional date. */
   NOT_APPLICABLE: 'not_applicable',
   /**
@@ -69,6 +82,7 @@ export const STATUS_GLYPH = {
   [STATUS.REFUSED]: 'R',
   [STATUS.NOT_USED]: '—',
   [DERIVED_STATUS.ABSENT]: 'A',
+  [DERIVED_STATUS.TEACHER_ABSENT]: 'T',
   [DERIVED_STATUS.NOT_APPLICABLE]: 'n/a',
   [DERIVED_STATUS.NO_RECORD]: '∅',
 };
@@ -80,6 +94,7 @@ export const STATUS_LABEL = {
   [STATUS.REFUSED]: 'Refused',
   [STATUS.NOT_USED]: 'Not used',
   [DERIVED_STATUS.ABSENT]: 'Absent',
+  [DERIVED_STATUS.TEACHER_ABSENT]: 'Teacher absent',
   [DERIVED_STATUS.NOT_APPLICABLE]: 'Not applicable',
   [DERIVED_STATUS.NO_RECORD]: 'No record',
 };

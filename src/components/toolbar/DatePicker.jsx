@@ -104,7 +104,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
       <div className="acc-datepicker__anchor">
         <button
           type="button"
-          className={`acc-btn acc-datepicker__trigger${open ? ' acc-datepicker__trigger--on' : ''}`}
+          className={`acc-btn acc-datepicker__trigger${open ? ' acc-btn--on' : ''}`}
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-label="Pick a date or range"

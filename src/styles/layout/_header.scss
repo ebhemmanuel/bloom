@@ -258,9 +258,12 @@
     font-weight: var(--acc-fw-medium);
   }
 
+  // Matches the search field: the lighter --acc-border at rest, and the same
+  // accent ring on focus. The heavier --acc-border-strong made every input read
+  // as more emphatic than the one control people use most.
   &__input {
     padding: var(--acc-space-2) var(--acc-space-3);
-    border: 1px solid var(--acc-border-strong);
+    border: 1px solid var(--acc-border);
     border-radius: var(--acc-radius-sm);
     background: var(--acc-surface);
     font-size: var(--acc-fs-body);
@@ -268,6 +271,10 @@
     transition:
       border-color var(--acc-dur-fast) var(--acc-ease-standard),
       box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover:not(:focus):not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
 
     &:focus {
       border-color: var(--acc-accent);
@@ -306,8 +313,11 @@
   flex-wrap: wrap;
   gap: var(--acc-space-1);
 
+  // Input + fixed-height button: centre explicitly, or the button's height
+  // cancels flex's default stretch and it sits at the top of the row.
   &__add {
     display: flex;
+    align-items: center;
     gap: var(--acc-space-2);
     margin-block-start: var(--acc-space-2);
   }

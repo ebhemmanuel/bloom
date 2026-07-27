@@ -130,6 +130,17 @@ function registerIpcHandlers({ getMainWindow } = {}) {
     return s.save(text);
   });
 
+  /**
+   * Save and exit. Flushes synchronously before quitting rather than trusting
+   * the quit handler — a pending debounced write is exactly the edit a teacher
+   * would be most upset to lose.
+   */
+  ipcMain.handle('app:quit', () => {
+    if (store && store.hasPendingWrite()) store.flush();
+    app.quit();
+    return { ok: true };
+  });
+
   ipcMain.handle('data:flush', () => {
     const s = requireStore();
     return s ? s.flush() : { ok: false, reason: 'NO_LOCATION' };

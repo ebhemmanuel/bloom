@@ -230,6 +230,15 @@ export function normalizeDoc(raw, now = new Date()) {
         caseManager: asString(st.caseManager),
         sortOrder: asIntIn(st.sortOrder, 0, 99999, i),
         active: asBool(st.active, true),
+        /**
+         * The student left this class on this date.
+         *
+         * A soft end, never a delete: they disappear from that day FORWARD while
+         * every earlier day keeps them exactly as recorded. Deleting the row
+         * instead would take their year-to-date compliance history with it —
+         * which is the one thing this file exists to preserve.
+         */
+        unenrolledFrom: isValidDateKey(st.unenrolledFrom) ? st.unenrolledFrom : null,
         archivedAt: asNullableString(st.archivedAt),
         createdAt: asString(st.createdAt, base.app.createdAt),
       };

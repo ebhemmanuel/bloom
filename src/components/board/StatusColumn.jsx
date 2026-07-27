@@ -1,6 +1,7 @@
 import { memo } from 'react';
+import { createPortal } from 'react-dom';
 import { Droppable } from '@hello-pangea/dnd';
-import AccommodationCard from './AccommodationCard.jsx';
+import AccommodationCard, { CardShell } from './AccommodationCard.jsx';
 
 /**
  * One status column inside one student's swimlane.
@@ -32,6 +33,28 @@ function StatusColumn({
       droppableId={`drop:${studentId}:${status}`}
       type={`lane-${studentId}`}
       isDropDisabled={disabled}
+      /**
+       * The dragged card is rendered as a CLONE, portalled to <body>.
+       *
+       * While dragging, the library positions the item `fixed`. The board card
+       * carries `backdrop-filter`, which makes it a containing block for fixed
+       * descendants, and each lane sets `overflow: hidden` for its rounded
+       * corners — so an in-place drag element gets clipped by its own lane and
+       * simply vanishes. Rendering the clone outside both is the fix.
+       */
+      renderClone={(provided, snapshot, rubric) =>
+        createPortal(
+          <CardShell
+            card={cards[rubric.source.index]}
+            provided={provided}
+            snapshot={snapshot}
+            disabled={disabled}
+            selected={isSelected(cards[rubric.source.index])}
+            selectionCount={selectionCount}
+          />,
+          document.body
+        )
+      }
     >
       {(provided, snapshot) => (
         <section

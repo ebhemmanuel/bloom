@@ -8,6 +8,11 @@ import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
 import DayNotesPanel from './components/shell/DayNotesPanel.jsx';
 import Modal from './components/shared/Modal.jsx';
 import AddStudentForm from './components/manage/AddStudentForm.jsx';
+import StudentAccommodationsModal from './components/manage/StudentAccommodationsModal.jsx';
+import CatalogModal from './components/manage/CatalogModal.jsx';
+import CopyAccommodationsModal from './components/manage/CopyAccommodationsModal.jsx';
+import PrintReportModal from './components/print/PrintReportModal.jsx';
+import CommandPalette, { useCommandPalette } from './components/shell/CommandPalette.jsx';
 import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
@@ -48,11 +53,60 @@ function AppShell() {
   const { doc, meta, repairs, dismissRepairs } = useData();
   const { model, search, setSearch, setDateKey } = useBoard();
   const { openPanel, toggle, close } = useHeaderPanel();
-  const [addingStudent, setAddingStudent] = useState(false);
+  // One slot: only ever one modal at a time, and dismissing is a single action.
+  const [modal, setModal] = useState(null);
+  const palette = useCommandPalette();
 
   const notifications = useMemo(
     () => deriveNotifications(doc, { meta, boardModel: model }),
     [doc, meta, model]
+  );
+
+  const menus = useMemo(
+    () => [
+      {
+        id: 'file',
+        label: 'File',
+        items: [
+          { label: 'Print report…', onSelect: () => setModal('print') },
+          { separator: true },
+          { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
+          { label: 'Save a copy…', onSelect: () => dataBridge.exportBackup() },
+          { separator: true },
+          {
+            label: 'Save and exit',
+            // Flush first, then quit. Never rely on the quit handler alone —
+            // the whole point is that the last edit is on disk before we go.
+            onSelect: async () => {
+              await dataBridge.flush();
+              await appBridge.quit();
+            },
+          },
+        ],
+      },
+      {
+        id: 'edit',
+        label: 'Edit',
+        items: [
+          { label: 'Student accommodations…', onSelect: () => setModal('students') },
+          { label: 'Add a student…', onSelect: () => setModal('addStudent') },
+          { separator: true },
+          { label: 'Update accommodations…', hint: 'presets', onSelect: () => setModal('catalog') },
+          { label: 'Copy accommodations…', onSelect: () => setModal('copy') },
+          { separator: true },
+          { label: 'Your details…', onSelect: () => toggle('settings') },
+        ],
+      },
+      {
+        id: 'about',
+        label: 'About',
+        items: [
+          { label: `About ${PRODUCT_NAME}`, onSelect: () => setModal('about') },
+          { label: 'Day notes', onSelect: () => toggle('daynotes') },
+        ],
+      },
+    ],
+    [toggle]
   );
 
   return (
@@ -76,19 +130,20 @@ function AppShell() {
       */}
       <div className="acc-app__frame">
         <AppHeader
+          menus={menus}
           notifications={notifications}
           openPanel={openPanel}
           onOpenSettings={() => toggle('settings')}
           onOpenNotifications={() => toggle('notifications')}
           onOpenDayNotes={() => toggle('daynotes')}
-          onAddStudent={() => setAddingStudent(true)}
           hasDayNotes={Boolean(model.dayNotes || model.teacherAbsence)}
           search={search}
           onSearchChange={setSearch}
           matchCount={model.laneCount}
           hiddenCount={model.hiddenBySearch}
-          studentCount={model.laneCount}
         />
+
+        <CommandPalette open={palette.open} onClose={palette.close} />
 
         {openPanel === 'settings' && <ProfileModal onClose={close} />}
         {openPanel === 'daynotes' && <DayNotesPanel onClose={close} />}
@@ -104,14 +159,55 @@ function AppShell() {
           />
         )}
 
-        {addingStudent && (
+        {modal === 'addStudent' && (
           <Modal
             wide
             title="Add a student"
             subtitle="Paste their accommodations straight from the IEP, or pick from a starter set."
-            onClose={() => setAddingStudent(false)}
+            onClose={() => setModal(null)}
           >
-            <AddStudentForm onAdded={() => setAddingStudent(false)} />
+            <AddStudentForm onAdded={() => setModal(null)} />
+          </Modal>
+        )}
+
+        {modal === 'students' && <StudentAccommodationsModal onClose={() => setModal(null)} />}
+        {modal === 'catalog' && <CatalogModal onClose={() => setModal(null)} />}
+        {modal === 'copy' && <CopyAccommodationsModal onClose={() => setModal(null)} />}
+        {modal === 'print' && <PrintReportModal onClose={() => setModal(null)} />}
+
+        {modal === 'about' && (
+          <Modal title={`About ${PRODUCT_NAME}`} onClose={() => setModal(null)}>
+            <div className="acc-about">
+              <p>
+                {PRODUCT_NAME} keeps a daily record of the accommodations you deliver, so you can
+                show your work when someone asks.
+              </p>
+              <p>
+                Documenting IEP and 504 support is required, and the systems that exist for it are
+                mostly built for administrators rather than for the person actually teaching. They
+                ask for a lot of clicks, at the end of a day when you have none left.
+              </p>
+              <p>
+                This is meant to be the small version: a board you can run down in a few minutes
+                after the last bell, that turns into a report when someone needs one. Nothing more
+                than that.
+              </p>
+              <p>
+                Everything lives in one file on this computer. There is no account, no database and
+                no network — the app cannot send your students&rsquo; information anywhere, by
+                design.
+              </p>
+              <dl className="acc-about__facts">
+                <dt>Records</dt>
+                <dd>{meta.path || 'this browser'}</dd>
+                <dt>Students</dt>
+                <dd>{doc.students.length}</dd>
+                <dt>Accommodations</dt>
+                <dd>{doc.catalog.length}</dd>
+                <dt>Days recorded</dt>
+                <dd>{Object.keys(doc.days || {}).length}</dd>
+              </dl>
+            </div>
           </Modal>
         )}
 
@@ -154,7 +250,7 @@ function AppShell() {
         )}
 
         <main className="acc-app__main">
-          <Board />
+          <Board onAddStudent={() => setModal('addStudent')} />
         </main>
       </div>
     </div>

@@ -1,0 +1,804 @@
+// File / Edit / About, sitting beside the wordmark in the pill nav.
+
+.acc-menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: var(--acc-space-3);
+
+  &__slot {
+    position: relative;
+  }
+
+  &__trigger {
+    height: 26px;
+    padding: 0 var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.55);
+      color: var(--acc-fg);
+    }
+
+    &--on {
+      background: var(--acc-surface);
+      color: var(--acc-fg);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    z-index: 80;
+    inset-block-start: 32px;
+    inset-inline-start: 0;
+    inline-size: 232px;
+    padding: 6px;
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-3);
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    text-align: start;
+    color: var(--acc-fg);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-hover);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+
+  &__sep {
+    border: 0;
+    border-top: 1px solid var(--acc-border);
+    margin: 4px 0;
+  }
+}
+
+// --- Overflow (day actions) -------------------------------------------------
+
+.acc-overflow {
+  position: relative;
+
+  &__menu {
+    position: absolute;
+    z-index: 60;
+    inset-block-start: 38px;
+    inset-inline-end: 0;
+    inline-size: 260px;
+    padding: 6px;
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-sm);
+    text-align: start;
+    font-size: var(--acc-fs-sub);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-hover);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  &__hint {
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+}
+
+// --- Command palette (Ctrl+Space) -------------------------------------------
+// A frosted sheet over the whole app: the fastest way to find one student on a
+// thirty-lane board is to stop looking at the other twenty-nine.
+
+.acc-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  // Centred, not pinned near the top: this is the only thing on screen while it
+  // is open, so it belongs in the middle of the attention it commands.
+  align-items: center;
+  justify-content: center;
+  padding: var(--acc-space-6);
+  background: rgba(42, 36, 56, 0.22);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+
+  // Dismissal mirrors the entrance rather than cutting.
+  &--leaving {
+    animation: acc-fade-out var(--acc-dur-fast) var(--acc-ease-exit) both;
+  }
+
+  &__sheet--leaving {
+    animation: acc-exit-down var(--acc-dur-fast) var(--acc-ease-exit) both;
+  }
+
+  &__kind {
+    flex-shrink: 0;
+    inline-size: 54px;
+    font-size: 9px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-fg-faint);
+
+    &--period {
+      color: var(--acc-accent);
+    }
+  }
+
+  &__sheet {
+    inline-size: min(520px, calc(100vw - 32px));
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    box-shadow: 0 24px 60px -12px rgba(42, 36, 56, 0.35);
+    overflow: hidden;
+  }
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
+    padding: var(--acc-space-4) var(--acc-space-5);
+    border-block-end: 1px solid var(--acc-border);
+    color: var(--acc-fg-faint);
+  }
+
+  &__input {
+    flex: 1;
+    min-inline-size: 0;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: var(--acc-fs-heading);
+    color: var(--acc-fg);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+  }
+
+  &__kbd {
+    font-family: var(--acc-font-mono);
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+    background: var(--acc-surface-sunken);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-sm);
+    padding: 2px 6px;
+  }
+
+  &__results {
+    max-block-size: 320px;
+    overflow-y: auto;
+    padding: var(--acc-space-2);
+  }
+
+  &__result {
+    display: flex;
+    align-items: baseline;
+    gap: var(--acc-space-3);
+    inline-size: 100%;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    text-align: start;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &--on {
+      background: var(--acc-accent-soft);
+    }
+  }
+
+  &__name {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__meta {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+  }
+
+  &__none {
+    padding: var(--acc-space-6);
+    text-align: center;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+  }
+
+  &__hint {
+    padding: var(--acc-space-2) var(--acc-space-5);
+    border-block-start: 1px solid var(--acc-border);
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+  }
+}
+
+// --- Catalog modal ----------------------------------------------------------
+
+.acc-catmod {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+
+  &__bar {
+    display: flex;
+    gap: var(--acc-space-3);
+    align-items: center;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-block-size: 300px;
+    overflow-y: auto;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--archived {
+      opacity: 0.5;
+    }
+  }
+
+  &__label {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  &__cat,
+  &__detail {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    flex-shrink: 0;
+  }
+
+  &__cat {
+    max-inline-size: 130px;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-sm);
+    padding: 2px;
+    background: var(--acc-surface);
+  }
+
+  &__detail {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__used {
+    inline-size: 24px;
+    text-align: center;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    flex-shrink: 0;
+  }
+
+  // These rows pair a full-height input with a fixed-height button, so they must
+  // centre explicitly — a fixed height cancels the default `stretch` and the
+  // button falls to the top of the row.
+  &__actions,
+  &__rename,
+  &__add {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    flex-shrink: 0;
+  }
+
+  &__rename {
+    inline-size: 100%;
+  }
+
+  &__add {
+    padding-block-start: var(--acc-space-3);
+    border-block-start: 1px solid var(--acc-border);
+  }
+
+  &__none {
+    padding: var(--acc-space-4);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+  }
+
+  &__starters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    padding-block-start: var(--acc-space-3);
+    border-block-start: 1px solid var(--acc-border);
+  }
+}
+
+// --- Copy accommodations ----------------------------------------------------
+
+.acc-copymod {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--acc-space-5);
+
+  @media (max-inline-size: 700px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    min-inline-size: 0;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-block-size: 240px;
+    overflow-y: auto;
+  }
+
+  &__pick {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-sm);
+    text-align: start;
+    font-size: var(--acc-fs-sub);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-hover);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+      color: var(--acc-accent);
+      font-weight: var(--acc-fw-medium);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  &__check {
+    inline-size: 12px;
+    flex-shrink: 0;
+  }
+
+  &__meta {
+    margin-inline-start: auto;
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+  }
+
+  &__all {
+    display: flex;
+    gap: var(--acc-space-2);
+  }
+
+  &__preview {
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    font-size: var(--acc-fs-tiny);
+    max-block-size: 160px;
+    overflow-y: auto;
+
+    &-title {
+      font-weight: var(--acc-fw-semibold);
+      margin-block-end: var(--acc-space-1);
+    }
+
+    li {
+      color: var(--acc-fg-muted);
+      padding-block: 1px;
+    }
+  }
+
+  &__foot {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-4);
+    flex-wrap: wrap;
+    padding-block-start: var(--acc-space-4);
+    border-block-start: 1px solid var(--acc-border);
+  }
+
+  &__hint {
+    flex: 1;
+    min-inline-size: 220px;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--acc-space-2);
+  }
+
+  &__result {
+    grid-column: 1 / -1;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-success-soft);
+    color: var(--acc-success);
+    font-size: var(--acc-fs-sub);
+  }
+}
+
+// --- Print options ---------------------------------------------------------
+
+.acc-printopts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+
+  &__scopes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--acc-space-3);
+
+    @media (max-inline-size: 620px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__scope {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-1);
+    padding: var(--acc-space-4);
+    text-align: start;
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      background-color var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover {
+      border-color: var(--acc-accent);
+    }
+
+    &--on {
+      border-color: var(--acc-accent);
+      background: var(--acc-accent-soft);
+    }
+  }
+
+  &__scope-title {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__scope-hint {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &__range {
+    display: flex;
+    gap: var(--acc-space-3);
+  }
+
+  &__summary {
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
+  &__invalid {
+    color: var(--acc-danger);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--acc-space-2);
+  }
+}
+
+// --- Student accommodations modal ------------------------------------------
+
+.acc-stumod {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--acc-space-5);
+  align-items: start;
+  min-block-size: 380px;
+
+  @media (max-inline-size: 760px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-block-size: 340px;
+      overflow-y: auto;
+    }
+  }
+
+  &__student {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-sm);
+    text-align: start;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+    }
+
+    &-name {
+      font-size: var(--acc-fs-sub);
+      font-weight: var(--acc-fw-medium);
+    }
+
+    &-meta {
+      font-size: 10px;
+      color: var(--acc-fg-faint);
+    }
+  }
+
+  &__detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-4);
+    min-inline-size: 0;
+  }
+
+  &__placeholder,
+  &__none {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+    padding: var(--acc-space-3) 0;
+  }
+
+  &__title {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__sub {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+  }
+
+  // Amber advisory: unenrolment is a fact to state plainly, not an error.
+  &__banner {
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-warning-soft);
+    border: 1px solid #e8d9bd;
+    color: var(--acc-warning);
+    font-size: var(--acc-fs-tiny);
+    line-height: var(--acc-lh-normal);
+  }
+
+  &__accs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-block-size: 260px;
+    overflow-y: auto;
+  }
+
+  &__acc {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--retired {
+      opacity: 0.55;
+    }
+  }
+
+  &__acc-label {
+    flex: 1;
+    min-inline-size: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    flex-wrap: wrap;
+  }
+
+  &__acc-actions {
+    display: flex;
+    gap: var(--acc-space-1);
+    flex-shrink: 0;
+  }
+
+  &__tag {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-fg-faint);
+    background: var(--acc-surface-sunken);
+    padding: 1px var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+  }
+
+  &__retired {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-warning);
+    flex-shrink: 0;
+  }
+
+  // Input + fixed-height button: centre explicitly, or the button's height
+  // cancels flex's default stretch and it sits at the top of the row.
+  &__rename {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+  }
+
+  &__add {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    align-items: flex-start;
+    padding-block-start: var(--acc-space-3);
+    border-top: 1px solid var(--acc-border);
+  }
+
+  &__suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--acc-space-1);
+
+    button {
+      padding: var(--acc-space-1) var(--acc-space-3);
+      border-radius: var(--acc-radius-pill);
+      background: var(--acc-surface-sunken);
+      font-size: var(--acc-fs-tiny);
+
+      &:hover {
+        background: var(--acc-accent-soft);
+        color: var(--acc-accent);
+      }
+    }
+  }
+
+  &__foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    align-items: flex-start;
+    padding-block-start: var(--acc-space-3);
+    border-top: 1px solid var(--acc-border);
+  }
+
+  &__foot-hint {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+}
+
+.acc-about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-3);
+  font-size: var(--acc-fs-body);
+  line-height: var(--acc-lh-normal);
+  color: var(--acc-fg-muted);
+
+  &__facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--acc-space-2) var(--acc-space-4);
+    margin-block-start: var(--acc-space-2);
+    padding-block-start: var(--acc-space-3);
+    border-top: 1px solid var(--acc-border);
+    font-size: var(--acc-fs-sub);
+
+    dt {
+      color: var(--acc-fg-faint);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--acc-fg);
+      overflow-wrap: anywhere;
+    }
+  }
+}

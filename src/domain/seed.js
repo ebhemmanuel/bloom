@@ -26,10 +26,16 @@ import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
  * fields, the way assignments use activeFrom/activeTo.
  */
 export function activeStudentsFor(doc, dateKey) {
-  return doc.students
-    .filter((s) => s.active && !s.archivedAt)
-    .slice()
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.lastName.localeCompare(b.lastName));
+  return (
+    doc.students
+      .filter((s) => s.active && !s.archivedAt)
+      // Unenrolment is dated, not a flag: the student vanishes from that day
+      // forward and stays put on every earlier one, so year-to-date history is
+      // untouched while upcoming days stop carrying them.
+      .filter((s) => !s.unenrolledFrom || dateKey < s.unenrolledFrom)
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.lastName.localeCompare(b.lastName))
+  );
 }
 
 /** Assignments in force for a student on a date, in display order. */

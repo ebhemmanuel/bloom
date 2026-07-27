@@ -98,11 +98,22 @@ export function effectiveStatus(doc, dateKey, studentId, assignmentId, now = new
   if (!entry) return DERIVED_STATUS.NO_RECORD;
   if (entry.status && entry.status !== STATUS.UNASSIGNED) return entry.status;
 
-  // 5/6/7 — the cycle closed with nothing recorded
+  // 5 — the teacher was out.
+  //
+  // Checked BEFORE any cycle-end rule, so nothing left blank on a day they were
+  // not in the building can resolve to "not used". Documenting a teacher as
+  // failing to deliver support on a day they were absent is the same class of
+  // falsehood as turning "no record" into "not used", and it must not happen.
+  //
+  // Deliberately AFTER rule 4: anything they did record before leaving still
+  // stands. This only replaces what would otherwise have become not_used.
+  if (day.teacherAbsence) return DERIVED_STATUS.TEACHER_ABSENT;
+
+  // 6/7/8 — the cycle closed with nothing recorded
   if (day.sealed) return STATUS.NOT_USED;
   if (isCycleComplete(dateKey, doc.settings?.cycleEndTime, now)) return STATUS.NOT_USED;
 
-  // 8
+  // 9
   return STATUS.UNASSIGNED;
 }
 
@@ -121,6 +132,8 @@ const ADDRESSED = new Set([STATUS.USED, STATUS.USED_WITH_DETAIL, STATUS.REFUSED]
 /** Statuses excluded from the compliance denominator. */
 const NOT_COUNTED = new Set([
   DERIVED_STATUS.ABSENT,
+  // A day the teacher was out is not a day they failed to deliver.
+  DERIVED_STATUS.TEACHER_ABSENT,
   DERIVED_STATUS.NOT_APPLICABLE,
   DERIVED_STATUS.NO_RECORD,
 ]);
@@ -146,6 +159,7 @@ export function summarise(statuses) {
     [STATUS.REFUSED]: 0,
     [STATUS.NOT_USED]: 0,
     [DERIVED_STATUS.ABSENT]: 0,
+    [DERIVED_STATUS.TEACHER_ABSENT]: 0,
     [DERIVED_STATUS.NOT_APPLICABLE]: 0,
     [DERIVED_STATUS.NO_RECORD]: 0,
   };
