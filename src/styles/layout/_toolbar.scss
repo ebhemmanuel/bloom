@@ -10,6 +10,12 @@
   gap: var(--acc-space-2);
   flex-wrap: wrap;
   flex-shrink: 0;
+  // Above the lanes, so the period filter and the day-actions menu open over
+  // the board rather than behind it. Belt and braces alongside the resting
+  // state clearing its filter: while the cascade IS running these rows really
+  // are stacking contexts, and a menu left open across it would be swallowed.
+  position: relative;
+  z-index: 5;
 
   &__spacer {
     flex: 1;

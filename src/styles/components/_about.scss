@@ -128,10 +128,19 @@
     inset-block-start: calc(60vh - 306px);
     inline-size: 96px;
     block-size: 96px;
-    transform-origin: 50% 50%;
-    // The idle pinwheel: it starts once the mark has bloomed and the page has
-    // settled, and then simply keeps going. Nothing to do with the pointer -
-    // that belongs to the brand lockup in the corner.
+  }
+
+  /**
+   * The idle pinwheel: starts once the mark has bloomed and the page has
+   * settled, then simply keeps going. Nothing to do with the pointer - that
+   * belongs to the brand lockup in the corner.
+   *
+   * The PETAL GROUP turns, not the mark. The centre dot sits on the rotation
+   * origin, so turning the whole thing looks identical in theory and is not:
+   * rotating the layer resamples the centre every frame and its edge shimmers.
+   * The spec says centre excluded, and it says so for a reason.
+   */
+  &__mark .acc-mark__petals {
     animation: acc-about-pinwheel 30s linear 4600ms infinite;
   }
 
@@ -360,15 +369,25 @@
     font-weight: var(--acc-fw-semibold);
   }
 
+  /**
+   * Physical property names on purpose, matching the handoff.
+   *
+   * `max-inline-size` and `max-width` are the same used value but DIFFERENT
+   * properties to a transition, so animating one while transitioning the other
+   * eases nothing - the label was snapping open instantly. Same for
+   * `margin-inline-end` against `margin-right`. The rest of this file uses
+   * logical properties; this pair cannot, because the transition has to name
+   * exactly what changes.
+   */
   &__feedback-label {
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
     font-size: 13px;
     font-weight: var(--acc-fw-medium);
-    max-inline-size: 0;
+    max-width: 0;
     opacity: 0;
-    margin-inline-end: 0;
+    margin-right: 0;
     transition:
       max-width 260ms var(--acc-ease-entrance),
       opacity 200ms var(--acc-ease-standard),
@@ -376,9 +395,9 @@
   }
 
   &__feedback--open &__feedback-label {
-    max-inline-size: 140px;
+    max-width: 140px;
     opacity: 1;
-    margin-inline-end: 7px;
+    margin-right: 7px;
   }
 }
 

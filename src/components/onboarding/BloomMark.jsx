@@ -12,6 +12,9 @@
  * The stagger is expressed as a per-petal delay in a custom property rather than
  * five hard-coded rules, so the intro and the outro can share the animation and
  * differ only in pace.
+ *
+ * The petals sit in their own group so anything that turns the mark can turn
+ * them alone and leave the centre still. See the group below.
  */
 
 const PETALS = [
@@ -34,20 +37,31 @@ export default function BloomMark({ size = 132, bloom = false, delay = 0, step =
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      {PETALS.map((p, i) => (
-        <g key={p.rotate} transform={`rotate(${p.rotate} 32 32)`}>
-          <ellipse
-            className="acc-mark__petal"
-            cx="32"
-            cy="17"
-            rx="9.5"
-            ry="15"
-            fill={p.fill}
-            // Delay only. Duration and easing stay in the stylesheet.
-            style={{ '--acc-mark-delay': `${delay + i * step}ms` }}
-          />
-        </g>
-      ))}
+      {/*
+        The petals are grouped so they can turn WITHOUT the centre.
+        
+        The pinwheel rotates this group only. Turning the whole mark instead
+        looks the same on paper - the centre is a circle sitting on the rotation
+        origin - but it is not the same on screen: rotating the layer resamples
+        the centre every frame, and its edge shimmers. Keeping it outside the
+        group leaves it perfectly still and crisp.
+      */}
+      <g className="acc-mark__petals">
+        {PETALS.map((p, i) => (
+          <g key={p.rotate} transform={`rotate(${p.rotate} 32 32)`}>
+            <ellipse
+              className="acc-mark__petal"
+              cx="32"
+              cy="17"
+              rx="9.5"
+              ry="15"
+              fill={p.fill}
+              // Delay only. Duration and easing stay in the stylesheet.
+              style={{ '--acc-mark-delay': `${delay + i * step}ms` }}
+            />
+          </g>
+        ))}
+      </g>
       <circle
         className="acc-mark__center"
         cx="32"

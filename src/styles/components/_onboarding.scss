@@ -310,7 +310,7 @@
  * for as long as the pointer stayed and freeze the moment it left, which read
  * as a switch rather than as a movement.
  */
-.acc-spin .acc-mark {
+.acc-spin .acc-mark__petals {
   animation: acc-mark-turn 2800ms var(--acc-ease-standard) both;
 }
 
@@ -348,6 +348,7 @@
 .acc-mark {
   display: block;
 
+  &__petals,
   &__petal,
   &__center {
     transform-origin: 32px 32px;
