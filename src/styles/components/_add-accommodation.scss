@@ -69,34 +69,6 @@
     }
   }
 
-  // Suggestions come from the catalog the teacher already uses, so picking one
-  // reuses their own wording rather than minting a near-duplicate.
-  &__suggest {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-block-start: var(--acc-space-2);
-
-    button {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--acc-space-2);
-      inline-size: 100%;
-      padding: var(--acc-space-2) var(--acc-space-3);
-      border-radius: var(--acc-radius-md);
-      background: var(--acc-surface-sunken);
-      font-size: var(--acc-fs-tiny);
-      text-align: start;
-      transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
-
-      &:hover {
-        background: var(--acc-accent-soft);
-        color: var(--acc-accent);
-      }
-    }
-  }
-
   &__flag {
     flex-shrink: 0;
     font-size: 9px;
@@ -149,6 +121,62 @@
 
     &:hover {
       background: var(--acc-scroll-thumb-hover);
+    }
+  }
+}
+
+/**
+ * The suggestion list, floating over the page.
+ *
+ * Portalled to <body> and positioned in viewport coordinates. In flow it PUSHED
+ * whatever came after it - the hint, and in the student profile the entire
+ * bottom row - so the layout shifted under the pointer as you typed, which is
+ * the one thing a list you are about to click must never do.
+ *
+ * Suggestions come from the catalog the teacher already uses, so picking one
+ * reuses their own wording rather than minting a near-duplicate.
+ */
+.acc-accpick__suggest {
+  position: fixed;
+  z-index: 95;
+  inset-inline-start: var(--acc-suggest-left);
+  inline-size: var(--acc-suggest-width);
+  max-block-size: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--acc-space-1);
+  background: var(--acc-surface);
+  border: 1px solid var(--acc-border-strong);
+  border-radius: var(--acc-radius-lg);
+  box-shadow: var(--acc-shadow-overlay);
+
+  // Hangs below the field, or above it where there is no room beneath - the
+  // profile pins this field to the foot of the modal.
+  &[data-drop='down'] {
+    inset-block-start: var(--acc-suggest-top);
+  }
+
+  &[data-drop='up'] {
+    inset-block-end: var(--acc-suggest-bottom);
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    font-size: var(--acc-fs-sub);
+    text-align: start;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-accent-soft);
+      color: var(--acc-accent);
     }
   }
 }

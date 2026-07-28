@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useData } from '../../context/DataContext.jsx';
 import { splitAccommodationList, suggestAccommodations } from '../../domain/importStudent.js';
 
@@ -43,6 +44,69 @@ export default function AccommodationPicker({
   const parsed = useMemo(() => splitAccommodationList(value), [value]);
   const isBulk = parsed.length > 1;
 
+  const fieldRef = useRef(null);
+  const [at, setAt] = useState(null);
+  const showList = suggestions.length > 0 && !isBulk;
+
+  /**
+   * Where the list hangs, in viewport coordinates.
+   *
+   * Portalled to <body> and positioned rather than rendered in place, for two
+   * reasons that both bite here. Rendered in flow it PUSHED the layout - the
+   * hint, and in the profile the whole bottom row, moved down as you typed and
+   * back up as you stopped, which is unusable when the thing you are aiming at
+   * is a list item. And absolutely positioned it was clipped: the modal body
+   * scrolls and the modal itself is `overflow: hidden`, so the list would have
+   * been cut off at the panel edge.
+   *
+   * `position: fixed` alone would not have saved it either. The scrim behind
+   * every dialog carries a `backdrop-filter`, which makes it a containing block
+   * for fixed descendants - the same trap the calendar hit. The portal is the
+   * way out, and it is the one this codebase already takes for the calendar and
+   * the context menus.
+   */
+  useLayoutEffect(() => {
+    if (!showList) {
+      setAt(null);
+      return;
+    }
+    const place = () => {
+      const box = fieldRef.current?.getBoundingClientRect();
+      if (!box) return;
+      // Opens upward when there is not room beneath. The profile pins this
+      // field to the foot of the modal, so downward is often no room at all.
+      const below = window.innerHeight - box.bottom;
+      const needed = Math.min(suggestions.length * 40 + 8, 220);
+      const up = below < needed && box.top > below;
+      setAt({
+        left: Math.round(box.left),
+        width: Math.round(box.width),
+        top: up ? null : Math.round(box.bottom + 4),
+        bottom: up ? Math.round(window.innerHeight - box.top + 4) : null,
+      });
+    };
+    place();
+    window.addEventListener('resize', place);
+    // Capture: the modal body is the scroller, not the window.
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [showList, suggestions.length, value]);
+
+  // A click anywhere else puts the list away without taking the text with it.
+  useEffect(() => {
+    if (!showList) return undefined;
+    const onDown = (e) => {
+      if (!fieldRef.current?.contains(e.target) && !e.target.closest?.('.acc-accpick__suggest')) {
+        setAt(null);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [showList]);
+
   return (
     <form
       className="acc-accpick"
@@ -58,7 +122,7 @@ export default function AccommodationPicker({
         that had drifted - which also meant its Add could sit misaligned under
         the field it acted on.
       */}
-      <div className="acc-inputgroup">
+      <div className="acc-inputgroup" ref={fieldRef}>
         <input
           className="acc-inputgroup__input"
           value={value}
@@ -84,29 +148,6 @@ export default function AccommodationPicker({
         </button>
       </div>
 
-      {/* Suppressed on a paste: a list of near-matches is noise when the
-          teacher has already supplied every line they want. */}
-      {suggestions.length > 0 && !isBulk && (
-        <ul className="acc-accpick__suggest">
-          {suggestions.map((s) => (
-            <li key={s.id}>
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() =>
-                  onCommit([
-                    { label: s.label, category: s.category, requiresDetail: s.requiresDetail },
-                  ])
-                }
-              >
-                {s.label}
-                {s.requiresDetail && <span className="acc-accpick__flag">needs detail</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
       {/* Only where there is something to back out OF - the lane's fold-out
           form. In the profile the field is simply always there. */}
       {onCancel && (
@@ -125,6 +166,46 @@ export default function AccommodationPicker({
       )}
 
       {hint && <p className="acc-accpick__hint">{hint}</p>}
+
+      {/* Suppressed on a paste: a list of near-matches is noise when the
+          teacher has already supplied every line they want. */}
+      {showList &&
+        at &&
+        createPortal(
+          <ul
+            className="acc-accpick__suggest acc-enter"
+            style={{
+              '--acc-suggest-left': `${at.left}px`,
+              '--acc-suggest-width': `${at.width}px`,
+              ...(at.top === null
+                ? { '--acc-suggest-bottom': `${at.bottom}px` }
+                : { '--acc-suggest-top': `${at.top}px` }),
+            }}
+            data-drop={at.top === null ? 'up' : 'down'}
+          >
+            {suggestions.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  // `mousedown`, not click: the outside-click listener above
+                  // fires first on mousedown and would unmount this row before
+                  // a click could ever land on it.
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onCommit([
+                      { label: s.label, category: s.category, requiresDetail: s.requiresDetail },
+                    ]);
+                  }}
+                >
+                  {s.label}
+                  {s.requiresDetail && <span className="acc-accpick__flag">needs detail</span>}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </form>
   );
 }
