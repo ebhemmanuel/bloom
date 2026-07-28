@@ -219,6 +219,31 @@
   box-shadow: var(--acc-shadow-overlay);
   overflow: hidden;
 
+  /**
+   * Eases between content heights rather than jumping.
+   *
+   * The value is measured by `useAutoHeight`, because a box sized by its
+   * contents is `auto` at both ends and there is nothing for a transition to
+   * interpolate. `auto` is the fallback, so the dialog is correct before the
+   * first measurement and if the script never runs at all.
+   */
+  block-size: var(--acc-modal-h, auto);
+  transition: block-size var(--acc-dur-normal) var(--acc-ease-standard);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  // Free to take its natural height: that is what makes it measurable. Capped
+  // to the same ceiling as the dialog so the body still scrolls when a list is
+  // genuinely too long rather than growing past the viewport.
+  &__measure {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    max-block-size: min(88vh, 900px);
+  }
+
   &--wide {
     max-inline-size: 980px;
   }

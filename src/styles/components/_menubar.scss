@@ -858,16 +858,21 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    max-block-size: 260px;
+    // Taller rows need a taller window, or the list shows four and a half of
+    // them and reads as clipped rather than as scrollable.
+    max-block-size: 340px;
     overflow-y: auto;
   }
 
+  // Matched to the preset rows: tall enough for a full-height control, so the
+  // two screens showing the same kind of row measure the same.
   &__acc {
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
-    padding: var(--acc-space-2);
-    border-radius: var(--acc-radius-sm);
+    min-block-size: 48px;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
     font-size: var(--acc-fs-sub);
     transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
 

@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
+import useAutoHeight from '../../hooks/useAutoHeight.js';
 
 /**
  * Ctrl+Space: jump to a student.
@@ -26,41 +27,8 @@ export default function CommandPalette({ onClose }) {
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
-  const sheetRef = useRef(null);
-  const contentRef = useRef(null);
-
-  /**
-   * Keep the sheet's height in step with its contents, so it eases between
-   * sizes as results filter instead of snapping to each one.
-   *
-   * This has to be measured. A CSS transition needs two lengths to interpolate
-   * between, and a box sized by its contents is `auto` before and after - there
-   * is nothing to animate. So the content is measured and published as a custom
-   * property that the stylesheet transitions.
-   */
-  const measure = () => {
-    const sheet = sheetRef.current;
-    const content = contentRef.current;
-    if (!sheet || !content) return;
-    sheet.style.setProperty('--acc-palette-h', `${content.getBoundingClientRect().height}px`);
-  };
-
-  // No dep array: every render is a chance for the list to have changed length,
-  // and this is the path that actually fires on a keystroke. Layout effect, so
-  // the first measurement lands before paint and the sheet opens at its real
-  // size rather than growing into it.
-  useLayoutEffect(measure);
-
-  // Backstop for size changes that happen without a render - a font finishing
-  // loading, a long student name rewrapping when the window narrows.
-  useEffect(() => {
-    const content = contentRef.current;
-    if (!content || typeof ResizeObserver === 'undefined') return undefined;
-    const observer = new ResizeObserver(measure);
-    observer.observe(content);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // The sheet eases between heights as results filter, rather than snapping.
+  const [sheetRef, contentRef] = useAutoHeight('--acc-palette-h');
 
   /**
    * Dismissal mirrors the entrance rather than cutting.

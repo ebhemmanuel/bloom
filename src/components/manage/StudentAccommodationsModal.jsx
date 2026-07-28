@@ -18,6 +18,7 @@ import { ensureDay } from '../../domain/seed.js';
 import { assignmentConfig } from '../../domain/schema.js';
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
 import { todayKey, formatDateMedium, addDays } from '../../domain/dates.js';
+import { PencilIcon, ArchiveIcon, RestoreIcon } from '../shared/RowIcons.jsx';
 
 /**
  * Look a student up, then manage their accommodations and their enrolment.
@@ -190,38 +191,48 @@ export default function StudentAccommodationsModal({ onClose }) {
                             </span>
                           )}
 
+                          {/*
+                            The same icons and the same tooltips the presets
+                            list uses, so two screens showing the same kind of
+                            row do not read as two different products.
+                          */}
                           <span className="acc-stumod__acc-actions">
                             <button
                               type="button"
-                              className="acc-btn acc-btn--small acc-btn--quiet"
+                              className="acc-iconbtn"
                               disabled={readOnly}
+                              title={`Rename "${cfg.label}" for ${student.displayName}`}
+                              aria-label={`Rename ${cfg.label}`}
                               onClick={() => {
                                 setRenameText(cfg.label);
                                 setRenamingId(assignment.id);
                               }}
                             >
-                              Rename
+                              <PencilIcon />
                             </button>
                             {retired ? (
                               <button
                                 type="button"
-                                className="acc-btn acc-btn--small"
+                                className="acc-iconbtn"
                                 disabled={readOnly}
+                                title={`Put "${cfg.label}" back on ${student.displayName}'s board`}
+                                aria-label={`Reinstate ${cfg.label}`}
                                 onClick={() => mutate((d) => reinstateAssignment(d, assignment.id))}
                               >
-                                Reinstate
+                                <RestoreIcon />
                               </button>
                             ) : (
                               <button
                                 type="button"
-                                className="acc-btn acc-btn--small acc-btn--quiet"
+                                className="acc-iconbtn"
                                 disabled={readOnly}
-                                title="Stops from tomorrow. Everything already recorded is kept."
+                                title={`Remove "${cfg.label}" from tomorrow. Everything already recorded is kept.`}
+                                aria-label={`Remove ${cfg.label}`}
                                 onClick={() =>
                                   mutate((d) => retireAssignment(d, assignment.id, today))
                                 }
                               >
-                                Remove
+                                <ArchiveIcon />
                               </button>
                             )}
                           </span>
