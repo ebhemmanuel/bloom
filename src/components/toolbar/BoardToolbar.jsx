@@ -143,6 +143,8 @@ export default function BoardToolbar({
   activeFilters,
   sort,
   onToggleSort,
+  sortBy,
+  onToggleSortBy,
 }) {
   const [notice, setNotice] = useState(null);
   const [confirm, setConfirm] = useState(null);
@@ -292,6 +294,31 @@ export default function BoardToolbar({
           bigger question than how this board is arranged.
         */}
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
+
+        {/*
+          Group the roster by period, beside the filter that chooses which
+          periods to show - the two questions are about the same thing, one
+          narrowing and one arranging.
+
+          A separate toggle rather than a third state on A-Z. "Which class
+          first" and "which end of the alphabet" are different questions, and a
+          teacher who wants their P1 class at the top still has an opinion about
+          the names inside it. Folding them into one control would make each
+          answer cost the other.
+        */}
+        <button
+          type="button"
+          className={`acc-btn acc-sortbtn${sortBy === 'period' ? ' acc-btn--on' : ''}`}
+          onClick={onToggleSortBy}
+          aria-pressed={sortBy === 'period'}
+          title={
+            sortBy === 'period'
+              ? 'Grouped by period, then by name. Click to go back to one list.'
+              : 'Group the roster by period'
+          }
+        >
+          <span className="acc-sortbtn__label">P#</span>
+        </button>
 
         <OverflowMenu
           disabled={disabled}

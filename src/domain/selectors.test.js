@@ -259,3 +259,85 @@ describe('lane order', () => {
     expect(roster(doc, 'az')).toEqual(['Ada .', 'Wren .']);
   });
 });
+
+/**
+ * Grouping the roster by period. The period's own sortOrder, never digits read
+ * out of its name - renaming "Period 3" to "Geometry" does not move it.
+ */
+describe('lane order by period', () => {
+  const P1 = 'per_a';
+  const P3 = 'per_b';
+
+  function docWithPeriods(pairs) {
+    const base = makeDoc();
+    return {
+      ...base,
+      periods: [
+        { ...base.periods[0], id: P1, name: 'Geometry', shortName: 'P1', sortOrder: 1 },
+        { ...base.periods[0], id: P3, name: 'Algebra I', shortName: 'P3', sortOrder: 3 },
+      ],
+      students: pairs.map(([firstName, lastName, periodIds], i) => ({
+        ...base.students[0],
+        id: `stu_${i}`,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName.slice(0, 1)}.`.trim(),
+        sortOrder: i,
+        periodIds,
+      })),
+      assignments: [],
+    };
+  }
+
+  const roster = (doc, sort = 'az') =>
+    buildBoardModel(doc, { dateKey: WED, sort, sortBy: 'period', now }).lanes.map(
+      (l) => l.displayName
+    );
+
+  it('groups by period and stays alphabetical inside each', () => {
+    const doc = docWithPeriods([
+      ['Zoe', 'Adams', [P3]],
+      ['Bea', 'Young', [P1]],
+      ['Ann', 'Baker', [P1]],
+    ]);
+    expect(roster(doc)).toEqual(['Ann B.', 'Bea Y.', 'Zoe A.']);
+  });
+
+  it('reverses both halves for Z-A', () => {
+    const doc = docWithPeriods([
+      ['Ann', 'Baker', [P1]],
+      ['Bea', 'Young', [P1]],
+      ['Zoe', 'Adams', [P3]],
+    ]);
+    expect(roster(doc, 'za')).toEqual(['Zoe A.', 'Bea Y.', 'Ann B.']);
+  });
+
+  /** A student in two of this teacher's classes belongs with the earlier one. */
+  it('files a student in several periods under the earliest', () => {
+    const doc = docWithPeriods([
+      ['Zoe', 'Adams', [P3, P1]],
+      ['Ann', 'Baker', [P3]],
+    ]);
+    expect(roster(doc)).toEqual(['Zoe A.', 'Ann B.']);
+  });
+
+  /** A loose end belongs at the bottom of a list, not the top of it. */
+  it('sorts a student with no period last', () => {
+    const doc = docWithPeriods([
+      ['Zoe', 'Adams', []],
+      ['Ann', 'Baker', [P3]],
+    ]);
+    expect(roster(doc)).toEqual(['Ann B.', 'Zoe A.']);
+  });
+
+  it('leaves the plain name order alone when it is not asked for', () => {
+    const doc = docWithPeriods([
+      ['Zoe', 'Adams', [P3]],
+      ['Ann', 'Baker', [P1]],
+    ]);
+    const byName = buildBoardModel(doc, { dateKey: WED, sort: 'az', now }).lanes.map(
+      (l) => l.displayName
+    );
+    expect(byName).toEqual(['Zoe A.', 'Ann B.']);
+  });
+});

@@ -56,6 +56,8 @@ export default function Board({ onAddStudent }) {
     setSearch,
     sort,
     toggleSort,
+    sortBy,
+    toggleSortBy,
     range,
     setRange,
     rangeModel,
@@ -71,7 +73,7 @@ export default function Board({ onAddStudent }) {
   const [confirmUnenrol, setConfirmUnenrol] = useState(null);
   const [confirmCopy, setConfirmCopy] = useState(null);
   const [dragging, setDragging] = useState(false);
-  const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
+  const { collapsed, toggle, setLane, collapseAll, expandAll } = useCollapsedLanes();
   const {
     selection,
     selectionCount,
@@ -188,12 +190,31 @@ export default function Board({ onAddStudent }) {
     [dateKey, mutate, readOnly]
   );
 
+  /**
+   * Mark absent, and fold the lane away with them.
+   *
+   * An absent student has nothing to record: every card resolves to `absent`
+   * and the columns stop accepting drops. Leaving the lane open spends a
+   * screenful on a row that cannot be worked, in the one view where a teacher is
+   * scanning for what still needs doing. Marking them present unfolds it again,
+   * because now there IS something to do and a lane that stayed shut would be a
+   * second click nobody asked for.
+   *
+   * The fold is decided from the state BEFORE the toggle. `toggleStudentAbsent`
+   * flips whatever it finds, so reading the lane afterwards would race the
+   * mutation - and `mutate` runs its updater at render time, not here.
+   */
   const handleToggleAbsent = useCallback(
-    (studentId) => {
+    (studentId, reason = null) => {
       if (locked) return;
-      mutate((d) => toggleStudentAbsent(d, dateKey, studentId));
+      const wasAbsent = Boolean(model.lanes.find((l) => l.studentId === studentId)?.absent);
+      // `reason` was being dropped on the floor: the lane menu passes the one
+      // the teacher picked (Out sick, TDY, Left early), and it prints on the
+      // report, so losing it loses the explanation for a thin day.
+      mutate((d) => toggleStudentAbsent(d, dateKey, studentId, reason));
+      setLane(studentId, !wasAbsent);
     },
-    [dateKey, locked, mutate]
+    [dateKey, locked, model.lanes, mutate, setLane]
   );
 
   const saveDetail = useCallback(
@@ -426,6 +447,8 @@ export default function Board({ onAddStudent }) {
       activeFilters={activeFilters}
       sort={sort}
       onToggleSort={toggleSort}
+      sortBy={sortBy}
+      onToggleSortBy={toggleSortBy}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
       onToggleFoldAll={() =>
         model.lanes.every((l) => collapsed.has(l.studentId))

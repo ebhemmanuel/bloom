@@ -39,8 +39,19 @@ export default function useCollapsedLanes() {
     });
   }, []);
 
+  /** Fold or unfold one lane regardless of where it currently stands. */
+  const setLane = useCallback((studentId, isCollapsed) => {
+    setCollapsed((prev) => {
+      if (prev.has(studentId) === isCollapsed) return prev;
+      const next = new Set(prev);
+      if (isCollapsed) next.add(studentId);
+      else next.delete(studentId);
+      return next;
+    });
+  }, []);
+
   const collapseAll = useCallback((ids) => setCollapsed(new Set(ids)), []);
   const expandAll = useCallback(() => setCollapsed(new Set()), []);
 
-  return { collapsed, toggle, collapseAll, expandAll };
+  return { collapsed, toggle, setLane, collapseAll, expandAll };
 }

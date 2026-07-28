@@ -79,9 +79,30 @@ function laneSortKey(lane) {
   return first || lane.displayName || '';
 }
 
+/**
+ * Where a lane falls when the roster is ordered by period.
+ *
+ * The period's own `sortOrder`, not the digits in its name: a teacher who
+ * renames "Period 3" to "Geometry" has not moved it, and reading a number out
+ * of a label would put it wherever G happens to fall.
+ *
+ * A student in more than one of this teacher's periods files under the earliest,
+ * which is where someone scanning for "who is in my first class" looks. One with
+ * no period at all sorts last rather than first - an unassigned student is a
+ * loose end, and loose ends belong at the bottom of a list, not the top of it.
+ */
+function lanePeriodRank(lane, periodsById) {
+  const ranks = (lane.student?.periodIds || [])
+    .map((id) => periodsById.get(id)?.sortOrder)
+    .filter((n) => typeof n === 'number');
+  // A finite sentinel, not Infinity: two unplaced lanes would subtract to NaN
+  // and leave their order down to whatever the engine happened to do.
+  return ranks.length ? Math.min(...ranks) : Number.MAX_SAFE_INTEGER;
+}
+
 export function buildBoardModel(
   doc,
-  { dateKey, periodIds = [], search = '', sort = 'az', now = new Date() }
+  { dateKey, periodIds = [], search = '', sort = 'az', sortBy = 'name', now = new Date() }
 ) {
   const ctx = buildResolveContext(doc);
   const catalogById = new Map(doc.catalog.map((c) => [c.id, c]));
@@ -259,9 +280,21 @@ export function buildBoardModel(
    *
    * `localeCompare` rather than `<`, so an accented name files where a reader
    * expects it instead of after Z.
+   *
+   * `sortBy: 'period'` puts the period first and keeps the name as the tiebreak,
+   * so each class is still alphabetical inside itself. The direction applies to
+   * both halves: Z-A by period runs the last class first AND reverses the names
+   * within it, which is what "reversed" means when someone asks for it.
    */
   const direction = sort === 'za' ? -1 : 1;
-  lanes.sort((a, b) => direction * laneSortKey(a).localeCompare(laneSortKey(b)));
+  const byName = (a, b) => laneSortKey(a).localeCompare(laneSortKey(b));
+  const compare =
+    sortBy === 'period'
+      ? (a, b) =>
+          lanePeriodRank(a, ctx.periodsById) - lanePeriodRank(b, ctx.periodsById) || byName(a, b)
+      : byName;
+
+  lanes.sort((a, b) => direction * compare(a, b));
 
   const allStatuses = lanes.flatMap((l) =>
     Object.values(l.columns).flatMap((cards) => cards.map((c) => c.resolved))
