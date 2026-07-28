@@ -234,10 +234,15 @@ export default function AboutBloom({ onClose, stats, background, leaving = false
         onClick={onFeedback}
         aria-label="Send feedback to the developer"
       >
-        <span className="acc-about__feedback-label">Send feedback</span>
+        {/*
+          The mark first in the DOM, the label after it, with `row-reverse` in
+          the stylesheet: that puts the label to the LEFT of the ? and grows it
+          leftward, so the circle itself never moves as it opens.
+        */}
         <span className="acc-about__feedback-mark" aria-hidden="true">
           ?
         </span>
+        <span className="acc-about__feedback-label">Send feedback</span>
       </a>
     </div>
   );

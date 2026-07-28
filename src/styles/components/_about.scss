@@ -337,6 +337,9 @@
     border: 1px solid rgba(255, 255, 255, 0.8);
     color: var(--acc-accent);
     box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+    // It is a link, and links in this app are underlined. This one is a button
+    // wearing a pill; a rule under the label breaks the shape.
+    text-decoration: none;
     transition:
       background-color var(--acc-dur-instant) var(--acc-ease-standard),
       color var(--acc-dur-instant) var(--acc-ease-standard);
@@ -345,6 +348,7 @@
     &:hover {
       background: #ffffff;
       color: #4a3ac0;
+      text-decoration: none;
     }
   }
 

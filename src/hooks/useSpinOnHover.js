@@ -1,41 +1,34 @@
 import { useCallback, useState } from 'react';
 
 /**
- * Turn the Bloom mark while it is pointed at, and let it finish the turn.
+ * One turn of the Bloom mark, triggered by pointing at it.
  *
- * Stopping on `mouseleave` would freeze the mark at whatever angle it happened
- * to be at, which leaves a logo sitting crooked. Instead the pointer leaving
- * only asks it to stop, and the next `animationiteration` - one full 360, the
- * same place it started - actually takes it off. It always comes to rest
- * square.
+ * Hovering STARTS a turn; it does not hold one. The mark completes a single
+ * revolution, overshoots, rocks back through five diminishing points and stops.
+ * Taking the pointer away does not shorten or extend it - once started it plays
+ * out, which is what makes it feel like something with weight rather than
+ * something being switched on and off.
  *
- * The animation is CSS. This decides only when it is allowed to end, which is
- * the one thing a keyframe cannot say.
+ * All of that is one CSS animation, so this hook does almost nothing: it arms
+ * the class and takes it off at `animationend`. No angle measuring, because
+ * the turn always ends where it began and the settle is expressed relative to
+ * that, not to wherever a pointer happened to leave.
  *
- * Used on the brand lockup, in the pill nav and at the top of About. Not on the
- * big mark at the centre of About: that one turns on its own from 4600ms, which
- * is the handoff's idle pinwheel and has nothing to do with the pointer.
+ * Re-arming is ignored while a turn is running - hovering, leaving and hovering
+ * again should not stack turns or restart one mid-flight.
  */
 export default function useSpinOnHover() {
-  const [spinning, setSpinning] = useState(false);
-  const [settling, setSettling] = useState(false);
+  const [turning, setTurning] = useState(false);
 
-  const onMouseEnter = useCallback(() => {
-    setSettling(false);
-    setSpinning(true);
+  const onMouseEnter = useCallback(() => setTurning(true), []);
+  const onAnimationEnd = useCallback((e) => {
+    // Only the mark's own turn. The lockup also carries the screen's entrance
+    // animation, and that finishing must not disarm this one.
+    if (e.animationName.includes('mark-turn')) setTurning(false);
   }, []);
-
-  const onMouseLeave = useCallback(() => {
-    setSpinning(false);
-    setSettling(true);
-  }, []);
-
-  const onAnimationIteration = useCallback(() => {
-    setSettling((wasSettling) => (spinning ? wasSettling : false));
-  }, [spinning]);
 
   return {
-    turning: spinning || settling,
-    spinProps: { onMouseEnter, onMouseLeave, onAnimationIteration },
+    turning,
+    spinProps: { onMouseEnter, onAnimationEnd },
   };
 }
