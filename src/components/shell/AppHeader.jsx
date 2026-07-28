@@ -6,6 +6,7 @@ import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
 import DatePicker from '../toolbar/DatePicker.jsx';
 import useClock from '../../hooks/useClock.js';
+import useSpinOnHover from '../../hooks/useSpinOnHover.js';
 
 function Icon({ path, size = 16 }) {
   return (
@@ -66,11 +67,13 @@ export default function AppHeader({
   const { doc } = useData();
   const { dateKey, setDateKey, range, setRange } = useBoard();
   const unread = notifications.length;
+  // The mark turns under the pointer and finishes the turn on the way out.
+  const { turning, spinProps } = useSpinOnHover();
   const now = useClock();
 
   return (
     <header className="acc-header">
-      <div className="acc-header__brand">
+      <div className={`acc-header__brand${turning ? ' acc-spin' : ''}`} {...spinProps}>
         {/* The same mark onboarding ends on, so the logo the teacher just
             watched bloom is the one that stays with them. */}
         <BloomMark size={22} />

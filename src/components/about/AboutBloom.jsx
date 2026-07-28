@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BloomMark from '../onboarding/BloomMark.jsx';
 import AmbientScene from '../shared/AmbientScene.jsx';
+import useSpinOnHover from '../../hooks/useSpinOnHover.js';
 import { PRODUCT_NAME } from '../../domain/schema.js';
 
 /**
@@ -15,6 +16,10 @@ import { PRODUCT_NAME } from '../../domain/schema.js';
  * and the scene behind it became the app's standard: `AmbientScene` draws the
  * same sheet, blooms and motes for setup and the board, so this screen is the
  * same room with different words in it.
+ *
+ * The big mark turns on its own from 4600ms - the handoff's idle pinwheel. The
+ * small one in the brand lockup turns only while pointed at, and finishes the
+ * turn it is on when the pointer leaves, so it never rests crooked.
  *
  * The mark is `BloomMark` rather than a second copy of the SVG.
  * `delay={1500} step={120}` lands the petals on 1500/1620/1740/1860/1980 and
@@ -62,9 +67,10 @@ const AUTO_ADVANCE_MS = 9000;
 const FEEDBACK_COLLAPSE_MS = 6000;
 const FEEDBACK_EMAIL = 'm.solothis@proton.me';
 
-export default function AboutBloom({ onClose, stats, background }) {
+export default function AboutBloom({ onClose, stats, background, leaving = false }) {
   const [index, setIndex] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const { turning, spinProps } = useSpinOnHover();
   const idle = useRef(null);
   const feedbackTimer = useRef(null);
 
@@ -133,14 +139,19 @@ export default function AboutBloom({ onClose, stats, background }) {
   );
 
   return (
-    <div className="acc-about" role="dialog" aria-modal="true" aria-label={`About ${PRODUCT_NAME}`}>
+    <div
+      className={`acc-about${leaving ? ' acc-about--leaving' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`About ${PRODUCT_NAME}`}
+    >
       {/*
         The scene, shared with onboarding and the board so moving between them
         never changes the room. See AmbientScene.
       */}
       <AmbientScene variant={background} />
 
-      <div className="acc-about__brand">
+      <div className={`acc-about__brand${turning ? ' acc-spin' : ''}`} {...spinProps}>
         <BloomMark size={26} />
         <span className="acc-about__brand-name">{PRODUCT_NAME}</span>
       </div>

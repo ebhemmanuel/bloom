@@ -294,6 +294,26 @@
 
 // --- The mark --------------------------------------------------------------
 
+/**
+ * The brand lockup turning under the pointer.
+ *
+ * On the mark only, never the word beside it: a rotating logo is a flourish, a
+ * rotating label is a fairground. See useSpinOnHover for why it is allowed to
+ * finish the turn rather than stopping where it was let go.
+ */
+.acc-spin .acc-mark {
+  animation: acc-mark-spin 6s linear infinite;
+}
+
+@keyframes acc-mark-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .acc-mark {
   display: block;
 

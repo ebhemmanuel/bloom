@@ -8,6 +8,29 @@
 // only what surrounds it moves.
 // ---------------------------------------------------------------------------
 
+@mixin cascade-rows($name, $fill: forwards) {
+  .acc-header {
+    animation: #{$name} 550ms var(--acc-ease-standard) 0ms #{$fill};
+  }
+
+  .acc-toolbar {
+    animation: #{$name} 550ms var(--acc-ease-standard) 80ms #{$fill};
+  }
+
+  // Capped at twelve: a forty-student roster must not stretch this past the
+  // point where it stops reading as one gesture. Everything past the twelfth
+  // shares the last slot and lands together.
+  .acc-lane {
+    animation: #{$name} 550ms var(--acc-ease-standard) 1160ms #{$fill};
+
+    @for $i from 1 through 12 {
+      &:nth-of-type(#{$i}) {
+        animation-delay: #{80 + $i * 90}ms;
+      }
+    }
+  }
+}
+
 .acc-app {
   position: relative;
   display: flex;
@@ -128,27 +151,16 @@
     }
   }
 
+  /**
+   * The board arriving after setup - the same cascade About uses to bring it
+   * back, at the same speed.
+   *
+   * It ran at 220ms with a 30ms stagger, which beside About's 550ms/90ms made
+   * the app look like it had two ideas about how fast it moves. A teacher meets
+   * both inside their first minute.
+   */
   &--in {
-    .acc-header {
-      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 0ms both;
-    }
-
-    .acc-board__scroll > * {
-      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 120ms both;
-    }
-
-    // Lanes stagger top to bottom. Capped at twelve: a forty-student roster must
-    // not stretch this past the ~900ms the spec allows, so everything after the
-    // twelfth shares the last slot and they land together.
-    .acc-board__lanes > * {
-      animation: acc-firstrun-in 220ms var(--acc-ease-entrance) 260ms both;
-
-      @for $i from 1 through 12 {
-        &:nth-child(#{$i}) {
-          animation-delay: 200ms + $i * 30ms;
-        }
-      }
-    }
+    @include cascade-rows(acc-cascade-in, both);
   }
 
   // Reduced motion: one fade, no transforms, no stagger.
@@ -191,5 +203,61 @@ body[data-dragging='true'] {
   .acc-column,
   .acc-lane__header {
     user-select: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The board cascade, in both directions.
+//
+// One set of timings, used by three things: About cascading the board away as
+// it opens, About bringing it back as it closes, and the board arriving after
+// onboarding. They were three different speeds; a teacher meets all three in
+// their first minute, and the app should move at one pace.
+//
+// From design_handoff_about_bloom: 550ms a row, the toolbar leading at 80ms and
+// each lane 90ms behind the last, falling to translateY(26px) under a 6px blur.
+// ---------------------------------------------------------------------------
+
+[data-board-cascade='out'] {
+  @include cascade-rows(acc-cascade-out);
+}
+
+[data-board-cascade='in'] {
+  @include cascade-rows(acc-cascade-in, both);
+}
+
+@keyframes acc-cascade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(6px);
+  }
+}
+
+// The mirror: rows rise back into focus from where they fell.
+@keyframes acc-cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-board-cascade] .acc-header,
+  [data-board-cascade] .acc-toolbar,
+  [data-board-cascade] .acc-lane {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
 }

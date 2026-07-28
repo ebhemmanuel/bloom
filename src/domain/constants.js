@@ -244,19 +244,26 @@ export const DEFAULT_CYCLE_END_TIME = '16:00';
 export const DEFAULT_IDLE_LOCK_MINUTES = 10;
 
 /**
- * The two scenes the app can sit in front of.
+ * The three scenes the app can sit in front of.
  *
  * `aurora` is the standard set by design_handoff_about_bloom: the sheet the
- * About screen uses, on an 18s cycle, with glowing motes. It is the default and
- * it is what setup, the board and About all draw, so moving between them never
- * changes the room.
+ * About screen uses, on an 18s cycle, blooms that arrive and drift, and glowing
+ * motes. It is the default, and setup, the board and About all draw it, so
+ * moving between them never changes the room.
  *
- * `calm` is the softer scene setup used to open in - a paler sheet on a much
- * slower cycle with tinted motes - kept because some people will prefer it.
+ * `calm` is the softer scene setup used to open in: a paler sheet on a much
+ * slower cycle.
+ *
+ * `drift` is the board's original field - the same aurora, but the blooms pan
+ * as one body rather than arriving individually.
+ *
+ * All three carry the same motes. The scenes differ in weather, not in what
+ * they are made of.
  */
 export const BACKGROUND_STYLES = [
-  { id: 'aurora', label: 'Aurora', hint: 'The standard scene, on a slow cycle' },
-  { id: 'calm', label: 'Calm', hint: 'Paler, slower, tinted motes' },
+  { id: 'aurora', label: 'Aurora', hint: 'The standard scene' },
+  { id: 'calm', label: 'Calm', hint: 'Paler, on a slower cycle' },
+  { id: 'drift', label: 'Drift', hint: 'Blooms pan as one' },
 ];
 
 export const DEFAULT_BACKGROUND_STYLE = 'aurora';

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
@@ -66,6 +66,36 @@ function AppShell() {
   const [modal, setModal] = useState(null);
   // Which student the profile modal opens on, when it was reached from a lane.
   const [editingStudentId, setEditingStudentId] = useState(null);
+
+  /**
+   * The board's half of opening and closing About.
+   *
+   * `out` while About is arriving, `in` while it leaves, null the rest of the
+   * time. About fades in over the top on the same beat, so what you see is the
+   * rows falling and the aurora coming up through them - and on the way back,
+   * the rows rising as the screen clears.
+   *
+   * `aboutLeaving` keeps About mounted for its own exit. Unmounting on click
+   * would cut the screen away and leave the board cascading in behind nothing.
+   */
+  const [boardCascade, setBoardCascade] = useState(null);
+  const [aboutLeaving, setAboutLeaving] = useState(false);
+  const aboutTimers = useRef([]);
+  useEffect(() => () => aboutTimers.current.forEach(clearTimeout), []);
+
+  const openAbout = useCallback(() => {
+    setBoardCascade('out');
+    setAboutLeaving(false);
+    setModal('about');
+  }, []);
+
+  const closeAbout = useCallback(() => {
+    setAboutLeaving(true);
+    setBoardCascade('in');
+    // Long enough for About's own fade, then the cascade runs itself out.
+    aboutTimers.current.push(setTimeout(() => setModal(null), 420));
+    aboutTimers.current.push(setTimeout(() => setBoardCascade(null), 1500));
+  }, []);
   const palette = useCommandPalette();
 
   /**
@@ -151,9 +181,9 @@ function AppShell() {
       },
       // A direct action, like Notes. A dropdown holding one item is a click
       // spent on nothing, and the item repeated the word above it.
-      { id: 'about', label: 'About', onSelect: () => setModal('about') },
+      { id: 'about', label: 'About', onSelect: openAbout },
     ],
-    [toggle, model.dayNotes, model.teacherAbsence]
+    [toggle, openAbout, model.dayNotes, model.teacherAbsence]
   );
 
   return (
@@ -173,7 +203,7 @@ function AppShell() {
         lives inside it, so nothing can drift out of alignment the way it does
         when each piece caps its own width.
       */}
-      <div className="acc-app__frame" data-about={modal === 'about' ? 'opening' : undefined}>
+      <div className="acc-app__frame" data-board-cascade={boardCascade || undefined}>
         <AppHeader
           menus={menus}
           notifications={notifications}
@@ -228,7 +258,12 @@ function AppShell() {
         {modal === 'print' && <PrintReportModal onClose={() => setModal(null)} />}
 
         {modal === 'about' && (
-          <AboutBloom stats={aboutStats} background={background} onClose={() => setModal(null)} />
+          <AboutBloom
+            stats={aboutStats}
+            background={background}
+            leaving={aboutLeaving}
+            onClose={closeAbout}
+          />
         )}
 
         {meta.tooNew && (

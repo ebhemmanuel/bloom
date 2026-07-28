@@ -101,6 +101,40 @@
   }
 }
 
+/**
+ * Drift: the board's original field.
+ *
+ * The blooms pan as one body instead of arriving individually, which is why the
+ * group carries the animation and each bloom only keeps its own slow drift. No
+ * entrance, because there is nothing to make an entrance over - this scene is
+ * simply always there.
+ */
+.acc-scene--drift {
+  .acc-scene__blobs {
+    animation: acc-field-pan 24s ease-in-out infinite;
+  }
+
+  .acc-scene__blob {
+    opacity: 0.5;
+
+    &--1 {
+      animation: acc-scene-drift 26s ease-in-out infinite;
+    }
+    &--2 {
+      opacity: 0.45;
+      animation: acc-scene-drift 30s ease-in-out infinite reverse;
+    }
+    &--3 {
+      opacity: 0.4;
+      animation: acc-scene-drift 22s ease-in-out infinite;
+    }
+    &--4 {
+      opacity: 0.45;
+      animation: acc-scene-drift 28s ease-in-out infinite reverse;
+    }
+  }
+}
+
 // --- Motes -----------------------------------------------------------------
 
 .acc-scene__motes {
@@ -120,14 +154,6 @@
   background: #ffffff;
   box-shadow: var(--acc-mote-glow);
   animation: acc-scene-mote var(--acc-mote-dur) linear var(--acc-mote-delay) infinite;
-}
-
-// Tinted and blurred rather than glowing: the calm scene wants flecks of colour
-// where the standard one wants points of light.
-.acc-scene--calm .acc-scene__mote {
-  background: var(--acc-mote-tint);
-  box-shadow: none;
-  filter: blur(1px);
 }
 
 // --- Keyframes -------------------------------------------------------------

@@ -208,8 +208,10 @@
  */
 .acc-bgpick {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--acc-space-3);
+  // Three across: the scenes are compared against each other, so they want to
+  // be side by side rather than wrapped two-and-one.
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--acc-space-2);
 
   &__opt {
     display: flex;
@@ -240,13 +242,20 @@
     }
   }
 
+  /**
+   * A sample of the real thing, not an impression of one.
+   *
+   * Each swatch carries the gradient its scene actually paints, so the choice
+   * is made by looking rather than by reading three adjectives.
+   */
   &__swatch {
+    position: relative;
     block-size: 46px;
     border-radius: var(--acc-radius-md);
+    overflow: hidden;
+    background-image: var(--acc-aurora-page);
     background-size: 180% 180%;
 
-    // The same two gradients the scenes themselves use, so the swatch is a
-    // sample rather than an impression of one.
     &--calm {
       background-image: linear-gradient(
         115deg,
@@ -258,8 +267,15 @@
       );
     }
 
-    &--cycling {
-      background-image: var(--acc-aurora-page);
+    // Every scene carries the motes, so every swatch shows them.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 22% 68%, rgba(255, 255, 255, 0.95) 0 2px, transparent 2px),
+        radial-gradient(circle at 54% 34%, rgba(255, 255, 255, 0.85) 0 1.5px, transparent 1.5px),
+        radial-gradient(circle at 78% 58%, rgba(255, 255, 255, 0.9) 0 2px, transparent 2px);
     }
   }
 

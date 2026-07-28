@@ -105,6 +105,9 @@
     align-items: center;
     gap: var(--acc-space-2);
     min-width: 0;
+    // Only as wide as the lockup, so the mark turns when it is pointed at
+    // rather than whenever the pointer enters the left of the bar.
+    inline-size: fit-content;
   }
 
   // The mark is the Bloom flower now, drawn by BloomMark, so there is nothing

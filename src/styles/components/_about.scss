@@ -13,8 +13,44 @@
   // this screen is the whole app while it is open.
   z-index: 100;
   overflow: hidden;
-  background: var(--acc-bg);
   color: var(--acc-fg);
+
+  /**
+   * Arrives OVER the board as it cascades away, rather than covering it.
+   *
+   * This is the whole opening gesture and it was missing: with an opaque
+   * background from the first frame, the board was hidden before it could move
+   * and the screen simply cut. The scene fades in across 700ms starting at
+   * 750ms - the moment the spec's veil clears - so what you see is the rows
+   * falling and the aurora coming up through where they were.
+   *
+   * The page colour comes in on the same curve, so nothing shows through once
+   * the board has gone.
+   */
+  background: var(--acc-bg);
+  animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+
+  .acc-scene {
+    animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+  }
+
+  /**
+   * Leaving: the reverse, and quicker.
+   *
+   * Everything above the scene goes first and the scene follows, so the board
+   * cascading back in is uncovered rather than revealed all at once.
+   */
+  &--leaving {
+    animation: acc-fade-out 420ms var(--acc-ease-exit) both;
+
+    .acc-about__stage,
+    .acc-about__brand,
+    .acc-about__nav,
+    .acc-about__feedback,
+    .acc-about__close {
+      animation: acc-fade-out 200ms var(--acc-ease-exit) both;
+    }
+  }
 
   // --- Fixed chrome --------------------------------------------------------
 
@@ -27,6 +63,9 @@
     align-items: center;
     gap: 10px;
     animation: acc-enter 700ms var(--acc-ease-entrance) 2750ms backwards;
+    // Only the lockup itself, so the turn starts when the mark is pointed at
+    // rather than whenever the pointer crosses the corner of the screen.
+    inline-size: fit-content;
   }
 
   &__brand-name {
@@ -78,6 +117,10 @@
    * The pinwheel turns the whole mark. BloomMark does not group its petals
    * apart from the centre, and it does not need to: the centre is a circle
    * sitting on the rotation origin, so turning it is pixel-identical.
+   *
+   * It turns on its own from 4600ms, once the mark has finished blooming and
+   * the page has settled - the handoff's idle pinwheel. Nothing to do with the
+   * pointer: that belongs to the brand lockup in the corner.
    */
   &__mark {
     position: absolute;
@@ -86,6 +129,9 @@
     inline-size: 96px;
     block-size: 96px;
     transform-origin: 50% 50%;
+    // The idle pinwheel: it starts once the mark has bloomed and the page has
+    // settled, and then simply keeps going. Nothing to do with the pointer -
+    // that belongs to the brand lockup in the corner.
     animation: acc-about-pinwheel 30s linear 4600ms infinite;
   }
 
@@ -99,6 +145,8 @@
     justify-content: center;
     // The fixed top edge. Text starts here on every slide, so nothing shifts.
     padding: calc(60vh - 186px) 48px 48px;
+    // Nothing here is clickable, and the mark underneath is. See `__mark`.
+    pointer-events: none;
     transition:
       opacity 360ms var(--acc-ease-entrance),
       transform 360ms var(--acc-ease-entrance);
@@ -341,49 +389,11 @@
   }
 }
 
-/**
- * The board cascading away as About opens, and back as it closes.
- *
- * The real rows, not a mock: the spec is explicit that production cascades what
- * is actually on screen. The toolbar leads at 80ms and each lane follows 90ms
- * behind the last, which is the spec's 80/170/260/350/440 stagger.
- */
-[data-about='opening'] {
-  .acc-toolbar,
-  .acc-lane {
-    animation: acc-about-cascade-row 550ms var(--acc-ease-standard) var(--acc-cascade-out) forwards;
-  }
-
-  .acc-toolbar {
-    --acc-cascade-out: 80ms;
-  }
-
-  @for $i from 1 through 12 {
-    .acc-lane:nth-of-type(#{$i}) {
-      --acc-cascade-out: #{80 + $i * 90}ms;
-    }
-  }
-}
-
-@keyframes acc-about-cascade-row {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(26px);
-    filter: blur(6px);
-  }
-}
-
 // Reduced motion: the scene holds still and the deck crossfades without moving.
 @media (prefers-reduced-motion: reduce) {
   .acc-about,
   .acc-about *,
-  [data-about='opening'] .acc-toolbar,
-  [data-about='opening'] .acc-lane {
+  .acc-about * {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
   }

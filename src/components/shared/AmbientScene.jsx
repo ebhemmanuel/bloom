@@ -7,8 +7,13 @@
  * at 320% on an 18s shift, four blurred blooms that arrive on a stagger and
  * then drift, and eleven glowing motes rising with a sideways sway.
  *
- * `variant="calm"` keeps the softer scene setup used to open in - a paler sheet
- * on a slower cycle with tinted motes - because it is still offered in Settings.
+ * Two other scenes are offered in Settings, and they differ only in the sheet
+ * and how the blooms move. `calm` is the softer one setup used to open in: a
+ * paler gradient on a much slower cycle. `drift` is the board's original field,
+ * where the blooms pan as one body rather than arriving individually.
+ *
+ * The motes are the same in all three - same glow, same opacities, same rise.
+ * They are what the scene IS, not a flourish on one version of it.
  *
  * Mounted once and never remounted, which is the point: the screens change
  * against a background that does not, so moving from one to the next reads as
@@ -20,9 +25,10 @@
  *
  * `Math.random()` would reshuffle them on every render, and the placement is
  * deliberate: spread across the width, none clustered, none dead centre where
- * the reading sits. Values are the handoff's, mote for mote.
+ * the reading sits. Values are the handoff's, mote for mote, and every scene
+ * gets them.
  */
-const AURORA_MOTES = [
+const MOTES = [
   {
     left: '8%',
     size: 5,
@@ -124,21 +130,7 @@ const AURORA_MOTES = [
   },
 ];
 
-/** The calm scene's own: tinted rather than glowing, and fewer of them. */
-const CALM_MOTES = [
-  { left: '12%', size: 10, o: 0.5, x: '18px', dur: 38, delay: 0, tint: 'var(--acc-mote-1)' },
-  { left: '26%', size: 16, o: 0.45, x: '-24px', dur: 46, delay: 12, tint: 'var(--acc-mote-2)' },
-  { left: '41%', size: 7, o: 0.5, x: '20px', dur: 34, delay: 22, tint: 'var(--acc-mote-3)' },
-  { left: '58%', size: 13, o: 0.4, x: '-16px', dur: 52, delay: 6, tint: 'var(--acc-mote-4)' },
-  { left: '71%', size: 9, o: 0.5, x: '26px', dur: 40, delay: 30, tint: 'var(--acc-mote-1)' },
-  { left: '84%', size: 18, o: 0.35, x: '-20px', dur: 58, delay: 18, tint: 'var(--acc-mote-2)' },
-  { left: '92%', size: 8, o: 0.45, x: '14px', dur: 36, delay: 26, tint: 'var(--acc-mote-3)' },
-  { left: '6%', size: 12, o: 0.4, x: '-22px', dur: 44, delay: 38, tint: 'var(--acc-mote-4)' },
-];
-
 export default function AmbientScene({ variant = 'aurora' }) {
-  const motes = variant === 'calm' ? CALM_MOTES : AURORA_MOTES;
-
   return (
     <div className={`acc-scene acc-scene--${variant}`} aria-hidden="true">
       <div className="acc-scene__sheet" />
@@ -151,7 +143,7 @@ export default function AmbientScene({ variant = 'aurora' }) {
       </div>
 
       <div className="acc-scene__motes">
-        {motes.map((m) => (
+        {MOTES.map((m) => (
           <span
             key={m.left}
             className="acc-scene__mote"
