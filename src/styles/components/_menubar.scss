@@ -783,7 +783,7 @@
   grid-template-columns: 240px 1fr;
   gap: var(--acc-space-5);
   align-items: start;
-  min-block-size: 420px;
+  min-block-size: 480px;
 
   @media (max-inline-size: 760px) {
     grid-template-columns: 1fr;
@@ -806,7 +806,7 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
-      max-block-size: min(62vh, 680px);
+      max-block-size: min(70vh, 740px);
       overflow-y: auto;
     }
   }
@@ -819,7 +819,10 @@
     gap: var(--acc-space-2);
     inline-size: 100%;
     padding: var(--acc-space-2) var(--acc-space-3);
-    border-radius: var(--acc-radius-sm);
+    // A pill, like everything else selectable in Bloom - and like the search
+    // field directly above this list. A 4px corner on a hover surface sitting
+    // under a 999px input read as two different design languages stacked.
+    border-radius: var(--acc-radius-pill);
     text-align: start;
     transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
 
@@ -899,7 +902,7 @@
     // Taller rows need a taller window, or the list shows four and a half of
     // them and reads as clipped rather than as scrollable. Tied to the viewport
     // for the same reason the roster beside it is.
-    max-block-size: min(52vh, 560px);
+    max-block-size: min(60vh, 620px);
     overflow-y: auto;
   }
 
@@ -987,15 +990,36 @@
     }
   }
 
-  // Right-aligned: unenrolling is the last, heaviest thing on this screen, and
-  // a destructive action belongs at the end of a row rather than leading it.
+  /**
+   * The two things you can do to a student, as equal columns.
+   *
+   * Adding support and ending enrolment were stacked, so the destructive one
+   * sat alone at the bottom with a sentence of its own beneath it and the
+   * screen ran three sections deep. Side by side they cost one, and the shared
+   * rule above reads as a single band rather than two.
+   */
+  &__bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--acc-space-5);
+    align-items: start;
+    padding-block-start: var(--acc-space-4);
+    border-top: 1px solid var(--acc-border);
+
+    // One under the other once there is no room for two - a 50/50 split of a
+    // narrow modal gives each half too little to be worth the symmetry.
+    @media (max-inline-size: 760px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // Its caption sits under the button, the way the picker's sits under the
+  // field beside it: two columns of the same shape.
   &__foot {
     display: flex;
     flex-direction: column;
-    gap: var(--acc-space-2);
     align-items: flex-end;
-    padding-block-start: var(--acc-space-3);
-    border-top: 1px solid var(--acc-border);
+    gap: var(--acc-space-2);
   }
 
   &__foot-hint {

@@ -211,7 +211,7 @@
 .acc-modal {
   inline-size: 100%;
   max-inline-size: 560px;
-  max-block-size: min(88vh, 900px);
+  max-block-size: min(92vh, 980px);
   display: flex;
   flex-direction: column;
   background: var(--acc-surface);
@@ -241,7 +241,7 @@
     display: flex;
     flex-direction: column;
     min-block-size: 0;
-    max-block-size: min(88vh, 900px);
+    max-block-size: min(92vh, 980px);
   }
 
   &--wide {

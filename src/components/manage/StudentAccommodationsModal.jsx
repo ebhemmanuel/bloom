@@ -55,7 +55,20 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [doc.students, query]);
 
-  const student = doc.students.find((s) => s.id === selectedId) || null;
+  /**
+   * Whoever was asked for, or the first on the list.
+   *
+   * Opening onto "Pick a student to see their accommodations" spends the whole
+   * right-hand side on an instruction to do the obvious. Falling back to the
+   * top of the list means the screen arrives already showing something, and the
+   * shape of it is learned before anyone has clicked anything.
+   *
+   * Derived rather than written into state on mount: `matches` narrows as the
+   * teacher types, and a selection stored on mount would leave the panel
+   * showing a student the list no longer contains.
+   */
+  const student =
+    doc.students.find((s) => s.id === selectedId) || (selectedId ? null : matches[0]) || null;
   const catalogById = useMemo(() => new Map(doc.catalog.map((c) => [c.id, c])), [doc.catalog]);
   const periodById = useMemo(() => new Map(doc.periods.map((p) => [p.id, p])), [doc.periods]);
 
@@ -102,7 +115,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
               <li key={s.id}>
                 <button
                   type="button"
-                  className={`acc-stumod__student${s.id === selectedId ? ' acc-stumod__student--on' : ''}`}
+                  className={`acc-stumod__student${s.id === student?.id ? ' acc-stumod__student--on' : ''}`}
                   onClick={() => setSelectedId(s.id)}
                 >
                   {/*
@@ -383,45 +396,53 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                 {rows.length === 0 && <li className="acc-stumod__none">No accommodations yet.</li>}
               </ul>
 
-              <div className="acc-stumod__add">
-                <span className="acc-field__label">Add accommodations</span>
-                <AccommodationPicker
-                  studentId={student.id}
-                  value={draft}
-                  onChange={setDraft}
-                  onCommit={add}
-                  disabled={readOnly}
-                  placeholder="Find one, or paste several"
-                  hint={`Records from ${formatDateMedium(dateKey)} forward - earlier days are untouched.`}
-                />
-              </div>
+              {/*
+                The two things you can do to a student, side by side: add
+                support on the left, end their enrolment on the right. Each
+                carries its own caption underneath, so the pair reads as two
+                columns of the same shape rather than as a form with a stray
+                sentence after it.
+              */}
+              <div className="acc-stumod__bottom">
+                <div className="acc-stumod__add">
+                  <span className="acc-field__label">Add accommodations</span>
+                  <AccommodationPicker
+                    studentId={student.id}
+                    value={draft}
+                    onChange={setDraft}
+                    onCommit={add}
+                    disabled={readOnly}
+                    placeholder="Find one, or paste several"
+                    hint={`Records from ${formatDateMedium(dateKey)} forward - earlier days are untouched.`}
+                  />
+                </div>
 
-              <footer className="acc-stumod__foot">
-                {unenrolled ? (
-                  <button
-                    type="button"
-                    className="acc-btn acc-btn--small"
-                    disabled={readOnly}
-                    onClick={() => mutate((d) => setStudentEnrollment(d, student.id, null))}
-                  >
-                    Re-enrol {student.displayName}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="acc-btn acc-btn--small acc-btn--danger"
-                    disabled={readOnly}
-                    title="They stop appearing from tomorrow. Their record so far is kept in full."
-                    onClick={() => setConfirming(addDays(today, 1))}
-                  >
-                    Unenrol from tomorrow
-                  </button>
-                )}
-                <span className="acc-stumod__foot-hint">
-                  Nothing here deletes history - both actions are dated, so past days keep every
-                  record exactly as it was.
-                </span>
-              </footer>
+                <footer className="acc-stumod__foot">
+                  {unenrolled ? (
+                    <button
+                      type="button"
+                      className="acc-btn acc-btn--small"
+                      disabled={readOnly}
+                      onClick={() => mutate((d) => setStudentEnrollment(d, student.id, null))}
+                    >
+                      Re-enrol {student.displayName}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="acc-btn acc-btn--small acc-btn--danger"
+                      disabled={readOnly}
+                      title="They stop appearing from tomorrow. Their record so far is kept in full."
+                      onClick={() => setConfirming(addDays(today, 1))}
+                    >
+                      Unenrol from tomorrow
+                    </button>
+                  )}
+                  <span className="acc-stumod__foot-hint">
+                    Dated, never deleted - past days keep their record.
+                  </span>
+                </footer>
+              </div>
             </>
           )}
         </section>
