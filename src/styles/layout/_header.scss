@@ -95,18 +95,6 @@
     }
   }
 
-  // Presence indicator for day notes - quieter than the notification count,
-  // because it reports that something exists, not that something is wrong.
-  &__pip {
-    position: absolute;
-    inset-block-start: 4px;
-    inset-inline-end: 4px;
-    inline-size: 6px;
-    block-size: 6px;
-    border-radius: 50%;
-    background: var(--acc-accent);
-  }
-
   &__brand {
     display: flex;
     align-items: center;
@@ -131,12 +119,12 @@
   }
 
   /**
-   * Nav icons: outlined at rest, solid accent under the pointer.
+   * Nav icons, hovering exactly as the menu triggers beside them do.
    *
-   * The old hover was a pale wash on an already-pale frosted bar - a state
-   * change you had to look for to notice. These fill the way the onboarding CTA
-   * does, glyph flipping to white, with the same scale-and-settle so pressing
-   * one feels like the same object as the buttons that got you here.
+   * They briefly filled with accent and lifted, borrowing the onboarding CTA's
+   * treatment. That is the weight of a primary action, and nothing in this bar
+   * is one: they open a panel. Matching the menubar keeps the whole row reading
+   * as one set of controls rather than two.
    */
   &__icon {
     position: relative;
@@ -144,37 +132,20 @@
     place-items: center;
     inline-size: 32px;
     block-size: 32px;
-    border-radius: var(--acc-radius-sm);
+    border-radius: var(--acc-radius-pill);
     color: var(--acc-fg-muted);
-    transform: scale(var(--acc-tilt-scale, 1));
     transition:
-      background-color var(--acc-dur-fast) var(--acc-ease-standard),
-      color var(--acc-dur-fast) var(--acc-ease-standard),
-      box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
-      transform var(--acc-dur-normal) var(--acc-ease-settle);
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
 
-    &:hover,
-    &--on {
-      background: var(--acc-accent);
-      color: var(--acc-accent-fg);
-      box-shadow: 0 6px 14px -6px rgba(91, 75, 214, 0.5);
-    }
-
-    // Only the pointer lifts it. An open panel is a resting state, and a
-    // permanently enlarged button reads as one stuck mid-press.
     &:hover {
-      --acc-tilt-scale: 1.08;
+      background: rgba(255, 255, 255, 0.55);
+      color: var(--acc-fg);
     }
 
-    &:active {
-      --acc-tilt-scale: 0.96;
-    }
-
-    // Both badges are drawn in the accent, which disappears the moment the
-    // button fills with it.
-    &:hover .acc-header__pip,
-    &--on .acc-header__pip {
-      background: var(--acc-accent-fg);
+    &--on {
+      background: var(--acc-surface);
+      color: var(--acc-fg);
     }
   }
 
@@ -193,56 +164,6 @@
     font-weight: var(--acc-fw-bold);
     line-height: 15px;
     text-align: center;
-  }
-}
-
-.acc-avatar {
-  display: grid;
-  place-items: center;
-  // Sized against the ICONS beside it, not against their 32px buttons. Those
-  // buttons are mostly padding, so a 32px ring drawn next to a 17px glyph read
-  // as much bigger than its neighbours even though the boxes matched.
-  inline-size: 24px;
-  block-size: 24px;
-  // The icon buttons are 32px boxes around a 17px glyph, so ~7.5px of each
-  // one's gap is its own padding. The ring has no padding, so the flex gap
-  // alone left it sitting closer to its neighbours than they sit to each other.
-  // Both sides, not just the end: the run reads as evenly divided only if the
-  // ring is spaced off the bell exactly as the bell is spaced off the notes.
-  margin-inline: var(--acc-space-2);
-  border-radius: 50%;
-  // Outlined rather than filled. A solid disc read as the loudest thing in the
-  // bar, which is wrong for a control that opens a settings form; the ring says
-  // the same thing without shouting, and fills only when the panel is open.
-  background: transparent;
-  color: var(--acc-accent);
-  font-size: 10px;
-  font-weight: var(--acc-fw-bold);
-  letter-spacing: 0.02em;
-  border: 1px solid var(--acc-accent);
-  // Fills and lifts exactly as the icons beside it do - it is one more control
-  // in that run, and a ring that only tinted while its neighbours filled read as
-  // a different kind of thing.
-  transform: scale(var(--acc-tilt-scale, 1));
-  transition:
-    background-color var(--acc-dur-fast) var(--acc-ease-standard),
-    color var(--acc-dur-fast) var(--acc-ease-standard),
-    box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
-    transform var(--acc-dur-normal) var(--acc-ease-settle);
-
-  &:hover,
-  &--on {
-    background: var(--acc-accent);
-    color: var(--acc-accent-fg);
-    box-shadow: 0 6px 14px -6px rgba(91, 75, 214, 0.5);
-  }
-
-  &:hover {
-    --acc-tilt-scale: 1.08;
-  }
-
-  &:active {
-    --acc-tilt-scale: 0.96;
   }
 }
 

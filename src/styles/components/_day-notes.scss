@@ -1,16 +1,19 @@
-// Day notes popover. Values taken directly from the prototype rather than
+// Day notes dialog. Values taken directly from the prototype rather than
 // approximated from the token scale - this panel has its own tighter type.
+//
+// A dialog rather than the corner popover it began as. Day notes are composed,
+// not glanced at: it is the one place in the app a teacher writes prose, and a
+// 380px card pinned under a corner icon is the wrong room to write it in. It
+// now opens in the middle behind a scrim, like every other thing you fill in.
 
 .acc-daypanel {
-  position: absolute;
-  inset-block-start: 60px;
-  inset-inline-end: 0;
-  z-index: 60;
-  inline-size: min(380px, calc(100vw - 24px));
+  inline-size: min(520px, calc(100vw - var(--acc-space-6)));
+  max-block-size: min(80vh, 720px);
+  overflow-y: auto;
   background: var(--acc-surface);
   border: 1px solid var(--acc-border-strong);
-  border-radius: 14px;
-  box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
+  border-radius: var(--acc-radius-lg);
+  box-shadow: var(--acc-shadow-overlay);
 
   &__header {
     display: flex;

@@ -11,6 +11,19 @@
     position: relative;
   }
 
+  // Something is already written for today. Inline rather than pinned to a
+  // corner: the trigger is a word now, not a 32px square, and a badge floating
+  // off the end of text reads as a typo.
+  &__pip {
+    display: inline-block;
+    inline-size: 5px;
+    block-size: 5px;
+    margin-inline-start: 5px;
+    vertical-align: 0.35em;
+    border-radius: 50%;
+    background: var(--acc-accent);
+  }
+
   &__trigger {
     height: 26px;
     padding: 0 var(--acc-space-3);

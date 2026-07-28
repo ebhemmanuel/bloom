@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { usePopoverDismiss } from './AppHeader.jsx';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
+import Scrim from '../shared/Scrim.jsx';
 import { setDayNotes, reportTeacherAbsence, clearTeacherAbsence } from '../../domain/mutations.js';
 import { TEACHER_ABSENCE_REASONS } from '../../domain/constants.js';
 import { formatDateMedium, relativeDayLabel } from '../../domain/dates.js';
@@ -89,99 +90,108 @@ export default function DayNotesPanel({ onClose }) {
   };
 
   return (
-    <div
-      className={`acc-daypanel ${leaving ? 'acc-leave' : 'acc-enter'}`}
-      ref={ref}
-      role="dialog"
-      aria-label="Day notes"
-    >
-      <header className="acc-daypanel__header">
-        <span className="acc-daypanel__eyebrow">{heading}</span>
-        <button type="button" className="acc-daypanel__close" onClick={dismiss} aria-label="Close">
-          ×
-        </button>
-      </header>
-
-      <div className="acc-daypanel__body">
-        <p className="acc-daypanel__intro">
-          For a sub, or for tomorrow-you, anything the next person running this class should know.
-        </p>
-
-        <div className="acc-daypanel__notes">
-          <textarea
-            className="acc-daypanel__textarea"
-            value={draft}
-            onChange={onNotesChange}
-            disabled={locked}
-            rows={4}
-            placeholder="Handoff notes, prep for tomorrow…"
-            aria-label="Day notes"
-          />
-          <span
-            className={`acc-daypanel__saved${saved ? ' acc-daypanel__saved--on' : ''}`}
-            aria-live="polite"
+    <Scrim leaving={leaving} onDismiss={dismiss}>
+      <div
+        className={`acc-daypanel ${leaving ? 'acc-leave' : 'acc-enter'}`}
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Day notes"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <header className="acc-daypanel__header">
+          <span className="acc-daypanel__eyebrow">{heading}</span>
+          <button
+            type="button"
+            className="acc-daypanel__close"
+            onClick={dismiss}
+            aria-label="Close"
           >
-            Saved
-          </span>
-        </div>
+            ×
+          </button>
+        </header>
 
-        <div className="acc-daypanel__absence">
-          {absence ? (
-            <div className="acc-daypanel__reported">
-              <p className="acc-daypanel__reported-text">
-                Absence noted - {absence.reason}
-                {absence.text ? `: ${absence.text}` : ''}. This prints in the report header, so
-                whoever reads the record knows why entries are thin.
-              </p>
+        <div className="acc-daypanel__body">
+          <p className="acc-daypanel__intro">
+            For a sub, or for tomorrow-you, anything the next person running this class should know.
+          </p>
+
+          <div className="acc-daypanel__notes">
+            <textarea
+              className="acc-daypanel__textarea"
+              value={draft}
+              onChange={onNotesChange}
+              disabled={locked}
+              rows={4}
+              placeholder="Handoff notes, prep for tomorrow…"
+              aria-label="Day notes"
+            />
+            <span
+              className={`acc-daypanel__saved${saved ? ' acc-daypanel__saved--on' : ''}`}
+              aria-live="polite"
+            >
+              Saved
+            </span>
+          </div>
+
+          <div className="acc-daypanel__absence">
+            {absence ? (
+              <div className="acc-daypanel__reported">
+                <p className="acc-daypanel__reported-text">
+                  Absence noted - {absence.reason}
+                  {absence.text ? `: ${absence.text}` : ''}. This prints in the report header, so
+                  whoever reads the record knows why entries are thin.
+                </p>
+                <button
+                  type="button"
+                  className="acc-daypanel__undo"
+                  onClick={() => mutate((d) => clearTeacherAbsence(d, dateKey))}
+                  disabled={locked}
+                >
+                  Undo
+                </button>
+              </div>
+            ) : reporting ? (
+              <div className="acc-daypanel__form acc-enter">
+                <span className="acc-daypanel__label">What happened?</span>
+                <div className="acc-daypanel__reasons">
+                  {TEACHER_ABSENCE_REASONS.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      className={`acc-daypanel__reason${reason === r.label ? ' acc-daypanel__reason--on' : ''}`}
+                      onClick={() => setReason(r.label)}
+                      aria-pressed={reason === r.label}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  className="acc-daypanel__input"
+                  value={detail}
+                  onChange={(e) => setDetail(e.target.value)}
+                  placeholder="Anything to add? (optional)"
+                  onKeyDown={(e) => e.key === 'Enter' && submitAbsence()}
+                />
+                {/* No Cancel - closing the dialog cancels. */}
+                <button type="button" className="acc-daypanel__submit" onClick={submitAbsence}>
+                  Add to notes
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                className="acc-daypanel__undo"
-                onClick={() => mutate((d) => clearTeacherAbsence(d, dateKey))}
+                className="acc-daypanel__start"
+                onClick={() => setReporting(true)}
                 disabled={locked}
               >
-                Undo
+                Report an absence
               </button>
-            </div>
-          ) : reporting ? (
-            <div className="acc-daypanel__form acc-enter">
-              <span className="acc-daypanel__label">What happened?</span>
-              <div className="acc-daypanel__reasons">
-                {TEACHER_ABSENCE_REASONS.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    className={`acc-daypanel__reason${reason === r.label ? ' acc-daypanel__reason--on' : ''}`}
-                    onClick={() => setReason(r.label)}
-                    aria-pressed={reason === r.label}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-              <input
-                className="acc-daypanel__input"
-                value={detail}
-                onChange={(e) => setDetail(e.target.value)}
-                placeholder="Anything to add? (optional)"
-                onKeyDown={(e) => e.key === 'Enter' && submitAbsence()}
-              />
-              {/* No Cancel - closing the popover cancels. */}
-              <button type="button" className="acc-daypanel__submit" onClick={submitAbsence}>
-                Add to notes
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="acc-daypanel__start"
-              onClick={() => setReporting(true)}
-              disabled={locked}
-            >
-              Report an absence
-            </button>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </Scrim>
   );
 }

@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useData } from '../../context/DataContext.jsx';
 import { PRODUCT_NAME } from '../../domain/schema.js';
-import { initialsOf } from '../../domain/initials.js';
 import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
 import useClock from '../../hooks/useClock.js';
@@ -13,27 +11,6 @@ function Icon({ path, size = 16 }) {
     </svg>
   );
 }
-
-const NOTE_ICON = (
-  <>
-    <rect
-      x="3"
-      y="2.5"
-      width="10"
-      height="11"
-      rx="1.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-    />
-    <path
-      d="M5.5 6h5M5.5 8.5h5M5.5 11h3"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-    />
-  </>
-);
 
 const BELL_ICON = (
   <>
@@ -64,8 +41,13 @@ const SEARCH_ICON = (
 /**
  * Floating pill nav.
  *
- * Brand, then the verbs (File / Edit / About / Find), then the status cluster:
- * day notes, notifications, avatar, clock.
+ * Brand, then the things you do - File / Edit / Notes / About / Find - then the
+ * two things that are only ever reported to you: alerts and the time.
+ *
+ * The notes icon and the avatar used to sit on the right as well. Both were
+ * glyphs standing in for a word, and both are now named where they belong:
+ * Notes in the bar, Settings under File. That leaves the right-hand side to
+ * mean one thing rather than three.
  *
  * Search is an icon rather than a field. It opens the same overlay Ctrl+Space
  * does - one search, one behaviour, reached two ways - instead of a second
@@ -75,15 +57,9 @@ export default function AppHeader({
   menus,
   notifications,
   openPanel,
-  onOpenSettings,
   onOpenNotifications,
-  onOpenDayNotes,
   onOpenSearch,
-  hasDayNotes,
 }) {
-  const { doc } = useData();
-  const teacher =
-    doc.teachers.find((t) => t.id === doc.settings?.activeTeacherId) || doc.teachers[0];
   const unread = notifications.length;
   const now = useClock();
 
@@ -105,10 +81,9 @@ export default function AppHeader({
         <MenuBar menus={menus} />
 
         {/*
-          Find sits with File / Edit / About rather than in the icon row.
-          Searching is something you go and do, like opening a menu; the cluster
-          on the right is where the app reports back - notes waiting, alerts,
-          who you are, what time it is.
+          Find sits with the menus rather than in the icon row. Searching is
+          something you go and do, like opening a menu; the cluster on the right
+          is only what the app reports back.
         */}
         <button
           type="button"
@@ -124,18 +99,6 @@ export default function AppHeader({
       <div className="acc-header__right">
         <button
           type="button"
-          className={`acc-header__icon${openPanel === 'daynotes' ? ' acc-header__icon--on' : ''}`}
-          onClick={onOpenDayNotes}
-          aria-label="Day notes"
-          aria-expanded={openPanel === 'daynotes'}
-          title="Day notes"
-        >
-          <Icon path={NOTE_ICON} />
-          {hasDayNotes && <span className="acc-header__pip" aria-hidden="true" />}
-        </button>
-
-        <button
-          type="button"
           className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}
           onClick={onOpenNotifications}
           aria-label={unread ? `Notifications, ${unread} to review` : 'Notifications'}
@@ -147,24 +110,13 @@ export default function AppHeader({
           )}
         </button>
 
-        <button
-          type="button"
-          className={`acc-avatar${openPanel === 'settings' ? ' acc-avatar--on' : ''}`}
-          onClick={onOpenSettings}
-          aria-label={`Your details - ${teacher?.displayName || 'set up your name'}`}
-          aria-expanded={openPanel === 'settings'}
-          title={teacher?.displayName || 'Your details'}
-        >
-          {initialsOf(teacher?.displayName)}
-        </button>
-
         {/*
           The wall clock, last. Useful here rather than decorative: the day
           closes itself at the end time in the profile, so "have I still got
           time to record this" is a real question with a real answer.
 
-          It sits past the avatar because it is the only thing in this row that
-          is not a control. Putting it among the buttons made it look like one.
+          Last, behind a hairline, because it is the one thing in this row that
+          is not a control. Standing among the buttons made it look like one.
         */}
         <time className="acc-header__clock acc-numeric" dateTime={now.toISOString()}>
           {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}

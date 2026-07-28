@@ -76,6 +76,10 @@ function AppShell() {
           { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
           { label: 'Save a copy…', onSelect: () => dataBridge.exportBackup() },
           { separator: true },
+          // Where a desktop app puts it. This replaces the avatar button, which
+          // spent a permanent slot in the bar on something opened once a term.
+          { label: 'Settings…', onSelect: () => toggle('settings') },
+          { separator: true },
           {
             label: 'Save and exit',
             // A browser tab cannot close itself, so the item is only shown where
@@ -102,20 +106,24 @@ function AppShell() {
           { separator: true },
           { label: 'Update accommodations…', hint: 'presets', onSelect: () => setModal('catalog') },
           { label: 'Copy accommodations…', onSelect: () => setModal('copy') },
-          { separator: true },
-          { label: 'Your details…', onSelect: () => toggle('settings') },
         ],
+      },
+      // A word in the bar rather than an icon in the corner. Day notes are
+      // written most days and are the one thing here a teacher composes rather
+      // than checks, so they get a name instead of a glyph to interpret.
+      {
+        id: 'notes',
+        label: 'Notes',
+        onSelect: () => toggle('daynotes'),
+        pip: Boolean(model.dayNotes || model.teacherAbsence),
       },
       {
         id: 'about',
         label: 'About',
-        items: [
-          { label: `About ${PRODUCT_NAME}`, onSelect: () => setModal('about') },
-          { label: 'Day notes', onSelect: () => toggle('daynotes') },
-        ],
+        items: [{ label: `About ${PRODUCT_NAME}`, onSelect: () => setModal('about') }],
       },
     ],
-    [toggle]
+    [toggle, model.dayNotes, model.teacherAbsence]
   );
 
   return (
@@ -142,16 +150,13 @@ function AppShell() {
           menus={menus}
           notifications={notifications}
           openPanel={openPanel}
-          onOpenSettings={() => toggle('settings')}
           onOpenNotifications={() => toggle('notifications')}
-          onOpenDayNotes={() => toggle('daynotes')}
           // The search icon opens the same overlay Ctrl+Space does. One search,
           // reached two ways, rather than two searches that behave differently.
           onOpenSearch={() => {
             close();
             palette.setOpen(true);
           }}
-          hasDayNotes={Boolean(model.dayNotes || model.teacherAbsence)}
         />
 
         {palette.open && <CommandPalette onClose={palette.close} />}
