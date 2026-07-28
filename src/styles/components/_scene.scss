@@ -14,6 +14,17 @@
   pointer-events: none;
 }
 
+/**
+ * The mote pass, drawn in FRONT of the board.
+ *
+ * Above the frosted card (which covers almost the whole window and blurs what
+ * is behind it) but below the pill nav at 70, so specks drift over the board
+ * without ever crossing the chrome. Inert, so nothing here can catch a drag.
+ */
+.acc-scene--motes {
+  z-index: 60;
+}
+
 // --- Sheet -----------------------------------------------------------------
 
 .acc-scene__sheet {

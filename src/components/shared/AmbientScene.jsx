@@ -18,6 +18,12 @@
  * Mounted once and never remounted, which is the point: the screens change
  * against a background that does not, so moving from one to the next reads as
  * turning your head rather than as loading a page.
+ *
+ * `layer` exists because the board sits on a frosted card that covers 92% of
+ * the window and blurs everything behind it - which included every mote. The
+ * board therefore draws the scene in two passes, `back` behind the card and
+ * `motes` in front of it, so the specks are actually visible where the spec
+ * says they should be. About has no card and takes the whole thing at once.
  */
 
 /**
@@ -130,20 +136,24 @@ const MOTES = [
   },
 ];
 
-export default function AmbientScene({ variant = 'aurora' }) {
+export default function AmbientScene({ variant = 'aurora', layer = 'all' }) {
   return (
-    <div className={`acc-scene acc-scene--${variant}`} aria-hidden="true">
-      <div className="acc-scene__sheet" />
+    <div className={`acc-scene acc-scene--${variant} acc-scene--${layer}`} aria-hidden="true">
+      {layer !== 'motes' && (
+        <>
+          <div className="acc-scene__sheet" />
 
-      <div className="acc-scene__blobs">
-        <span className="acc-scene__blob acc-scene__blob--1" />
-        <span className="acc-scene__blob acc-scene__blob--2" />
-        <span className="acc-scene__blob acc-scene__blob--3" />
-        <span className="acc-scene__blob acc-scene__blob--4" />
-      </div>
+          <div className="acc-scene__blobs">
+            <span className="acc-scene__blob acc-scene__blob--1" />
+            <span className="acc-scene__blob acc-scene__blob--2" />
+            <span className="acc-scene__blob acc-scene__blob--3" />
+            <span className="acc-scene__blob acc-scene__blob--4" />
+          </div>
+        </>
+      )}
 
       <div className="acc-scene__motes">
-        {MOTES.map((m) => (
+        {(layer === 'back' ? [] : MOTES).map((m) => (
           <span
             key={m.left}
             className="acc-scene__mote"

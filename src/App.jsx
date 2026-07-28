@@ -201,7 +201,17 @@ function AppShell() {
         and About cascades it away again, so both change what is on the page
         without changing what is behind it.
       */}
-      <AmbientScene variant={background} />
+      <AmbientScene variant={background} layer="back" />
+
+      {/*
+        The motes, in front of the board rather than behind it.
+
+        The frosted card covers almost the whole window and blurs what is behind
+        it, so every speck was being erased by the surface they are meant to
+        drift across. They pass over it now, still inert and still slow enough
+        to read as weather rather than as something moving on the board.
+      */}
+      <AmbientScene variant={background} layer="motes" />
 
       {/*
         One container owns the measure. Every chrome element (pill nav, board)
