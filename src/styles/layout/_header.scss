@@ -21,11 +21,10 @@
   box-shadow: var(--acc-shadow-raised);
   flex-shrink: 0;
 
-  // File / Edit / Notes / About, then Find. Search belongs with the verbs, not with the
-  // status cluster on the right: it is a thing you go and do, the same as
-  // opening a menu, and the icon row on the right is where the app reports back
-  // to you. 2px is the menubar's own rhythm, so it reads as one more item in
-  // that row rather than a separate group.
+  // File / Edit / Notes / About, then Find and the bell. Both are things you
+  // reach for, the same as opening a menu; the far end is only what the app
+  // reports back. 2px is the menubar's own rhythm, so they read as more items
+  // in that row rather than a separate group.
   &__menus {
     display: flex;
     align-items: center;
@@ -52,9 +51,8 @@
   // Quiet by default. It is a reference, not a notification, so it sits at the
   // weight of the icons beside it rather than competing with them.
   //
-  // Last in the row, past the avatar, with a hairline before it: it is the one
-  // thing here that is not a control, and standing among the buttons made it
-  // read like one.
+  // Last in the row, behind a hairline: it is the one thing here that is not a
+  // control, and standing among the buttons made it read like one.
   &__clock {
     padding-inline-start: var(--acc-space-3);
     font-size: var(--acc-fs-sub);
@@ -160,7 +158,18 @@
     }
   }
 
-  // Count badge. Amber, not red - these are advisories, not alarms.
+  /**
+   * Count badge.
+   *
+   * Pastel red now, not amber. Amber is spoken for: it is the Not Used colour,
+   * picked so a fact about delivery never reads as an accusation, and a badge
+   * wearing it made a count of advisories look like a compliance state.
+   *
+   * Soft fill with deep numerals rather than a saturated dot, both because that
+   * is how every other soft/strong pair in the palette works and because 9px
+   * white type on a filled circle is the loudest thing the bar could carry for
+   * something that only means "have a look when you can".
+   */
   &__dot {
     position: absolute;
     inset-block-start: 1px;
@@ -169,8 +178,8 @@
     block-size: 15px;
     padding: 0 3px;
     border-radius: var(--acc-radius-pill);
-    background: var(--acc-warning);
-    color: var(--acc-surface);
+    background: var(--acc-alert-soft);
+    color: var(--acc-alert);
     font-size: 9px;
     font-weight: var(--acc-fw-bold);
     line-height: 15px;

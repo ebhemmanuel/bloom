@@ -58,17 +58,16 @@ $acc-tokens: (
   'petal-4': #96ddc1,
   'petal-5': #a9bcf7,
 
-  // Motes: the drifting flecks of colour in the ambient scene. These lived on
-  // the onboarding root, on the grounds that nothing else would ever want them.
-  // The board's calm background is that same scene now, so they have a second
-  // consumer and belong in the map - scoped, they rendered transparent outside
-  // onboarding and the particles simply were not there.
   // The wordmark. A softer lavender than the accent, which is a control colour
-  // and too assertive for a name that sits in the corner all day. Onboarding
-  // had it scoped to its own root; the nav shows the same word beside the same
-  // mark, so the two have to agree.
+  // and too assertive for a name that sits in the corner all day.
   'brand': #8f83e3,
 
+  // Motes: the drifting flecks of colour in the ambient scene.
+  //
+  // These and the wordmark colour both lived on the onboarding root, on the
+  // grounds that nothing else would ever want them. The board's calm background
+  // is that same scene and its nav shows that same word, so both have a second
+  // consumer - and scoped, they resolved to nothing outside onboarding.
   'mote-1': #c9c0f2,
   'mote-2': #f6cade,
   'mote-3': #bfe6d6,
@@ -109,6 +108,17 @@ $acc-tokens: (
   // Feedback ---------------------------------------------------------------
   'danger': #a33a30,
   'danger-soft': #fdecea,
+  // The notification count. A pastel red rather than the amber it wore: amber
+  // is spoken for here - it is the Not Used colour, chosen so a fact about
+  // delivery never reads as an accusation - and a badge borrowing it made a
+  // count of advisories look like a compliance state. Deeper than danger-soft,
+  // which disappears against the frosted nav.
+  //
+  // Soft fill with deep numerals, like every other soft/strong pair in this
+  // map. A saturated dot with white 9px type on it is the loudest thing the bar
+  // could carry, for something that is only ever "have a look when you can".
+  'alert': #a3352c,
+  'alert-soft': #fbd6d1,
   'warning': #a06a2c,
   'warning-soft': #fbf1e2,
   'success': #2f7d63,
@@ -263,6 +273,9 @@ $acc-tokens-dark: (
   'plan-504-soft': #322553,
   'danger': #f0938a,
   'danger-soft': #43211e,
+  // Inverted for dark: the pale fill becomes the ink and vice versa.
+  'alert': #2a100d,
+  'alert-soft': #f0938a,
   'warning': #e0aa63,
   'warning-soft': #3b2d18,
   'success': #6fc9a6,
