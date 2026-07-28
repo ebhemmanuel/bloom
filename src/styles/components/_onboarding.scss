@@ -26,7 +26,6 @@
   --acc-ob-faint: #b5aec4;
   --acc-ob-line: #e9e5f0;
   --acc-ob-line-input: #d6d0e2;
-  --acc-ob-brand: #8f83e3;
   --acc-ob-wash: #eeeafd;
   --acc-ob-ring: #eeebfd;
   --acc-ob-edge: #c9c0f2;
@@ -432,7 +431,7 @@
   transition: background 260ms cubic-bezier(0.65, 0, 0.35, 1);
 
   &--on {
-    background: var(--acc-ob-brand);
+    background: var(--acc-brand);
   }
 }
 
@@ -472,7 +471,7 @@
   font-size: 52px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--acc-ob-brand);
+  color: var(--acc-brand);
   animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
 }
 
@@ -494,7 +493,7 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--acc-ob-brand);
+  color: var(--acc-brand);
 }
 
 .acc-ob__title {

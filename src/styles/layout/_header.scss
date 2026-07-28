@@ -1,4 +1,4 @@
-// Top navigation: product name left, notifications + avatar right.
+// Top navigation: wordmark left, menus centred, alerts and the clock right.
 
 // Detached floating pill nav, sitting on the aurora backdrop above the board.
 .acc-header {
@@ -21,10 +21,7 @@
   box-shadow: var(--acc-shadow-raised);
   flex-shrink: 0;
 
-  // File / Edit / About, in the middle of the cluster. An ordinary flex child:
-  // the brand and the menus are centred together, so nothing here needs its own
-  // offset.
-  // File / Edit / About, then Find. Search belongs with the verbs, not with the
+  // File / Edit / Notes / About, then Find. Search belongs with the verbs, not with the
   // status cluster on the right: it is a thing you go and do, the same as
   // opening a menu, and the icon row on the right is where the app reports back
   // to you. 2px is the menubar's own rhythm, so it reads as one more item in
@@ -36,7 +33,7 @@
   }
 
   /**
-   * Clock, search, notes, notifications, avatar: pinned to the far end.
+   * Alerts and the clock: pinned to the far end.
    *
    * Taken out of the flow rather than left in it, because the brand and the
    * menus stay centred on the bar and a flex row cannot centre one group and
@@ -119,10 +116,14 @@
     flex-shrink: 0;
   }
 
+  // The same lavender the wordmark wears in setup. In ink it read as a heading
+  // for the bar rather than as the product's name, and the mark beside it is
+  // the only coloured thing in the nav - the two belong to each other.
   &__name {
     font-size: var(--acc-fs-subhead);
     font-weight: var(--acc-fw-semibold);
     letter-spacing: -0.01em;
+    color: var(--acc-brand);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

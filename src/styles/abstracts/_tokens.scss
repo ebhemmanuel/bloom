@@ -63,6 +63,12 @@ $acc-tokens: (
   // The board's calm background is that same scene now, so they have a second
   // consumer and belong in the map - scoped, they rendered transparent outside
   // onboarding and the particles simply were not there.
+  // The wordmark. A softer lavender than the accent, which is a control colour
+  // and too assertive for a name that sits in the corner all day. Onboarding
+  // had it scoped to its own root; the nav shows the same word beside the same
+  // mark, so the two have to agree.
+  'brand': #8f83e3,
+
   'mote-1': #c9c0f2,
   'mote-2': #f6cade,
   'mote-3': #bfe6d6,
@@ -233,6 +239,8 @@ $acc-tokens-dark: (
   'fg-faint': #766e88,
   'accent': #a595ff,
   'accent-hover': #b8abff,
+  // Lifted on dark, where #8f83e3 sinks into the surface behind it.
+  'brand': #b3a9f5,
   'accent-soft': #322a5c,
   'accent-fg': #16121f,
   'status-unassigned': #a49cb8,
