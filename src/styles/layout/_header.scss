@@ -185,7 +185,22 @@
   z-index: 60;
   // Clears the floating pill nav rather than the old bordered bar.
   inset-block-start: 60px;
-  inset-inline-end: 0;
+  /**
+   * Centred under the bar, not pinned to its right end.
+   *
+   * The end-anchor made sense when the bell lived in the right-hand cluster.
+   * The bell moved in beside Find, which is centred, so the panel was hanging
+   * off an edge that no longer had anything to do with the control that opened
+   * it - it read as having been dropped there rather than pulled down from
+   * anything.
+   *
+   * Centred with auto margins rather than `translateX(-50%)`, because
+   * `acc-enter` and `acc-leave` animate `transform` - a translate here would be
+   * overridden for the length of the animation and then snap into place as it
+   * ended, which is a worse offset than the one being fixed.
+   */
+  inset-inline: 0;
+  margin-inline: auto;
   inline-size: min(420px, calc(100vw - var(--acc-space-6)));
   max-block-size: min(70vh, 620px);
   overflow-y: auto;
