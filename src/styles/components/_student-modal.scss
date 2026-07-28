@@ -97,3 +97,21 @@
   letter-spacing: 0.04em;
   color: var(--acc-fg-faint);
 }
+
+// Name and plan pill on one line, matching a lane header.
+.acc-stumod__ident {
+  min-inline-size: 0;
+}
+
+.acc-stumod__title {
+  display: flex;
+  align-items: center;
+  gap: var(--acc-space-2);
+}
+
+// The list row: name, then the plan pill, then the periods at the far end.
+.acc-stumod__student-text {
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--acc-space-2);
+}

@@ -345,6 +345,40 @@
   }
 }
 
+/**
+ * Destructive, and red about it.
+ *
+ * Amber is the app's "note this" and is deliberately used for Not Used, which
+ * is a fact rather than a failure. Unenrolling a student is a different kind of
+ * act - it removes them from every day forward - so it gets the one colour the
+ * palette reserves for consequence, and it is still gated behind a confirm.
+ */
+.acc-btn--danger {
+  background: var(--acc-surface);
+  border-color: var(--acc-danger);
+  color: var(--acc-danger);
+
+  &:hover:not(:disabled) {
+    background: var(--acc-danger);
+    border-color: var(--acc-danger);
+    color: var(--acc-surface);
+  }
+}
+
+// The confirm button inside the dialog is already filled; it only needs the
+// colour swapped, not the outline treatment above.
+.acc-btn--primary.acc-btn--danger {
+  background: var(--acc-danger);
+  border-color: var(--acc-danger);
+  color: var(--acc-surface);
+
+  &:hover:not(:disabled) {
+    background: #8c2f27;
+    border-color: #8c2f27;
+    color: var(--acc-surface);
+  }
+}
+
 .acc-btn--warn {
   background: var(--acc-warning);
   border-color: var(--acc-warning);

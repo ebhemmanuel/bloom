@@ -19,6 +19,9 @@ import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
 import { todayKey, formatDateMedium, addDays } from '../../domain/dates.js';
 import { PencilIcon, ArchiveIcon, RestoreIcon } from '../shared/RowIcons.jsx';
 
+// The same map the board uses, so a plan reads identically on both screens.
+const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
+
 /**
  * Look a student up, then manage their accommodations and their enrolment.
  *
@@ -104,10 +107,12 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                 >
                   <span className="acc-stumod__student-text">
                     <span className="acc-stumod__student-name">{s.displayName}</span>
-                    <span className="acc-stumod__student-meta">
+                    <span className={`acc-pill acc-pill--${PLAN_CLASS[s.planType] || 'other'}`}>
                       {s.planType}
-                      {s.unenrolledFrom ? ' · unenrolled' : ''}
                     </span>
+                    {s.unenrolledFrom && (
+                      <span className="acc-stumod__student-meta">unenrolled</span>
+                    )}
                   </span>
                   {/* Which classes, on the right of the row. Scanning "who is
                       in P3" should not mean opening every student in turn. */}
@@ -130,12 +135,20 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
           ) : (
             <>
               <header className="acc-stumod__head">
-                <div>
-                  <h3 className="acc-stumod__title">{student.displayName}</h3>
-                  <p className="acc-stumod__sub">
-                    {student.planType}
-                    {student.sasid ? ` · SASID ${student.sasid}` : ''}
-                  </p>
+                <div className="acc-stumod__ident">
+                  {/* Name and plan on one line, the plan as the same coloured
+                      pill the board uses. It was grey text on the line below,
+                      which made the same fact look like two different things
+                      depending on which screen you were on. */}
+                  <h3 className="acc-stumod__title">
+                    {student.displayName}
+                    <span
+                      className={`acc-pill acc-pill--${PLAN_CLASS[student.planType] || 'other'}`}
+                    >
+                      {student.planType}
+                    </span>
+                  </h3>
+                  {student.sasid && <p className="acc-stumod__sub">SASID {student.sasid}</p>}
                 </div>
 
                 {/*
@@ -385,7 +398,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                 ) : (
                   <button
                     type="button"
-                    className="acc-btn acc-btn--small acc-btn--quiet"
+                    className="acc-btn acc-btn--small acc-btn--danger"
                     disabled={readOnly}
                     title="They stop appearing from tomorrow. Their record so far is kept in full."
                     onClick={() => setConfirming(addDays(today, 1))}
@@ -411,7 +424,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
           )} onward, and will not be included in reports covering days after that.`}
           reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enrol them at any time if this was a mistake."
           confirmLabel="Unenrol"
-          tone="warn"
+          tone="danger"
           onCancel={() => setConfirming(null)}
           onConfirm={() => {
             mutate((d) => setStudentEnrollment(d, student.id, confirming));

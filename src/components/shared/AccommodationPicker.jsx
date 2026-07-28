@@ -51,22 +51,38 @@ export default function AccommodationPicker({
         onCommit(parsed);
       }}
     >
-      <input
-        className="acc-accpick__input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape' && onCancel) {
-            onChange('');
-            onCancel();
-          }
-        }}
-        placeholder={placeholder}
-        aria-label="Find or add an accommodation"
-        disabled={disabled}
-        // eslint-disable-next-line jsx-a11y/no-autofocus
-        autoFocus={autoFocus}
-      />
+      {/*
+        The app's attached input-and-action pair, not a field with a button
+        floating under it. Every other "type something, then Save/Add" in Bloom
+        is an `.acc-inputgroup` sharing one border, and this was the one place
+        that had drifted - which also meant its Add could sit misaligned under
+        the field it acted on.
+      */}
+      <div className="acc-inputgroup">
+        <input
+          className="acc-inputgroup__input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && onCancel) {
+              onChange('');
+              onCancel();
+            }
+          }}
+          placeholder={placeholder}
+          aria-label="Find or add an accommodation"
+          disabled={disabled}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus={autoFocus}
+        />
+        <button
+          type="submit"
+          className="acc-inputgroup__action"
+          disabled={disabled || parsed.length === 0}
+        >
+          {isBulk ? `Add all ${parsed.length}` : 'Add'}
+        </button>
+      </div>
 
       {/* Suppressed on a paste: a list of near-matches is noise when the
           teacher has already supplied every line they want. */}
@@ -91,15 +107,10 @@ export default function AccommodationPicker({
         </ul>
       )}
 
-      <div className="acc-accpick__actions">
-        <button
-          type="submit"
-          className="acc-btn acc-btn--small acc-btn--primary"
-          disabled={disabled || parsed.length === 0}
-        >
-          {isBulk ? `Add all ${parsed.length}` : 'Add'}
-        </button>
-        {onCancel && (
+      {/* Only where there is something to back out OF - the lane's fold-out
+          form. In the profile the field is simply always there. */}
+      {onCancel && (
+        <div className="acc-accpick__actions">
           <button
             type="button"
             className="acc-btn acc-btn--small acc-btn--quiet"
@@ -110,8 +121,8 @@ export default function AccommodationPicker({
           >
             Cancel
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {hint && <p className="acc-accpick__hint">{hint}</p>}
     </form>

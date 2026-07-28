@@ -978,11 +978,13 @@
     }
   }
 
+  // Right-aligned: unenrolling is the last, heaviest thing on this screen, and
+  // a destructive action belongs at the end of a row rather than leading it.
   &__foot {
     display: flex;
     flex-direction: column;
     gap: var(--acc-space-2);
-    align-items: flex-start;
+    align-items: flex-end;
     padding-block-start: var(--acc-space-3);
     border-top: 1px solid var(--acc-border);
   }
@@ -991,6 +993,7 @@
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-faint);
     line-height: var(--acc-lh-normal);
+    text-align: end;
   }
 }
 

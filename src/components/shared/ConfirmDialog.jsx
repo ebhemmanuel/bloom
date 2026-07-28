@@ -65,7 +65,7 @@ export default function ConfirmDialog({
             <button
               ref={confirmRef}
               type="button"
-              className={`acc-btn acc-btn--primary${tone === 'warn' ? ' acc-btn--warn' : ''}`}
+              className={`acc-btn acc-btn--primary${tone === 'warn' ? ' acc-btn--warn' : ''}${tone === 'danger' ? ' acc-btn--danger' : ''}`}
               onClick={dismissThen(onConfirm)}
             >
               {confirmLabel}
