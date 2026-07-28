@@ -2,7 +2,14 @@ import { useEffect } from 'react';
 import Scrim from './Scrim.jsx';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 
-export default function Modal({ title, subtitle, wide, onClose, children }) {
+/**
+ * `action` renders in the header, between the title and the close button.
+ *
+ * For the one control that belongs to the whole dialog rather than to anything
+ * in it, such as a search over its list. Putting it in the body would make it
+ * the first row of the content, which is what it is not.
+ */
+export default function Modal({ title, subtitle, wide, action, onClose, children }) {
   // Leaves the way it arrived. Every exit - ×, click-outside, Escape - routes
   // through `dismiss`, so no one path cuts while the others ease out.
   const { leaving, dismiss } = useDismissAnimation(onClose);
@@ -25,10 +32,11 @@ export default function Modal({ title, subtitle, wide, onClose, children }) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className="acc-modal__header">
-          <div>
+          <div className="acc-modal__heading">
             <h2 className="acc-modal__title">{title}</h2>
             {subtitle && <p className="acc-modal__subtitle">{subtitle}</p>}
           </div>
+          {action && <div className="acc-modal__action">{action}</div>}
           <button type="button" className="acc-popover__close" onClick={dismiss} aria-label="Close">
             ×
           </button>

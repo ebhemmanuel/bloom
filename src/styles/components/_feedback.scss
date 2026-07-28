@@ -226,10 +226,23 @@
   &__header {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
     gap: var(--acc-space-4);
     padding: var(--acc-space-4) var(--acc-space-5);
     border-bottom: 1px solid var(--acc-border);
+  }
+
+  // Takes the slack, so the action and the close button sit at the far end
+  // however long the title runs.
+  &__heading {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  // Centred against the title block rather than its top, because a control is
+  // read as sitting beside the heading, not as starting at the same line.
+  &__action {
+    flex: none;
+    align-self: center;
   }
 
   &__title {

@@ -285,38 +285,65 @@
   flex-direction: column;
   gap: var(--acc-space-4);
 
-  &__bar {
-    display: flex;
-    gap: var(--acc-space-3);
-    align-items: center;
+  // In the modal header, so it reads as belonging to the dialog rather than as
+  // the first row of its list.
+  &__search {
+    inline-size: 260px;
   }
 
-  &__toggle {
+  /**
+   * Archived presets, folded under the active ones.
+   *
+   * A list item rather than a sibling of the list, so it scrolls with the rows
+   * it belongs to instead of pinning itself under them.
+   */
+  &__archived {
+    margin-block-start: var(--acc-space-2);
+    padding-block-start: var(--acc-space-2);
+    border-block-start: 1px solid var(--acc-border);
+  }
+
+  &__archivedhead {
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
-    font-size: var(--acc-fs-tiny);
+    inline-size: 100%;
+    min-block-size: 34px;
+    padding-inline: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    text-align: start;
+    font-size: var(--acc-fs-sub);
     color: var(--acc-fg-muted);
-    white-space: nowrap;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+      color: var(--acc-fg);
+    }
   }
 
   &__list {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    max-block-size: 300px;
+    // Taller rows need a taller window, or the list shows three and a half of
+    // them and reads as clipped rather than as scrollable.
+    max-block-size: 380px;
     overflow-y: auto;
   }
 
+  // Tall enough for a full-height control to sit in without being pinched. The
+  // row was sized for bare text and every input in it had to shrink to fit.
   &__row {
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
-    padding: var(--acc-space-2);
+    min-block-size: 48px;
+    padding: var(--acc-space-2) var(--acc-space-3);
     inline-size: 100%;
     min-inline-size: 0;
     box-sizing: border-box;
-    border-radius: var(--acc-radius-sm);
+    border-radius: var(--acc-radius-md);
     font-size: var(--acc-fs-sub);
     transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
 
@@ -340,23 +367,53 @@
 
   &__cat,
   &__detail {
-    font-size: var(--acc-fs-tiny);
+    font-size: var(--acc-fs-sub);
     color: var(--acc-fg-muted);
     flex-shrink: 0;
   }
 
+  // Wears what every other input in the app wears: the same 32px height, the
+  // same resting border, the same accent ring on focus. It was a 2px-padded
+  // native select before, which read as a form control someone forgot to style.
   &__cat {
-    max-inline-size: 130px;
+    inline-size: 150px;
+    block-size: 32px;
+    padding-inline: var(--acc-space-3);
     border: 1px solid var(--acc-border);
     border-radius: var(--acc-radius-sm);
-    padding: 2px;
     background: var(--acc-surface);
+    color: var(--acc-fg);
+    font-family: inherit;
+    outline: none;
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover:not(:focus):not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
   }
 
+  // The checkbox and its word are one target, so the whole thing is clickable
+  // rather than just the 13px box.
   &__detail {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--acc-space-2);
+    block-size: 32px;
+    padding-inline: var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
   }
 
   &__used {
@@ -378,16 +435,52 @@
     flex: none;
   }
 
-  // Both hold a single `.acc-inputgroup`, which does the row layout itself.
-  &__rename,
-  &__add {
+  // Holds a single `.acc-inputgroup`, which does the row layout itself.
+  &__rename {
     flex-shrink: 0;
     inline-size: 100%;
   }
 
-  &__add {
-    padding-block-start: var(--acc-space-3);
-    border-block-start: 1px solid var(--acc-border);
+  // "Add <what you typed>", at the end of the results. Dashed so it reads as a
+  // slot to fill rather than as another preset that already exists.
+  &__row--add {
+    padding: 0;
+    border: 1px dashed var(--acc-border-strong);
+    background: transparent;
+
+    &:hover {
+      background: var(--acc-accent-soft);
+      border-color: var(--acc-accent);
+    }
+  }
+
+  &__addbtn {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    min-block-size: 46px;
+    padding-inline: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    text-align: start;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-accent);
+
+    strong {
+      font-weight: var(--acc-fw-semibold);
+    }
+  }
+
+  &__addplus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 20px;
+    block-size: 20px;
+    border-radius: 50%;
+    background: var(--acc-accent-soft);
+    font-size: 14px;
+    line-height: 1;
   }
 
   &__none {
