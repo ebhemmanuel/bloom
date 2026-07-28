@@ -3,8 +3,9 @@ import DatePicker from './DatePicker.jsx';
 import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
+import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
-import { formatDateMedium } from '../../domain/dates.js';
+import { formatDateMedium, formatDateLong } from '../../domain/dates.js';
 
 function Chevron({ down }) {
   return (
@@ -148,6 +149,7 @@ export default function BoardToolbar({
   onToggleSort,
 }) {
   const [notice, setNotice] = useState(null);
+  const [confirm, setConfirm] = useState(null);
   const disabled = readOnly || model.sealed;
 
   /**
@@ -160,69 +162,31 @@ export default function BoardToolbar({
    * This is not caution for its own sake. Copying statuses forward asserts
    * delivery on a day nobody has observed yet, and on a compliance record that
    * is the one class of change that should never happen from a single click.
+   *
+   * A dialog, not a corner toast. The toast this replaces carried the whole
+   * confirmation - question, Copy button and all - in the bottom corner of a
+   * board the teacher was looking at the top of, so the honest report of it was
+   * that clicking the menu item did nothing. Refusals go through the same
+   * dialog: every click gets an answer in the middle of the screen.
    */
   const askThenCopy = () => {
     const preview = onCopyPrevious(SEED_MODE.FULL, false, { apply: false });
-    if (!preview) return;
+    if (preview) setConfirm(preview);
+  };
 
-    if (!preview.applied && preview.reason === 'no-source') {
-      setNotice({ tone: 'warn', text: 'No earlier day with anything recorded to copy from.' });
-      return;
-    }
-    if (!preview.applied && preview.reason === 'sealed') {
-      setNotice({ tone: 'warn', text: 'This day is closed out.' });
-      return;
-    }
-
-    const overwrite = !preview.applied && preview.reason === 'would-overwrite';
-    if (overwrite) {
-      setNotice({
-        tone: 'warn',
-        text: "You've already recorded something today. Copying will overwrite it.",
-        confirmLabel: 'Overwrite anyway',
-        onConfirm: () => copy(SEED_MODE.FULL, true),
-      });
-      return;
-    }
-
+  const copy = (force) => {
+    const result = onCopyPrevious(SEED_MODE.FULL, force);
+    if (!result?.applied) return;
     setNotice({
       tone: 'ok',
-      text: `Copy ${preview.copied} entr${preview.copied === 1 ? 'y' : 'ies'} from ${formatDateMedium(
-        preview.sourceDate
-      )} onto today? This records them as delivered.`,
-      confirmLabel: 'Copy them',
-      onConfirm: () => copy(SEED_MODE.FULL, false),
+      text: `Copied ${result.copied} entr${result.copied === 1 ? 'y' : 'ies'} from ${formatDateMedium(
+        result.sourceDate
+      )}.`,
     });
   };
 
-  const copy = (mode, force) => {
-    const result = onCopyPrevious(mode, force);
-    if (!result) return;
-
-    if (result.applied) {
-      setNotice({
-        tone: 'ok',
-        text:
-          mode === SEED_MODE.FULL
-            ? `Copied ${result.copied} entr${result.copied === 1 ? 'y' : 'ies'} from ${result.sourceDate}.`
-            : `Set up today's cards from ${result.sourceDate}. Statuses start unassigned.`,
-      });
-      return;
-    }
-
-    if (result.reason === 'would-overwrite') {
-      setNotice({
-        tone: 'warn',
-        text: "You've already recorded something today. Copying will overwrite it.",
-        confirmLabel: 'Overwrite anyway',
-        onConfirm: () => copy(mode, true),
-      });
-    } else if (result.reason === 'no-source') {
-      setNotice({ tone: 'warn', text: 'No earlier day with a record to copy from.' });
-    } else if (result.reason === 'sealed') {
-      setNotice({ tone: 'warn', text: 'This day is closed out.' });
-    }
-  };
+  // Whether the dialog is asking a question or delivering bad news.
+  const canProceed = Boolean(confirm?.applied || confirm?.reason === 'would-overwrite');
 
   return (
     <>
@@ -336,6 +300,38 @@ export default function BoardToolbar({
           onCloseOutDay={onCloseOutDay}
         />
       </div>
+
+      {confirm && (
+        <ConfirmDialog
+          title={canProceed ? 'Copy your last recorded day?' : 'Nothing to copy'}
+          body={
+            confirm.reason === 'no-source'
+              ? 'There is no earlier day with anything on it to bring forward.'
+              : confirm.reason === 'sealed'
+                ? 'This day is closed out, so it cannot be changed.'
+                : confirm.reason === 'would-overwrite'
+                  ? 'You have already recorded something today. Copying will replace it.'
+                  : `This brings ${confirm.copied} entr${confirm.copied === 1 ? 'y' : 'ies'} forward from ${formatDateLong(
+                      confirm.sourceDate
+                    )} and records them as delivered today.`
+          }
+          reassurance={
+            canProceed
+              ? 'Notes and absences are not copied, and you can move any card afterwards.'
+              : undefined
+          }
+          confirmLabel={
+            !canProceed ? null : confirm.reason === 'would-overwrite' ? 'Replace it' : 'Copy them'
+          }
+          cancelLabel={canProceed ? 'Cancel' : 'Close'}
+          tone={confirm.reason === 'would-overwrite' ? 'warn' : 'default'}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            if (canProceed) copy(true);
+            setConfirm(null);
+          }}
+        />
+      )}
 
       {notice && <Toast {...notice} onDismiss={() => setNotice(null)} />}
     </>

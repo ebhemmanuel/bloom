@@ -21,6 +21,17 @@ import { assignmentConfig, isAssignmentActiveOn } from './schema.js';
  */
 
 /**
+ * How far back a copy will look for a source day.
+ *
+ * Wide enough to survive a two-week break, a snow week and a stretch of testing
+ * days back to back. It was 30, which quietly failed the first Monday after any
+ * long holiday - the teacher's last real day was just out of reach and the only
+ * feedback was "no earlier day to copy from". The date is always named in the
+ * confirmation, so a distant source is visible rather than silent.
+ */
+const LOOKBACK_DAYS = 90;
+
+/**
  * Students who should appear on the board for a given date.
  *
  * Deliberately NOT filtered by `createdAt`. That field records when the row was
@@ -202,6 +213,33 @@ export function dayHasWork(doc, dateKey) {
 }
 
 /**
+ * Is there anything on this day worth carrying forward?
+ *
+ * Deliberately NOT `dayHasWork`. That answers "has the teacher touched this
+ * day", which is exactly right for the overwrite guard and exactly wrong here.
+ * A day whose statuses all came from standing defaults has plenty to copy, and
+ * treating it as empty is why "Copy yesterday" reported no earlier day on a
+ * board that was visibly full of them.
+ *
+ * Absence and notes do not count: neither is ever copied, so a day carrying
+ * only those would produce a copy of nothing.
+ */
+export function dayHasCopyableState(doc, dateKey) {
+  const day = doc.days?.[dateKey];
+  if (!day) return false;
+  return Object.values(day.students || {}).some((s) =>
+    Object.values(s.entries || {}).some((e) => e.status !== STATUS.UNASSIGNED)
+  );
+}
+
+/** The same question for one student. */
+export function studentHasCopyableState(doc, dateKey, studentId) {
+  const entries = doc.days?.[dateKey]?.students?.[studentId]?.entries;
+  if (!entries) return false;
+  return Object.values(entries).some((e) => e.status !== STATUS.UNASSIGNED);
+}
+
+/**
  * Seed a day from the previous one.
  *
  * `structure` (the default) copies only WHICH cards appear, resetting every
@@ -262,7 +300,9 @@ export function copyFromPreviousDay(
         ...entry,
         status: sourceEntry.status,
         detail: sourceEntry.detail || '',
-        resolvedBy: 'user',
+        useCount: sourceEntry.useCount || 1,
+        resolvedBy: RESOLVED_BY.USER,
+        resolvedAt: null,
         updatedAt: stamp,
       };
       copied += 1;
@@ -278,7 +318,17 @@ export function copyFromPreviousDay(
       ...seeded,
       days: {
         ...seeded.days,
-        [targetDate]: { ...day, students, seededFrom: from, seedMode: mode },
+        [targetDate]: {
+          ...day,
+          // Deliberately copying a day forward is working on it, so it stops
+          // being bulk-laid-out structure. Without this the entries the copy did
+          // not fill went on resolving as `no_record` while their neighbours
+          // read as delivered, which is two different claims about one day.
+          backfilled: false,
+          students,
+          seededFrom: from,
+          seedMode: mode,
+        },
       },
     },
     applied: true,
@@ -437,15 +487,15 @@ export function studentHasWork(doc, dateKey, studentId) {
   );
 }
 
-/** The last day THIS student had something recorded. */
-export function findPreviousWorkedDayFor(doc, fromDate, studentId, maxLookback = 30) {
+/** The last day THIS student had anything worth copying. */
+export function findPreviousWorkedDayFor(doc, fromDate, studentId, maxLookback = LOOKBACK_DAYS) {
   const earliest = addDays(fromDate, -maxLookback);
   return (
     Object.keys(doc.days || {})
       .filter((k) => compareDateKeys(k, fromDate) < 0 && compareDateKeys(k, earliest) >= 0)
       .sort()
       .reverse()
-      .find((k) => studentHasWork(doc, k, studentId)) || null
+      .find((k) => studentHasCopyableState(doc, k, studentId)) || null
   );
 }
 
@@ -462,14 +512,14 @@ export function findPreviousDayWithRecord(doc, fromDate, maxLookback = 30) {
 }
 
 /**
- * The most recent day the teacher actually recorded something on.
+ * The most recent day that has something on it to copy.
  *
  * Not merely the most recent day that EXISTS. Since the year is laid out from
  * its start, yesterday almost always has a record, and it is almost always
  * empty; copying from it brought across nothing and made "Copy yesterday" look
- * broken. What a teacher means by yesterday is the last day they worked.
+ * broken. What a teacher means by yesterday is the last day with anything on it.
  */
-export function findPreviousWorkedDay(doc, fromDate, maxLookback = 30) {
+export function findPreviousWorkedDay(doc, fromDate, maxLookback = LOOKBACK_DAYS) {
   const earliest = addDays(fromDate, -maxLookback);
 
   const keys = Object.keys(doc.days || {})
@@ -477,5 +527,5 @@ export function findPreviousWorkedDay(doc, fromDate, maxLookback = 30) {
     .sort()
     .reverse();
 
-  return keys.find((k) => dayHasWork(doc, k)) || null;
+  return keys.find((k) => dayHasCopyableState(doc, k)) || null;
 }

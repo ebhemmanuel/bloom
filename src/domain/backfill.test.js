@@ -9,9 +9,11 @@ import {
   findPreviousWorkedDay,
   copyFromPreviousDay,
   copyStudentFromPreviousDay,
+  dayHasWork,
+  dayHasCopyableState,
 } from './seed.js';
 import { SEED_MODE } from './constants.js';
-import { setEntryStatus } from './mutations.js';
+import { setEntryStatus, setAssignmentDefault } from './mutations.js';
 import { buildBoardModel } from './selectors.js';
 import { makeDoc, deepFreeze, T } from './test-helpers.js';
 
@@ -174,6 +176,66 @@ describe('backfilling the year', () => {
     const { doc } = backfillDays(docWithTerm(), { from: TERM_START, to: TODAY, now });
     expect(findPreviousWorkedDay(doc, TODAY)).toBeNull();
     expect(copyFromPreviousDay(doc, TODAY, { now }).reason).toBe('no-source');
+  });
+
+  /**
+   * The reported bug, and the reason it took three goes to find.
+   *
+   * A day whose statuses all came from standing defaults is not "worked on" -
+   * the teacher has not looked at it - but it is absolutely full of things to
+   * copy. Source-finding used the overwrite guard's predicate, so on a board
+   * where every accommodation had a default, "Copy yesterday" answered "no
+   * earlier day with anything recorded" while showing a screen full of records.
+   */
+  it('copies from a day whose statuses came from standing defaults', () => {
+    let doc = setAssignmentDefault(docWithTerm(), T.asgJordanExtTime, STATUS.USED, { now });
+    doc = backfillDays(doc, { from: TERM_START, to: TODAY, now }).doc;
+
+    const A = '2026-09-15';
+    expect(doc.days[A].students[T.jordan].entries[T.asgJordanExtTime].resolvedBy).toBe('default');
+    // Nobody has touched it, so it is not work...
+    expect(dayHasWork(doc, A)).toBe(false);
+    // ...but there is plainly something on it to bring forward.
+    expect(dayHasCopyableState(doc, A)).toBe(true);
+
+    const result = copyFromPreviousDay(doc, TODAY, { mode: SEED_MODE.FULL, now });
+    expect(result.applied).toBe(true);
+    expect(result.sourceDate).toBe(A);
+    expect(result.doc.days[TODAY].students[T.jordan].entries[T.asgJordanExtTime].resolvedBy).toBe(
+      'user'
+    );
+  });
+
+  /**
+   * A copy is the teacher working on the day, so the day stops being bulk
+   * structure. Left backfilled, the entries the copy did not fill went on
+   * resolving as no_record beside ones reading as delivered.
+   */
+  it('clears the backfilled flag on the day it copies onto', () => {
+    let { doc } = backfillDays(docWithTerm(), { from: TERM_START, to: TODAY, now });
+    doc = setEntryStatus(doc, '2026-09-15', T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    expect(doc.days[TODAY].backfilled).toBe(true);
+
+    const result = copyFromPreviousDay(doc, TODAY, { mode: SEED_MODE.FULL, now });
+    expect(result.doc.days[TODAY].backfilled).toBe(false);
+  });
+
+  /** A long holiday used to put the last real day out of reach. */
+  it('still finds a source across a long break', () => {
+    const base = docWithTerm();
+    // The break has to be longer than the old 30-day window, so the
+    // accommodations must have been in force before it started.
+    const doc0 = {
+      ...base,
+      assignments: base.assignments.map((a) => ({ ...a, activeFrom: '2026-05-01' })),
+    };
+    let doc = ensureDay(doc0, '2026-08-03', now);
+    doc = setEntryStatus(doc, '2026-08-03', T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    doc = ensureDay(doc, TODAY, now);
+
+    const result = copyFromPreviousDay(doc, TODAY, { mode: SEED_MODE.FULL, now });
+    expect(result.applied).toBe(true);
+    expect(result.sourceDate).toBe('2026-08-03');
   });
 });
 

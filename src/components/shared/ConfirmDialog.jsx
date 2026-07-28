@@ -46,18 +46,31 @@ export default function ConfirmDialog({
         <p className="acc-confirm__body">{body}</p>
         {reassurance && <p className="acc-confirm__reassurance">{reassurance}</p>}
 
+        {/*
+          `confirmLabel: null` makes this an acknowledgement rather than a
+          question - used when the answer to what you clicked is "that is not
+          possible, and here is why". Offering a Confirm button that only closes
+          the dialog would imply the action was still available.
+        */}
         <div className="acc-confirm__actions">
-          <button type="button" className="acc-btn acc-btn--quiet" onClick={dismiss}>
+          <button
+            ref={confirmLabel ? undefined : confirmRef}
+            type="button"
+            className={`acc-btn${confirmLabel ? ' acc-btn--quiet' : ' acc-btn--primary'}`}
+            onClick={dismiss}
+          >
             {cancelLabel}
           </button>
-          <button
-            ref={confirmRef}
-            type="button"
-            className={`acc-btn acc-btn--primary${tone === 'warn' ? ' acc-btn--warn' : ''}`}
-            onClick={dismissThen(onConfirm)}
-          >
-            {confirmLabel}
-          </button>
+          {confirmLabel && (
+            <button
+              ref={confirmRef}
+              type="button"
+              className={`acc-btn acc-btn--primary${tone === 'warn' ? ' acc-btn--warn' : ''}`}
+              onClick={dismissThen(onConfirm)}
+            >
+              {confirmLabel}
+            </button>
+          )}
         </div>
       </div>
     </Scrim>
