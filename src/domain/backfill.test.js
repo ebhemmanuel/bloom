@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { STATUS, DERIVED_STATUS } from './constants.js';
 import { effectiveStatus, sealDay } from './resolve.js';
-import { backfillDays, backfillRange, ensureDay, activeStudentsFor } from './seed.js';
+import {
+  backfillDays,
+  backfillRange,
+  ensureDay,
+  activeStudentsFor,
+  findPreviousWorkedDay,
+  copyFromPreviousDay,
+} from './seed.js';
+import { SEED_MODE } from './constants.js';
 import { setEntryStatus } from './mutations.js';
 import { buildBoardModel } from './selectors.js';
 import { makeDoc, deepFreeze, T } from './test-helpers.js';
@@ -93,6 +101,33 @@ describe('backfilling the year', () => {
 
   it('has no range to fill without a recorded term start', () => {
     expect(backfillRange(makeDoc(), now)).toBeNull();
+  });
+
+  /**
+   * "Copy yesterday" means the last day you worked, not the last day that
+   * exists. Once the year is laid out, yesterday almost always has a record and
+   * it is almost always empty, so copying from it brought across nothing.
+   */
+  it('copies from the last day with work, skipping empty laid-out days', () => {
+    let { doc } = backfillDays(docWithTerm(), { from: TERM_START, to: TODAY, now });
+    // Work on the 8th; the 9th, 10th, 14th and 15th stay empty behind it.
+    doc = setEntryStatus(doc, '2026-09-08', T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+
+    expect(findPreviousWorkedDay(doc, TODAY)).toBe('2026-09-08');
+
+    const result = copyFromPreviousDay(doc, TODAY, { mode: SEED_MODE.FULL, now });
+    expect(result.applied).toBe(true);
+    expect(result.sourceDate).toBe('2026-09-08');
+    expect(result.copied).toBe(1);
+    expect(result.doc.days[TODAY].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
+      STATUS.USED
+    );
+  });
+
+  it('reports no source when nothing has ever been worked', () => {
+    const { doc } = backfillDays(docWithTerm(), { from: TERM_START, to: TODAY, now });
+    expect(findPreviousWorkedDay(doc, TODAY)).toBeNull();
+    expect(copyFromPreviousDay(doc, TODAY, { now }).reason).toBe('no-source');
   });
 });
 

@@ -72,6 +72,15 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
 
       {open && (
         <div className="acc-overflow__menu acc-enter" role="menu">
+          {/*
+            Copies the STATUSES, not just the cards.
+
+            Structure-only was the safe default when a day started empty, but
+            days are laid out from the start of the year now, so the cards are
+            already there and copying only those did nothing a teacher could
+            see. What is actually wanted is "yesterday again", and that is a
+            claim about delivery, so it is confirmed before it lands.
+          */}
           <button
             type="button"
             role="menuitem"
@@ -79,12 +88,12 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
             disabled={disabled}
             onClick={() => {
               setOpen(false);
-              onCopyPrevious(SEED_MODE.STRUCTURE, false);
+              onCopyPrevious(SEED_MODE.FULL, false);
             }}
           >
             <span>Copy yesterday</span>
             <span className="acc-overflow__hint">
-              Same cards as the last recorded day, all unassigned
+              Brings across what you recorded on the last day you worked
             </span>
           </button>
 

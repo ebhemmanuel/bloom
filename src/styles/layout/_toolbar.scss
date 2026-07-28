@@ -260,20 +260,26 @@
       box-shadow: inset 0 0 0 1px var(--acc-accent);
     }
 
-    &--current {
+    // Two classes deep so a day carrying several of these resolves in a fixed
+    // order rather than by source position.
+    &#{&}--current {
       background: var(--acc-accent);
       color: var(--acc-accent-fg);
       font-weight: var(--acc-fw-semibold);
     }
 
-    &--inrange {
+    // The days between the two ends. Square-sided so the run reads as one band
+    // rather than as five separate pills.
+    &#{&}--inrange {
       background: var(--acc-accent-soft);
+      border-radius: 0;
     }
 
-    &--edge {
+    &#{&}--edge {
       background: var(--acc-accent);
       color: var(--acc-accent-fg);
       font-weight: var(--acc-fw-semibold);
+      border-radius: var(--acc-radius-sm);
     }
   }
 

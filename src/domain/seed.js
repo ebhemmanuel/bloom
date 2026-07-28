@@ -220,7 +220,7 @@ export function copyFromPreviousDay(
   targetDate,
   { sourceDate, mode = SEED_MODE.STRUCTURE, force = false, now = new Date() } = {}
 ) {
-  const from = sourceDate || findPreviousDayWithRecord(doc, targetDate);
+  const from = sourceDate || findPreviousWorkedDay(doc, targetDate);
   if (!from) return { doc, applied: false, reason: 'no-source', copied: 0 };
 
   const source = doc.days?.[from];
@@ -356,4 +356,23 @@ export function findPreviousDayWithRecord(doc, fromDate, maxLookback = 30) {
   const earliest = addDays(fromDate, -maxLookback);
   const candidate = keys[keys.length - 1];
   return compareDateKeys(candidate, earliest) >= 0 ? candidate : null;
+}
+
+/**
+ * The most recent day the teacher actually recorded something on.
+ *
+ * Not merely the most recent day that EXISTS. Since the year is laid out from
+ * its start, yesterday almost always has a record, and it is almost always
+ * empty; copying from it brought across nothing and made "Copy yesterday" look
+ * broken. What a teacher means by yesterday is the last day they worked.
+ */
+export function findPreviousWorkedDay(doc, fromDate, maxLookback = 30) {
+  const earliest = addDays(fromDate, -maxLookback);
+
+  const keys = Object.keys(doc.days || {})
+    .filter((k) => compareDateKeys(k, fromDate) < 0 && compareDateKeys(k, earliest) >= 0)
+    .sort()
+    .reverse();
+
+  return keys.find((k) => dayHasWork(doc, k)) || null;
 }
