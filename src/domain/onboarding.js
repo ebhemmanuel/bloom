@@ -133,3 +133,29 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
 
   return doc;
 }
+
+/**
+ * Which of the two setup screens the app owes the user, if either.
+ *
+ * Pure, and separate from App so it can be tested: getting this wrong strands a
+ * teacher on the first run, which is the one moment they cannot work around.
+ *
+ * The DOCUMENT decides whether setup is finished, never the load status.
+ * `loadStatus` is a snapshot of how the app booted and is never revisited, so a
+ * boot with no pointer file kept reporting `needs-location` after the location
+ * had been chosen and the document written - and the gate, reading it, kept
+ * rendering onboarding on top of a finished setup. Onboarding's last phase is
+ * the outro, so what a teacher saw was "One moment..." forever.
+ *
+ * `needsLocation` only says whether the flow should INCLUDE the folder step. It
+ * cannot, by itself, hold anyone in onboarding.
+ */
+export function setupStage(doc, loadStatus) {
+  const onboarded = Boolean(doc?.settings?.onboardingCompletedAt);
+  const noPointer = loadStatus === 'needs-location' || loadStatus === 'needs-onboarding-location';
+
+  return {
+    showOnboarding: !onboarded,
+    needsLocation: noPointer && !onboarded,
+  };
+}

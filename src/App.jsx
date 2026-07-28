@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
+import { setupStage } from './domain/onboarding.js';
 import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
 import ProfileModal from './components/shell/ProfileModal.jsx';
 import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
@@ -282,14 +283,14 @@ function AppRoutes() {
   // not a gate in front of a gate. OnboardingFlow folds the location step in when
   // one is needed and skips it when a folder is already configured.
   //
-  // Whether onboarding is done is PERSISTED state, so the document is the source
-  // of truth - not the load-time snapshot. Keying this off loadState would leave
-  // the user stuck after they complete setup, since finishing writes to the doc
-  // and never revisits how the app booted.
-  const needsLocation =
-    loadState.status === 'needs-location' || loadState.status === 'needs-onboarding-location';
+  // See setupStage: the document decides whether setup is done, never the load
+  // status. This used to hold `needsLocation` in the condition as well, which
+  // stranded anyone who booted without a pointer file - the status is a snapshot
+  // of how the app started and never changes, so finishing setup did not release
+  // the gate and onboarding stayed up on its last phase.
+  const { showOnboarding, needsLocation } = setupStage(doc, loadState.status);
 
-  if (needsLocation || !doc || !doc.settings?.onboardingCompletedAt) {
+  if (showOnboarding) {
     return <OnboardingFlow needsLocation={needsLocation} />;
   }
 
