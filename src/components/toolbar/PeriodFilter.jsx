@@ -20,14 +20,33 @@ export default function PeriodFilter({ periods, selected, onChange }) {
   const [renaming, setRenaming] = useState(null);
   const [draft, setDraft] = useState('');
   const [adding, setAdding] = useState('');
+  // Named so the create form can say what it did - see `visible` below.
+  const [justAdded, setJustAdded] = useState(null);
 
   const ref = usePopoverDismiss(open, () => {
     setOpen(false);
     setRenaming(null);
   });
 
-  // Deliberately NOT hidden when there are no periods: this popover is the only
-  // place they can be created, so hiding it would make the empty state permanent.
+  // Deliberately NOT hidden when there are no periods: this popover is one of
+  // the places they can be created, so hiding it would make the empty state
+  // permanent.
+
+  /**
+   * Periods worth filtering by: the ones somebody is actually in.
+   *
+   * Filtering to a period with nobody in it produces an empty board, which is
+   * not an answer to any question a teacher has. Periods accumulate - a
+   * timetable gets rebuilt, a class is not taught this term - and a list of
+   * them that includes the empty ones is a list you have to know the timetable
+   * to read.
+   *
+   * A SELECTED period stays listed even when it empties out. Otherwise removing
+   * the last student from the period you are filtered to would hide the only
+   * control that could clear it, and the board would sit empty with no way back
+   * - the same trap the date range had.
+   */
+  const visible = periods.filter((p) => p.studentCount > 0 || selected.includes(p.id));
 
   const toggle = (id) =>
     onChange(selected.includes(id) ? selected.filter((p) => p !== id) : [...selected, id]);
@@ -72,7 +91,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
 
       {open && (
         <div className="acc-periods__menu acc-enter" role="menu">
-          {periods.length > 0 && (
+          {visible.length > 0 && (
             <button
               type="button"
               role="menuitemcheckbox"
@@ -85,7 +104,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
             </button>
           )}
 
-          {periods.map((p) =>
+          {visible.map((p) =>
             renaming === p.id ? (
               <form
                 key={p.id}
@@ -146,6 +165,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
                 const name = adding.trim();
                 if (!name) return;
                 mutate((d) => addPeriod(d, { name }));
+                setJustAdded(name);
                 setAdding('');
               }}
             >
@@ -164,9 +184,21 @@ export default function PeriodFilter({ periods, selected, onChange }) {
             </form>
           )}
 
+          {/*
+            A period nobody is in yet will not appear in the list above, so
+            adding one has to say so out loud. Without this the form would look
+            broken: you type a name, press Add, and nothing changes.
+          */}
+          {justAdded && (
+            <p className="acc-periods__added acc-enter">
+              Added {justAdded}. Put students in it from their profile - right-click a name on the
+              board.
+            </p>
+          )}
+
           <p className="acc-periods__hint">
-            {periods.length
-              ? 'Right-click a period to rename it.'
+            {visible.length
+              ? 'Right-click a period to rename it. Periods nobody is in are not listed.'
               : 'Add as many as you teach - “Period 3”, “Block B”, “Homeroom”.'}
           </p>
         </div>

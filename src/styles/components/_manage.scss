@@ -148,9 +148,20 @@
   &__hint {
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-faint);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    // Wraps now: the line explains that empty periods are not listed, and a
+    // sentence truncated to an ellipsis explains nothing.
+    line-height: var(--acc-lh-normal);
+  }
+
+  // Confirms a period that will not show up in the list above, because nobody
+  // is in it yet.
+  &__added {
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-accent-soft);
+    color: var(--acc-accent);
+    font-size: var(--acc-fs-tiny);
+    line-height: var(--acc-lh-normal);
   }
 
   &__badge {

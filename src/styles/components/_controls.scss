@@ -108,14 +108,35 @@
     }
   }
 
+  /**
+   * The one thing this screen is for.
+   *
+   * Heavier than the controls around it and taller than the default: at the
+   * shared 32px and medium weight it read as one more grey button that happened
+   * to be purple, which is the wrong emphasis for the button that commits the
+   * form. Matching the onboarding CTA's weight ties the two together - they are
+   * the same promise made twice.
+   */
   &--primary {
+    height: 38px;
+    padding-inline: var(--acc-space-5);
     background: var(--acc-accent);
     border-color: var(--acc-accent);
     color: var(--acc-accent-fg);
+    font-weight: var(--acc-fw-semibold);
+    box-shadow: 0 4px 12px -4px rgba(91, 75, 214, 0.4);
 
     &:hover:not(:disabled) {
       background: var(--acc-accent-hover);
       border-color: var(--acc-accent-hover);
+      box-shadow: 0 8px 18px -6px rgba(91, 75, 214, 0.45);
+    }
+
+    // Inside a dense row - a toast, a suggestion list - it keeps the weight but
+    // gives back the height, or it would tower over its own neighbours.
+    &.acc-btn--small {
+      height: 28px;
+      padding-inline: var(--acc-space-4);
     }
   }
 

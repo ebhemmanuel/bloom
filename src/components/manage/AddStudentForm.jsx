@@ -6,6 +6,7 @@ import {
   splitStudentNames,
   readPastedNames,
 } from '../../domain/importStudent.js';
+import { addPeriod } from '../../domain/mutations.js';
 import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
 import { periodOptions } from '../../domain/selectors.js';
@@ -32,6 +33,8 @@ export default function AddStudentForm({ onAdded }) {
   const [displayName, setDisplayName] = useState('');
   const [planType, setPlanType] = useState('IEP');
   const [periodIds, setPeriodIds] = useState([]);
+  const [addingPeriod, setAddingPeriod] = useState(false);
+  const [newPeriod, setNewPeriod] = useState('');
   // Blank means "has been here since the start of the year", which is the common
   // case and the one that needs no explanation on a report.
   const [enrolledFrom, setEnrolledFrom] = useState('');
@@ -216,38 +219,85 @@ export default function AddStudentForm({ onAdded }) {
 
         <div className="acc-field">
           <span className="acc-field__label">Which periods?</span>
-          {periods.length > 0 ? (
-            <>
-              <div className="acc-chipset">
-                {periods.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className={`acc-chip${periodIds.includes(p.id) ? ' acc-chip--on' : ''}`}
-                    onClick={() =>
-                      setPeriodIds((prev) =>
-                        prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
-                      )
+          <div className="acc-chipset">
+            {periods.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={`acc-chip${periodIds.includes(p.id) ? ' acc-chip--on' : ''}`}
+                onClick={() =>
+                  setPeriodIds((prev) =>
+                    prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
+                  )
+                }
+                aria-pressed={periodIds.includes(p.id)}
+                title={p.name}
+              >
+                {p.shortName}
+              </button>
+            ))}
+
+            {/*
+              A class this teacher has not named yet, created without leaving
+              the form. The block used to send them to the periods menu above
+              the board and tell them to come back - which meant abandoning a
+              half-typed student, or adding them to the wrong periods and
+              fixing it later.
+            */}
+            {addingPeriod ? (
+              <form
+                className="acc-addstudent__newperiod"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const label = newPeriod.trim();
+                  if (!label) return;
+                  mutate((d) => {
+                    const next = addPeriod(d, { name: label });
+                    const created = next.periods[next.periods.length - 1];
+                    // Selected straight away: naming a period here is only ever
+                    // in service of putting this student in it.
+                    setPeriodIds((prev) => [...prev, created.id]);
+                    return next;
+                  });
+                  setNewPeriod('');
+                  setAddingPeriod(false);
+                }}
+              >
+                <input
+                  className="acc-stumod__newperiod-input"
+                  value={newPeriod}
+                  onChange={(e) => setNewPeriod(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setNewPeriod('');
+                      setAddingPeriod(false);
                     }
-                    aria-pressed={periodIds.includes(p.id)}
-                    title={p.name}
-                  >
-                    {p.shortName}
-                  </button>
-                ))}
-              </div>
-              {/* Multi-select, and not a short list: a student can sit in as
-                  many of a teacher's sections as they actually attend. */}
-              <span className="acc-field__hint">Pick as many as this student is in.</span>
-            </>
-          ) : (
-            // Previously this whole block was hidden when no periods existed,
-            // which left no sign that periods were a thing at all.
-            <span className="acc-field__hint">
-              No periods yet - add them from the periods menu above the board, then come back and
-              assign them here.
-            </span>
-          )}
+                  }}
+                  placeholder="Period 4"
+                  aria-label="Name the new period"
+                  autoFocus
+                />
+              </form>
+            ) : (
+              <button
+                type="button"
+                className="acc-chip acc-chip--add"
+                onClick={() => setAddingPeriod(true)}
+                title="Add a period you have not set up yet"
+                aria-label="Add a period"
+              >
+                +
+              </button>
+            )}
+          </div>
+
+          {/* Multi-select, and not a short list: a student can sit in as
+              many of a teacher's sections as they actually attend. */}
+          <span className="acc-field__hint">
+            {periods.length
+              ? 'Pick as many as this student is in.'
+              : 'No periods yet - name your first one with +.'}
+          </span>
         </div>
       </div>
 
