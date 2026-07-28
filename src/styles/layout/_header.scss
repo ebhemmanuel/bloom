@@ -24,9 +24,15 @@
   // File / Edit / About, in the middle of the cluster. An ordinary flex child:
   // the brand and the menus are centred together, so nothing here needs its own
   // offset.
+  // File / Edit / About, then Find. Search belongs with the verbs, not with the
+  // status cluster on the right: it is a thing you go and do, the same as
+  // opening a menu, and the icon row on the right is where the app reports back
+  // to you. 2px is the menubar's own rhythm, so it reads as one more item in
+  // that row rather than a separate group.
   &__menus {
     display: flex;
     align-items: center;
+    gap: 2px;
   }
 
   /**
@@ -164,15 +170,22 @@
 .acc-avatar {
   display: grid;
   place-items: center;
-  inline-size: 32px;
-  block-size: 32px;
+  // Sized against the ICONS beside it, not against their 32px buttons. Those
+  // buttons are mostly padding, so a 32px ring drawn next to a 17px glyph read
+  // as much bigger than its neighbours even though the boxes matched.
+  inline-size: 24px;
+  block-size: 24px;
+  // The icon buttons are 32px boxes around a 17px glyph, so ~7.5px of each
+  // one's gap is its own padding. The ring has no padding, so without this it
+  // sat half as far from the divider as the icons sit from each other.
+  margin-inline-end: var(--acc-space-2);
   border-radius: 50%;
   // Outlined rather than filled. A solid disc read as the loudest thing in the
   // bar, which is wrong for a control that opens a settings form; the ring says
   // the same thing without shouting, and fills only when the panel is open.
   background: transparent;
   color: var(--acc-accent);
-  font-size: var(--acc-fs-tiny);
+  font-size: 10px;
   font-weight: var(--acc-fw-bold);
   letter-spacing: 0.02em;
   border: 1px solid var(--acc-accent);

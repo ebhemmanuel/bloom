@@ -64,7 +64,8 @@ const SEARCH_ICON = (
 /**
  * Floating pill nav.
  *
- * Left: brand and menus. Right: search, day notes, notifications, avatar.
+ * Brand, then the verbs (File / Edit / About / Find), then the status cluster:
+ * day notes, notifications, avatar, clock.
  *
  * Search is an icon rather than a field. It opens the same overlay Ctrl+Space
  * does - one search, one behaviour, reached two ways - instead of a second
@@ -102,9 +103,13 @@ export default function AppHeader({
       */}
       <div className="acc-header__menus">
         <MenuBar menus={menus} />
-      </div>
 
-      <div className="acc-header__right">
+        {/*
+          Find sits with File / Edit / About rather than in the icon row.
+          Searching is something you go and do, like opening a menu; the cluster
+          on the right is where the app reports back - notes waiting, alerts,
+          who you are, what time it is.
+        */}
         <button
           type="button"
           className="acc-header__icon"
@@ -114,7 +119,9 @@ export default function AppHeader({
         >
           <Icon path={SEARCH_ICON} size={17} />
         </button>
+      </div>
 
+      <div className="acc-header__right">
         <button
           type="button"
           className={`acc-header__icon${openPanel === 'daynotes' ? ' acc-header__icon--on' : ''}`}
