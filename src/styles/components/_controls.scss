@@ -83,6 +83,31 @@
     cursor: default;
   }
 
+  /**
+   * Engaged: this control is CHANGING something right now.
+   *
+   * Distinct from `--on` below, which means a panel is open. The two were the
+   * same class, which is why an engaged toggle was unreadable: "the menu is
+   * showing" and "the board is narrowed" are different facts, and a teacher
+   * needs the second one after the menu has closed again.
+   *
+   * Filled, not ringed, so it survives at a glance and in monochrome. Soft
+   * accent rather than the solid `--primary` wears: this is state, not the
+   * thing you came to do, and a filled pill for "grouped by period" would
+   * outrank Add student sitting beside it.
+   */
+  &--active {
+    background: var(--acc-accent-soft);
+    border-color: var(--acc-accent);
+    color: var(--acc-accent);
+    font-weight: var(--acc-fw-semibold);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-accent-soft);
+      border-color: var(--acc-accent);
+    }
+  }
+
   &--primary {
     background: var(--acc-accent);
     border-color: var(--acc-accent);

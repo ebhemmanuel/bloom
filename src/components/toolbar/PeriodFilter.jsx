@@ -47,13 +47,24 @@ export default function PeriodFilter({ periods, selected, onChange }) {
     setRenaming(null);
   };
 
+  /**
+   * Lit while narrowed, not merely while open.
+   *
+   * The trigger only marked itself when the menu was showing, so a board
+   * filtered down to one period looked exactly like a board showing everyone -
+   * the label changed, but "P1" and "All periods" are the same shape of quiet
+   * grey text and neither announces itself as a state you are inside.
+   */
+  const filtering = selected.length > 0;
+
   return (
     <div className="acc-periods" ref={ref}>
       <button
         type="button"
-        className={`acc-btn${open ? ' acc-btn--on' : ''}`}
+        className={`acc-btn${open ? ' acc-btn--on' : ''}${filtering ? ' acc-btn--active' : ''}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        title={filtering ? 'Showing only some periods. Click to change.' : 'Filter by period'}
       >
         {label}
         <Caret up={open} />

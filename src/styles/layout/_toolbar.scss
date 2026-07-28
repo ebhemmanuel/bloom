@@ -15,6 +15,16 @@
     flex: 1;
   }
 
+  // Sits between two equal spacers. `flex: 0 1 auto` so a long range label
+  // gives ground before the controls on either side start being squeezed.
+  &__filters {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    flex: 0 1 auto;
+    min-inline-size: 0;
+  }
+
   &__count {
     font-size: var(--acc-fs-sub);
     color: var(--acc-fg-muted);

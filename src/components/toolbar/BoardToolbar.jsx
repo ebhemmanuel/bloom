@@ -255,35 +255,45 @@ export default function BoardToolbar({
           itself looks identical whichever day it holds, so without this a
           teacher who wandered off today had nothing to tell them so.
         */}
-        {activeFilters.map((filter) => (
-          <span className="acc-filterchip" key={filter.id}>
-            <span className="acc-filterchip__kind">{filter.kind}</span>
-            <span className="acc-filterchip__label">{filter.label}</span>
-            <button
-              type="button"
-              className="acc-filterchip__clear"
-              onClick={filter.onClear}
-              aria-label={`Clear the ${filter.kind.toLowerCase()} filter`}
-              title={
-                filter.id === 'date' || filter.id === 'dates'
-                  ? 'Back to today'
-                  : 'Show everyone again'
-              }
-            >
-              {/* Drawn, not typed. The × character sits off its own centre and
+        {/*
+          A spacer on each side, so the chips ride in the middle of the row
+          rather than trailing the roster count. They are the answer to "why am
+          I not seeing everyone", which is a question asked while looking at the
+          board, not while reading the controls on its left edge.
+        */}
+        <div className="acc-toolbar__spacer" />
+
+        <div className="acc-toolbar__filters">
+          {activeFilters.map((filter) => (
+            <span className="acc-filterchip" key={filter.id}>
+              <span className="acc-filterchip__kind">{filter.kind}</span>
+              <span className="acc-filterchip__label">{filter.label}</span>
+              <button
+                type="button"
+                className="acc-filterchip__clear"
+                onClick={filter.onClear}
+                aria-label={`Clear the ${filter.kind.toLowerCase()} filter`}
+                title={
+                  filter.id === 'date' || filter.id === 'dates'
+                    ? 'Back to today'
+                    : 'Show everyone again'
+                }
+              >
+                {/* Drawn, not typed. The × character sits off its own centre and
                   carries the font's weight, so it never quite lines up inside a
                   circle this small. */}
-              <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true">
-                <path
-                  d="M4 4l8 8M12 4l-8 8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </span>
-        ))}
+                <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true">
+                  <path
+                    d="M4 4l8 8M12 4l-8 8"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
 
         <div className="acc-toolbar__spacer" />
 
@@ -308,7 +318,7 @@ export default function BoardToolbar({
         */}
         <button
           type="button"
-          className={`acc-btn acc-sortbtn${sortBy === 'period' ? ' acc-btn--on' : ''}`}
+          className={`acc-btn acc-sortbtn${sortBy === 'period' ? ' acc-btn--active' : ''}`}
           onClick={onToggleSortBy}
           aria-pressed={sortBy === 'period'}
           title={
