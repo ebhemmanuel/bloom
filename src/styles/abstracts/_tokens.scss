@@ -58,6 +58,16 @@ $acc-tokens: (
   'petal-4': #96ddc1,
   'petal-5': #a9bcf7,
 
+  // Motes: the drifting flecks of colour in the ambient scene. These lived on
+  // the onboarding root, on the grounds that nothing else would ever want them.
+  // The board's calm background is that same scene now, so they have a second
+  // consumer and belong in the map - scoped, they rendered transparent outside
+  // onboarding and the particles simply were not there.
+  'mote-1': #c9c0f2,
+  'mote-2': #f6cade,
+  'mote-3': #bfe6d6,
+  'mote-4': #f7dfc2,
+
   // Status ------------------------------------------------------------------
   // Deliberately NOT a red/green pass-fail axis. "Not Used" is a fact, not a
   // failure - a student may have been absent or simply not needed the support.

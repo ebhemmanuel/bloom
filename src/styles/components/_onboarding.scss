@@ -17,12 +17,8 @@
 // own colours (petals, motes) and mean nothing to the rest of the app.
 
 .acc-ob {
-  // Petals live in the token map, because the same mark is the logo in the pill
-  // nav. Motes stay here: nothing outside this screen has any use for them.
-  --acc-mote-1: #c9c0f2;
-  --acc-mote-2: #f6cade;
-  --acc-mote-3: #bfe6d6;
-  --acc-mote-4: #f7dfc2;
+  // Petals and motes both live in the token map now: the same mark is the logo
+  // in the pill nav, and the same ambient scene is the board's background.
 
   --acc-ob-ink: #2a2438;
   --acc-ob-ink-2: #6b6480;
@@ -329,6 +325,12 @@
   pointer-events: none;
   // Held back until the logo has landed, so nothing competes with the reveal.
   animation: acc-fade-in 2000ms ease 2600ms both;
+
+  // Behind the board there is no reveal to wait for - the delay would just be
+  // two and a half seconds of missing particles every time the app opens.
+  .acc-app__calm & {
+    animation: acc-fade-in 1200ms ease both;
+  }
 }
 
 .acc-ob__mote {
