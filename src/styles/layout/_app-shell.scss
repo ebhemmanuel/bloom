@@ -226,6 +226,28 @@ body[data-dragging='true'] {
   @include cascade-rows(acc-cascade-in, both);
 }
 
+/**
+ * Where the board rests between transitions, and why it is a state rather than
+ * the absence of one.
+ *
+ * `.acc-lane` carries its own permanent entrance, so CLEARING the attribute
+ * changed each row's `animation-name` from `acc-cascade-in` back to
+ * `acc-enter` - and a changed animation-name restarts. The board cascaded in
+ * beautifully and then flickered through a second, faster cascade as the
+ * fallback took over.
+ *
+ * Resting keeps the same animation and only drops the stagger, so there is no
+ * name change and nothing to restart. A lane added later still arrives on the
+ * same motion, just without waiting its turn in a queue that has already run.
+ */
+[data-board-cascade='rest'] {
+  .acc-header,
+  .acc-toolbar,
+  .acc-lane {
+    animation: acc-cascade-in 550ms var(--acc-ease-standard) 0ms both;
+  }
+}
+
 @keyframes acc-cascade-out {
   from {
     opacity: 1;

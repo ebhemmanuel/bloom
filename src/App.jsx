@@ -77,8 +77,13 @@ function AppShell() {
    *
    * `aboutLeaving` keeps About mounted for its own exit. Unmounting on click
    * would cut the screen away and leave the board cascading in behind nothing.
+   *
+   * It settles to `rest` rather than to null. Clearing it let each row fall
+   * back to `.acc-lane`'s own entrance, and a changed animation-name restarts -
+   * so the board cascaded in and then flickered through a second, faster one.
+   * See the `rest` rule.
    */
-  const [boardCascade, setBoardCascade] = useState(null);
+  const [boardCascade, setBoardCascade] = useState('rest');
   const [aboutLeaving, setAboutLeaving] = useState(false);
   const aboutTimers = useRef([]);
   useEffect(() => () => aboutTimers.current.forEach(clearTimeout), []);
@@ -94,7 +99,7 @@ function AppShell() {
     setBoardCascade('in');
     // Long enough for About's own fade, then the cascade runs itself out.
     aboutTimers.current.push(setTimeout(() => setModal(null), 420));
-    aboutTimers.current.push(setTimeout(() => setBoardCascade(null), 1500));
+    aboutTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
   }, []);
   const palette = useCommandPalette();
 
@@ -203,7 +208,7 @@ function AppShell() {
         lives inside it, so nothing can drift out of alignment the way it does
         when each piece caps its own width.
       */}
-      <div className="acc-app__frame" data-board-cascade={boardCascade || undefined}>
+      <div className="acc-app__frame" data-board-cascade={boardCascade}>
         <AppHeader
           menus={menus}
           notifications={notifications}
