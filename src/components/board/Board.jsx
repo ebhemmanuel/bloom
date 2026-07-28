@@ -4,6 +4,7 @@ import Swimlane from './Swimlane.jsx';
 import CardDetailPopover from './CardDetailPopover.jsx';
 import BoardToolbar from '../toolbar/BoardToolbar.jsx';
 import EmptyState from '../shared/EmptyState.jsx';
+import RangeView from './RangeView.jsx';
 import useCollapsedLanes from '../../hooks/useCollapsedLanes.js';
 import useCardSelection from '../../hooks/useCardSelection.js';
 import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
@@ -28,6 +29,7 @@ import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
 import { todayKey, formatDateLong, addDays, isWeekend } from '../../domain/dates.js';
+import { formatRangeLabel } from '../../domain/report.js';
 
 /** `drop:<studentId>:<status>` → parts. */
 function parseDroppable(id) {
@@ -49,6 +51,9 @@ export default function Board({ onAddStudent }) {
     setSearch,
     sort,
     toggleSort,
+    range,
+    setRange,
+    rangeModel,
     model,
     periods,
   } = useBoard();
@@ -322,23 +327,27 @@ export default function Board({ onAddStudent }) {
    * only trace was the roster count reading "1 student", which looks exactly
    * like a class that genuinely has one.
    */
-  const activeFilter = search.trim()
-    ? { kind: 'Student', label: search.trim() }
-    : periodIds.length === 1
-      ? { kind: 'Period', label: periods.find((p) => p.id === periodIds[0])?.name || 'Period' }
-      : periodIds.length > 1
-        ? { kind: 'Periods', label: `${periodIds.length} selected` }
-        : null;
+  const activeFilter = range
+    ? { kind: 'Dates', label: formatRangeLabel(range.from, range.to) }
+    : search.trim()
+      ? { kind: 'Student', label: search.trim() }
+      : periodIds.length === 1
+        ? { kind: 'Period', label: periods.find((p) => p.id === periodIds[0])?.name || 'Period' }
+        : periodIds.length > 1
+          ? { kind: 'Periods', label: `${periodIds.length} selected` }
+          : null;
 
   const clearFilter = useCallback(() => {
+    setRange(null);
     setSearch('');
     setPeriodIds([]);
-  }, [setSearch, setPeriodIds]);
+  }, [setRange, setSearch, setPeriodIds]);
 
   const toolbar = (
     <BoardToolbar
       dateKey={dateKey}
       onDateChange={setDateKey}
+      onRangeChange={setRange}
       nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
       periods={periods}
       selectedPeriodIds={periodIds}
@@ -382,7 +391,20 @@ export default function Board({ onAddStudent }) {
         <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
           {toolbar}
 
-          {model.noClassToday ? (
+          {/*
+            A range replaces the day board rather than filtering it. The kanban
+            holds the day fixed by construction, so there is no arrangement of
+            its columns that could show several.
+          */}
+          {rangeModel ? (
+            <RangeView
+              report={rangeModel}
+              onPickDate={(date) => {
+                setRange(null);
+                setDateKey(date);
+              }}
+            />
+          ) : model.noClassToday ? (
             <EmptyState
               title={
                 model.isNonInstructional

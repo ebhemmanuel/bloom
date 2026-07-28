@@ -1,0 +1,154 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// The board across a span of days.
+//
+// A working surface, so the working register applies: soft palette, crisp
+// edges, no blur behind text, no ambient motion. It is a grid people read
+// across, and the only job of the styling is to keep the rows and columns
+// legible while a fortnight is on screen at once.
+// ---------------------------------------------------------------------------
+
+.acc-range {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-4);
+
+  &__empty {
+    padding: var(--acc-space-8);
+    text-align: center;
+    color: var(--acc-fg-muted);
+  }
+
+  &__student {
+    @include motion.entrance(var(--acc-dur-fast));
+    background: var(--acc-frost-lane);
+    border: 1px solid var(--acc-frost-border);
+    border-radius: var(--acc-radius-lg);
+    box-shadow: var(--acc-shadow-card);
+    overflow: hidden;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
+    min-block-size: var(--acc-lane-header-h);
+    padding-inline: var(--acc-space-4);
+    border-block-end: 1px solid var(--acc-border);
+  }
+
+  &__name {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__periods {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+  }
+
+  &__rate {
+    margin-inline-start: auto;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+  }
+
+  // A long span scrolls sideways within its own card rather than pushing the
+  // page wider. The row heads stay put so a name is never scrolled away from
+  // the marks it belongs to.
+  &__scroll {
+    overflow-x: auto;
+  }
+
+  &__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--acc-fs-sub);
+  }
+
+  &__rowhead {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    inline-size: 40%;
+    min-inline-size: 220px;
+    padding: var(--acc-space-2) var(--acc-space-4);
+    text-align: start;
+    font-weight: var(--acc-fw-regular);
+    background: var(--acc-surface);
+    border-block-end: 1px solid var(--acc-border);
+  }
+
+  &__datehead {
+    padding: var(--acc-space-2);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+    border-block-end: 1px solid var(--acc-border);
+  }
+
+  &__tag {
+    margin-inline-start: var(--acc-space-2);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-fg-faint);
+  }
+
+  &__cell {
+    padding: 2px;
+    text-align: center;
+    border-block-end: 1px solid var(--acc-border);
+  }
+
+  /**
+   * One square per day.
+   *
+   * A button, because clicking it opens that day. Status is carried by the
+   * glyph as well as the tint, so the grid survives being read by someone who
+   * cannot separate the colours, and survives being printed in monochrome.
+   */
+  &__mark {
+    @include motion.interactive(background-color, box-shadow);
+    display: grid;
+    place-items: center;
+    inline-size: 30px;
+    block-size: 28px;
+    margin-inline: auto;
+    border-radius: var(--acc-radius-sm);
+    font-family: var(--acc-font-mono);
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+
+    &:hover {
+      box-shadow: inset 0 0 0 1px var(--acc-accent);
+    }
+
+    &--used {
+      background: var(--acc-status-used-soft);
+      color: var(--acc-status-used);
+    }
+    &--used-with-detail {
+      background: var(--acc-status-detail-soft);
+      color: var(--acc-status-detail);
+    }
+    &--refused {
+      background: var(--acc-status-refused-soft);
+      color: var(--acc-status-refused);
+    }
+    &--not-used {
+      background: var(--acc-status-not-used-soft);
+      color: var(--acc-status-not-used);
+    }
+    &--absent,
+    &--teacher-absent {
+      color: var(--acc-status-absent);
+    }
+    &--no-record,
+    &--not-applicable {
+      color: var(--acc-fg-faint);
+    }
+  }
+}

@@ -37,7 +37,12 @@ function monthGrid(anchor) {
  * for "last week" means five days, not seven, and the difference matters on a
  * compliance denominator.
  */
-export default function DatePicker({ dateKey, onChange, nonInstructionalDates = [] }) {
+export default function DatePicker({
+  dateKey,
+  onChange,
+  onRangeChange,
+  nonInstructionalDates = [],
+}) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('day');
   const [anchor, setAnchor] = useState(dateKey);
@@ -248,15 +253,20 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
                         {formatDateMedium(range.start)} – {formatDateMedium(range.end)} ·{' '}
                         {rangeDays.length} school day{rangeDays.length === 1 ? '' : 's'}
                       </span>
+                      {/*
+                        Shows the span on the board rather than jumping to its
+                        first day. "Go to first day" quietly threw the range
+                        away, which made picking one feel like it did nothing.
+                      */}
                       <button
                         type="button"
-                        className="acc-btn acc-btn--small"
+                        className="acc-btn acc-btn--small acc-btn--primary"
                         onClick={() => {
-                          onChange(rangeDays[0] || range.start);
+                          onRangeChange({ from: range.start, to: range.end });
                           setOpen(false);
                         }}
                       >
-                        Go to first day
+                        Show these days
                       </button>
                     </>
                   ) : (

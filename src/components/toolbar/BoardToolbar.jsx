@@ -128,6 +128,7 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
 export default function BoardToolbar({
   dateKey,
   onDateChange,
+  onRangeChange,
   nonInstructionalDates,
   periods,
   selectedPeriodIds,
@@ -276,6 +277,7 @@ export default function BoardToolbar({
         <DatePicker
           dateKey={dateKey}
           onChange={onDateChange}
+          onRangeChange={onRangeChange}
           nonInstructionalDates={nonInstructionalDates}
         />
 
