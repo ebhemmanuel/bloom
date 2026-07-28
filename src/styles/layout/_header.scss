@@ -54,11 +54,13 @@
   // read like one.
   &__clock {
     padding-inline-start: var(--acc-space-3);
-    border-inline-start: 1px solid var(--acc-border);
     font-size: var(--acc-fs-sub);
     font-variant-numeric: tabular-nums;
     color: var(--acc-fg-muted);
     white-space: nowrap;
+    // The rule takes its colour from `currentColor`, so the divider and the
+    // time it separates can never drift apart.
+    border-inline-start: 1px solid currentColor;
   }
 
   &__count {
@@ -165,18 +167,21 @@
   inline-size: 32px;
   block-size: 32px;
   border-radius: 50%;
-  background: var(--acc-accent-soft);
+  // Outlined rather than filled. A solid disc read as the loudest thing in the
+  // bar, which is wrong for a control that opens a settings form; the ring says
+  // the same thing without shouting, and fills only when the panel is open.
+  background: transparent;
   color: var(--acc-accent);
   font-size: var(--acc-fs-tiny);
   font-weight: var(--acc-fw-bold);
   letter-spacing: 0.02em;
-  border: 1px solid transparent;
+  border: 1px solid var(--acc-accent);
   transition:
     background-color var(--acc-dur-instant) var(--acc-ease-standard),
     border-color var(--acc-dur-instant) var(--acc-ease-standard);
 
   &:hover {
-    border-color: var(--acc-accent);
+    background: var(--acc-accent-soft);
   }
 
   &--on {
