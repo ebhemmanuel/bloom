@@ -379,11 +379,6 @@ export default function Board({ onAddStudent }) {
 
   const toolbar = (
     <BoardToolbar
-      dateKey={dateKey}
-      onDateChange={setDateKey}
-      onRangeChange={setRange}
-      activeRange={range}
-      nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
       periods={periods}
       selectedPeriodIds={periodIds}
       onPeriodsChange={setPeriodIds}

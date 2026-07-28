@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRODUCT_NAME } from '../../domain/schema.js';
+import { useData } from '../../context/DataContext.jsx';
+import { useBoard } from '../../context/BoardContext.jsx';
 import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
+import DatePicker from '../toolbar/DatePicker.jsx';
 import useClock from '../../hooks/useClock.js';
 
 function Icon({ path, size = 16 }) {
@@ -60,6 +63,8 @@ export default function AppHeader({
   onOpenNotifications,
   onOpenSearch,
 }) {
+  const { doc } = useData();
+  const { dateKey, setDateKey, range, setRange } = useBoard();
   const unread = notifications.length;
   const now = useClock();
 
@@ -74,8 +79,8 @@ export default function AppHeader({
 
       {/*
         Centred on the bar itself rather than between the two clusters, so the
-        menus stay put as the brand and the icon row change width. They moved
-        here to fill the middle the search field left when it became an icon.
+        menus stay put as the brand and the icon row change width. Both of those
+        are pinned to their ends, which is what leaves the middle free.
       */}
       <div className="acc-header__menus">
         <MenuBar menus={menus} />
@@ -97,6 +102,20 @@ export default function AppHeader({
       </div>
 
       <div className="acc-header__right">
+        {/*
+          Which day you are recording, in the bar rather than in the board's own
+          toolbar. It governs everything below it - the lanes, the notes dialog,
+          what a copy copies - so it belongs with the app's chrome and not among
+          the controls that only arrange the lanes.
+        */}
+        <DatePicker
+          dateKey={dateKey}
+          onChange={setDateKey}
+          onRangeChange={setRange}
+          activeRange={range}
+          nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
+        />
+
         <button
           type="button"
           className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}

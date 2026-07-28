@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import DatePicker from './DatePicker.jsx';
 import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
@@ -124,15 +123,13 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
  * The board's tools, as a single floating row above the first lane.
  *
  * Left: what you are looking at and how much of it - roster count, add, fold.
- * Right: what you are looking at it FOR - the date, the period filter, and the
+ * Right: how it is arranged - the period filter, the sort - and the
  * consequential day actions behind a three-dot menu.
+ *
+ * The date is deliberately not here. It sets which day the whole app is on, not
+ * how this board is laid out, so it lives in the pill nav with the chrome.
  */
 export default function BoardToolbar({
-  dateKey,
-  onDateChange,
-  onRangeChange,
-  activeRange,
-  nonInstructionalDates,
   periods,
   selectedPeriodIds,
   onPeriodsChange,
@@ -261,9 +258,10 @@ export default function BoardToolbar({
         <div className="acc-toolbar__spacer" />
 
         {/*
-          What you are looking at, then when. Periods first because the filter
-          is the coarser cut: it decides which lanes exist at all, and the date
-          then chooses among their days.
+          The period filter and the sort: the two things that decide which lanes
+          exist and in what order. The date used to sit here too and has moved to
+          the pill nav - it chooses which day the whole app is on, which is a
+          bigger question than how this board is arranged.
         */}
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
 
@@ -284,14 +282,6 @@ export default function BoardToolbar({
           <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
           <Caret up={sort === 'za'} />
         </button>
-
-        <DatePicker
-          dateKey={dateKey}
-          onChange={onDateChange}
-          onRangeChange={onRangeChange}
-          activeRange={activeRange}
-          nonInstructionalDates={nonInstructionalDates}
-        />
 
         <OverflowMenu
           disabled={disabled}
