@@ -71,9 +71,11 @@ export default function PrintReportModal({ onClose }) {
     );
   };
 
-  const doPrint = () => run(() => pdfBridge.print({ landscape: true }));
+  // Portrait: the sheet runs dates down the page, so the growing axis is the
+  // tall one. See the @page rule in the print styles.
+  const doPrint = () => run(() => pdfBridge.print({ landscape: false }));
   const doSave = () =>
-    run(() => pdfBridge.export({ from: resolved.from, to: resolved.to, landscape: true }));
+    run(() => pdfBridge.export({ from: resolved.from, to: resolved.to, landscape: false }));
 
   return (
     <>

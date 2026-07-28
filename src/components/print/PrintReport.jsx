@@ -72,33 +72,60 @@ export default function PrintReport({ report }) {
             </p>
           )}
 
+          {/*
+            Dates DOWN, accommodations ACROSS.
+
+            The other way round, a month of school made a table twenty-odd
+            columns wide: it ran off the sheet, and the axis that grows without
+            limit - the dates - was the one being asked to fit a fixed width.
+            A teacher adds a date every day and an accommodation once a term, so
+            the unbounded axis has to be the one the page can extend along.
+
+            The header repeats on every page (see thead in the print styles), so
+            each sheet carries the accommodation names above its own dates
+            instead of being a slab of glyphs you have to count columns on.
+          */}
           <table className="acc-print__table">
             <thead>
               <tr>
-                <th scope="col" className="acc-print__col-label">
-                  Accommodation
+                <th scope="col" className="acc-print__col-date">
+                  Date
                 </th>
-                {dates.map((d) => (
-                  <th scope="col" key={d}>
-                    {formatDateColumn(d)}
+                {s.rows.map((row) => (
+                  <th scope="col" key={row.assignmentId} className="acc-print__col-acc">
+                    {row.label}
+                    {row.notRelevant && <em> (not relevant to this subject)</em>}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {s.rows.map((row) => (
-                <tr key={row.assignmentId}>
-                  <th scope="row" className="acc-print__col-label">
-                    {row.label}
-                    {row.notRelevant && <em> (not relevant to this subject)</em>}
+              {dates.map((d) => (
+                <tr key={d}>
+                  <th scope="row" className="acc-print__col-date">
+                    {formatDateColumn(d)}
                   </th>
-                  {row.cells.map((c) => (
-                    <td key={c.date} title={c.status}>
-                      {c.glyph}
-                    </td>
-                  ))}
+                  {s.rows.map((row) => {
+                    // By date rather than by index. The cells are built in
+                    // `dates` order today, but a table that silently mis-attributes
+                    // a status to the wrong day is the one bug this document
+                    // must never have.
+                    const cell = row.cellsByDate.get(d);
+                    return (
+                      <td key={row.assignmentId} title={cell?.status}>
+                        {cell?.glyph || '·'}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
+              {s.rows.length === 0 && (
+                <tr>
+                  <td className="acc-print__none" colSpan={2}>
+                    No accommodations assigned in this period.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
 

@@ -194,7 +194,7 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
   ipcMain.handle('pdf:export', async (_e, payload = {}) => {
     const win = getWindow();
-    const { from, to, landscape = true } = payload;
+    const { from, to, landscape = false } = payload;
     const result = await pdf.exportPdf(win, {
       fileName: pdf.suggestFileName(from, to),
       landscape,
@@ -203,7 +203,7 @@ function registerIpcHandlers({ getMainWindow } = {}) {
   });
 
   ipcMain.handle('pdf:print', async (_e, payload = {}) =>
-    pdf.printDirect(getWindow(), { landscape: payload.landscape !== false })
+    pdf.printDirect(getWindow(), { landscape: payload.landscape === true })
   );
 
   ipcMain.handle('pdf:reveal', async (_e, filePath) => {

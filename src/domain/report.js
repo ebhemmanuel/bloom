@@ -92,6 +92,12 @@ export function buildReport(doc, { scope, periodIds = [], search = '', now = new
           : cfg.label,
         notRelevant: Boolean(assignment.notRelevant),
         cells,
+        // The same cells keyed by date. The printed sheet runs dates down the
+        // page and accommodations across it, so it reads this grid by date
+        // rather than in the order the cells happen to be in - a report that
+        // silently attributes a status to the wrong day is the one failure this
+        // document cannot have.
+        cellsByDate: new Map(cells.map((c) => [c.date, c])),
         summary: summarise(cells.map((c) => c.status)),
       });
     }

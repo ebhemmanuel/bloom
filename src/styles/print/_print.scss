@@ -19,8 +19,12 @@
   // page size and margins (electron/pdf-export.js) so it can also replace
   // Chromium's title-and-URL header with a page number - matched here so the
   // two look the same. The deeper bottom is the footer's band.
+  // Portrait. The table runs dates DOWN the page now, so the axis that grows
+  // is the tall one - a portrait sheet carries roughly half again as many
+  // school days as a landscape one, which is the difference between a term
+  // fitting on four sheets and on six.
   @page {
-    size: Letter landscape;
+    size: Letter portrait;
     margin: 0.5in 0.45in 0.62in;
   }
 
@@ -134,9 +138,16 @@
     border-collapse: collapse;
     font-size: 8pt;
 
-    // Repeats the date row on every page the table runs onto.
+    // Repeats the accommodation names on every page the table runs onto. This
+    // is what makes a long date range readable on paper: each sheet says what
+    // its own columns mean instead of referring back to the first one.
     thead {
       display: table-header-group;
+    }
+
+    // A row is one school day and must not be split across a page break.
+    tr {
+      break-inside: avoid;
     }
 
     th,
@@ -163,14 +174,42 @@
     }
   }
 
-  &__col-label {
-    inline-size: 22%;
-    min-inline-size: 150px;
+  /**
+   * The date stub, down the left. Narrow and fixed: it holds "Mon 14" and
+   * nothing else, so every remaining millimetre goes to the accommodation
+   * columns, which carry real sentences.
+   */
+  &__col-date {
+    inline-size: 68px;
+    white-space: nowrap;
+    text-align: start;
     font-size: 8pt;
+  }
+
+  /**
+   * An accommodation column. These were row labels with 150px to spread into
+   * and are now headings over a glyph column, so they have to wrap rather than
+   * force the table wider than the sheet.
+   */
+  &__col-acc {
+    font-size: 7.5pt;
+    line-height: 1.15;
+    // Long single words ("accommodations") would otherwise push the column past
+    // its share and shove the last one off the page.
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    vertical-align: bottom;
 
     em {
-      font-size: 7.5pt;
+      display: block;
+      font-size: 7pt;
+      font-weight: 400;
     }
+  }
+
+  &__none {
+    text-align: start !important;
+    font-style: italic;
   }
 
   &__summary {

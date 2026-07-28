@@ -58,7 +58,7 @@ const FOOTER_TEMPLATE = `
   </div>
 `;
 
-function pdfOptions({ landscape = true } = {}) {
+function pdfOptions({ landscape = false } = {}) {
   return {
     pageSize: 'Letter',
     landscape,
@@ -78,7 +78,7 @@ function pdfOptions({ landscape = true } = {}) {
  *
  * @returns {Promise<{ok: boolean, path?: string, canceled?: boolean, reason?: string}>}
  */
-async function exportPdf(win, { fileName = 'Accommodations.pdf', landscape = true } = {}) {
+async function exportPdf(win, { fileName = 'Accommodations.pdf', landscape = false } = {}) {
   if (!win || win.isDestroyed()) return { ok: false, reason: 'no-window' };
 
   let data;
@@ -121,7 +121,7 @@ async function revealPdf(filePath) {
  * Chromium reinstates its own title-and-URL pair, which is the whole thing we
  * are trying to get rid of.
  */
-function printDirect(win, { landscape = true } = {}) {
+function printDirect(win, { landscape = false } = {}) {
   return new Promise((resolve) => {
     if (!win || win.isDestroyed()) return resolve({ ok: false, reason: 'no-window' });
 
