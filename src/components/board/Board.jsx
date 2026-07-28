@@ -580,7 +580,7 @@ export default function Board({ onAddStudent, onEditStudent }) {
           onToggleAbsent={(reason) => handleToggleAbsent(laneMenu.lane.studentId, reason)}
           onUnenrol={(from) => {
             // Re-enrolling is harmless and immediately visible, so it goes
-            // straight through. Unenrolling changes every future day, so it asks.
+            // straight through. Disenrolling changes every future day, so it asks.
             if (!from) {
               mutate((d) => setStudentEnrollment(d, laneMenu.lane.studentId, null));
               return;
@@ -600,12 +600,12 @@ export default function Board({ onAddStudent, onEditStudent }) {
 
       {confirmUnenrol && (
         <ConfirmDialog
-          title={`Unenrol ${confirmUnenrol.lane.displayName}?`}
+          title={`Disenroll ${confirmUnenrol.lane.displayName}?`}
           body={`They will stop appearing on the board from ${formatDateLong(
             confirmUnenrol.from
           )} onward, and will not be included in reports covering days after that.`}
-          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enrol them at any time if this was a mistake."
-          confirmLabel="Unenrol"
+          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enroll them at any time if this was a mistake."
+          confirmLabel="Disenroll"
           tone="warn"
           onCancel={() => setConfirmUnenrol(null)}
           onConfirm={() => {

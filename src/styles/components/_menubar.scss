@@ -782,17 +782,24 @@
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: var(--acc-space-5);
-  align-items: start;
+  // Stretch, not start: the detail side has to fill the row before anything
+  // inside it can be pinned to the bottom of it.
+  align-items: stretch;
   min-block-size: 480px;
 
   @media (max-inline-size: 760px) {
     grid-template-columns: 1fr;
   }
 
+  // A rule between the roster and the student it opens. The gap alone left two
+  // columns floating in one field of white with nothing saying where the list
+  // ended and the record began.
   &__list {
     display: flex;
     flex-direction: column;
     gap: var(--acc-space-2);
+    padding-inline-end: var(--acc-space-5);
+    border-inline-end: 1px solid var(--acc-border);
 
     /**
      * Grows with the window rather than stopping at a fixed 340px.
@@ -858,6 +865,13 @@
     flex-direction: column;
     gap: var(--acc-space-4);
     min-inline-size: 0;
+  }
+
+  // Tied to the foot of the panel rather than trailing whatever is above it, so
+  // the two actions sit on one line at the bottom no matter how long or short
+  // the accommodation list happens to be.
+  &__bottom {
+    margin-block-start: auto;
   }
 
   &__placeholder,
@@ -963,15 +977,6 @@
     inline-size: 100%;
   }
 
-  &__add {
-    display: flex;
-    flex-direction: column;
-    gap: var(--acc-space-2);
-    align-items: flex-start;
-    padding-block-start: var(--acc-space-3);
-    border-top: 1px solid var(--acc-border);
-  }
-
   &__suggest {
     display: flex;
     flex-wrap: wrap;
@@ -1013,8 +1018,14 @@
     }
   }
 
-  // Its caption sits under the button, the way the picker's sits under the
-  // field beside it: two columns of the same shape.
+  /**
+   * Its caption sits under the button, the way the picker's sits under the
+   * field beside it: two columns of the same shape.
+   *
+   * The gap matches the picker's own `__hint` margin so both captions land on
+   * the same line - the columns are only 50/50 if they agree about where their
+   * second row starts.
+   */
   &__foot {
     display: flex;
     flex-direction: column;

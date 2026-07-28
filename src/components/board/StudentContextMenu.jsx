@@ -6,7 +6,7 @@ import { formatDateMedium } from '../../domain/dates.js';
 /**
  * Right-click a student's name.
  *
- * Rename, mark them absent for the day, or unenrol them from this date onward.
+ * Rename, mark them absent for the day, or disenroll them from this date onward.
  *
  * Portalled to <body> for the same reason the card menu is: the board card
  * carries `backdrop-filter`, which makes it a containing block for
@@ -192,10 +192,10 @@ export default function StudentContextMenu({
                   onClose();
                 }}
               >
-                Re-enrol
+                Re-enroll
               </button>
               <p className="acc-ctx__note">
-                Currently unenrolled from {formatDateMedium(unenrolledFrom)}.
+                Currently disenrolled from {formatDateMedium(unenrolledFrom)}.
               </p>
             </>
           ) : (
@@ -209,7 +209,7 @@ export default function StudentContextMenu({
                   onClose();
                 }}
               >
-                Unenrol from {formatDateMedium(dateKey)}
+                Disenroll from {formatDateMedium(dateKey)}
               </button>
               <p className="acc-ctx__note">
                 They stop appearing from this date on. Every earlier day keeps their record exactly

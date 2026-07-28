@@ -26,7 +26,7 @@ const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
  * Look a student up, then manage their accommodations and their enrolment.
  *
  * Nothing here hard-deletes. Removing an accommodation ends it from a date, and
- * unenroling a student ends them from a date - both keep every earlier day
+ * disenrolling a student ends them from a date - both keep every earlier day
  * exactly as recorded, because this file is a compliance history first and a
  * roster second.
  */
@@ -97,7 +97,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
     <Modal
       wide
       title="Student accommodations"
-      subtitle="Add, rename or retire accommodations, or unenrol a student without losing their record."
+      subtitle="Add, rename or retire accommodations, or disenroll a student without losing their record."
       onClose={onClose}
     >
       <div className="acc-stumod">
@@ -131,7 +131,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                     </span>
                     <span className="acc-stumod__student-name">{s.displayName}</span>
                     {s.unenrolledFrom && (
-                      <span className="acc-stumod__student-meta">unenrolled</span>
+                      <span className="acc-stumod__student-meta">disenrolled</span>
                     )}
                   </span>
                   {/* Which classes, on the right of the row. Scanning "who is
@@ -285,7 +285,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
 
               {unenrolled && (
                 <p className="acc-stumod__banner">
-                  Unenrolled from {formatDateMedium(student.unenrolledFrom)}. They no longer appear
+                  Disenrolled from {formatDateMedium(student.unenrolledFrom)}. They no longer appear
                   on days from that date, and everything before it is untouched.
                 </p>
               )}
@@ -404,38 +404,39 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                 sentence after it.
               */}
               <div className="acc-stumod__bottom">
-                <div className="acc-stumod__add">
-                  <span className="acc-field__label">Add accommodations</span>
-                  <AccommodationPicker
-                    studentId={student.id}
-                    value={draft}
-                    onChange={setDraft}
-                    onCommit={add}
-                    disabled={readOnly}
-                    placeholder="Find one, or paste several"
-                    hint={`Records from ${formatDateMedium(dateKey)} forward - earlier days are untouched.`}
-                  />
-                </div>
+                {/* The picker IS the column - no wrapper. The div this
+                    replaces carried its own rule and top padding from when the
+                    add block was its own section, which offset this half by
+                    13px against the button opposite it. */}
+                <AccommodationPicker
+                  studentId={student.id}
+                  value={draft}
+                  onChange={setDraft}
+                  onCommit={add}
+                  disabled={readOnly}
+                  placeholder="Find one, or paste several"
+                  hint={`Records from ${formatDateMedium(dateKey)} forward - earlier days are untouched.`}
+                />
 
                 <footer className="acc-stumod__foot">
                   {unenrolled ? (
                     <button
                       type="button"
-                      className="acc-btn acc-btn--small"
+                      className="acc-btn"
                       disabled={readOnly}
                       onClick={() => mutate((d) => setStudentEnrollment(d, student.id, null))}
                     >
-                      Re-enrol {student.displayName}
+                      Re-enroll {student.displayName}
                     </button>
                   ) : (
                     <button
                       type="button"
-                      className="acc-btn acc-btn--small acc-btn--danger"
+                      className="acc-btn acc-btn--danger"
                       disabled={readOnly}
                       title="They stop appearing from tomorrow. Their record so far is kept in full."
                       onClick={() => setConfirming(addDays(today, 1))}
                     >
-                      Unenrol from tomorrow
+                      Disenroll from tomorrow
                     </button>
                   )}
                   <span className="acc-stumod__foot-hint">
@@ -450,12 +451,12 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
 
       {confirming && student && (
         <ConfirmDialog
-          title={`Unenrol ${student.displayName}?`}
+          title={`Disenroll ${student.displayName}?`}
           body={`They will stop appearing on the board from ${formatDateMedium(
             confirming
           )} onward, and will not be included in reports covering days after that.`}
-          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enrol them at any time if this was a mistake."
-          confirmLabel="Unenrol"
+          reassurance="Every day already recorded keeps their information exactly as it is, and you can re-enroll them at any time if this was a mistake."
+          confirmLabel="Disenroll"
           tone="danger"
           onCancel={() => setConfirming(null)}
           onConfirm={() => {
