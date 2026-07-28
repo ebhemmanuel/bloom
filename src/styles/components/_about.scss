@@ -1,0 +1,399 @@
+// ---------------------------------------------------------------------------
+// About Bloom. Built to design_handoff_about_bloom/.
+//
+// The AMBIENT register at its fullest: aurora, drifting blobs, rising motes, the
+// mark blooming and then turning. Every duration, delay and easing below is from
+// that spec rather than chosen here, so this file reads as a transcription.
+// ---------------------------------------------------------------------------
+
+.acc-about {
+  position: fixed;
+  inset: 0;
+  // Above the pill nav (70) and the board's own overlays; below nothing, since
+  // this screen is the whole app while it is open.
+  z-index: 100;
+  overflow: hidden;
+  background: var(--acc-bg);
+  color: var(--acc-fg);
+
+  // --- Fixed chrome --------------------------------------------------------
+
+  &__brand {
+    position: absolute;
+    inset-block-start: 28px;
+    inset-inline-start: 32px;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: acc-enter 700ms var(--acc-ease-entrance) 2750ms backwards;
+  }
+
+  &__brand-name {
+    font-size: 15px;
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--acc-brand);
+  }
+
+  &__close {
+    position: absolute;
+    inset-block-start: 28px;
+    inset-inline-end: 32px;
+    z-index: 6;
+    inline-size: 40px;
+    block-size: 40px;
+    border-radius: var(--acc-radius-pill);
+    font-size: 22px;
+    line-height: 1;
+    color: var(--acc-fg-faint);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+    animation: acc-enter 420ms var(--acc-ease-entrance) 1400ms both;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--acc-fg);
+    }
+  }
+
+  // --- Stage ---------------------------------------------------------------
+
+  &__stage {
+    position: absolute;
+    inset: 0 0 140px 0;
+    z-index: 4;
+    animation: acc-enter 600ms var(--acc-ease-entrance) 1250ms both;
+  }
+
+  /**
+   * The mark, and the only thing on this screen that never moves.
+   *
+   * Positioned off 60vh rather than centred, because every slide's text is laid
+   * out from the same figure - so the mark and the copy below it hold station
+   * while the words change.
+   *
+   * The pinwheel turns the whole mark. BloomMark does not group its petals
+   * apart from the centre, and it does not need to: the centre is a circle
+   * sitting on the rotation origin, so turning it is pixel-identical.
+   */
+  &__mark {
+    position: absolute;
+    inset-inline-start: calc(50% - 48px);
+    inset-block-start: calc(60vh - 306px);
+    inline-size: 96px;
+    block-size: 96px;
+    transform-origin: 50% 50%;
+    animation: acc-about-pinwheel 30s linear 4600ms infinite;
+  }
+
+  // --- Slides --------------------------------------------------------------
+
+  &__slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    // The fixed top edge. Text starts here on every slide, so nothing shifts.
+    padding: calc(60vh - 186px) 48px 48px;
+    transition:
+      opacity 360ms var(--acc-ease-entrance),
+      transform 360ms var(--acc-ease-entrance);
+
+    &--on {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    // Leaves upward, arrives from below: the deck reads as a single column
+    // moving under a fixed window rather than as five things crossfading.
+    &--before {
+      opacity: 0;
+      transform: translateY(-18px);
+      pointer-events: none;
+    }
+
+    &--after {
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+    }
+  }
+
+  &__copy {
+    max-inline-size: 640px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+
+    &--hero {
+      max-inline-size: 680px;
+    }
+  }
+
+  &__kicker {
+    font-size: 11px;
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--acc-brand);
+
+    // Private by design gets the accent: it is the product's central promise
+    // rather than one more section heading.
+    &--accent {
+      color: var(--acc-accent);
+    }
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 38px;
+    font-weight: var(--acc-fw-semibold);
+    line-height: 1.18;
+    text-wrap: balance;
+
+    &--hero {
+      font-size: 48px;
+      line-height: 1.12;
+    }
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--acc-fg-muted);
+    max-inline-size: 540px;
+    text-wrap: pretty;
+
+    &--hero {
+      font-size: 17px;
+      line-height: 1.65;
+    }
+  }
+
+  /**
+   * The first slide arrives with the mark, not before it.
+   *
+   * Only the hero: every later slide is reached by navigating, and an entrance
+   * animation on those would fight the deck's own transition.
+   */
+  &__slide:first-of-type {
+    .acc-about__kicker,
+    .acc-about__heading {
+      animation: acc-enter 700ms var(--acc-ease-entrance) 2750ms backwards;
+    }
+
+    .acc-about__body {
+      animation: acc-enter 700ms var(--acc-ease-entrance) 3050ms backwards;
+    }
+  }
+
+  // --- Stats ---------------------------------------------------------------
+
+  &__stats {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: -58px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+    inline-size: 460px;
+    max-inline-size: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 14px 24px;
+    border-radius: var(--acc-radius-pill);
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__stat-n {
+    font-family: var(--acc-font-mono);
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    color: var(--acc-fg);
+  }
+
+  &__stat-l {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+  }
+
+  // --- Dots ----------------------------------------------------------------
+
+  &__nav {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 36px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: acc-enter 600ms var(--acc-ease-entrance) 1450ms both;
+  }
+
+  &__dot {
+    inline-size: 8px;
+    block-size: 8px;
+    padding: 0;
+    border-radius: var(--acc-radius-pill);
+    background: rgba(42, 36, 56, 0.18);
+    transition:
+      background-color 200ms var(--acc-ease-standard),
+      transform 200ms var(--acc-ease-standard);
+
+    &--on {
+      background: var(--acc-accent);
+      transform: scale(1.25);
+    }
+  }
+
+  // --- Feedback ------------------------------------------------------------
+
+  /**
+   * Opens before it sends. See the click handler: the first press only reveals
+   * the label. Launching a mail client on a school machine can take fifteen
+   * seconds, which is a poor thing to do to someone who brushed a corner.
+   *
+   * `row-reverse`, so the label grows leftward out of the mark and the circle
+   * itself never moves.
+   */
+  &__feedback {
+    position: absolute;
+    inset-inline-end: 32px;
+    inset-block-end: 32px;
+    z-index: 6;
+    display: inline-flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: center;
+    block-size: 40px;
+    padding-inline: 11px;
+    border-radius: var(--acc-radius-pill);
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: var(--acc-accent);
+    box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+    animation: acc-enter 600ms var(--acc-ease-entrance) 1450ms both;
+
+    &:hover {
+      background: #ffffff;
+      color: #4a3ac0;
+    }
+  }
+
+  &__feedback-mark {
+    display: inline-block;
+    inline-size: 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__feedback-label {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: var(--acc-fw-medium);
+    max-inline-size: 0;
+    opacity: 0;
+    margin-inline-end: 0;
+    transition:
+      max-width 260ms var(--acc-ease-entrance),
+      opacity 200ms var(--acc-ease-standard),
+      margin-right 260ms var(--acc-ease-entrance);
+  }
+
+  &__feedback--open &__feedback-label {
+    max-inline-size: 140px;
+    opacity: 1;
+    margin-inline-end: 7px;
+  }
+}
+
+// --- Keyframes -------------------------------------------------------------
+
+@keyframes acc-about-pinwheel {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/**
+ * The board cascading away as About opens, and back as it closes.
+ *
+ * The real rows, not a mock: the spec is explicit that production cascades what
+ * is actually on screen. The toolbar leads at 80ms and each lane follows 90ms
+ * behind the last, which is the spec's 80/170/260/350/440 stagger.
+ */
+[data-about='opening'] {
+  .acc-toolbar,
+  .acc-lane {
+    animation: acc-about-cascade-row 550ms var(--acc-ease-standard) var(--acc-cascade-out) forwards;
+  }
+
+  .acc-toolbar {
+    --acc-cascade-out: 80ms;
+  }
+
+  @for $i from 1 through 12 {
+    .acc-lane:nth-of-type(#{$i}) {
+      --acc-cascade-out: #{80 + $i * 90}ms;
+    }
+  }
+}
+
+@keyframes acc-about-cascade-row {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(6px);
+  }
+}
+
+// Reduced motion: the scene holds still and the deck crossfades without moving.
+@media (prefers-reduced-motion: reduce) {
+  .acc-about,
+  .acc-about *,
+  [data-about='opening'] .acc-toolbar,
+  [data-about='opening'] .acc-lane {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .acc-about__slide {
+    transition: opacity 120ms linear;
+
+    &--before,
+    &--after {
+      transform: none;
+    }
+  }
+}

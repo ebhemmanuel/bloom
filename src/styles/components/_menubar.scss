@@ -1040,32 +1040,3 @@
     text-align: end;
   }
 }
-
-.acc-about {
-  display: flex;
-  flex-direction: column;
-  gap: var(--acc-space-3);
-  font-size: var(--acc-fs-body);
-  line-height: var(--acc-lh-normal);
-  color: var(--acc-fg-muted);
-
-  &__facts {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--acc-space-2) var(--acc-space-4);
-    margin-block-start: var(--acc-space-2);
-    padding-block-start: var(--acc-space-3);
-    border-top: 1px solid var(--acc-border);
-    font-size: var(--acc-fs-sub);
-
-    dt {
-      color: var(--acc-fg-faint);
-    }
-
-    dd {
-      margin: 0;
-      color: var(--acc-fg);
-      overflow-wrap: anywhere;
-    }
-  }
-}

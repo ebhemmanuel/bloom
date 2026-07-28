@@ -1,0 +1,186 @@
+// ---------------------------------------------------------------------------
+// The ambient scene: one implementation for onboarding, the board and About.
+//
+// Values are transcribed from design_handoff_about_bloom/, which is the current
+// standard. They are NOT overrides on the older onboarding scene - that scene's
+// own blob rules used the `animation` shorthand, which re-declares delay, so
+// anything layered on top lost to source order. There is one set of numbers now.
+// ---------------------------------------------------------------------------
+
+.acc-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// --- Sheet -----------------------------------------------------------------
+
+.acc-scene__sheet {
+  position: absolute;
+  inset: 0;
+  background: var(--acc-aurora-page);
+  background-size: 320% 320%;
+  animation: acc-bg-shift 18s ease-in-out infinite;
+}
+
+// The softer scene, still offered in Settings: a paler gradient on a much
+// slower cycle. Same geometry, different weather.
+.acc-scene--calm .acc-scene__sheet {
+  background: linear-gradient(
+    115deg,
+    #f4efff 0%,
+    #fdf3f7 30%,
+    #faf6ee 55%,
+    #eff7f3 80%,
+    #f0f2fd 100%
+  );
+  background-size: 280% 280%;
+  animation: acc-ob-sheet 46s ease-in-out infinite;
+}
+
+// --- Blooms ----------------------------------------------------------------
+// Overscanned so a drifting bloom never reveals a hard edge.
+
+.acc-scene__blobs {
+  position: absolute;
+  inset: -8%;
+}
+
+.acc-scene__blob {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+
+  &--1 {
+    inset-inline-start: -4%;
+    inset-block-end: -2%;
+    inline-size: 640px;
+    block-size: 640px;
+    background: #d9dfff;
+    filter: blur(90px);
+    animation:
+      acc-scene-bloom 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 900ms both,
+      acc-scene-drift 26s ease-in-out 1900ms infinite;
+  }
+
+  &--2 {
+    inset-inline-end: -2%;
+    inset-block-start: -4%;
+    inline-size: 660px;
+    block-size: 660px;
+    background: #ffd9e8;
+    filter: blur(110px);
+    animation:
+      acc-scene-bloom 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1150ms both,
+      acc-scene-drift 30s ease-in-out 2150ms infinite reverse;
+  }
+
+  &--3 {
+    inset-inline-end: 10%;
+    inset-block-end: -10%;
+    inline-size: 540px;
+    block-size: 540px;
+    background: #d2f2e6;
+    filter: blur(80px);
+    animation:
+      acc-scene-bloom 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1400ms both,
+      acc-scene-drift 22s ease-in-out 2400ms infinite;
+  }
+
+  &--4 {
+    inset-inline-start: 36%;
+    inset-block-start: -6%;
+    inline-size: 520px;
+    block-size: 520px;
+    background: #ffe7cf;
+    filter: blur(100px);
+    animation:
+      acc-scene-bloom 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1650ms both,
+      acc-scene-drift 28s ease-in-out 2650ms infinite reverse;
+  }
+}
+
+// --- Motes -----------------------------------------------------------------
+
+.acc-scene__motes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.acc-scene__mote {
+  position: absolute;
+  inset-inline-start: var(--acc-mote-left);
+  inset-block-end: -12px;
+  inline-size: var(--acc-mote-size);
+  block-size: var(--acc-mote-size);
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: var(--acc-mote-glow);
+  animation: acc-scene-mote var(--acc-mote-dur) linear var(--acc-mote-delay) infinite;
+}
+
+// Tinted and blurred rather than glowing: the calm scene wants flecks of colour
+// where the standard one wants points of light.
+.acc-scene--calm .acc-scene__mote {
+  background: var(--acc-mote-tint);
+  box-shadow: none;
+  filter: blur(1px);
+}
+
+// --- Keyframes -------------------------------------------------------------
+
+@keyframes acc-scene-bloom {
+  from {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+  to {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+}
+
+@keyframes acc-scene-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -2.5%, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-2.5%, 2%, 0) scale(0.97);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Rises the full height with a sideways sway, fading at both ends so nothing
+// pops into or out of existence mid-screen.
+@keyframes acc-scene-mote {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--acc-mote-o, 0.5);
+  }
+  85% {
+    opacity: var(--acc-mote-o, 0.5);
+  }
+  100% {
+    transform: translate3d(var(--acc-mote-x, 20px), -108vh, 0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-scene *,
+  .acc-scene__sheet {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}

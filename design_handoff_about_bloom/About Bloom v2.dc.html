@@ -1,0 +1,1155 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        />
+        <style>
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+          }
+          body {
+            font-family:
+              'Inter',
+              'Segoe UI',
+              system-ui,
+              -apple-system,
+              sans-serif;
+            color: #2a2438;
+            background: #faf8fc;
+          }
+          a {
+            color: #5b4bd6;
+            text-decoration: none;
+          }
+          a:hover {
+            color: #6d5ee6;
+          }
+          @keyframes acc-bg-shift {
+            0% {
+              background-position: 0% 20%;
+            }
+            50% {
+              background-position: 100% 80%;
+            }
+            100% {
+              background-position: 0% 20%;
+            }
+          }
+          @keyframes acc-drift {
+            0% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+            33% {
+              transform: translate3d(3%, -2.5%, 0) scale(1.05);
+            }
+            66% {
+              transform: translate3d(-2.5%, 2%, 0) scale(0.97);
+            }
+            100% {
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+          }
+          @keyframes acc-enter {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes acc-bloom-in {
+            from {
+              opacity: 0;
+              transform: scale(0.78);
+            }
+            to {
+              opacity: 0.5;
+              transform: scale(1);
+            }
+          }
+          @keyframes acc-cascade-row {
+            from {
+              opacity: 1;
+              transform: translateY(0);
+              filter: blur(0);
+            }
+            to {
+              opacity: 0;
+              transform: translateY(26px);
+              filter: blur(6px);
+            }
+          }
+          @keyframes acc-cascade-veil {
+            from {
+              opacity: 1;
+            }
+            to {
+              opacity: 0;
+              visibility: hidden;
+            }
+          }
+          @keyframes acc-ob-pop {
+            from {
+              opacity: 0;
+              transform: scale(0.2);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          @keyframes acc-pinwheel {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          @keyframes acc-ob-center-pop {
+            0% {
+              opacity: 0;
+              transform: scale(0.2);
+              animation-timing-function: cubic-bezier(0.34, 0.8, 0.4, 1);
+            }
+            45% {
+              opacity: 1;
+              transform: scale(1.35);
+              animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+            }
+            72% {
+              transform: scale(0.92);
+              animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+            }
+            88% {
+              transform: scale(1.05);
+              animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          @keyframes acc-mote {
+            0% {
+              transform: translate3d(0, 0, 0);
+              opacity: 0;
+            }
+            8% {
+              opacity: var(--mo, 0.5);
+            }
+            85% {
+              opacity: var(--mo, 0.5);
+            }
+            100% {
+              transform: translate3d(var(--mx, 20px), -108vh, 0);
+              opacity: 0;
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            * {
+              animation-duration: 0.01ms !important;
+              animation-delay: 0ms !important;
+            }
+          }
+        </style>
+      </helmet>
+      <div
+        data-screen-label="About Bloom"
+        style="position: relative; height: 100vh; overflow: hidden; background: #faf8fc"
+      >
+        <div
+          aria-hidden="true"
+          style="
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              115deg,
+              #ece2ff 0%,
+              #ffe4ef 25%,
+              #fdf0dc 50%,
+              #dcf3e8 75%,
+              #dfe5ff 100%
+            );
+            background-size: 320% 320%;
+            animation: acc-bg-shift 18s ease-in-out infinite;
+          "
+        ></div>
+        <div aria-hidden="true" style="position: absolute; inset: -8%; pointer-events: none">
+          <span
+            style="
+              position: absolute;
+              display: block;
+              border-radius: 50%;
+              left: -4%;
+              bottom: -2%;
+              width: 640px;
+              height: 640px;
+              background: #d9dfff;
+              filter: blur(90px);
+              animation:
+                acc-bloom-in 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 900ms both,
+                acc-drift 26s ease-in-out 1900ms infinite;
+            "
+          ></span>
+          <span
+            style="
+              position: absolute;
+              display: block;
+              border-radius: 50%;
+              right: -2%;
+              top: -4%;
+              width: 660px;
+              height: 660px;
+              background: #ffd9e8;
+              filter: blur(110px);
+              animation:
+                acc-bloom-in 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1150ms both,
+                acc-drift 30s ease-in-out 2150ms infinite reverse;
+            "
+          ></span>
+          <span
+            style="
+              position: absolute;
+              display: block;
+              border-radius: 50%;
+              right: 10%;
+              bottom: -10%;
+              width: 540px;
+              height: 540px;
+              background: #d2f2e6;
+              filter: blur(80px);
+              animation:
+                acc-bloom-in 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1400ms both,
+                acc-drift 22s ease-in-out 2400ms infinite;
+            "
+          ></span>
+          <span
+            style="
+              position: absolute;
+              display: block;
+              border-radius: 50%;
+              left: 36%;
+              top: -6%;
+              width: 520px;
+              height: 520px;
+              background: #ffe7cf;
+              filter: blur(100px);
+              animation:
+                acc-bloom-in 1000ms cubic-bezier(0.34, 1.28, 0.64, 1) 1650ms both,
+                acc-drift 28s ease-in-out 2650ms infinite reverse;
+            "
+          ></span>
+        </div>
+
+        <!-- idle motes drifting up, PS2-style -->
+        <div
+          aria-hidden="true"
+          style="position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden"
+        >
+          <span
+            style="
+              --mo: 0.55;
+              --mx: 34px;
+              position: absolute;
+              left: 8%;
+              bottom: -12px;
+              width: 5px;
+              height: 5px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.65);
+              animation: acc-mote 22s linear 2s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.4;
+              --mx: -28px;
+              position: absolute;
+              left: 17%;
+              bottom: -12px;
+              width: 3px;
+              height: 3px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 8px 2px rgba(206, 196, 255, 0.7);
+              animation: acc-mote 30s linear 7s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.6;
+              --mx: 52px;
+              position: absolute;
+              left: 26%;
+              bottom: -12px;
+              width: 7px;
+              height: 7px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 14px 3px rgba(255, 255, 255, 0.6);
+              animation: acc-mote 18s linear 4s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.35;
+              --mx: -40px;
+              position: absolute;
+              left: 34%;
+              bottom: -12px;
+              width: 4px;
+              height: 4px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 8px 2px rgba(255, 216, 232, 0.7);
+              animation: acc-mote 27s linear 11s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.5;
+              --mx: 24px;
+              position: absolute;
+              left: 43%;
+              bottom: -12px;
+              width: 5px;
+              height: 5px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.6);
+              animation: acc-mote 24s linear 1s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.4;
+              --mx: -18px;
+              position: absolute;
+              left: 52%;
+              bottom: -12px;
+              width: 3px;
+              height: 3px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 7px 2px rgba(210, 242, 230, 0.7);
+              animation: acc-mote 32s linear 9s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.6;
+              --mx: 46px;
+              position: absolute;
+              left: 61%;
+              bottom: -12px;
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.65);
+              animation: acc-mote 20s linear 5s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.35;
+              --mx: -34px;
+              position: absolute;
+              left: 70%;
+              bottom: -12px;
+              width: 4px;
+              height: 4px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 8px 2px rgba(206, 196, 255, 0.7);
+              animation: acc-mote 28s linear 13s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.55;
+              --mx: 30px;
+              position: absolute;
+              left: 79%;
+              bottom: -12px;
+              width: 5px;
+              height: 5px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.6);
+              animation: acc-mote 23s linear 3s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.45;
+              --mx: -22px;
+              position: absolute;
+              left: 88%;
+              bottom: -12px;
+              width: 4px;
+              height: 4px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 9px 2px rgba(255, 231, 207, 0.75);
+              animation: acc-mote 26s linear 8s infinite;
+            "
+          ></span>
+          <span
+            style="
+              --mo: 0.3;
+              --mx: 16px;
+              position: absolute;
+              left: 95%;
+              bottom: -12px;
+              width: 3px;
+              height: 3px;
+              border-radius: 50%;
+              background: #ffffff;
+              box-shadow: 0 0 7px 2px rgba(255, 255, 255, 0.6);
+              animation: acc-mote 34s linear 15s infinite;
+            "
+          ></span>
+        </div>
+
+        <!-- main page cascading away -->
+        <div
+          aria-hidden="true"
+          style="
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: #faf8fc;
+            pointer-events: none;
+            animation: acc-cascade-veil 700ms cubic-bezier(0.65, 0, 0.35, 1) 750ms forwards;
+          "
+        >
+          <div
+            style="
+              max-width: 960px;
+              margin: 0 auto;
+              padding: 40px 48px;
+              display: flex;
+              flex-direction: column;
+              gap: 18px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: acc-cascade-row 550ms cubic-bezier(0.65, 0, 0.35, 1) 80ms forwards;
+              "
+            >
+              <div
+                style="width: 120px; height: 22px; border-radius: 6px; background: #e9e5f0"
+              ></div>
+              <div
+                style="width: 200px; height: 30px; border-radius: 999px; background: #f1edf7"
+              ></div>
+            </div>
+            <div
+              style="
+                height: 84px;
+                border-radius: 14px;
+                background: #ffffff;
+                border: 1px solid #eee9f4;
+                animation: acc-cascade-row 550ms cubic-bezier(0.65, 0, 0.35, 1) 170ms forwards;
+              "
+            ></div>
+            <div
+              style="
+                height: 84px;
+                border-radius: 14px;
+                background: #ffffff;
+                border: 1px solid #eee9f4;
+                animation: acc-cascade-row 550ms cubic-bezier(0.65, 0, 0.35, 1) 260ms forwards;
+              "
+            ></div>
+            <div
+              style="
+                height: 84px;
+                border-radius: 14px;
+                background: #ffffff;
+                border: 1px solid #eee9f4;
+                animation: acc-cascade-row 550ms cubic-bezier(0.65, 0, 0.35, 1) 350ms forwards;
+              "
+            ></div>
+            <div
+              style="
+                height: 84px;
+                border-radius: 14px;
+                background: #ffffff;
+                border: 1px solid #eee9f4;
+                animation: acc-cascade-row 550ms cubic-bezier(0.65, 0, 0.35, 1) 440ms forwards;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <div
+          style="
+            position: absolute;
+            top: 28px;
+            left: 32px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
+          "
+        >
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 64 64"
+            fill="none"
+            aria-hidden="true"
+            style="display: block"
+          >
+            <g transform="rotate(0 32 32)">
+              <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#b7a6f4"></ellipse>
+            </g>
+            <g transform="rotate(72 32 32)">
+              <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#f8aac9"></ellipse>
+            </g>
+            <g transform="rotate(144 32 32)">
+              <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#ffd39a"></ellipse>
+            </g>
+            <g transform="rotate(216 32 32)">
+              <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#96ddc1"></ellipse>
+            </g>
+            <g transform="rotate(288 32 32)">
+              <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#a9bcf7"></ellipse>
+            </g>
+            <circle cx="32" cy="32" r="7.5" fill="#5b4bd6"></circle>
+          </svg>
+          <span
+            style="
+              font-size: 15px;
+              font-weight: 600;
+              letter-spacing: 0.2em;
+              text-transform: uppercase;
+              color: #8f83e3;
+            "
+            >Bloom</span
+          >
+        </div>
+
+        <button
+          type="button"
+          aria-label="Close"
+          onClick="{{ close }}"
+          style="
+            position: absolute;
+            top: 28px;
+            right: 32px;
+            z-index: 6;
+            appearance: none;
+            border: none;
+            background: transparent;
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            font-size: 22px;
+            line-height: 1;
+            color: #9a93a8;
+            cursor: pointer;
+            transition:
+              background-color 90ms cubic-bezier(0.65, 0, 0.35, 1),
+              color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+            animation: acc-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) 1400ms both;
+          "
+          style-hover="background: rgba(255,255,255,0.6); color: #2a2438;"
+        >
+          ×
+        </button>
+
+        <!-- slides -->
+        <div
+          style="
+            position: absolute;
+            inset: 0 0 140px 0;
+            z-index: 4;
+            animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 1250ms both;
+          "
+        >
+          <svg
+            width="96"
+            height="96"
+            viewBox="0 0 64 64"
+            fill="none"
+            aria-hidden="true"
+            style="
+              display: block;
+              position: absolute;
+              left: calc(50% - 48px);
+              top: calc(60vh - 306px);
+            "
+          >
+            <g
+              style="
+                transform-origin: 32px 32px;
+                transform-box: view-box;
+                animation: acc-pinwheel 30s linear 4600ms infinite;
+              "
+            >
+              <g transform="rotate(0 32 32)">
+                <ellipse
+                  cx="32"
+                  cy="17"
+                  rx="9.5"
+                  ry="15"
+                  fill="#b7a6f4"
+                  style="
+                    transform-origin: 32px 32px;
+                    transform-box: view-box;
+                    animation: acc-ob-pop 640ms cubic-bezier(0.34, 1.45, 0.64, 1) 1500ms both;
+                  "
+                ></ellipse>
+              </g>
+              <g transform="rotate(72 32 32)">
+                <ellipse
+                  cx="32"
+                  cy="17"
+                  rx="9.5"
+                  ry="15"
+                  fill="#f8aac9"
+                  style="
+                    transform-origin: 32px 32px;
+                    transform-box: view-box;
+                    animation: acc-ob-pop 640ms cubic-bezier(0.34, 1.45, 0.64, 1) 1620ms both;
+                  "
+                ></ellipse>
+              </g>
+              <g transform="rotate(144 32 32)">
+                <ellipse
+                  cx="32"
+                  cy="17"
+                  rx="9.5"
+                  ry="15"
+                  fill="#ffd39a"
+                  style="
+                    transform-origin: 32px 32px;
+                    transform-box: view-box;
+                    animation: acc-ob-pop 640ms cubic-bezier(0.34, 1.45, 0.64, 1) 1740ms both;
+                  "
+                ></ellipse>
+              </g>
+              <g transform="rotate(216 32 32)">
+                <ellipse
+                  cx="32"
+                  cy="17"
+                  rx="9.5"
+                  ry="15"
+                  fill="#96ddc1"
+                  style="
+                    transform-origin: 32px 32px;
+                    transform-box: view-box;
+                    animation: acc-ob-pop 640ms cubic-bezier(0.34, 1.45, 0.64, 1) 1860ms both;
+                  "
+                ></ellipse>
+              </g>
+              <g transform="rotate(288 32 32)">
+                <ellipse
+                  cx="32"
+                  cy="17"
+                  rx="9.5"
+                  ry="15"
+                  fill="#a9bcf7"
+                  style="
+                    transform-origin: 32px 32px;
+                    transform-box: view-box;
+                    animation: acc-ob-pop 640ms cubic-bezier(0.34, 1.45, 0.64, 1) 1980ms both;
+                  "
+                ></ellipse>
+              </g>
+            </g>
+            <circle
+              cx="32"
+              cy="32"
+              r="7.5"
+              fill="#5b4bd6"
+              style="
+                transform-origin: 32px 32px;
+                transform-box: view-box;
+                animation: acc-ob-center-pop 950ms linear 2270ms both;
+              "
+            ></circle>
+          </svg>
+
+          <div
+            data-screen-label="01 Bloom"
+            style="position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: calc(60vh - 186px) 48px 48px; opacity: {{ s1o }}; transform: translateY({{ s1y }}); pointer-events: {{ s1pe }}; transition: opacity 360ms cubic-bezier(0.16,1,0.3,1), transform 360ms cubic-bezier(0.16,1,0.3,1);"
+          >
+            <div
+              style="
+                max-width: 680px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #8f83e3;
+                  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
+                "
+                >About</span
+              >
+              <h1
+                style="
+                  margin: 0;
+                  font-size: 48px;
+                  font-weight: 600;
+                  line-height: 1.12;
+                  text-wrap: balance;
+                  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
+                "
+              >
+                A calm record of the support you give.
+              </h1>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 17px;
+                  line-height: 1.65;
+                  color: #6b6480;
+                  max-width: 540px;
+                  text-wrap: pretty;
+                  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 3050ms backwards;
+                "
+              >
+                A daily record of the accommodations you deliver, so you can show your work when
+                someone asks.
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-screen-label="02 Private"
+            style="position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: calc(60vh - 186px) 48px 48px; opacity: {{ s2o }}; transform: translateY({{ s2y }}); pointer-events: {{ s2pe }}; transition: opacity 360ms cubic-bezier(0.16,1,0.3,1), transform 360ms cubic-bezier(0.16,1,0.3,1);"
+          >
+            <div
+              style="
+                max-width: 640px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #5b4bd6;
+                "
+                >Private by design</span
+              >
+              <h2
+                style="
+                  margin: 0;
+                  font-size: 38px;
+                  font-weight: 600;
+                  line-height: 1.18;
+                  text-wrap: balance;
+                "
+              >
+                Nothing leaves this computer.
+              </h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 16px;
+                  line-height: 1.7;
+                  color: #6b6480;
+                  max-width: 540px;
+                  text-wrap: pretty;
+                "
+              >
+                Everything lives in one file on this computer. No account, no database, no network.
+                It cannot send your students&rsquo; information anywhere.
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-screen-label="03 Why"
+            style="position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: calc(60vh - 186px) 48px 48px; opacity: {{ s3o }}; transform: translateY({{ s3y }}); pointer-events: {{ s3pe }}; transition: opacity 360ms cubic-bezier(0.16,1,0.3,1), transform 360ms cubic-bezier(0.16,1,0.3,1);"
+          >
+            <div
+              style="
+                max-width: 640px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #8f83e3;
+                "
+                >Why it was built</span
+              >
+              <h2
+                style="
+                  margin: 0;
+                  font-size: 38px;
+                  font-weight: 600;
+                  line-height: 1.18;
+                  text-wrap: balance;
+                "
+              >
+                Paperwork built for auditors, not for teachers.
+              </h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 16px;
+                  line-height: 1.7;
+                  color: #6b6480;
+                  max-width: 540px;
+                  text-wrap: pretty;
+                "
+              >
+                Documenting IEP and 504 support is required, and the systems that exist for it are
+                mostly built for administrators rather than for the person actually teaching. They
+                ask for a lot of clicks, at the end of a day when you have none left.
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-screen-label="04 Who"
+            style="position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: calc(60vh - 186px) 48px 48px; opacity: {{ s4o }}; transform: translateY({{ s4y }}); pointer-events: {{ s4pe }}; transition: opacity 360ms cubic-bezier(0.16,1,0.3,1), transform 360ms cubic-bezier(0.16,1,0.3,1);"
+          >
+            <div
+              style="
+                max-width: 640px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #8f83e3;
+                "
+                >Who it&rsquo;s for</span
+              >
+              <h2
+                style="
+                  margin: 0;
+                  font-size: 38px;
+                  font-weight: 600;
+                  line-height: 1.18;
+                  text-wrap: balance;
+                "
+              >
+                For the person delivering the support.
+              </h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 16px;
+                  line-height: 1.7;
+                  color: #6b6480;
+                  max-width: 540px;
+                  text-wrap: pretty;
+                "
+              >
+                Classroom teachers with IEP and 504 students, not the office auditing them. A board
+                you can run down in a few minutes after the last bell, that turns into a report when
+                someone needs one.
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-screen-label="05 Next"
+            style="position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: calc(60vh - 186px) 48px 48px; opacity: {{ s5o }}; transform: translateY({{ s5y }}); pointer-events: {{ s5pe }}; transition: opacity 360ms cubic-bezier(0.16,1,0.3,1), transform 360ms cubic-bezier(0.16,1,0.3,1);"
+          >
+            <div
+              style="
+                max-width: 640px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 20px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: 600;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #8f83e3;
+                "
+                >Where it goes next</span
+              >
+              <h2
+                style="
+                  margin: 0;
+                  font-size: 38px;
+                  font-weight: 600;
+                  line-height: 1.18;
+                  text-wrap: balance;
+                "
+              >
+                Small on purpose.
+              </h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 16px;
+                  line-height: 1.7;
+                  color: #6b6480;
+                  max-width: 540px;
+                  text-wrap: pretty;
+                "
+              >
+                An end-of-day close-out that seals each record, printable reports ready for
+                compliance submission, and bulk actions for the busy days. Never an account, never a
+                sync. That part doesn&rsquo;t change.
+              </p>
+            </div>
+          </div>
+
+          <sc-if value="{{ showStats }}" hint-placeholder-val="{{ true }}">
+            <div
+              style="
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: -58px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                justify-items: center;
+                width: 460px;
+                max-width: 100%;
+                margin: 0 auto;
+                box-sizing: border-box;
+                padding: 14px 24px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+              "
+            >
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+                <span
+                  style="
+                    font-family: 'JetBrains Mono', Consolas, monospace;
+                    font-size: 17px;
+                    font-variant-numeric: tabular-nums;
+                    color: #2a2438;
+                  "
+                  >{{ students }}</span
+                >
+                <span style="font-size: 12px; color: #9a93a8">students</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+                <span
+                  style="
+                    font-family: 'JetBrains Mono', Consolas, monospace;
+                    font-size: 17px;
+                    font-variant-numeric: tabular-nums;
+                    color: #2a2438;
+                  "
+                  >{{ accommodations }}</span
+                >
+                <span style="font-size: 12px; color: #9a93a8">accommodations</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+                <span
+                  style="
+                    font-family: 'JetBrains Mono', Consolas, monospace;
+                    font-size: 17px;
+                    font-variant-numeric: tabular-nums;
+                    color: #2a2438;
+                  "
+                  >{{ daysRecorded }}</span
+                >
+                <span style="font-size: 12px; color: #9a93a8">days recorded</span>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- nav + stats -->
+        <div
+          style="
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22px;
+            padding: 0 48px 36px;
+            animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 1450ms both;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 18px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <sc-for list="{{ dots }}" as="dot" hint-placeholder-count="5">
+                <button
+                  type="button"
+                  aria-label="Go to slide {{ dot.n }}"
+                  onClick="{{ dot.go }}"
+                  style="appearance: none; border: none; padding: 0; width: 8px; height: 8px; border-radius: 999px; cursor: pointer; background: {{ dot.bg }}; transition: background-color 200ms cubic-bezier(0.65,0,0.35,1), transform 200ms cubic-bezier(0.65,0,0.35,1); transform: scale({{ dot.scale }});"
+                ></button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="{{ feedbackHref }}"
+          onClick="{{ feedbackClick }}"
+          aria-label="Send feedback to the developer"
+          style="
+            position: absolute;
+            right: 32px;
+            bottom: 32px;
+            z-index: 6;
+            display: inline-flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            font-weight: 600;
+            color: #5b4bd6;
+            box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+            transition:
+              background-color 90ms cubic-bezier(0.65, 0, 0.35, 1),
+              color 90ms cubic-bezier(0.65, 0, 0.35, 1);
+            animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 1450ms both;
+          "
+          style-hover="background: #ffffff; color: #4a3ac0;"
+          ><span style="display: inline-block; width: 16px; text-align: center">?</span
+          ><span
+            style="display: inline-block; overflow: hidden; white-space: nowrap; font-size: 13px; font-weight: 500; max-width: {{ fbLabelMax }}; opacity: {{ fbLabelO }}; margin-right: {{ fbLabelGap }}; transition: max-width 260ms cubic-bezier(0.16,1,0.3,1), opacity 200ms cubic-bezier(0.65,0,0.35,1), margin-right 260ms cubic-bezier(0.16,1,0.3,1);"
+            >Send feedback</span
+          ></a
+        >
+      </div>
+    </x-dc>
+    <script
+      type="text/x-dc"
+      data-dc-script
+      data-props='{
+  "showStats": {"editor": "boolean", "default": true, "tsType": "boolean", "section": "Content"},
+  "students": {"editor": "int", "default": 8, "min": 0, "max": 999, "tsType": "number", "section": "Live counts"},
+  "accommodations": {"editor": "int", "default": 9, "min": 0, "max": 999, "tsType": "number", "section": "Live counts"},
+  "daysRecorded": {"editor": "int", "default": 5, "min": 0, "max": 365, "tsType": "number", "section": "Live counts"},
+  "feedbackEmail": {"editor": "text", "default": "m.solothis@proton.me", "tsType": "string", "section": "Content"}
+}'
+    >
+      class Component extends DCLogic {
+        state = { i: 0, fbOpen: false };
+        N = 5;
+        go(i, manual) { this.setState({ i: ((i % this.N) + this.N) % this.N }); if (manual) this.armIdle(); }
+        armIdle() {
+          clearInterval(this._idle);
+          this._idle = setInterval(() => this.go(this.state.i + 1), 9000);
+        }
+        componentDidMount() {
+          this._onKey = (e) => {
+            if (e.key === 'ArrowRight') this.go(this.state.i + 1, true);
+            if (e.key === 'ArrowLeft') this.go(this.state.i - 1, true);
+          };
+          window.addEventListener('keydown', this._onKey);
+          this.armIdle();
+        }
+        componentWillUnmount() { window.removeEventListener('keydown', this._onKey); clearInterval(this._idle); }
+        renderVals() {
+          const i = this.state.i;
+          const vals = {
+            showStats: this.props.showStats ?? true,
+            students: this.props.students ?? 8,
+            accommodations: this.props.accommodations ?? 9,
+            daysRecorded: this.props.daysRecorded ?? 5,
+            close: () => {}, // wired to the About route close in the app
+            feedbackHref: 'mailto:' + (this.props.feedbackEmail || 'm.solothis@proton.me') + '?subject=Bloom%20feedback',
+            feedbackClick: (e) => {
+              if (!this.state.fbOpen) {
+                e.preventDefault();
+                this.setState({ fbOpen: true });
+                clearTimeout(this._fbT);
+                this._fbT = setTimeout(() => this.setState({ fbOpen: false }), 6000);
+              }
+            },
+            fbLabelMax: this.state.fbOpen ? '140px' : '0px',
+            fbLabelO: this.state.fbOpen ? 1 : 0,
+            fbLabelGap: this.state.fbOpen ? '7px' : '0px',
+            prev: () => this.go(i - 1, true),
+            next: () => this.go(i + 1, true),
+            dots: [0, 1, 2, 3, 4].map((n) => ({
+              n: n + 1,
+              go: () => this.go(n, true),
+              bg: n === i ? '#5b4bd6' : 'rgba(42,36,56,0.18)',
+              scale: n === i ? '1.25' : '1',
+            })),
+          };
+          for (let n = 0; n < this.N; n++) {
+            vals['s' + (n + 1) + 'o'] = n === i ? 1 : 0;
+            vals['s' + (n + 1) + 'y'] = n === i ? '0px' : (n < i ? '-18px' : '18px');
+            vals['s' + (n + 1) + 'pe'] = n === i ? 'auto' : 'none';
+          }
+          return vals;
+        }
+      }
+    </script>
+  </body>
+</html>

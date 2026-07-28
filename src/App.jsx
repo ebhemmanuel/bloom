@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
-import OnboardingAmbient from './components/onboarding/OnboardingAmbient.jsx';
+import AmbientScene from './components/shared/AmbientScene.jsx';
+import AboutBloom from './components/about/AboutBloom.jsx';
 import { setupStage } from './domain/onboarding.js';
 import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
 import ProfileModal from './components/shell/ProfileModal.jsx';
@@ -19,6 +20,7 @@ import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
 import { DEFAULT_BACKGROUND_STYLE } from './domain/constants.js';
+import { dayHasWork } from './domain/seed.js';
 import { dataBridge, appBridge, isDesktop } from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
@@ -65,6 +67,24 @@ function AppShell() {
   // Which student the profile modal opens on, when it was reached from a lane.
   const [editingStudentId, setEditingStudentId] = useState(null);
   const palette = useCommandPalette();
+
+  /**
+   * The three counts About shows.
+   *
+   * Days RECORDED, not days that exist: the year is laid out in advance, so
+   * counting `doc.days` would report a number the teacher never earned. Active
+   * assignments rather than the catalog, because the catalog is a list of
+   * wordings and this is meant to say how much support is actually being
+   * tracked.
+   */
+  const aboutStats = useMemo(
+    () => ({
+      students: doc.students.filter((s) => s.active && !s.archivedAt).length,
+      accommodations: doc.assignments.filter((a) => !a.activeTo).length,
+      daysRecorded: Object.keys(doc.days || {}).filter((d) => dayHasWork(doc, d)).length,
+    }),
+    [doc]
+  );
 
   const notifications = useMemo(
     () => deriveNotifications(doc, { meta, boardModel: model }),
@@ -139,39 +159,21 @@ function AppShell() {
   return (
     <div className={`acc-app ${cascade}`.trim()}>
       {/*
-        The page blooms, the board does not. Aurora and the drifting blob field
-        render BEHIND the floating frame; the board card itself stays clean.
-      */}
-      {/*
         The scene the app sits in front of, and the teacher's choice of it.
 
-        `calm` is the one onboarding opens in, and it is the default on purpose:
-        the first-run handoff cascades the board in over whatever is already
-        there, so a different backdrop underneath would mean the room changed
-        while the furniture was still arriving. Same scene, new contents.
+        The same component setup and About draw. That is the point: the
+        first-run handoff cascades the board in over whatever is already there,
+        and About cascades it away again, so both change what is on the page
+        without changing what is behind it.
       */}
-      {background === 'cycling' ? (
-        <>
-          <div className="acc-app__backdrop" aria-hidden="true" />
-          <div className="acc-app__field" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-        </>
-      ) : (
-        <div className="acc-app__calm" aria-hidden="true">
-          <OnboardingAmbient />
-        </div>
-      )}
+      <AmbientScene variant={background} />
 
       {/*
         One container owns the measure. Every chrome element (pill nav, board)
         lives inside it, so nothing can drift out of alignment the way it does
         when each piece caps its own width.
       */}
-      <div className="acc-app__frame">
+      <div className="acc-app__frame" data-about={modal === 'about' ? 'opening' : undefined}>
         <AppHeader
           menus={menus}
           notifications={notifications}
@@ -226,39 +228,7 @@ function AppShell() {
         {modal === 'print' && <PrintReportModal onClose={() => setModal(null)} />}
 
         {modal === 'about' && (
-          <Modal title={`About ${PRODUCT_NAME}`} onClose={() => setModal(null)}>
-            <div className="acc-about">
-              <p>
-                {PRODUCT_NAME} keeps a daily record of the accommodations you deliver, so you can
-                show your work when someone asks.
-              </p>
-              <p>
-                Documenting IEP and 504 support is required, and the systems that exist for it are
-                mostly built for administrators rather than for the person actually teaching. They
-                ask for a lot of clicks, at the end of a day when you have none left.
-              </p>
-              <p>
-                This is meant to be the small version: a board you can run down in a few minutes
-                after the last bell, that turns into a report when someone needs one. Nothing more
-                than that.
-              </p>
-              <p>
-                Everything lives in one file on this computer. There is no account, no database and
-                no network - the app cannot send your students&rsquo; information anywhere, by
-                design.
-              </p>
-              <dl className="acc-about__facts">
-                <dt>Records</dt>
-                <dd>{meta.path || 'this browser'}</dd>
-                <dt>Students</dt>
-                <dd>{doc.students.length}</dd>
-                <dt>Accommodations</dt>
-                <dd>{doc.catalog.length}</dd>
-                <dt>Days recorded</dt>
-                <dd>{Object.keys(doc.days || {}).length}</dd>
-              </dl>
-            </div>
-          </Modal>
+          <AboutBloom stats={aboutStats} background={background} onClose={() => setModal(null)} />
         )}
 
         {meta.tooNew && (

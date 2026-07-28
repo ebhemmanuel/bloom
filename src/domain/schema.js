@@ -138,9 +138,14 @@ export function normalizeDoc(raw, now = new Date()) {
     // Anything unrecognised falls back to the default rather than being
     // reported: a background is a preference, not a record, and a repair notice
     // about one would be noise on a screen that exists for compliance repairs.
+    // `cycling` was the old id for the aurora sheet before it became the
+    // standard. Migrated rather than dropped, so anyone who chose it keeps the
+    // scene they picked instead of being quietly moved.
     backgroundStyle: BACKGROUND_STYLES.some((b) => b.id === s.backgroundStyle)
       ? s.backgroundStyle
-      : DEFAULT_BACKGROUND_STYLE,
+      : s.backgroundStyle === 'cycling'
+        ? 'aurora'
+        : DEFAULT_BACKGROUND_STYLE,
     /**
      * Which of the derived advisories the teacher opted into.
      *

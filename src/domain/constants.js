@@ -246,14 +246,17 @@ export const DEFAULT_IDLE_LOCK_MINUTES = 10;
 /**
  * The two scenes the app can sit in front of.
  *
- * `calm` is the one onboarding uses: a slow drifting sheet with blurred blooms
- * and rising motes. `cycling` is the faster animated aurora the board shipped
- * with. Calm is the default so the first-run handoff never changes scene
- * underneath the cascade - the board arrives in the room onboarding left.
+ * `aurora` is the standard set by design_handoff_about_bloom: the sheet the
+ * About screen uses, on an 18s cycle, with glowing motes. It is the default and
+ * it is what setup, the board and About all draw, so moving between them never
+ * changes the room.
+ *
+ * `calm` is the softer scene setup used to open in - a paler sheet on a much
+ * slower cycle with tinted motes - kept because some people will prefer it.
  */
 export const BACKGROUND_STYLES = [
-  { id: 'calm', label: 'Calm', hint: 'Slow drift, the one setup opens in' },
-  { id: 'cycling', label: 'Cycling', hint: 'A brighter aurora on a faster loop' },
+  { id: 'aurora', label: 'Aurora', hint: 'The standard scene, on a slow cycle' },
+  { id: 'calm', label: 'Calm', hint: 'Paler, slower, tinted motes' },
 ];
 
-export const DEFAULT_BACKGROUND_STYLE = 'calm';
+export const DEFAULT_BACKGROUND_STYLE = 'aurora';
