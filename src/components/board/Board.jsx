@@ -64,6 +64,7 @@ export default function Board({ onAddStudent }) {
   const [contextMenu, setContextMenu] = useState(null);
   const [laneMenu, setLaneMenu] = useState(null);
   const [confirmUnenrol, setConfirmUnenrol] = useState(null);
+  const [confirmCopy, setConfirmCopy] = useState(null);
   const [dragging, setDragging] = useState(false);
   const { collapsed, toggle, collapseAll, expandAll } = useCollapsedLanes();
   const {
@@ -220,10 +221,17 @@ export default function Board({ onAddStudent }) {
    * showed nothing, so every refusal - no earlier day, would-overwrite, sealed -
    * was silent, and the whole action looked broken whether or not it had copied.
    */
+  /**
+   * `apply: false` runs it as a dry run.
+   *
+   * `copyFromPreviousDay` is pure, so asking what a copy WOULD do costs nothing
+   * and returns the source date and the number of entries. That is what lets
+   * the confirmation name them before anything is written.
+   */
   const copyPrevious = useCallback(
-    (mode = SEED_MODE.FULL, force = false) => {
+    (mode = SEED_MODE.FULL, force = false, { apply = true } = {}) => {
       const result = copyFromPreviousDay(doc, dateKey, { mode, force });
-      if (result.applied) mutate(() => result.doc);
+      if (apply && result.applied) mutate(() => result.doc);
       return result;
     },
     [doc, dateKey, mutate]
@@ -231,9 +239,9 @@ export default function Board({ onAddStudent }) {
 
   /** The same thing for one student, from their lane menu. */
   const copyPreviousForStudent = useCallback(
-    (studentId, force = false) => {
+    (studentId, force = false, { apply = true } = {}) => {
       const result = copyStudentFromPreviousDay(doc, dateKey, studentId, { force });
-      if (result.applied) mutate(() => result.doc);
+      if (apply && result.applied) mutate(() => result.doc);
       return result;
     },
     [doc, dateKey, mutate]
@@ -515,13 +523,12 @@ export default function Board({ onAddStudent }) {
             setConfirmUnenrol({ lane: laneMenu.lane, from });
           }}
           onCopyPrevious={() => {
-            const id = laneMenu.lane.studentId;
-            const result = copyPreviousForStudent(id, false);
-            // Overwriting one lane is small and undoable, so a refusal here just
-            // asks once rather than routing through the toolbar's toast.
-            if (!result.applied && result.reason === 'would-overwrite') {
-              copyPreviousForStudent(id, true);
-            }
+            // Dry run first: the question names the day and the count, and
+            // nothing is written unless the answer is yes. Copying statuses
+            // forward asserts delivery, so it is never a single click.
+            const lane = laneMenu.lane;
+            const preview = copyPreviousForStudent(lane.studentId, false, { apply: false });
+            setConfirmCopy({ lane, preview });
           }}
         />
       )}
@@ -541,6 +548,48 @@ export default function Board({ onAddStudent }) {
               setStudentEnrollment(d, confirmUnenrol.lane.studentId, confirmUnenrol.from)
             );
             setConfirmUnenrol(null);
+          }}
+        />
+      )}
+
+      {/*
+        Named, counted and dated before anything is written. A copy asserts
+        delivery on a day nobody has observed, which is the one class of change
+        that should never happen from a single click on a compliance record.
+      */}
+      {confirmCopy && (
+        <ConfirmDialog
+          title={
+            confirmCopy.preview.applied || confirmCopy.preview.reason === 'would-overwrite'
+              ? `Copy ${confirmCopy.lane.displayName}'s last recorded day?`
+              : `Nothing to copy for ${confirmCopy.lane.displayName}`
+          }
+          body={
+            confirmCopy.preview.reason === 'no-source'
+              ? 'There is no earlier day with anything recorded for them.'
+              : confirmCopy.preview.reason === 'sealed'
+                ? 'This day is closed out, so it cannot be changed.'
+                : confirmCopy.preview.reason === 'would-overwrite'
+                  ? `You have already recorded something for ${confirmCopy.lane.displayName} today. Copying will replace it.`
+                  : `This brings ${confirmCopy.preview.copied} entr${
+                      confirmCopy.preview.copied === 1 ? 'y' : 'ies'
+                    } forward from ${formatDateLong(confirmCopy.preview.sourceDate)} and records them as delivered today.`
+          }
+          reassurance={
+            confirmCopy.preview.applied || confirmCopy.preview.reason === 'would-overwrite'
+              ? 'Only this student is affected, and you can move any card afterwards.'
+              : undefined
+          }
+          confirmLabel={
+            confirmCopy.preview.reason === 'would-overwrite' ? 'Replace it' : 'Copy them'
+          }
+          tone={confirmCopy.preview.reason === 'would-overwrite' ? 'warn' : 'default'}
+          onCancel={() => setConfirmCopy(null)}
+          onConfirm={() => {
+            if (confirmCopy.preview.applied || confirmCopy.preview.reason === 'would-overwrite') {
+              copyPreviousForStudent(confirmCopy.lane.studentId, true);
+            }
+            setConfirmCopy(null);
           }}
         />
       )}

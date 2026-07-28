@@ -22,10 +22,28 @@
   flex-shrink: 0;
 
   // File / Edit / About, in the middle of the cluster. An ordinary flex child:
-  // the whole row is centred, so nothing here needs its own offset.
+  // the brand and the menus are centred together, so nothing here needs its own
+  // offset.
   &__menus {
     display: flex;
     align-items: center;
+  }
+
+  /**
+   * Clock, search, notes, notifications, avatar: pinned to the far end.
+   *
+   * Taken out of the flow rather than left in it, because the brand and the
+   * menus stay centred on the bar and a flex row cannot centre one group and
+   * end-align another at the same time. Absolute is safe here for the same
+   * reason it is safe for the menus: the three clusters together come nowhere
+   * near the container's 1200px.
+   */
+  &__right {
+    position: absolute;
+    inset-inline-end: var(--acc-space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
   }
 
   // Quiet by default. It is a reference, not a notification, so it sits at the
@@ -97,12 +115,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  &__right {
-    display: flex;
-    align-items: center;
-    gap: var(--acc-space-2);
   }
 
   &__icon {

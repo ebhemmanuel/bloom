@@ -4,6 +4,7 @@ import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
+import { formatDateMedium } from '../../domain/dates.js';
 
 function Chevron({ down }) {
   return (
@@ -88,7 +89,7 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
             disabled={disabled}
             onClick={() => {
               setOpen(false);
-              onCopyPrevious(SEED_MODE.FULL, false);
+              onCopyPrevious();
             }}
           >
             <span>Copy yesterday</span>
@@ -147,6 +148,51 @@ export default function BoardToolbar({
 }) {
   const [notice, setNotice] = useState(null);
   const disabled = readOnly || model.sealed;
+
+  /**
+   * Ask before writing, always.
+   *
+   * A dry run first, so the question can name the day it would copy and how
+   * many entries it would bring - "copy 14 entries from Mon, 15 Sep?" is a
+   * decision, where "copy yesterday?" is a guess. It only proceeds on a yes.
+   *
+   * This is not caution for its own sake. Copying statuses forward asserts
+   * delivery on a day nobody has observed yet, and on a compliance record that
+   * is the one class of change that should never happen from a single click.
+   */
+  const askThenCopy = () => {
+    const preview = onCopyPrevious(SEED_MODE.FULL, false, { apply: false });
+    if (!preview) return;
+
+    if (!preview.applied && preview.reason === 'no-source') {
+      setNotice({ tone: 'warn', text: 'No earlier day with anything recorded to copy from.' });
+      return;
+    }
+    if (!preview.applied && preview.reason === 'sealed') {
+      setNotice({ tone: 'warn', text: 'This day is closed out.' });
+      return;
+    }
+
+    const overwrite = !preview.applied && preview.reason === 'would-overwrite';
+    if (overwrite) {
+      setNotice({
+        tone: 'warn',
+        text: "You've already recorded something today. Copying will overwrite it.",
+        confirmLabel: 'Overwrite anyway',
+        onConfirm: () => copy(SEED_MODE.FULL, true),
+      });
+      return;
+    }
+
+    setNotice({
+      tone: 'ok',
+      text: `Copy ${preview.copied} entr${preview.copied === 1 ? 'y' : 'ies'} from ${formatDateMedium(
+        preview.sourceDate
+      )} onto today? This records them as delivered.`,
+      confirmLabel: 'Copy them',
+      onConfirm: () => copy(SEED_MODE.FULL, false),
+    });
+  };
 
   const copy = (mode, force) => {
     const result = onCopyPrevious(mode, force);
@@ -284,7 +330,7 @@ export default function BoardToolbar({
         <OverflowMenu
           disabled={disabled}
           hasRecord={model.hasRecord}
-          onCopyPrevious={copy}
+          onCopyPrevious={askThenCopy}
           onCloseOutDay={onCloseOutDay}
         />
       </div>
