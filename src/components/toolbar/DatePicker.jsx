@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import Caret from '../shared/Caret.jsx';
 import {
@@ -41,8 +42,39 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   const [mode, setMode] = useState('day');
   const [anchor, setAnchor] = useState(dateKey);
   const [range, setRange] = useState({ start: null, end: null });
+  const [at, setAt] = useState({ top: 0, left: 0 });
 
   const ref = usePopoverDismiss(open, () => setOpen(false));
+  const triggerRef = useRef(null);
+
+  /**
+   * Where the calendar goes, in viewport coordinates.
+   *
+   * Measured from the trigger each time it opens rather than positioned
+   * relatively, because the calendar is portalled out of the toolbar to escape
+   * the board's clipping. Clamped so it never opens off the right edge.
+   */
+  const place = () => {
+    const box = triggerRef.current?.getBoundingClientRect();
+    if (!box) return;
+    setAt({
+      top: Math.min(box.bottom + 6, window.innerHeight - 380),
+      left: Math.min(box.left, window.innerWidth - 320),
+    });
+  };
+
+  // A scroll or a resize moves the trigger out from under it, so close rather
+  // than let the calendar float somewhere it no longer belongs.
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+    };
+  }, [open]);
   const skip = useMemo(() => new Set(nonInstructionalDates), [nonInstructionalDates]);
   const today = todayKey();
 
@@ -90,8 +122,12 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
       <div className="acc-datepicker__anchor">
         <button
           type="button"
+          ref={triggerRef}
           className={`acc-btn acc-datepicker__trigger${open ? ' acc-btn--on' : ''}`}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => {
+            if (!open) place();
+            setOpen((o) => !o);
+          }}
           aria-expanded={open}
           aria-label="Pick a date or range"
         >
@@ -123,108 +159,116 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
           <Caret up={open} />
         </button>
 
-        {open && (
-          <div className="acc-cal acc-enter" ref={ref} role="dialog" aria-label="Choose a date">
-            <div className="acc-cal__head">
-              <button
-                type="button"
-                className="acc-cal__nav"
-                onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-01`, -1))}
-                aria-label="Previous month"
-              >
-                ‹
-              </button>
-              <span className="acc-cal__month">{monthLabel}</span>
-              <button
-                type="button"
-                className="acc-cal__nav"
-                onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-28`, 7))}
-                aria-label="Next month"
-              >
-                ›
-              </button>
-            </div>
-
-            <div className="acc-cal__modes" role="group" aria-label="Pick mode">
-              {['day', 'range'].map((m) => (
+        {open &&
+          createPortal(
+            <div
+              className="acc-cal acc-enter"
+              ref={ref}
+              role="dialog"
+              aria-label="Choose a date"
+              style={{ '--acc-cal-top': `${at.top}px`, '--acc-cal-left': `${at.left}px` }}
+            >
+              <div className="acc-cal__head">
                 <button
-                  key={m}
                   type="button"
-                  className={`acc-cal__mode${mode === m ? ' acc-cal__mode--on' : ''}`}
-                  aria-pressed={mode === m}
-                  onClick={() => {
-                    setMode(m);
-                    setRange({ start: null, end: null });
-                  }}
+                  className="acc-cal__nav"
+                  onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-01`, -1))}
+                  aria-label="Previous month"
                 >
-                  {m === 'day' ? 'Day' : 'Range'}
+                  ‹
                 </button>
-              ))}
-            </div>
-
-            <div className="acc-cal__grid" role="grid">
-              {WEEK_HEADS.map((h, i) => (
-                <span key={`${h}${i}`} className="acc-cal__weekhead" aria-hidden="true">
-                  {h}
-                </span>
-              ))}
-
-              {grid.map((key) => {
-                const outside = key.slice(0, 7) !== anchor.slice(0, 7);
-                const disabled = !isPickable(key);
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => pick(key)}
-                    aria-label={formatDateMedium(key)}
-                    className={[
-                      'acc-cal__day',
-                      outside && 'acc-cal__day--outside',
-                      disabled && 'acc-cal__day--off',
-                      key === today && 'acc-cal__day--today',
-                      key === dateKey && mode === 'day' && 'acc-cal__day--current',
-                      inRange(key) && 'acc-cal__day--inrange',
-                      (key === range.start || key === range.end) && 'acc-cal__day--edge',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    {Number(key.slice(8))}
-                  </button>
-                );
-              })}
-            </div>
-
-            {mode === 'range' && (
-              <div className="acc-cal__range">
-                {range.start && range.end ? (
-                  <>
-                    <span className="acc-cal__rangelabel">
-                      {formatDateMedium(range.start)} – {formatDateMedium(range.end)} ·{' '}
-                      {rangeDays.length} school day{rangeDays.length === 1 ? '' : 's'}
-                    </span>
-                    <button
-                      type="button"
-                      className="acc-btn acc-btn--small"
-                      onClick={() => {
-                        onChange(rangeDays[0] || range.start);
-                        setOpen(false);
-                      }}
-                    >
-                      Go to first day
-                    </button>
-                  </>
-                ) : (
-                  <span className="acc-cal__rangelabel">
-                    {range.start ? 'Now pick the end date.' : 'Pick a start date.'}
-                  </span>
-                )}
+                <span className="acc-cal__month">{monthLabel}</span>
+                <button
+                  type="button"
+                  className="acc-cal__nav"
+                  onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-28`, 7))}
+                  aria-label="Next month"
+                >
+                  ›
+                </button>
               </div>
-            )}
-          </div>
-        )}
+
+              <div className="acc-cal__modes" role="group" aria-label="Pick mode">
+                {['day', 'range'].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`acc-cal__mode${mode === m ? ' acc-cal__mode--on' : ''}`}
+                    aria-pressed={mode === m}
+                    onClick={() => {
+                      setMode(m);
+                      setRange({ start: null, end: null });
+                    }}
+                  >
+                    {m === 'day' ? 'Day' : 'Range'}
+                  </button>
+                ))}
+              </div>
+
+              <div className="acc-cal__grid" role="grid">
+                {WEEK_HEADS.map((h, i) => (
+                  <span key={`${h}${i}`} className="acc-cal__weekhead" aria-hidden="true">
+                    {h}
+                  </span>
+                ))}
+
+                {grid.map((key) => {
+                  const outside = key.slice(0, 7) !== anchor.slice(0, 7);
+                  const disabled = !isPickable(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => pick(key)}
+                      aria-label={formatDateMedium(key)}
+                      className={[
+                        'acc-cal__day',
+                        outside && 'acc-cal__day--outside',
+                        disabled && 'acc-cal__day--off',
+                        key === today && 'acc-cal__day--today',
+                        key === dateKey && mode === 'day' && 'acc-cal__day--current',
+                        inRange(key) && 'acc-cal__day--inrange',
+                        (key === range.start || key === range.end) && 'acc-cal__day--edge',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      {Number(key.slice(8))}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {mode === 'range' && (
+                <div className="acc-cal__range">
+                  {range.start && range.end ? (
+                    <>
+                      <span className="acc-cal__rangelabel">
+                        {formatDateMedium(range.start)} – {formatDateMedium(range.end)} ·{' '}
+                        {rangeDays.length} school day{rangeDays.length === 1 ? '' : 's'}
+                      </span>
+                      <button
+                        type="button"
+                        className="acc-btn acc-btn--small"
+                        onClick={() => {
+                          onChange(rangeDays[0] || range.start);
+                          setOpen(false);
+                        }}
+                      >
+                        Go to first day
+                      </button>
+                    </>
+                  ) : (
+                    <span className="acc-cal__rangelabel">
+                      {range.start ? 'Now pick the end date.' : 'Pick a start date.'}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>,
+            document.body
+          )}
       </div>
     </div>
   );

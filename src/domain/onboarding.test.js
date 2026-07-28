@@ -104,6 +104,42 @@ describe('buildOnboardedDoc', () => {
     expect(doc.students[0].periodIds).toEqual(ids);
   });
 
+  it('seeds one generic preset, so the list is never empty', () => {
+    // A teacher who skips the roster would otherwise land on a blank preset
+    // list, meeting an empty page instead of an example to copy.
+    const doc = buildOnboardedDoc({ name: 'Jordan' }, now);
+    expect(doc.catalog.map((c) => c.label)).toEqual([
+      'Preferential seating (front, near instruction)',
+    ]);
+  });
+
+  it('assigns the seeded preset to nobody', () => {
+    // It is a shape to copy, not a recommendation. Attaching it to students
+    // would be the app deciding what a plan says.
+    const doc = buildOnboardedDoc({ name: 'Jordan' }, now);
+    expect(doc.assignments).toHaveLength(0);
+  });
+
+  it('does not duplicate the seed when a student already has it', () => {
+    const doc = buildOnboardedDoc(
+      {
+        ...answers,
+        students: [
+          {
+            id: 'a',
+            name: 'A',
+            plan: 'IEP',
+            accoms: ['Preferential seating (front, near instruction)'],
+          },
+        ],
+      },
+      now
+    );
+    expect(
+      doc.catalog.filter((c) => c.label === 'Preferential seating (front, near instruction)')
+    ).toHaveLength(1);
+  });
+
   it('survives a teacher who answered nothing but their name', () => {
     const doc = buildOnboardedDoc({ name: 'Jordan' }, now);
     expect(doc.teachers[0].displayName).toBe('Jordan');

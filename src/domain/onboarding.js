@@ -1,5 +1,5 @@
 import { createEmptyDoc } from './schema.js';
-import { addPeriod } from './mutations.js';
+import { addPeriod, addCatalogEntry } from './mutations.js';
 import { addStudentWithAccommodations } from './importStudent.js';
 import { allStarterItems } from './starterSets.js';
 import { newTeacherId } from './ids.js';
@@ -96,6 +96,20 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
   }
 
   const allPeriodIds = Object.values(periodIdByNumber);
+
+  /**
+   * One preset to start from, whether or not any student was added.
+   *
+   * A teacher who skips the roster lands on a board with an empty preset list,
+   * and the first thing they meet is a blank page rather than an example. This
+   * is the most common accommodation there is and the least likely to be wrong
+   * for anyone, so it seeds the catalog as a shape to copy rather than as a
+   * recommendation. Nothing is assigned to any student by it.
+   */
+  const SEED_PRESET = 'Preferential seating (front, near instruction)';
+  if (!doc.catalog.some((c) => c.label === SEED_PRESET)) {
+    doc = addCatalogEntry(doc, resolveStarterItem(SEED_PRESET), now);
+  }
 
   for (const student of students) {
     const label = String(student.name || '').trim();

@@ -132,22 +132,31 @@
     }
   }
 
-  &__caret {
+  // Pushed to the far end of the fixed-width trigger. These rules used to name
+  // `__caret`, a class that went away when the shared Caret arrived, so the
+  // chevron quietly stopped being pushed anywhere and sat 48px short.
+  .acc-caret {
     margin-inline-start: auto;
-  }
-
-  &__caret {
-    color: var(--acc-fg-faint);
   }
 }
 
 // --- Calendar popover ------------------------------------------------------
 
+/**
+ * Portalled to <body> and positioned in viewport coordinates.
+ *
+ * Absolutely positioned inside the toolbar it was clipped away: the board's
+ * scroll area is `overflow-x: hidden` and the app shell is `overflow: hidden`,
+ * and no z-index wins against an ancestor that clips. `position: fixed` alone
+ * would not have saved it either, because `.acc-app__main` carries a
+ * backdrop-filter and so becomes the containing block for fixed descendants.
+ * The portal is the only way out, the same one the context menus take.
+ */
 .acc-cal {
-  position: absolute;
-  z-index: 60;
-  inset-block-start: 38px;
-  inset-inline-start: 0;
+  position: fixed;
+  z-index: 80;
+  inset-block-start: var(--acc-cal-top);
+  inset-inline-start: var(--acc-cal-left);
   inline-size: 308px;
   box-sizing: border-box;
   padding: var(--acc-space-3);
