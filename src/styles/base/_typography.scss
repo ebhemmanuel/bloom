@@ -1,9 +1,39 @@
-// Fonts are bundled locally under src/assets/fonts and referenced with @font-face
-// here once they land. NO @import from Google Fonts, ever - it would break offline
-// operation and violate the network promise the product is built on.
+// ---------------------------------------------------------------------------
+// Type.
 //
-// Until the licensed faces are dropped in, the token stack falls through to
-// Segoe UI, which ships with every Windows install this app targets.
+// The faces are BUNDLED, under src/assets/fonts, and declared here. No @import
+// from Google Fonts, ever: the CSP sets `connect-src 'none'` and cancels every
+// non-file: request, so a remote font would not merely be a policy breach, it
+// would silently fail to load on the machines this ships to.
+//
+// The paths are relative so Vite resolves, hashes and copies them into the
+// bundle, which is what keeps them working under `file://` alongside
+// `base: './'`. `font-display: swap` so a slow disk shows Segoe UI for a beat
+// rather than nothing at all.
+//
+// src/assets/fonts/fonts.css is the vendor drop's own manifest and is kept for
+// provenance; these are the declarations the build actually uses.
+// ---------------------------------------------------------------------------
+
+@each $weight, $file in (400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold') {
+  @font-face {
+    font-family: 'Inter';
+    font-weight: $weight;
+    font-style: normal;
+    font-display: swap;
+    src: url('../../assets/fonts/inter/Inter-#{$file}.woff2') format('woff2');
+  }
+}
+
+@each $weight, $file in (400: 'Regular', 500: 'Medium') {
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-weight: $weight;
+    font-style: normal;
+    font-display: swap;
+    src: url('../../assets/fonts/jetbrains-mono/JetBrainsMono-#{$file}.woff2') format('woff2');
+  }
+}
 
 .acc-display {
   font-size: var(--acc-fs-display);

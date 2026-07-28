@@ -54,14 +54,28 @@
   // Last in the row, behind a hairline: it is the one thing here that is not a
   // control, and standing among the buttons made it read like one.
   &__clock {
-    padding-inline-start: var(--acc-space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
     font-size: var(--acc-fs-sub);
     font-variant-numeric: tabular-nums;
     color: var(--acc-fg-muted);
     white-space: nowrap;
-    // The rule takes its colour from `currentColor`, so the divider and the
-    // time it separates can never drift apart.
-    border-inline-start: 1px solid currentColor;
+
+    /**
+     * The divider: a hollow ring rather than a hairline.
+     *
+     * Drawn with `currentColor`, so the mark and the time it separates can
+     * never drift apart - the same reason the rule it replaces used it.
+     */
+    &::before {
+      content: '';
+      flex: none;
+      inline-size: 6px;
+      block-size: 6px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+    }
   }
 
   &__count {
