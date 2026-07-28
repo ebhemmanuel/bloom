@@ -44,13 +44,13 @@ const SEARCH_ICON = (
 /**
  * Floating pill nav.
  *
- * Brand, then the things you do - File / Edit / Notes / About / Find - then the
- * two things that are only ever reported to you: alerts and the time.
+ * Brand, then everything you can press - File / Edit / Notes / About, Find and
+ * the alert bell - then, at the far end, the two things that are only state:
+ * which day you are recording and what time it is.
  *
  * The notes icon and the avatar used to sit on the right as well. Both were
  * glyphs standing in for a word, and both are now named where they belong:
- * Notes in the bar, Settings under File. That leaves the right-hand side to
- * mean one thing rather than three.
+ * Notes in the bar, Settings under File.
  *
  * Search is an icon rather than a field. It opens the same overlay Ctrl+Space
  * does - one search, one behaviour, reached two ways - instead of a second
@@ -86,9 +86,9 @@ export default function AppHeader({
         <MenuBar menus={menus} />
 
         {/*
-          Find sits with the menus rather than in the icon row. Searching is
-          something you go and do, like opening a menu; the cluster on the right
-          is only what the app reports back.
+          Find and the alert bell sit with the menus. Both are things you reach
+          for; the right-hand end is now purely what day you are on and what time
+          it is, which is state rather than anything to press.
         */}
         <button
           type="button"
@@ -98,6 +98,19 @@ export default function AppHeader({
           title="Find a student or period  ·  Ctrl+Space"
         >
           <Icon path={SEARCH_ICON} size={17} />
+        </button>
+
+        <button
+          type="button"
+          className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}
+          onClick={onOpenNotifications}
+          aria-label={unread ? `Notifications, ${unread} to review` : 'Notifications'}
+          aria-expanded={openPanel === 'notifications'}
+        >
+          <Icon path={BELL_ICON} size={17} />
+          {unread > 0 && (
+            <span className="acc-header__dot acc-numeric">{unread > 9 ? '9+' : unread}</span>
+          )}
         </button>
       </div>
 
@@ -115,19 +128,6 @@ export default function AppHeader({
           activeRange={range}
           nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
         />
-
-        <button
-          type="button"
-          className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}
-          onClick={onOpenNotifications}
-          aria-label={unread ? `Notifications, ${unread} to review` : 'Notifications'}
-          aria-expanded={openPanel === 'notifications'}
-        >
-          <Icon path={BELL_ICON} size={17} />
-          {unread > 0 && (
-            <span className="acc-header__dot acc-numeric">{unread > 9 ? '9+' : unread}</span>
-          )}
-        </button>
 
         {/*
           The wall clock, last. Useful here rather than decorative: the day

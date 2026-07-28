@@ -120,23 +120,41 @@
     position: relative;
   }
 
-  // Fixed measure so stepping through the week never reflows the row.
+  /**
+   * A label with a caret, not a button.
+   *
+   * It sits at the end of the pill nav beside the clock, and a bordered, filled
+   * control there made the date the heaviest thing in the bar - louder than the
+   * menus, louder than the board it governs. No chrome, no calendar glyph, and
+   * the clock's own weight and colour, so the two readouts at that end of the
+   * bar look like one pair rather than a button next to a time.
+   */
   &__trigger {
+    display: flex;
+    align-items: center;
     gap: var(--acc-space-2);
+    // Fixed measure so stepping through the week never reflows the row. The
+    // slack sits on the LEFT: the caret and the date stay together at the right
+    // edge, hard against the clock's divider, instead of the caret being flung
+    // to the far end with a corridor of nothing between them.
     inline-size: 170px;
-    justify-content: flex-start;
+    justify-content: flex-end;
+    padding-inline: var(--acc-space-2);
+    background: none;
+    border: none;
+    color: var(--acc-fg-muted);
+    font-size: var(--acc-fs-sub);
+    transition: color var(--acc-dur-instant) var(--acc-ease-standard);
 
-    strong {
-      font-weight: var(--acc-fw-semibold);
-      font-variant-numeric: tabular-nums;
+    &:hover,
+    &--on {
+      color: var(--acc-fg);
     }
   }
 
-  // Pushed to the far end of the fixed-width trigger. These rules used to name
-  // `__caret`, a class that went away when the shared Caret arrived, so the
-  // chevron quietly stopped being pushed anywhere and sat 48px short.
-  .acc-caret {
-    margin-inline-start: auto;
+  &__label {
+    font-weight: var(--acc-fw-medium);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -156,7 +174,9 @@
   position: fixed;
   z-index: 80;
   inset-block-start: var(--acc-cal-top);
-  inset-inline-start: var(--acc-cal-left);
+  // Anchored by its right edge to the trigger's, so the panel hangs back under
+  // the control rather than running off the end of the window.
+  inset-inline-end: var(--acc-cal-right);
   inline-size: 308px;
   box-sizing: border-box;
   padding: var(--acc-space-3);

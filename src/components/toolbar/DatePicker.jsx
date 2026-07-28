@@ -48,7 +48,7 @@ export default function DatePicker({
   const [mode, setMode] = useState('day');
   const [anchor, setAnchor] = useState(dateKey);
   const [range, setRange] = useState({ start: null, end: null });
-  const [at, setAt] = useState({ top: 0, left: 0 });
+  const [at, setAt] = useState({ top: 0, right: 0 });
 
   const ref = usePopoverDismiss(open, () => setOpen(false));
   const triggerRef = useRef(null);
@@ -58,14 +58,20 @@ export default function DatePicker({
    *
    * Measured from the trigger each time it opens rather than positioned
    * relatively, because the calendar is portalled out of the toolbar to escape
-   * the board's clipping. Clamped so it never opens off the right edge.
+   * the board's clipping.
+   *
+   * Anchored by its RIGHT edge, published as a distance from the viewport's
+   * right so the width of the calendar never enters into it. The trigger now
+   * lives at the end of the nav, and hanging it off the left meant a 308px panel
+   * running past the window; clamping that back left it not lined up with
+   * anything at all.
    */
   const place = () => {
     const box = triggerRef.current?.getBoundingClientRect();
     if (!box) return;
     setAt({
       top: Math.min(box.bottom + 6, window.innerHeight - 380),
-      left: Math.min(box.left, window.innerWidth - 320),
+      right: Math.max(8, window.innerWidth - box.right),
     });
   };
 
@@ -144,7 +150,7 @@ export default function DatePicker({
         <button
           type="button"
           ref={triggerRef}
-          className={`acc-btn acc-datepicker__trigger${open ? ' acc-btn--on' : ''}`}
+          className={`acc-datepicker__trigger${open ? ' acc-datepicker__trigger--on' : ''}`}
           onClick={() => {
             // Always open on the month you are actually on. The anchor only
             // seeded from `dateKey` at mount, so after browsing to April and
@@ -158,32 +164,13 @@ export default function DatePicker({
           aria-expanded={open}
           aria-label="Pick a date or range"
         >
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-            <rect
-              x="2"
-              y="3"
-              width="12"
-              height="11"
-              rx="1.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.4"
-            />
-            <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.4" />
-            <path
-              d="M5.5 1.5v3M10.5 1.5v3"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-          </svg>
           {/*
             Just the date. A "Today"/"Tomorrow" prefix changes the label's width
             as you step through the week, which shoves every control to its right
             around - the row must not move while you are clicking through it.
           */}
-          <strong>{formatDateMedium(dateKey)}</strong>
           <Caret up={open} />
+          <span className="acc-datepicker__label">{formatDateMedium(dateKey)}</span>
         </button>
 
         {open &&
@@ -193,7 +180,7 @@ export default function DatePicker({
               ref={ref}
               role="dialog"
               aria-label="Choose a date"
-              style={{ '--acc-cal-top': `${at.top}px`, '--acc-cal-left': `${at.left}px` }}
+              style={{ '--acc-cal-top': `${at.top}px`, '--acc-cal-right': `${at.right}px` }}
             >
               <div className="acc-cal__head">
                 <button
