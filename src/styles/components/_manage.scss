@@ -198,3 +198,175 @@
     animation: acc-enter var(--acc-dur-normal) var(--acc-ease-entrance) both;
   }
 }
+
+/**
+ * Picking the scene the app sits in front of.
+ *
+ * Each option shows the actual gradient rather than naming it. Both scenes
+ * drift too slowly for a word to describe usefully, and "calm" versus "cycling"
+ * means nothing until you have seen them.
+ */
+.acc-bgpick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--acc-space-3);
+
+  &__opt {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--acc-space-1);
+    padding: var(--acc-space-2);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    text-align: start;
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover:not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &--on {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__swatch {
+    block-size: 46px;
+    border-radius: var(--acc-radius-md);
+    background-size: 180% 180%;
+
+    // The same two gradients the scenes themselves use, so the swatch is a
+    // sample rather than an impression of one.
+    &--calm {
+      background-image: linear-gradient(
+        115deg,
+        #f4efff 0%,
+        #fdf3f7 30%,
+        #faf6ee 55%,
+        #eff7f3 80%,
+        #f0f2fd 100%
+      );
+    }
+
+    &--cycling {
+      background-image: var(--acc-aurora-page);
+    }
+  }
+
+  &__name {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg);
+  }
+
+  &__hint {
+    font-size: 10px;
+    color: var(--acc-fg-faint);
+    line-height: var(--acc-lh-normal);
+  }
+}
+
+/**
+ * Settings: a rail of sections, one panel at a time.
+ *
+ * A single column of every field there is reads fine at four fields and badly
+ * at ten - finding the end-of-day time meant scrolling past a name, subjects
+ * and grades to reach it. Each section now answers one question, and the
+ * eleventh field costs nothing to add.
+ */
+.acc-settings {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--acc-space-5);
+  padding: var(--acc-space-5);
+  min-block-size: 320px;
+
+  // Stacked below the split: a 200px rail beside a 200px panel serves neither.
+  @media (max-inline-size: 680px) {
+    grid-template-columns: 1fr;
+    min-block-size: 0;
+  }
+
+  &__rail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-inline-end: var(--acc-space-4);
+    border-inline-end: 1px solid var(--acc-border);
+
+    @media (max-inline-size: 680px) {
+      flex-direction: row;
+      overflow-x: auto;
+      padding-inline-end: 0;
+      padding-block-end: var(--acc-space-3);
+      border-inline-end: none;
+      border-block-end: 1px solid var(--acc-border);
+    }
+  }
+
+  &__tab {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    text-align: start;
+    white-space: nowrap;
+    transition:
+      background-color var(--acc-dur-instant) var(--acc-ease-standard),
+      color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+
+      .acc-settings__tab-name {
+        color: var(--acc-accent);
+        font-weight: var(--acc-fw-semibold);
+      }
+    }
+
+    &-name {
+      font-size: var(--acc-fs-sub);
+      font-weight: var(--acc-fw-medium);
+      color: var(--acc-fg);
+    }
+
+    &-hint {
+      font-size: 10px;
+      color: var(--acc-fg-faint);
+
+      @media (max-inline-size: 680px) {
+        display: none;
+      }
+    }
+  }
+
+  /**
+   * The panel. Its children cascade in on a stagger and the whole thing fades
+   * out on the way to another section, so switching reads as turning a page
+   * rather than as the dialog being replaced.
+   *
+   * `align-content: start` so a short section sits at the top of the panel
+   * instead of floating in the middle of the height the tallest one needs.
+   */
+  &__panel {
+    display: grid;
+    align-content: start;
+    gap: var(--acc-space-4);
+    min-inline-size: 0;
+  }
+}

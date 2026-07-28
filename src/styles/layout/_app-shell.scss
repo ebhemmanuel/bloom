@@ -267,3 +267,17 @@ body[data-dragging='true'] {
     user-select: none;
   }
 }
+
+/**
+ * The calm scene behind the board - the one onboarding opens in.
+ *
+ * Wraps the same ambient component rather than reimplementing it, so the two
+ * cannot drift: if setup's background is retuned, the board's follows. Pinned
+ * behind everything and inert, exactly as the aurora it replaces.
+ */
+.acc-app__calm {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

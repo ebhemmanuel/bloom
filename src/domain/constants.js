@@ -242,3 +242,18 @@ export const DEFAULT_REMINDERS = Object.fromEntries(REMINDER_OPTIONS.map((r) => 
 
 export const DEFAULT_CYCLE_END_TIME = '16:00';
 export const DEFAULT_IDLE_LOCK_MINUTES = 10;
+
+/**
+ * The two scenes the app can sit in front of.
+ *
+ * `calm` is the one onboarding uses: a slow drifting sheet with blurred blooms
+ * and rising motes. `cycling` is the faster animated aurora the board shipped
+ * with. Calm is the default so the first-run handoff never changes scene
+ * underneath the cascade - the board arrives in the room onboarding left.
+ */
+export const BACKGROUND_STYLES = [
+  { id: 'calm', label: 'Calm', hint: 'Slow drift, the one setup opens in' },
+  { id: 'cycling', label: 'Cycling', hint: 'A brighter aurora on a faster loop' },
+];
+
+export const DEFAULT_BACKGROUND_STYLE = 'calm';

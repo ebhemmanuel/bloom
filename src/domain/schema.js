@@ -7,6 +7,8 @@ import {
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_IDLE_LOCK_MINUTES,
   DEFAULT_REMINDERS,
+  BACKGROUND_STYLES,
+  DEFAULT_BACKGROUND_STYLE,
 } from './constants.js';
 import { isoTimestamp, isValidDateKey, todayKey } from './dates.js';
 
@@ -53,6 +55,7 @@ export function createEmptyDoc(now = new Date()) {
       idleLockMinutes: DEFAULT_IDLE_LOCK_MINUTES,
       lastKnownDate: todayKey(now),
       theme: 'light',
+      backgroundStyle: DEFAULT_BACKGROUND_STYLE,
       reminders: { ...DEFAULT_REMINDERS },
     },
     schoolCalendar: {
@@ -132,6 +135,12 @@ export function normalizeDoc(raw, now = new Date()) {
     idleLockMinutes: asIntIn(s.idleLockMinutes, 0, 240, DEFAULT_IDLE_LOCK_MINUTES),
     lastKnownDate: isValidDateKey(s.lastKnownDate) ? s.lastKnownDate : todayKey(now),
     theme: s.theme === 'dark' ? 'dark' : 'light',
+    // Anything unrecognised falls back to the default rather than being
+    // reported: a background is a preference, not a record, and a repair notice
+    // about one would be noise on a screen that exists for compliance repairs.
+    backgroundStyle: BACKGROUND_STYLES.some((b) => b.id === s.backgroundStyle)
+      ? s.backgroundStyle
+      : DEFAULT_BACKGROUND_STYLE,
     /**
      * Which of the derived advisories the teacher opted into.
      *

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
+import OnboardingAmbient from './components/onboarding/OnboardingAmbient.jsx';
 import { setupStage } from './domain/onboarding.js';
 import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
 import ProfileModal from './components/shell/ProfileModal.jsx';
@@ -17,6 +18,7 @@ import CommandPalette, { useCommandPalette } from './components/shell/CommandPal
 import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
+import { DEFAULT_BACKGROUND_STYLE } from './domain/constants.js';
 import { dataBridge, appBridge, isDesktop } from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
@@ -56,6 +58,7 @@ function AppShell() {
   // Plays only on the run that just finished onboarding. See the hook.
   const cascade = useFirstRunCascade(firstRun, clearFirstRun);
   const { model, setDateKey } = useBoard();
+  const background = doc.settings?.backgroundStyle || DEFAULT_BACKGROUND_STYLE;
   const { openPanel, toggle, close } = useHeaderPanel();
   // One slot: only ever one modal at a time, and dismissing is a single action.
   const [modal, setModal] = useState(null);
@@ -139,13 +142,29 @@ function AppShell() {
         The page blooms, the board does not. Aurora and the drifting blob field
         render BEHIND the floating frame; the board card itself stays clean.
       */}
-      <div className="acc-app__backdrop" aria-hidden="true" />
-      <div className="acc-app__field" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
+      {/*
+        The scene the app sits in front of, and the teacher's choice of it.
+
+        `calm` is the one onboarding opens in, and it is the default on purpose:
+        the first-run handoff cascades the board in over whatever is already
+        there, so a different backdrop underneath would mean the room changed
+        while the furniture was still arriving. Same scene, new contents.
+      */}
+      {background === 'cycling' ? (
+        <>
+          <div className="acc-app__backdrop" aria-hidden="true" />
+          <div className="acc-app__field" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        </>
+      ) : (
+        <div className="acc-app__calm" aria-hidden="true">
+          <OnboardingAmbient />
+        </div>
+      )}
 
       {/*
         One container owns the measure. Every chrome element (pill nav, board)
