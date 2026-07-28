@@ -4,6 +4,7 @@ import { PRODUCT_NAME } from '../../domain/schema.js';
 import { initialsOf } from '../../domain/initials.js';
 import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
+import useClock from '../../hooks/useClock.js';
 
 function Icon({ path, size = 16 }) {
   return (
@@ -83,6 +84,7 @@ export default function AppHeader({
   const teacher =
     doc.teachers.find((t) => t.id === doc.settings?.activeTeacherId) || doc.teachers[0];
   const unread = notifications.length;
+  const now = useClock();
 
   return (
     <header className="acc-header">
@@ -103,6 +105,15 @@ export default function AppHeader({
       </div>
 
       <div className="acc-header__right">
+        {/*
+          The wall clock. Useful here rather than decorative: the day closes
+          itself at the end time in the profile, so "have I still got time to
+          record this" is a real question with a real answer.
+        */}
+        <time className="acc-header__clock acc-numeric" dateTime={now.toISOString()}>
+          {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+        </time>
+
         <button
           type="button"
           className="acc-header__icon"

@@ -62,7 +62,7 @@ export default function ProfileModal({ onClose }) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className="acc-modal__header">
-          <div>
+          <div className="acc-modal__heading">
             <h2 className="acc-modal__title">Your details</h2>
             <p className="acc-modal__subtitle">
               These appear on every printed report. None of it affects your totals.

@@ -28,6 +28,16 @@
     align-items: center;
   }
 
+  // Quiet by default. It is a reference, not a notification, so it sits at the
+  // weight of the icons beside it rather than competing with them.
+  &__clock {
+    font-size: var(--acc-fs-sub);
+    font-variant-numeric: tabular-nums;
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+    padding-inline-end: var(--acc-space-1);
+  }
+
   &__count {
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-muted);

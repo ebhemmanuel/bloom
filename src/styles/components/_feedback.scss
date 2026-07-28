@@ -263,6 +263,19 @@
     min-inline-size: 0;
   }
 
+  /**
+   * The close button is always in the corner.
+   *
+   * `margin-inline-start: auto` rather than relying on the heading beside it to
+   * be flexible. The header lost its `space-between` when the action slot
+   * arrived, and any dialog building its own header - ProfileModal does - was
+   * left with the × parked next to the title instead of at the edge.
+   */
+  &__header > .acc-popover__close {
+    margin-inline-start: auto;
+    align-self: flex-start;
+  }
+
   // Sits on the heading's baseline, not its middle. The title block is two
   // lines of different weights, and centring against the pair left the control
   // floating between them with no edge to line up with.
