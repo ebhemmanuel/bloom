@@ -361,17 +361,28 @@ export default function Board({ onAddStudent }) {
           ? { kind: 'Periods', label: `${periodIds.length} selected` }
           : null;
 
+  /**
+   * Drop the narrowing and land back on today.
+   *
+   * Clearing a date range has to move the date too. The range replaces the day
+   * board outright, so on clearing it the board falls back to whatever `dateKey`
+   * happened to be underneath - some day in September the teacher last looked
+   * at, with no sign that is where they now are. Today is the only answer that
+   * is never a surprise.
+   */
   const clearFilter = useCallback(() => {
+    if (range) setDateKey(todayKey());
     setRange(null);
     setSearch('');
     setPeriodIds([]);
-  }, [setRange, setSearch, setPeriodIds]);
+  }, [range, setRange, setDateKey, setSearch, setPeriodIds]);
 
   const toolbar = (
     <BoardToolbar
       dateKey={dateKey}
       onDateChange={setDateKey}
       onRangeChange={setRange}
+      activeRange={range}
       nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
       periods={periods}
       selectedPeriodIds={periodIds}

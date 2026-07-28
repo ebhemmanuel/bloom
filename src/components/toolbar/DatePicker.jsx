@@ -41,6 +41,7 @@ export default function DatePicker({
   dateKey,
   onChange,
   onRangeChange,
+  activeRange,
   nonInstructionalDates = [],
 }) {
   const [open, setOpen] = useState(false);
@@ -80,6 +81,21 @@ export default function DatePicker({
       window.removeEventListener('scroll', close, true);
     };
   }, [open]);
+
+  /**
+   * The board dropped the range, so the calendar has to drop it too.
+   *
+   * The selection is held here rather than lifted, so clearing the toolbar chip
+   * left the picker still painting the old span, still sitting in range mode,
+   * and still offering to apply it. From the teacher's side the filter had been
+   * cleared everywhere except the one control that sets it.
+   */
+  useEffect(() => {
+    if (activeRange) return;
+    setRange({ start: null, end: null });
+    setMode('day');
+  }, [activeRange]);
+
   const skip = useMemo(() => new Set(nonInstructionalDates), [nonInstructionalDates]);
   const today = todayKey();
 
@@ -130,7 +146,13 @@ export default function DatePicker({
           ref={triggerRef}
           className={`acc-btn acc-datepicker__trigger${open ? ' acc-btn--on' : ''}`}
           onClick={() => {
-            if (!open) place();
+            // Always open on the month you are actually on. The anchor only
+            // seeded from `dateKey` at mount, so after browsing to April and
+            // closing, the next open still started in April.
+            if (!open) {
+              place();
+              setAnchor(dateKey);
+            }
             setOpen((o) => !o);
           }}
           aria-expanded={open}

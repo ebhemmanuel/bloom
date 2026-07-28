@@ -130,6 +130,7 @@ export default function BoardToolbar({
   dateKey,
   onDateChange,
   onRangeChange,
+  activeRange,
   nonInstructionalDates,
   periods,
   selectedPeriodIds,
@@ -324,6 +325,7 @@ export default function BoardToolbar({
           dateKey={dateKey}
           onChange={onDateChange}
           onRangeChange={onRangeChange}
+          activeRange={activeRange}
           nonInstructionalDates={nonInstructionalDates}
         />
 
