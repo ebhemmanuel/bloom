@@ -10,6 +10,7 @@ import {
   reinstateAssignment,
   renameAccommodation,
   setStudentPeriods,
+  addPeriod,
 } from '../../domain/mutations.js';
 import { addAccommodationsToStudent } from '../../domain/importStudent.js';
 import { ensureDay } from '../../domain/seed.js';
@@ -38,6 +39,8 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
   const [renamingId, setRenamingId] = useState(null);
   const [renameText, setRenameText] = useState('');
   const [confirming, setConfirming] = useState(null);
+  const [addingPeriod, setAddingPeriod] = useState(false);
+  const [newPeriod, setNewPeriod] = useState('');
 
   const today = todayKey();
 
@@ -51,6 +54,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
 
   const student = doc.students.find((s) => s.id === selectedId) || null;
   const catalogById = useMemo(() => new Map(doc.catalog.map((c) => [c.id, c])), [doc.catalog]);
+  const periodById = useMemo(() => new Map(doc.periods.map((p) => [p.id, p])), [doc.periods]);
 
   const rows = useMemo(() => {
     if (!student) return [];
@@ -83,7 +87,7 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
       <div className="acc-stumod">
         <aside className="acc-stumod__list">
           <input
-            className="acc-field__input"
+            className="acc-stumod__search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find a student…"
@@ -98,10 +102,20 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                   className={`acc-stumod__student${s.id === selectedId ? ' acc-stumod__student--on' : ''}`}
                   onClick={() => setSelectedId(s.id)}
                 >
-                  <span className="acc-stumod__student-name">{s.displayName}</span>
-                  <span className="acc-stumod__student-meta">
-                    {s.planType}
-                    {s.unenrolledFrom ? ' · unenrolled' : ''}
+                  <span className="acc-stumod__student-text">
+                    <span className="acc-stumod__student-name">{s.displayName}</span>
+                    <span className="acc-stumod__student-meta">
+                      {s.planType}
+                      {s.unenrolledFrom ? ' · unenrolled' : ''}
+                    </span>
+                  </span>
+                  {/* Which classes, on the right of the row. Scanning "who is
+                      in P3" should not mean opening every student in turn. */}
+                  <span className="acc-stumod__student-periods">
+                    {(s.periodIds || [])
+                      .map((id) => periodById.get(id)?.shortName)
+                      .filter(Boolean)
+                      .join(' ')}
                   </span>
                 </button>
               </li>
@@ -123,25 +137,27 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                     {student.sasid ? ` · SASID ${student.sasid}` : ''}
                   </p>
                 </div>
-              </header>
 
-              {/*
-                Which of this teacher's classes they are in.
-                
-                This is the only place it can be answered. Onboarding assigns
-                everyone to every period the teacher named, deliberately, since
-                the roster is being typed and nobody knows the timetable yet -
-                but nothing downstream ever asked again, so a board could not be
-                filtered or grouped by period without editing the file by hand.
-                
-                Undated, unlike enrolment below: a period says which room a
-                student sits in, not a claim about a particular day, so fixing
-                it is a correction and leaves every day record alone.
-              */}
-              {doc.periods.length > 0 && (
+                {/*
+                  Which of this teacher's classes they are in, beside the name
+                  rather than under it. It belongs to the student the way the
+                  plan type does - it is who they are on this roster, not a
+                  section of their record - and stacking it above the
+                  accommodations pushed the list they came here for down the
+                  page behind something they will set once a year.
+
+                  This is the only place it can be answered. Onboarding puts
+                  everyone in every period the teacher named, since the roster
+                  is being typed before anyone knows the timetable, and nothing
+                  downstream ever asked again.
+
+                  Undated, unlike enrolment below: a period says which room a
+                  student sits in, not a claim about a particular day, so fixing
+                  it is a correction and leaves every day record alone.
+                */}
                 <div className="acc-stumod__periods">
-                  <span className="acc-field__label">Periods</span>
-                  <div className="acc-chipset">
+                  <span className="acc-stumod__periods-label">Periods</span>
+                  <div className="acc-stumod__periods-set">
                     {doc.periods.map((p) => {
                       const on = (student.periodIds || []).includes(p.id);
                       return (
@@ -151,7 +167,11 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                           className={`acc-chip${on ? ' acc-chip--on' : ''}`}
                           disabled={readOnly}
                           aria-pressed={on}
-                          title={`${p.name}${on ? ' - click to remove' : ''}`}
+                          title={
+                            on
+                              ? `In ${p.name}. Click to take them out.`
+                              : `Not in ${p.name}. Click to put them in.`
+                          }
                           onClick={() =>
                             mutate((d) =>
                               setStudentPeriods(
@@ -168,14 +188,63 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                         </button>
                       );
                     })}
+
+                    {/*
+                      A class that does not exist yet. Timetables get rebuilt
+                      mid-year and a student can be moved into a period the
+                      teacher has never had to name here before; without this
+                      they would have to go and create it somewhere else first,
+                      then come back.
+                    */}
+                    {addingPeriod ? (
+                      <form
+                        className="acc-stumod__newperiod"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const label = newPeriod.trim();
+                          if (!label) return;
+                          mutate((d) => {
+                            const withPeriod = addPeriod(d, { name: label });
+                            const created = withPeriod.periods[withPeriod.periods.length - 1];
+                            return setStudentPeriods(withPeriod, student.id, [
+                              ...(student.periodIds || []),
+                              created.id,
+                            ]);
+                          });
+                          setNewPeriod('');
+                          setAddingPeriod(false);
+                        }}
+                      >
+                        <input
+                          className="acc-stumod__newperiod-input"
+                          value={newPeriod}
+                          onChange={(e) => setNewPeriod(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setNewPeriod('');
+                              setAddingPeriod(false);
+                            }
+                          }}
+                          placeholder="Period 4"
+                          aria-label="Name the new period"
+                          autoFocus
+                        />
+                      </form>
+                    ) : (
+                      <button
+                        type="button"
+                        className="acc-chip acc-chip--add"
+                        disabled={readOnly}
+                        title="Put them in a period you have not set up yet"
+                        aria-label="Add a period"
+                        onClick={() => setAddingPeriod(true)}
+                      >
+                        +
+                      </button>
+                    )}
                   </div>
-                  <span className="acc-field__hint">
-                    {(student.periodIds || []).length === 0
-                      ? 'In none of your periods - they will not appear on a board filtered by period.'
-                      : 'Used by the period filter, the P# sort and the printed report.'}
-                  </span>
                 </div>
-              )}
+              </header>
 
               {unenrolled && (
                 <p className="acc-stumod__banner">

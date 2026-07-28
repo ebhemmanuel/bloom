@@ -803,10 +803,12 @@
     }
   }
 
+  // A row, not a stack: the name and plan sit on the left, the periods on the
+  // right, so a column of them can be scanned for "who is in P3".
   &__student {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
+    align-items: center;
+    gap: var(--acc-space-2);
     inline-size: 100%;
     padding: var(--acc-space-2) var(--acc-space-3);
     border-radius: var(--acc-radius-sm);
@@ -815,6 +817,14 @@
 
     &:hover {
       background: var(--acc-surface-hover);
+    }
+
+    &-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-inline-size: 0;
+      text-align: start;
     }
 
     &--on {
@@ -844,6 +854,13 @@
     font-size: var(--acc-fs-sub);
     color: var(--acc-fg-faint);
     padding: var(--acc-space-3) 0;
+  }
+
+  // Name and plan on the left, periods pushed to the right end.
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--acc-space-4);
   }
 
   &__title {

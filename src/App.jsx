@@ -126,11 +126,9 @@ function AppShell() {
         onSelect: () => toggle('daynotes'),
         pip: Boolean(model.dayNotes || model.teacherAbsence),
       },
-      {
-        id: 'about',
-        label: 'About',
-        items: [{ label: `About ${PRODUCT_NAME}`, onSelect: () => setModal('about') }],
-      },
+      // A direct action, like Notes. A dropdown holding one item is a click
+      // spent on nothing, and the item repeated the word above it.
+      { id: 'about', label: 'About', onSelect: () => setModal('about') },
     ],
     [toggle, model.dayNotes, model.teacherAbsence]
   );

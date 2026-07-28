@@ -1,10 +1,99 @@
-// Period assignment, above the accommodation list. See the modal for why this
-// is the only place it can be answered.
+/**
+ * Period assignment, beside the name rather than under it.
+ *
+ * It belongs to the student the way the plan pill does. Stacked above the
+ * accommodation list it pushed the thing they opened this screen for down the
+ * page behind something set once a year.
+ */
 .acc-stumod__periods {
   display: flex;
   flex-direction: column;
-  gap: var(--acc-space-2);
-  padding-block-end: var(--acc-space-4);
-  margin-block-end: var(--acc-space-2);
-  border-block-end: 1px solid var(--acc-border);
+  align-items: flex-end;
+  gap: var(--acc-space-1);
+  margin-inline-start: auto;
+  flex-shrink: 0;
+
+  &-label {
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-fg-faint);
+  }
+
+  &-set {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--acc-space-1);
+  }
+}
+
+// A period the teacher has not set up yet. Same footprint as the chips it
+// stands among, so the row does not jump when it turns into a field.
+.acc-chip--add {
+  padding-inline: 0;
+  inline-size: 28px;
+  justify-content: center;
+  color: var(--acc-fg-faint);
+  font-size: var(--acc-fs-body);
+
+  &:hover {
+    border-color: var(--acc-accent);
+    color: var(--acc-accent);
+  }
+}
+
+.acc-stumod__newperiod-input {
+  block-size: 28px;
+  inline-size: 96px;
+  padding-inline: var(--acc-space-3);
+  border-radius: var(--acc-radius-pill);
+  border: 1px solid var(--acc-accent);
+  background: var(--acc-surface);
+  font-size: var(--acc-fs-sub);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--acc-accent-soft);
+}
+
+/**
+ * The student lookup. The app's search shape, matching the presets search, the
+ * palette and the accommodation picker - every other place you look something
+ * up. It was wearing the square form-field radius, which reads as something you
+ * fill in and submit.
+ */
+.acc-stumod__search {
+  inline-size: 100%;
+  box-sizing: border-box;
+  block-size: 34px;
+  padding-inline: var(--acc-space-4);
+  border-radius: var(--acc-radius-pill);
+  border: 1px solid var(--acc-border);
+  background: var(--acc-surface);
+  font-size: var(--acc-fs-sub);
+  outline: none;
+  transition:
+    border-color var(--acc-dur-fast) var(--acc-ease-standard),
+    box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+  &:hover:not(:focus) {
+    border-color: var(--acc-border-strong);
+  }
+
+  &:focus {
+    border-color: var(--acc-accent);
+    box-shadow: 0 0 0 3px var(--acc-accent-soft);
+  }
+}
+
+// Which classes, on the right of each row in the list.
+.acc-stumod__student-periods {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: var(--acc-fw-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--acc-fg-faint);
 }
