@@ -79,7 +79,7 @@ export default function StudentContextMenu({
               onClose();
             }}
           >
-            Edit {lane.displayName}&rsquo;s profile&hellip;
+            Edit {lane.displayName}&rsquo;s profile
           </button>
           <p className="acc-ctx__note">
             Which periods they are in, their accommodations, and their enrolment.
@@ -118,7 +118,7 @@ export default function StudentContextMenu({
               className="acc-ctx__item"
               onClick={() => setRenaming(true)}
             >
-              Rename…
+              Rename
             </button>
           )}
         </div>

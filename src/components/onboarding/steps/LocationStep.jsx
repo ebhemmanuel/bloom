@@ -78,7 +78,7 @@ export default function LocationStep({ onChoose, busy, error }) {
         </ul>
 
         <button type="button" className="acc-ob__ghost" onClick={browse} disabled={busy}>
-          Choose a different folder…
+          Choose a different folder
         </button>
 
         {error && <p className="acc-ob__error">{error}</p>}

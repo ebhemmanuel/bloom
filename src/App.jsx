@@ -132,14 +132,14 @@ function AppShell() {
         id: 'file',
         label: 'File',
         items: [
-          { label: 'Print report…', onSelect: () => setModal('print') },
+          { label: 'Print report', onSelect: () => setModal('print') },
           { separator: true },
           { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
-          { label: 'Save a copy…', onSelect: () => dataBridge.exportBackup() },
+          { label: 'Save a copy', onSelect: () => dataBridge.exportBackup() },
           { separator: true },
           // Where a desktop app puts it. This replaces the avatar button, which
           // spent a permanent slot in the bar on something opened once a term.
-          { label: 'Settings…', onSelect: () => toggle('settings') },
+          { label: 'Settings', onSelect: () => toggle('settings') },
           { separator: true },
           {
             label: 'Save and exit',
@@ -162,17 +162,26 @@ function AppShell() {
         id: 'edit',
         label: 'Edit',
         items: [
+          // The roster first, on its own. Adding a student is the one thing
+          // here that is not about accommodations.
+          { label: 'Add a student', onSelect: () => setModal('addStudent') },
+          { separator: true },
+          /*
+            Grouped under a heading so each item can be named for its verb.
+            The three of these repeated the same noun and pushed the only
+            word that differed to the far end of a long label.
+          */
+          { heading: 'Accommodations' },
           {
-            label: 'Student accommodations…',
+            label: 'Add',
+            indent: true,
             onSelect: () => {
               setEditingStudentId(null);
               setModal('students');
             },
           },
-          { label: 'Add a student…', onSelect: () => setModal('addStudent') },
-          { separator: true },
-          { label: 'Update accommodations…', hint: 'presets', onSelect: () => setModal('catalog') },
-          { label: 'Copy accommodations…', onSelect: () => setModal('copy') },
+          { label: 'Update', hint: 'presets', indent: true, onSelect: () => setModal('catalog') },
+          { label: 'Copy', indent: true, onSelect: () => setModal('copy') },
         ],
       },
       // A word in the bar rather than an icon in the corner. Day notes are

@@ -52,7 +52,7 @@
     z-index: 80;
     inset-block-start: 32px;
     inset-inline-start: 0;
-    inline-size: 232px;
+    inline-size: 210px;
     padding: 6px;
     background: var(--acc-surface);
     border: 1px solid var(--acc-border-strong);
@@ -81,6 +81,28 @@
       opacity: 0.45;
       cursor: default;
     }
+  }
+
+  /**
+   * A group label. Names the noun so the items beneath it can be verbs.
+   *
+   * Set in the same small caps the app uses for every other section heading, so
+   * it reads as structure rather than as a disabled choice.
+   */
+  &__group {
+    margin: var(--acc-space-2) 0 2px;
+    padding-inline: var(--acc-space-3);
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+    color: var(--acc-fg-faint);
+  }
+
+  // Under a heading. Small on purpose: enough to read as belonging to the label
+  // above without opening a corridor down the middle of the menu.
+  &__item--indent {
+    padding-inline-start: calc(var(--acc-space-3) + 4px);
   }
 
   &__hint {
