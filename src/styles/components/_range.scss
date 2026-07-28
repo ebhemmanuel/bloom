@@ -65,6 +65,17 @@
     inline-size: 100%;
     border-collapse: collapse;
     font-size: var(--acc-fs-sub);
+
+    // The row rules separate rows, so the last one has nothing to separate: it
+    // lands on the card's own bottom edge and reads as a doubled line under
+    // every student. Scoped to tbody so the header rule, which does have a row
+    // below it to divide, is left alone.
+    tbody tr:last-child {
+      .acc-range__rowhead,
+      .acc-range__cell {
+        border-block-end: none;
+      }
+    }
   }
 
   &__rowhead {

@@ -190,3 +190,72 @@ describe('buildBoardModel', () => {
     expect(card.label).not.toBe('RENAMED LATER');
   });
 });
+
+/**
+ * A-Z means the surname, the way every other list a teacher holds is ordered.
+ * This sorted on displayName - "Jordan A." - which files Jordan under J.
+ */
+describe('lane order', () => {
+  const roster = (doc, sort) =>
+    buildBoardModel(doc, { dateKey: WED, sort, now }).lanes.map((l) => l.displayName);
+
+  function withNames(pairs) {
+    const doc = makeDoc();
+    return {
+      ...doc,
+      students: pairs.map(([firstName, lastName], i) => ({
+        ...doc.students[0],
+        id: `stu_${i}`,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName.slice(0, 1)}.`.trim(),
+        sortOrder: i,
+        periodIds: [],
+      })),
+      assignments: [],
+    };
+  }
+
+  it('files by surname, not forename', () => {
+    const doc = withNames([
+      ['Zoe', 'Abbott'],
+      ['Adam', 'Zeller'],
+      ['Mia', 'Nkemelu'],
+    ]);
+    expect(roster(doc, 'az')).toEqual(['Zoe A.', 'Mia N.', 'Adam Z.']);
+  });
+
+  it('breaks a shared surname on the forename', () => {
+    const doc = withNames([
+      ['Sam', 'Rivera'],
+      ['Ana', 'Rivera'],
+    ]);
+    expect(roster(doc, 'az')).toEqual(['Ana R.', 'Sam R.']);
+  });
+
+  it('reverses for Z-A', () => {
+    const doc = withNames([
+      ['Zoe', 'Abbott'],
+      ['Adam', 'Zeller'],
+    ]);
+    expect(roster(doc, 'za')).toEqual(['Adam Z.', 'Zoe A.']);
+  });
+
+  it('files an accented surname where a reader expects it, not after Z', () => {
+    const doc = withNames([
+      ['Sofia', 'Núñez'],
+      ['Tom', 'Oakes'],
+      ['Rae', 'Nolan'],
+    ]);
+    expect(roster(doc, 'az')).toEqual(['Rae N.', 'Sofia N.', 'Tom O.']);
+  });
+
+  /** A roster pasted as bare single names has no surname to file under. */
+  it('falls back to the forename when there is no surname', () => {
+    const doc = withNames([
+      ['Wren', ''],
+      ['Ada', ''],
+    ]);
+    expect(roster(doc, 'az')).toEqual(['Ada .', 'Wren .']);
+  });
+});

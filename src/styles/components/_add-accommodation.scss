@@ -108,7 +108,7 @@
   inset-inline-end: -14px;
   inline-size: 6px;
   border-radius: var(--acc-radius-pill);
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--acc-scroll-track);
   opacity: 0;
   transition: opacity var(--acc-dur-normal) var(--acc-ease-standard);
   z-index: 40;
@@ -121,12 +121,12 @@
     position: absolute;
     inline-size: 100%;
     border-radius: var(--acc-radius-pill);
-    background: rgba(42, 36, 56, 0.28);
+    background: var(--acc-scroll-thumb);
     cursor: grab;
     transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
 
     &:hover {
-      background: rgba(42, 36, 56, 0.42);
+      background: var(--acc-scroll-thumb-hover);
     }
   }
 }

@@ -64,24 +64,30 @@ function SwimlaneHeader({
         {lane.planType}
       </span>
 
-      {lane.periodNames.length > 0 && (
-        <span className="acc-lane__periods">{lane.periodNames.join(' · ')}</span>
-      )}
+      {/*
+        Right-aligned group, immediately left of Mark absent: which period,
+        how much is recorded, and any warning.
 
-      <span className="acc-lane__progress acc-numeric">
-        {lane.absent ? (
-          <span className="acc-lane__progress-absent">Absent</span>
-        ) : (
-          <>
-            {recorded} of {summary.counted || lane.assignmentCount} recorded
-          </>
-        )}
-      </span>
-
-      {/* Right-aligned group: the needs-detail chip sits immediately left of
-          Mark absent, replacing the old global warning pill. A per-lane warning
-          points at the student it concerns instead of making the teacher hunt. */}
+        These trailed the name before, which put four different things in a row
+        against the left edge and left the student's own name competing with a
+        progress count for the eye. Everything that reports on the lane now
+        gathers at the far end, so the left is the name and nothing else.
+      */}
       <span className="acc-lane__right">
+        {lane.periodNames.length > 0 && (
+          <span className="acc-lane__periods">{lane.periodNames.join(' · ')}</span>
+        )}
+
+        <span className="acc-lane__progress acc-numeric">
+          {lane.absent ? (
+            <span className="acc-lane__progress-absent">Absent</span>
+          ) : (
+            <>
+              {recorded} of {summary.counted || lane.assignmentCount} recorded
+            </>
+          )}
+        </span>
+
         {lane.detailsMissing > 0 && !lane.absent && (
           <span className="acc-lane__warn">
             <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">

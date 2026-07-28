@@ -64,6 +64,21 @@ export function matchesSearch(index, studentId, query) {
  * with an honest "no record for this day" state rather than an empty screen.
  * That distinction is the whole point - see resolve.js.
  */
+/**
+ * What a lane files under: surname, then forename to break the ties.
+ *
+ * Falls back to the forename, then to whatever the lane is called, because a
+ * roster pasted as bare single names has no surname to file under and dropping
+ * those to the top of the list would be worse than filing them under what the
+ * teacher actually typed.
+ */
+function laneSortKey(lane) {
+  const last = (lane.student?.lastName || '').trim();
+  const first = (lane.student?.firstName || '').trim();
+  if (last) return `${last} ${first}`.trim();
+  return first || lane.displayName || '';
+}
+
 export function buildBoardModel(
   doc,
   { dateKey, periodIds = [], search = '', sort = 'az', now = new Date() }
@@ -233,15 +248,20 @@ export function buildBoardModel(
    * Lane order, applied after both passes so pre-enrolment lanes sort in with
    * everyone else rather than collecting at the bottom.
    *
-   * By display name, which is what the teacher is actually scanning for. The
-   * roster's own `sortOrder` is insertion order, and "the order I happened to
-   * type them in" stops being useful the moment there are more than a handful.
+   * By SURNAME. This sorted on `displayName`, which is "David L." - so the
+   * board filed David under D while the register, the IEP folder and every
+   * district export file him under his surname. A class list a teacher has to
+   * re-scan because it is in a different order than the one in their hand is
+   * worse than no ordering at all.
+   *
+   * The roster's own `sortOrder` is insertion order, and "the order I happened
+   * to type them in" stops being useful past a handful of students.
    *
    * `localeCompare` rather than `<`, so an accented name files where a reader
    * expects it instead of after Z.
    */
   const direction = sort === 'za' ? -1 : 1;
-  lanes.sort((a, b) => direction * a.displayName.localeCompare(b.displayName));
+  lanes.sort((a, b) => direction * laneSortKey(a).localeCompare(laneSortKey(b)));
 
   const allStatuses = lanes.flatMap((l) =>
     Object.values(l.columns).flatMap((cards) => cards.map((c) => c.resolved))
