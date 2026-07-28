@@ -3307,7 +3307,7 @@
               chevron: collapsed ? '0deg' : '90deg',
               delay, cols, tallies,
               notes: s.notes[st.id] || '',
-              notesPlaceholder: locked ? '' : 'Anything worth remembering about today?',
+              notesPlaceholder: locked ? '' : 'Anything worth documenting about today?',
               notesAria: 'Daily notes for ' + st.displayName,
               savedOpacity: s.saved[st.id] ? 1 : 0,
               onToggleCollapse: () => this.setState({ collapsed: { ...s.collapsed, [st.id]: !collapsed } }),

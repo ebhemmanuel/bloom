@@ -363,7 +363,7 @@ Textarea autofocused, `detailPrompt` as placeholder. Cancelling with the field e
 
 ### 5.6 Notes column
 
-Per student, per day - the last column in each lane. A borderless textarea that grows to lane height, with a soft focus ring and a debounced saved-tick that fades in and out over 160ms. Placeholder should invite rather than instruct: "Anything worth remembering about today?"
+Per student, per day - the last column in each lane. A borderless textarea that grows to lane height, with a soft focus ring and a debounced saved-tick that fades in and out over 160ms. Placeholder should invite rather than instruct: "Anything worth documenting about today?"
 
 ### 5.7 Manage screens - Catalog, Periods, Roster, Assignments
 

@@ -299,3 +299,67 @@ describe('a student enrolled part-way through the year', () => {
     expect(Object.values(lane.columns).flat().length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * A teacher leaves this open on a classroom machine for weeks. Everything that
+ * prepares a day ran at load and nowhere else, so the morning after they
+ * arrived at yesterday's board and an empty state asking them to start a
+ * record. See useDayRollover; these pin the domain half of that contract.
+ */
+describe('crossing midnight with the app still open', () => {
+  const MON = '2026-09-14';
+  const TUE = '2026-09-15';
+
+  /** What the rollover runs, and what a fresh launch runs. Same call. */
+  const layOut = (doc, asOf) =>
+    backfillDays(doc, { from: TERM_START, to: asOf, now: new Date(`${asOf}T00:05:00`) }).doc;
+
+  it('lays out the new day so nobody has to start a record for it', () => {
+    const doc = layOut(docWithTerm(), MON);
+    expect(doc.days[TUE]).toBeUndefined();
+
+    const rolled = layOut(doc, TUE);
+    expect(rolled.days[TUE]).toBeDefined();
+  });
+
+  /**
+   * The load-bearing one. An overnight session must leave the record in exactly
+   * the state closing and reopening would - otherwise whether a teacher shut
+   * their laptop decides whether an untouched entry reads as "no record" or as
+   * documented non-delivery.
+   */
+  it('leaves the same record a restart would', () => {
+    const overnight = layOut(layOut(docWithTerm(), MON), TUE);
+    const restarted = layOut(docWithTerm(), TUE);
+    expect(overnight.days[TUE]).toEqual(restarted.days[TUE]);
+    expect(overnight.days[TUE].backfilled).toBe(true);
+  });
+
+  it('resolves an untouched entry on the new day as no_record, never not_used', () => {
+    const rolled = layOut(docWithTerm(), TUE);
+    // After the cycle closed, which is when not_used would otherwise land.
+    const after = new Date(2026, 8, 15, 17, 30);
+    expect(effectiveStatus(rolled, TUE, T.jordan, T.asgJordanExtTime, after)).toBe(
+      DERIVED_STATUS.NO_RECORD
+    );
+  });
+
+  it('catches up every day a sleeping machine missed, not just the newest', () => {
+    const before = layOut(docWithTerm(), '2026-09-09');
+    const after = layOut(before, TUE);
+    for (const d of ['2026-09-10', '2026-09-11', MON, TUE]) {
+      expect(after.days[d]).toBeDefined();
+    }
+    // The weekend in between is not a day there is anything to record on.
+    expect(after.days['2026-09-12']).toBeUndefined();
+  });
+
+  it('touches nothing a teacher already worked on', () => {
+    let doc = layOut(docWithTerm(), MON);
+    doc = setEntryStatus(doc, MON, T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    const worked = doc.days[MON];
+
+    const rolled = layOut(doc, TUE);
+    expect(rolled.days[MON]).toEqual(worked);
+  });
+});

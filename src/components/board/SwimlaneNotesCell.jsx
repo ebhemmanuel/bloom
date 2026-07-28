@@ -62,7 +62,7 @@ export default function SwimlaneNotesCell({ studentName, value, disabled, onComm
         disabled={disabled}
         onChange={handleChange}
         onBlur={flush}
-        placeholder={disabled ? '' : 'Anything worth remembering about today?'}
+        placeholder={disabled ? '' : 'Anything worth documenting about today?'}
         aria-label={`Daily notes for ${studentName}`}
         spellCheck
       />
