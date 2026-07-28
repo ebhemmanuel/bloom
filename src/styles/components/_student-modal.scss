@@ -7,19 +7,9 @@
  */
 .acc-stumod__periods {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--acc-space-1);
+  align-items: center;
   margin-inline-start: auto;
   flex-shrink: 0;
-
-  &-label {
-    font-size: 10px;
-    font-weight: var(--acc-fw-semibold);
-    text-transform: uppercase;
-    letter-spacing: var(--acc-ls-cap);
-    color: var(--acc-fg-faint);
-  }
 
   &-set {
     display: flex;
@@ -114,4 +104,12 @@
   flex-direction: row !important;
   align-items: center;
   gap: var(--acc-space-2);
+}
+
+// A fixed measure on the leading pill, so the names beside them line up too -
+// "IEP" and "504" render at different widths in a proportional face.
+.acc-stumod__student .acc-pill {
+  flex: none;
+  min-inline-size: 34px;
+  justify-content: center;
 }

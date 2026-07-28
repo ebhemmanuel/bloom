@@ -105,11 +105,18 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                   className={`acc-stumod__student${s.id === selectedId ? ' acc-stumod__student--on' : ''}`}
                   onClick={() => setSelectedId(s.id)}
                 >
+                  {/*
+                    Plan first, then the name. On the board the pill trails the
+                    name because there is one lane header at a time; here there
+                    are thirty rows stacked, and a trailing pill lands at a
+                    different place on every one because names differ in length.
+                    Leading, they form a column you can run an eye down.
+                  */}
                   <span className="acc-stumod__student-text">
-                    <span className="acc-stumod__student-name">{s.displayName}</span>
                     <span className={`acc-pill acc-pill--${PLAN_CLASS[s.planType] || 'other'}`}>
                       {s.planType}
                     </span>
+                    <span className="acc-stumod__student-name">{s.displayName}</span>
                     {s.unenrolledFrom && (
                       <span className="acc-stumod__student-meta">unenrolled</span>
                     )}
@@ -168,8 +175,12 @@ export default function StudentAccommodationsModal({ onClose, studentId = null }
                   student sits in, not a claim about a particular day, so fixing
                   it is a correction and leaves every day record alone.
                 */}
+                {/*
+                  No "Periods" caption. A row of P1 P3 P5 beside a student's
+                  name is not ambiguous, and the label was the loudest thing in
+                  a header whose job is to say who this is.
+                */}
                 <div className="acc-stumod__periods">
-                  <span className="acc-stumod__periods-label">Periods</span>
                   <div className="acc-stumod__periods-set">
                     {doc.periods.map((p) => {
                       const on = (student.periodIds || []).includes(p.id);

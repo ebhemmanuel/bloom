@@ -783,7 +783,7 @@
   grid-template-columns: 240px 1fr;
   gap: var(--acc-space-5);
   align-items: start;
-  min-block-size: 380px;
+  min-block-size: 420px;
 
   @media (max-inline-size: 760px) {
     grid-template-columns: 1fr;
@@ -794,11 +794,19 @@
     flex-direction: column;
     gap: var(--acc-space-2);
 
+    /**
+     * Grows with the window rather than stopping at a fixed 340px.
+     *
+     * A flat cap meant a roster of eight scrolled by six pixels inside a modal
+     * with two hundred to spare - the worst kind of scrollbar, one that exists
+     * without buying anything. Viewport-relative, so a bigger screen shows more
+     * of the roster instead of the same eight rows and a taller empty modal.
+     */
     ul {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      max-block-size: 340px;
+      max-block-size: min(62vh, 680px);
       overflow-y: auto;
     }
   }
@@ -889,8 +897,9 @@
     flex-direction: column;
     gap: 2px;
     // Taller rows need a taller window, or the list shows four and a half of
-    // them and reads as clipped rather than as scrollable.
-    max-block-size: 340px;
+    // them and reads as clipped rather than as scrollable. Tied to the viewport
+    // for the same reason the roster beside it is.
+    max-block-size: min(52vh, 560px);
     overflow-y: auto;
   }
 
