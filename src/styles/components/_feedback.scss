@@ -238,11 +238,12 @@
     min-inline-size: 0;
   }
 
-  // Centred against the title block rather than its top, because a control is
-  // read as sitting beside the heading, not as starting at the same line.
+  // Sits on the heading's baseline, not its middle. The title block is two
+  // lines of different weights, and centring against the pair left the control
+  // floating between them with no edge to line up with.
   &__action {
     flex: none;
-    align-self: center;
+    align-self: flex-end;
   }
 
   &__title {

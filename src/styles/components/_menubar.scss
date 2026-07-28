@@ -286,9 +286,22 @@
   gap: var(--acc-space-4);
 
   // In the modal header, so it reads as belonging to the dialog rather than as
-  // the first row of its list.
+  // the first row of its list. Pill, like every other search in the app: the
+  // square field radius belongs to form inputs you fill in, not to a box you
+  // type into to look for something.
   &__search {
-    inline-size: 260px;
+    inline-size: 280px;
+    border-radius: var(--acc-radius-pill);
+    padding-inline: var(--acc-space-4);
+    block-size: 34px;
+  }
+
+  // The nested list carries its own scroll otherwise, giving the fold a second
+  // scrollbar inside the one it already sits in.
+  &__list--nested {
+    max-block-size: none;
+    overflow: visible;
+    padding-block-start: var(--acc-space-1);
   }
 
   /**
@@ -372,18 +385,38 @@
     flex-shrink: 0;
   }
 
+  // Holds the select and the caret drawn over it.
+  &__catwrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+
+    // Ours, sitting where every other dropdown's sits. The native arrow is
+    // suppressed below; this one is decoration, so clicks pass through it to
+    // the select underneath.
+    .acc-caret {
+      position: absolute;
+      inset-inline-end: var(--acc-space-3);
+      pointer-events: none;
+    }
+  }
+
   // Wears what every other input in the app wears: the same 32px height, the
   // same resting border, the same accent ring on focus. It was a 2px-padded
   // native select before, which read as a form control someone forgot to style.
   &__cat {
-    inline-size: 150px;
+    appearance: none;
+    inline-size: 160px;
     block-size: 32px;
-    padding-inline: var(--acc-space-3);
+    // Room on the end for the caret, so a long category never runs under it.
+    padding-inline: var(--acc-space-3) calc(var(--acc-space-3) + 18px);
     border: 1px solid var(--acc-border);
     border-radius: var(--acc-radius-sm);
     background: var(--acc-surface);
     color: var(--acc-fg);
     font-family: inherit;
+    font-size: var(--acc-fs-sub);
     outline: none;
     transition:
       border-color var(--acc-dur-fast) var(--acc-ease-standard),

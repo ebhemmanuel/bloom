@@ -12,6 +12,67 @@ import { CATEGORIES } from '../../domain/constants.js';
 import { normalizeSearch } from '../../domain/selectors.js';
 import Caret from '../shared/Caret.jsx';
 
+/** 16px line icons, one stroke weight, matching the rest of the app's set. */
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+      <path
+        d="M11.2 2.3a1.4 1.4 0 0 1 2 2l-7 7-2.7.7.7-2.7 7-7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArchiveIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+      <path
+        d="M2 5.5h12V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M1.5 3.2a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v2.3h-13V3.2Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M6.5 8.5h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** The archive box with the arrow coming back out of it. */
+function RestoreIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+      <path
+        d="M2 6.5h12V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 11V6.5M8 6.5 6.2 8.3M8 6.5l1.8 1.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M1.5 4h13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /**
  * The shared accommodation list - the presets every student picks from.
  *
@@ -50,12 +111,19 @@ export default function CatalogModal({ onClose }) {
    * mode the whole screen was in. A folded section underneath says both things
    * at once: they are still here, and they are not what you are working on.
    */
-  const [active, archived] = useMemo(() => {
+  const [active, archived, archivedTotal] = useMemo(() => {
     const q = normalizeSearch(query);
     const match = (c) => !q || normalizeSearch(c.label).includes(q);
     const byLabel = (a, b) => a.label.localeCompare(b.label);
     const found = doc.catalog.filter(match).slice().sort(byLabel);
-    return [found.filter((c) => !c.archived), found.filter((c) => c.archived)];
+    return [
+      found.filter((c) => !c.archived),
+      found.filter((c) => c.archived),
+      // Counted across the WHOLE catalog, not the search results. The section
+      // stays put while you type: a search that happens to match no archived
+      // wording should narrow the fold, not make it disappear.
+      doc.catalog.filter((c) => c.archived).length,
+    ];
   }, [doc.catalog, query]);
 
   const existing = useMemo(
@@ -114,21 +182,30 @@ export default function CatalogModal({ onClose }) {
           <>
             <span className="acc-catmod__label">{c.label}</span>
 
-            <select
-              className="acc-catmod__cat"
-              value={c.category}
-              disabled={readOnly}
-              aria-label={`Category for ${c.label}`}
-              onChange={(e) =>
-                mutate((d) => updateCatalogEntry(d, c.id, { category: e.target.value }))
-              }
-            >
-              {CATEGORIES.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
+            {/*
+              A real <select>, with its native arrow suppressed and ours drawn
+              over it. Keeping the element means the keyboard and the platform
+              picker still work; drawing the caret means it is the same chevron,
+              the same colour and the same inset as every other dropdown here.
+            */}
+            <span className="acc-catmod__catwrap">
+              <select
+                className="acc-catmod__cat"
+                value={c.category}
+                disabled={readOnly}
+                aria-label={`Category for ${c.label}`}
+                onChange={(e) =>
+                  mutate((d) => updateCatalogEntry(d, c.id, { category: e.target.value }))
+                }
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+              <Caret />
+            </span>
 
             <label className="acc-catmod__detail" title="Requires a written detail each time">
               <input
@@ -154,30 +231,40 @@ export default function CatalogModal({ onClose }) {
               {used}
             </span>
 
+            {/*
+              Icons, because the row already carries a wording, a category and a
+              count, and two more words of chrome per row made it read as a form
+              rather than a list. Every one keeps a title AND an aria-label: an
+              icon with no name is a guess for a sighted user and silence for a
+              screen reader.
+            */}
             <span className="acc-catmod__actions">
               <button
                 type="button"
-                className="acc-btn acc-btn--quiet"
+                className="acc-iconbtn"
                 disabled={readOnly}
+                title={`Rename "${c.label}" everywhere it is used`}
+                aria-label={`Rename ${c.label}`}
                 onClick={() => {
                   setRenameText(c.label);
                   setRenamingId(c.id);
                 }}
               >
-                Rename
+                <PencilIcon />
               </button>
               <button
                 type="button"
-                className="acc-btn acc-btn--quiet"
+                className="acc-iconbtn"
                 disabled={readOnly}
                 title={
                   c.archived
-                    ? 'Bring it back into the pickers'
-                    : 'Hide from future pickers. Nothing already recorded changes.'
+                    ? `Bring "${c.label}" back into the pickers`
+                    : `Archive "${c.label}". It leaves future pickers; nothing already recorded changes.`
                 }
+                aria-label={c.archived ? `Restore ${c.label}` : `Archive ${c.label}`}
                 onClick={() => mutate((d) => setCatalogArchived(d, c.id, !c.archived))}
               >
-                {c.archived ? 'Restore' : 'Archive'}
+                {c.archived ? <RestoreIcon /> : <ArchiveIcon />}
               </button>
             </span>
           </>
@@ -249,7 +336,7 @@ export default function CatalogModal({ onClose }) {
             not deleting - assignments still point at these and printed days
             still name them - but out of the way of the working list.
           */}
-          {archived.length > 0 && (
+          {archivedTotal > 0 && (
             <li className="acc-catmod__archived">
               <button
                 type="button"
@@ -259,10 +346,18 @@ export default function CatalogModal({ onClose }) {
               >
                 <Caret up={archivedOpen} />
                 <span>Archived</span>
-                <span className="acc-catmod__used acc-numeric">{archived.length}</span>
+                <span className="acc-catmod__used acc-numeric">{archivedTotal}</span>
               </button>
 
-              {archivedOpen && <ul className="acc-catmod__list">{archived.map(renderRow)}</ul>}
+              {archivedOpen && (
+                <ul className="acc-catmod__list acc-catmod__list--nested">
+                  {archived.length > 0 ? (
+                    archived.map(renderRow)
+                  ) : (
+                    <li className="acc-catmod__none">No archived preset matches that.</li>
+                  )}
+                </ul>
+              )}
             </li>
           )}
         </ul>

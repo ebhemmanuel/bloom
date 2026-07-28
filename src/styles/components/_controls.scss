@@ -19,6 +19,41 @@
   }
 }
 
+/**
+ * A square, quiet icon button for row-level actions.
+ *
+ * Same 32px as everything else in a row. Quiet at rest because there is one of
+ * these per row and a list of them should read as a list, not as a wall of
+ * buttons; it only takes a surface on hover.
+ *
+ * Never ships without a `title` AND an `aria-label`. An icon with no name is a
+ * guess for a sighted user and silence for a screen reader.
+ */
+.acc-iconbtn {
+  @include motion.interactive(background-color, color, border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: 32px;
+  block-size: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--acc-radius-sm);
+  background: transparent;
+  color: var(--acc-fg-muted);
+
+  &:hover:not(:disabled) {
+    background: var(--acc-surface-hover);
+    border-color: var(--acc-border);
+    color: var(--acc-fg);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
 .acc-btn {
   // Eases both ways: the same curve on the way in and on the way out, so a
   // pointer sweeping across a row of controls leaves a settling trail rather
