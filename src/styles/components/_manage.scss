@@ -1,48 +1,5 @@
-// Add-student flow: identity on the left, accommodations on the right.
-
-.acc-addstudent {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.3fr);
-  gap: var(--acc-space-5);
-  align-items: start;
-
-  &__identity,
-  &__accoms {
-    display: flex;
-    flex-direction: column;
-    gap: var(--acc-space-4);
-    min-inline-size: 0;
-  }
-
-  &__footer {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--acc-space-4);
-    padding-block-start: var(--acc-space-4);
-    border-top: 1px solid var(--acc-border);
-  }
-
-  &__count {
-    font-size: var(--acc-fs-sub);
-    color: var(--acc-fg-muted);
-  }
-
-  &__result {
-    grid-column: 1 / -1;
-    padding: var(--acc-space-3);
-    border-radius: var(--acc-radius-md);
-    background: var(--acc-success-soft);
-    color: var(--acc-success);
-    font-size: var(--acc-fs-sub);
-  }
-
-  // Single column once the two halves stop fitting side by side.
-  @media (max-inline-size: 900px) {
-    grid-template-columns: 1fr;
-  }
-}
+// Shared pieces of the manage screens. The add-student flow that used to open
+// this file is now a wizard of its own; see _add-student-wizard.scss.
 
 .acc-paste {
   font-family: var(--acc-font-mono);

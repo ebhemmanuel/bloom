@@ -9,8 +9,7 @@ import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
 import ProfileModal from './components/shell/ProfileModal.jsx';
 import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
 import DayNotesPanel from './components/shell/DayNotesPanel.jsx';
-import Modal from './components/shared/Modal.jsx';
-import AddStudentForm from './components/manage/AddStudentForm.jsx';
+import AddStudentWizard from './components/manage/AddStudentWizard.jsx';
 import StudentAccommodationsModal from './components/manage/StudentAccommodationsModal.jsx';
 import CatalogModal from './components/manage/CatalogModal.jsx';
 import CopyAccommodationsModal from './components/manage/CopyAccommodationsModal.jsx';
@@ -68,15 +67,16 @@ function AppShell() {
   const [editingStudentId, setEditingStudentId] = useState(null);
 
   /**
-   * The board's half of opening and closing About.
+   * The board's half of opening and closing a full-screen scene.
    *
-   * `out` while About is arriving, `in` while it leaves, null the rest of the
-   * time. About fades in over the top on the same beat, so what you see is the
-   * rows falling and the aurora coming up through them - and on the way back,
-   * the rows rising as the screen clears.
+   * Two things use it: About, and adding a student. Both replace the board
+   * rather than sitting on top of it, so neither takes a scrim - the rows fall,
+   * the aurora comes up through where they were, and the new screen fades in on
+   * the same beat. On the way back the rows rise as it clears.
    *
-   * `aboutLeaving` keeps About mounted for its own exit. Unmounting on click
-   * would cut the screen away and leave the board cascading in behind nothing.
+   * `out` while the scene arrives, `in` while it leaves. `sceneLeaving` keeps
+   * the scene mounted for its own exit; unmounting on click would cut it away
+   * and leave the board cascading in behind nothing.
    *
    * It settles to `rest` rather than to null. Clearing it let each row fall
    * back to `.acc-lane`'s own entrance, and a changed animation-name restarts -
@@ -84,22 +84,27 @@ function AppShell() {
    * See the `rest` rule.
    */
   const [boardCascade, setBoardCascade] = useState('rest');
-  const [aboutLeaving, setAboutLeaving] = useState(false);
-  const aboutTimers = useRef([]);
-  useEffect(() => () => aboutTimers.current.forEach(clearTimeout), []);
+  const [sceneLeaving, setSceneLeaving] = useState(false);
+  const sceneTimers = useRef([]);
+  useEffect(() => () => sceneTimers.current.forEach(clearTimeout), []);
 
-  const openAbout = useCallback(() => {
+  const openScene = useCallback((id) => {
     setBoardCascade('out');
-    setAboutLeaving(false);
-    setModal('about');
+    setSceneLeaving(false);
+    setModal(id);
   }, []);
 
-  const closeAbout = useCallback(() => {
-    setAboutLeaving(true);
+  const closeScene = useCallback(() => {
+    setSceneLeaving(true);
     setBoardCascade('in');
-    // Long enough for About's own fade, then the cascade runs itself out.
-    aboutTimers.current.push(setTimeout(() => setModal(null), 420));
-    aboutTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
+    // Long enough for the scene's own fade, then the cascade runs itself out.
+    sceneTimers.current.push(
+      setTimeout(() => {
+        setModal(null);
+        setSceneLeaving(false);
+      }, 420)
+    );
+    sceneTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
   }, []);
   const palette = useCommandPalette();
 
@@ -164,7 +169,7 @@ function AppShell() {
         items: [
           // The roster first, on its own. Adding a student is the one thing
           // here that is not about accommodations.
-          { label: 'Add a student', onSelect: () => setModal('addStudent') },
+          { label: 'Add a student', onSelect: () => openScene('addStudent') },
           { separator: true },
           /*
             Grouped under a heading so each item can be named for its verb.
@@ -195,9 +200,9 @@ function AppShell() {
       },
       // A direct action, like Notes. A dropdown holding one item is a click
       // spent on nothing, and the item repeated the word above it.
-      { id: 'about', label: 'About', onSelect: openAbout },
+      { id: 'about', label: 'About', onSelect: () => openScene('about') },
     ],
-    [toggle, openAbout, model.dayNotes, model.teacherAbsence]
+    [toggle, openScene, model.dayNotes, model.teacherAbsence]
   );
 
   return (
@@ -257,15 +262,13 @@ function AppShell() {
           />
         )}
 
+        {/*
+          Not a dialog on a scrim. It lands where the board was, the same way
+          About does, which is why it goes through openScene rather than being
+          one more entry in the modal slot.
+        */}
         {modal === 'addStudent' && (
-          <Modal
-            wide
-            title="Add a student"
-            subtitle="Paste their accommodations straight from the IEP, or pick from a starter set."
-            onClose={() => setModal(null)}
-          >
-            <AddStudentForm onAdded={() => setModal(null)} />
-          </Modal>
+          <AddStudentWizard background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
         {modal === 'students' && (
@@ -285,8 +288,8 @@ function AppShell() {
           <AboutBloom
             stats={aboutStats}
             background={background}
-            leaving={aboutLeaving}
-            onClose={closeAbout}
+            leaving={sceneLeaving}
+            onClose={closeScene}
           />
         )}
 
@@ -330,7 +333,7 @@ function AppShell() {
 
         <main className="acc-app__main">
           <Board
-            onAddStudent={() => setModal('addStudent')}
+            onAddStudent={() => openScene('addStudent')}
             onEditStudent={(id) => {
               setEditingStudentId(id);
               setModal('students');

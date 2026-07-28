@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,textarea,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+  <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:980px;max-height:min(92vh,980px);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);overflow:hidden">
+      <div style="display:flex;align-items:flex-start;gap:16px;padding:16px 20px;border-bottom:1px solid #e9e5f0">
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:20px;font-weight:600;line-height:1.2">Add a student</h2>
+          <p style="margin:4px 0 0;font-size:12px;color:#6b6480">Paste their accommodations straight from the IEP, or pick from a starter set.</p>
+        </div>
+        <button aria-label="Close" style="margin-left:auto;align-self:flex-start;color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+      </div>
+      <div style="padding:20px;overflow-y:auto">
+        <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.3fr);gap:20px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <label style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:12px;font-weight:500">What should this student be called?</span>
+              <input placeholder="J. Alvarez, or JA, or Student 4" style="padding:8px 12px;border:1px solid #e9e5f0;border-radius:4px;background:#fff;font-size:14px;outline:none" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Whatever you&rsquo;ll recognise on the board and on a printed report. Initials or a code work fine - the file does not need a full legal name. Paste a whole list, separated by commas or one per line, to add them together.</span>
+            </label>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <label style="display:flex;flex-direction:column;gap:4px;flex:4 1 0;min-width:0">
+                  <span style="font-size:12px;font-weight:500">Newly enrolled?</span>
+                  <input type="date" aria-label="First day in this class" style="padding:8px 12px;border:1px solid #e9e5f0;border-radius:4px;background:#fff;font-size:14px;outline:none;min-width:0" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:4px;flex:1 1 0;min-width:0">
+                  <span style="font-size:12px;font-weight:500">Plan</span>
+                  <select style="padding:8px 12px;border:1px solid #e9e5f0;border-radius:4px;background:#fff;font-size:14px;outline:none">
+                    <option>IEP</option>
+                    <option>504</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+              </div>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Leave the date blank if they have been in this class since the start of the year. Set one and everything before it is locked, with the reason on the record.</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:12px;font-weight:500">Which periods?</span>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <button aria-pressed="false" style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">P1</button>
+                <button aria-pressed="false" style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">P3</button>
+                <button aria-pressed="false" style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">P5</button>
+                <button aria-pressed="false" style="display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">P4</button>
+                <button aria-label="Add a period" title="Add a period you have not set up yet" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">+</button>
+              </div>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Pick as many as this student is in.</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <label style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:12px;font-weight:500">Paste their accommodations</span>
+              <textarea rows="5" placeholder="Copy the accommodation cells straight out of the IEP spreadsheet and paste here.&#10;&#10;One per line, or separated by commas." style="padding:8px 12px;border:1px solid #e9e5f0;border-radius:4px;background:#fff;font-family:'JetBrains Mono','Cascadia Mono',Consolas,monospace;font-size:12px;line-height:1.45;resize:vertical;min-height:110px;outline:none" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"></textarea>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Commas inside brackets are safe - &ldquo;Preferential seating (front, near instruction)&rdquo; stays in one piece.</span>
+            </label>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <p style="margin:0;font-size:12px;font-weight:500">Or add from a starter set</p>
+              <p style="margin:0;font-size:11px;color:#6b6480;line-height:1.45">Common wordings to get going. Edit them to match what the student&rsquo;s plan actually says; the plan is what counts, not our phrasing.</p>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Presentation &amp; instruction</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">How material reaches the student</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Timing &amp; scheduling</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">Extra time, breaks, pacing</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Setting</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">Where the student works</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Response</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">How the student shows what they know</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Behaviour &amp; regulation</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">Self-regulation and support</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb"><span style="font-size:12px;font-weight:500">Assistive technology</span><span style="font-size:11px;color:#9a93a8;line-height:1.45">Tools and software</span><span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">+</span></button>
+              </div>
+            </div>
+          </div>
+          <div style="grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:16px;border-top:1px solid #e9e5f0">
+            <span style="font-size:12px;color:#6b6480">No accommodations chosen yet</span>
+            <button disabled="{{ true }}" style="display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4);opacity:0.45;cursor:default">Add student</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

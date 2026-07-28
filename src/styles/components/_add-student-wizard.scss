@@ -1,0 +1,709 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// Add a student, as a four-step wizard. Built to
+// design_handoff_add_student_wizard/.
+//
+// Two registers meet here on purpose. The SCREEN is ambient: it arrives the way
+// About does, by cascading the board away and fading the aurora up through it,
+// with no dark scrim over anything. The DIALOG on top of it is working: crisp
+// edges, no blur behind text, a fixed frame so the steps swap without the
+// window resizing under the pointer.
+//
+// Every measurement below is from the handoff rather than chosen here.
+// ---------------------------------------------------------------------------
+
+.acc-wiz {
+  position: fixed;
+  inset: 0;
+  // Above the pill nav (70), same plane as About: while this is open it is the
+  // whole app.
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  overflow: hidden;
+  color: var(--acc-fg);
+  box-sizing: border-box;
+
+  /**
+   * Arrives OVER the board as it cascades away, rather than covering it.
+   *
+   * Identical beat to About: the veil clears at 750ms, which is where the rows
+   * have fallen far enough to be worth replacing. An opaque background from the
+   * first frame would hide the board before it could move, and the screen would
+   * simply cut.
+   */
+  background: var(--acc-bg);
+  animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+
+  .acc-scene {
+    animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+  }
+
+  // Leaving: the reverse, and quicker. The dialog goes first so the board
+  // cascading back in is uncovered rather than revealed all at once.
+  &--leaving {
+    animation: acc-fade-out 420ms var(--acc-ease-exit) both;
+
+    .acc-wiz__dialog {
+      animation: acc-fade-out 200ms var(--acc-ease-exit) both;
+    }
+  }
+
+  // --- Frame ---------------------------------------------------------------
+
+  /**
+   * Fixed height, unlike every other modal in the app.
+   *
+   * The steps ask for very different amounts of room - a name, then six
+   * accordions - and a frame that resized between them would move the Next
+   * button out from under the pointer four times in a row.
+   */
+  &__dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(900px, 96vw);
+    block-size: min(660px, 92vh);
+    background: var(--acc-surface);
+    border-radius: var(--acc-radius-xl);
+    box-shadow: var(--acc-shadow-overlay);
+    overflow: hidden;
+    animation: acc-enter 600ms var(--acc-ease-entrance) 1000ms both;
+  }
+
+  // --- Header --------------------------------------------------------------
+
+  // No title and no rule under it. The step's own heading is the title, and a
+  // second one above it would say the same thing twice.
+  &__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: none;
+    padding: 20px 28px 0;
+  }
+
+  &__dots {
+    position: absolute;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+
+  /**
+   * Where you are, and where you have been.
+   *
+   * The current step stretches to a 22px pill; completed ones stay circles in
+   * petal lavender and are clickable, upcoming ones are inert. Never forward:
+   * skipping to Review before a name exists would show a card with nothing on
+   * it.
+   */
+  &__dot {
+    inline-size: 6px;
+    block-size: 6px;
+    padding: 0;
+    border: none;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-border-strong);
+    transition:
+      inline-size 260ms var(--acc-ease-entrance),
+      background-color 160ms var(--acc-ease-standard);
+
+    &--past {
+      background: var(--acc-petal-1);
+    }
+
+    &--on {
+      inline-size: 22px;
+      background: var(--acc-accent);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  &__close {
+    @include motion.interactive(color);
+    padding: 0;
+    color: var(--acc-fg-faint);
+    font-size: 19px;
+    line-height: 1;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  // --- Body ----------------------------------------------------------------
+
+  &__body {
+    flex: 1;
+    min-block-size: 0;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+  }
+
+  // Centred in both axes by the auto margin, so a short step sits in the middle
+  // of the frame rather than pinned under the dots.
+  &__step {
+    display: flex;
+    justify-content: center;
+    inline-size: 100%;
+    margin: auto;
+    animation: acc-wiz-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
+  }
+
+  &__pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-5);
+    inline-size: 100%;
+    max-inline-size: 680px;
+    padding: var(--acc-space-7);
+    box-sizing: border-box;
+  }
+
+  &__pane--narrow {
+    max-inline-size: 620px;
+  }
+
+  &__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &--center {
+      text-align: center;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: var(--acc-fw-semibold);
+    line-height: 1.25;
+    text-wrap: pretty;
+
+    &--done {
+      font-size: 24px;
+    }
+  }
+
+  &__sub {
+    margin: 0;
+    font-size: var(--acc-fs-body);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+    text-wrap: pretty;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+  }
+
+  &__label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-tiny);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--acc-space-1);
+    align-items: center;
+
+    &--end {
+      justify-content: flex-end;
+    }
+
+    &--card {
+      padding: 0 24px 16px;
+    }
+  }
+
+  // --- Step 1: who ---------------------------------------------------------
+
+  /**
+   * The name and the plan type share one border.
+   *
+   * They are one answer - who this is - and a separate select underneath would
+   * read as a second question. `align-items: stretch` also makes the two the
+   * same height by construction.
+   */
+  &__namegroup {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    overflow: hidden;
+    @include motion.interactive(border-color, box-shadow);
+
+    &:hover:not(:focus-within) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &:focus-within {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  &__nameinput {
+    flex: 1;
+    min-inline-size: 0;
+    padding: 14px var(--acc-space-4);
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: var(--acc-fs-subhead);
+    color: var(--acc-fg);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+  }
+
+  // Wears the plan's own pill colours, so the field says IEP or 504 the same
+  // way the board does.
+  &__planwrap {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border-inline-start: 1px solid var(--acc-border);
+
+    &--iep {
+      background: var(--acc-plan-iep-soft);
+      color: var(--acc-plan-iep);
+    }
+
+    &--504 {
+      background: var(--acc-plan-504-soft);
+      color: var(--acc-plan-504);
+    }
+
+    &--other {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg-muted);
+    }
+  }
+
+  &__plan {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    outline: none;
+    padding: 0 32px 0 14px;
+    background: transparent;
+    color: inherit;
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+    cursor: pointer;
+  }
+
+  // Drawn rather than a background image: an encoded SVG cannot read a custom
+  // property, and the arrow has to take the plan colour with everything else.
+  &__plancaret {
+    position: absolute;
+    inset-inline-end: 12px;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  &__preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    animation: acc-wiz-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
+
+    .acc-preview__summary {
+      margin-block-end: 0;
+    }
+  }
+
+  // --- Step 2: class details ----------------------------------------------
+
+  // A true half each, with the rule counted as its own column so neither side
+  // is a pixel wider than the other.
+  &__split {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: var(--acc-space-6) 28px;
+    align-items: stretch;
+  }
+
+  &__rule {
+    inline-size: 1px;
+    background: linear-gradient(to bottom, transparent, var(--acc-border-strong), transparent);
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+
+    // Right-aligned so the two halves meet at the rule rather than both running
+    // away from it.
+    &--end {
+      align-items: flex-end;
+      text-align: end;
+    }
+  }
+
+  // 40px, matching the period chips beside it, which is what puts both hints on
+  // the same baseline.
+  &__date {
+    block-size: 40px;
+    max-inline-size: 220px;
+    padding: 0 var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
+    outline: none;
+    @include motion.interactive(border-color, box-shadow);
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  &__newperiod {
+    block-size: 40px;
+    inline-size: 120px;
+    padding: 0 14px;
+    border: 1px solid var(--acc-accent);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--acc-accent-soft);
+  }
+
+  // The + is a circle at this size, not a stretched pill.
+  .acc-chip--lg.acc-chip--add {
+    inline-size: 40px;
+    padding-inline: 0;
+  }
+
+  // --- Step 3: accommodations ---------------------------------------------
+
+  &__chooser {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--acc-space-3);
+    margin-block-start: var(--acc-space-2);
+  }
+
+  &__choice {
+    @include motion.interactive(border-color, box-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-6) var(--acc-space-5);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    text-align: start;
+
+    &:hover {
+      border-color: var(--acc-border-strong);
+      box-shadow: var(--acc-shadow-raised);
+    }
+  }
+
+  &__choice-name {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__choice-body {
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__back {
+    display: flex;
+    margin-block-end: var(--acc-space-1);
+  }
+
+  &__backlink {
+    @include motion.interactive(color);
+    padding: 0;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  &__paste {
+    inline-size: 100%;
+    padding: var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    color: var(--acc-fg);
+    outline: none;
+    min-block-size: 130px;
+    box-sizing: border-box;
+    @include motion.interactive(border-color, box-shadow);
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  // --- Step 4: review ------------------------------------------------------
+
+  /**
+   * The record as it will be written, not a summary of the form.
+   *
+   * Same disc, name, plan pill and period line the board shows, so what a
+   * teacher approves here is what they will recognise afterwards.
+   */
+  &__card {
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    box-shadow: var(--acc-shadow-raised);
+    overflow: hidden;
+  }
+
+  &__cardhead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: var(--acc-space-5) var(--acc-space-6) var(--acc-space-4);
+  }
+
+  &__disc {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-accent-soft);
+    color: var(--acc-accent);
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__identity {
+    flex: 1;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__nameline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--acc-space-2);
+  }
+
+  &__cardname {
+    font-size: 17px;
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__meta {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
+  &__edit {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--acc-space-2);
+  }
+
+  &__editlabel {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+
+  &__editlink {
+    @include motion.interactive(color);
+    padding: 2px 0;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-muted);
+
+    &:hover {
+      color: var(--acc-accent);
+    }
+
+    &--end {
+      margin-inline-start: auto;
+    }
+  }
+
+  // The app's divider: a hollow ring, not a bullet.
+  &__editdot {
+    flex: none;
+    inline-size: 5px;
+    block-size: 5px;
+    border: 1px solid var(--acc-fg-faint);
+    border-radius: 50%;
+  }
+
+  &__accoms {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: var(--acc-space-4) var(--acc-space-6) var(--acc-space-5);
+    border-block-start: 1px solid var(--acc-border);
+    background: var(--acc-bg);
+  }
+
+  &__accomhead {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+
+  // Wrap-safe: real accommodation wording is a sentence, and a row of them has
+  // to fold rather than scroll.
+  &__accom {
+    display: inline-block;
+    padding: 5px var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    color: var(--acc-fg);
+    font-size: var(--acc-fs-sub);
+    line-height: 1.4;
+  }
+
+  &__empty {
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+  }
+
+  &__footnote {
+    margin: 0;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  // --- Success -------------------------------------------------------------
+
+  &__done {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--acc-space-3);
+    inline-size: 100%;
+    max-inline-size: 520px;
+    padding: var(--acc-space-7);
+    margin: auto;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  &__tick {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-success-soft);
+    color: var(--acc-success);
+    font-size: 20px;
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__doneactions {
+    display: flex;
+    gap: var(--acc-space-2);
+    margin-block-start: var(--acc-space-3);
+  }
+
+  // --- Footer --------------------------------------------------------------
+
+  &__foot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-4);
+    flex: none;
+    padding: 14px 28px;
+    border-block-start: 1px solid var(--acc-border);
+  }
+
+  // Holds the row still on step one, where Back is not there to hold it.
+  &__footside {
+    min-inline-size: 64px;
+  }
+
+  /**
+   * The one line of guidance per step, centred on the frame rather than in the
+   * gap between the buttons - it stays put as Back appears and the primary
+   * label changes length.
+   */
+  &__tip {
+    position: absolute;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    opacity: 0.65;
+    white-space: nowrap;
+  }
+}
+
+// The step's own entrance: a short fade and rise, so moving through the wizard
+// reads as one column of questions rather than four screens.
+@keyframes acc-wiz-step {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-wiz,
+  .acc-wiz * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}

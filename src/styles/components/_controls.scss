@@ -301,6 +301,30 @@
     color: var(--acc-accent);
   }
 
+  /**
+   * The 40px variant, for where a chip IS the control rather than a tag on
+   * something else.
+   *
+   * The add-student wizard picks periods with these, opposite a date field, and
+   * matching heights is what puts the hint under each on the same baseline.
+   */
+  &--lg {
+    height: 40px;
+    padding: 0 var(--acc-space-4);
+    font-size: var(--acc-fs-card);
+  }
+
+  // Real accommodation wording is a sentence. A row of these has to fold rather
+  // than run off the edge, so the height gives way instead of the text.
+  &--wrap {
+    height: auto;
+    min-height: 28px;
+    padding: var(--acc-space-1) var(--acc-space-3);
+    white-space: normal;
+    line-height: 1.35;
+    text-align: start;
+  }
+
   &__count {
     font-size: var(--acc-fs-tiny);
     opacity: 0.7;

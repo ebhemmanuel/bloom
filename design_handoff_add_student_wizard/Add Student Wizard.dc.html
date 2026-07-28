@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,textarea,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+  <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px">
+    <div style="width:min(900px,96vw);height:min(660px,92vh);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.28);overflow:hidden">
+
+      <div style="position:relative;display:flex;align-items:center;justify-content:flex-end;padding:20px 28px 0;flex:none">
+        <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px">
+          <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" title="{{ d.title }}" aria-label="{{ d.title }}" style="{{ d.style }}"></button>
+          </sc-for>
+          <sc-if value="{{ showStepName }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:11px;color:#6b6480;margin-left:6px">{{ stepName }}</span>
+          </sc-if>
+        </div>
+        <button onClick="{{ reset }}" aria-label="Close" style="color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;display:flex;justify-content:center">
+
+        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+          <div style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25;text-wrap:pretty">What should this student be called?</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">Whatever you&rsquo;ll recognise on the board and on a printed report. Initials or a code work fine - the file does not need a full legal name.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:stretch;border:1px solid #e9e5f0;border-radius:8px;background:#fff;overflow:hidden" style-hover="border-color:#d6d0e2">
+                <input value="{{ name }}" onChange="{{ setName }}" onKeyDown="{{ nameKey }}" onPaste="{{ namePaste }}" autoFocus="{{ true }}" placeholder="J. Alvarez, or JA, or Student 4" style="flex:1;min-width:0;padding:14px 16px;border:none;background:transparent;font-size:15px;outline:none">
+                <select value="{{ plan }}" onChange="{{ setPlan }}" aria-label="Plan type" title="Plan type" style="{{ planSelectStyle }}">
+                  <option value="IEP">IEP</option>
+                  <option value="504">504</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Paste a whole list, separated by commas or one per line, to add several students together.</span>
+            </div>
+            <sc-if value="{{ isMulti }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:12px;border:1px solid #e9e5f0;border-radius:8px;background:#f3f0f8;display:flex;flex-direction:column;gap:8px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                <p style="margin:0;font-size:12px;font-weight:500">{{ nameCount }} students, each getting everything set in the next steps</p>
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  <sc-for list="{{ nameChips }}" as="n" hint-placeholder-count="0">
+                    <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">{{ n }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:28px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px;text-align:center">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">Class details</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">Set what you know and skip the rest - all of this is editable later.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:28px;align-items:stretch">
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right">
+              <span style="font-size:12px;font-weight:500">Which periods?</span>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:flex-end">
+                <sc-for list="{{ periodChips }}" as="p" hint-placeholder-count="4">
+                  <button onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+                </sc-for>
+                <sc-if value="{{ addingPeriod }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ newPeriod }}" onChange="{{ setNewPeriod }}" onKeyDown="{{ newPeriodKey }}" autoFocus="{{ true }}" placeholder="Period 4" aria-label="Name the new period" style="height:40px;width:120px;padding:0 14px;border:1px solid #5b4bd6;border-radius:999px;background:#fff;font-size:12px;outline:none;box-shadow:0 0 0 3px #eeebfd">
+                </sc-if>
+                <sc-if value="{{ notAddingPeriod }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ startAddPeriod }}" title="Add a period you have not set up yet" aria-label="Add a period" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:13px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">+</button>
+                </sc-if>
+              </div>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Pick as many as this student is in. Use + to name a new period.</span>
+            </div>
+            <div style="width:1px;background:linear-gradient(to bottom,transparent,#d6d0e2,transparent)"></div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;font-weight:500">Newly enrolled?</span>
+              <input type="date" value="{{ enrolled }}" onChange="{{ setEnrolled }}" aria-label="First day in this class" style="height:40px;padding:0 12px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none;max-width:220px" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">{{ enrolHint }}</span>
+            </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:20px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">{{ accomHeading }}</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">The plan&rsquo;s wording is what counts - edit anything later to match what it actually says.</p>
+            </div>
+
+            <sc-if value="{{ showCards }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+                <button onClick="{{ choosePaste }}" style="display:flex;flex-direction:column;gap:8px;padding:24px 20px;border:1px solid #e9e5f0;border-radius:14px;background:#fff;text-align:left" style-hover="border-color:#d6d0e2;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1)">
+                  <span style="font-size:15px;font-weight:600">Paste from the IEP</span>
+                  <span style="font-size:12px;color:#6b6480;line-height:1.45">Copy the accommodation cells straight out of the spreadsheet - one per line, or separated by commas.</span>
+                </button>
+                <button onClick="{{ chooseStarter }}" style="display:flex;flex-direction:column;gap:8px;padding:24px 20px;border:1px solid #e9e5f0;border-radius:14px;background:#fff;text-align:left" style-hover="border-color:#d6d0e2;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1)">
+                  <span style="font-size:15px;font-weight:600">Pick from a starter set</span>
+                  <span style="font-size:12px;color:#6b6480;line-height:1.45">Common wordings in six categories, ready to tick. A quick start when the plan is not in front of you.</span>
+                </button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showBackLink }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;margin-bottom:4px">
+                <button onClick="{{ clearMode }}" style="font-size:12px;color:#6b6480;padding:0;white-space:nowrap" style-hover="color:#2a2438">&lsaquo; Choose a different way</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showPaste }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                <span style="font-size:12px;font-weight:500">Paste their accommodations</span>
+                <textarea rows="6" value="{{ paste }}" onChange="{{ setPaste }}" placeholder="Copy the accommodation cells straight out of the IEP spreadsheet and paste here.&#10;&#10;One per line, or separated by commas." style="padding:12px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-family:'JetBrains Mono','Cascadia Mono',Consolas,monospace;font-size:12px;line-height:1.45;resize:vertical;min-height:130px;outline:none;width:100%" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"></textarea>
+                <span style="font-size:11px;color:#6b6480;line-height:1.45">Commas inside brackets are safe - &ldquo;Preferential seating (front, near instruction)&rdquo; stays in one piece.</span>
+              </div>
+              <sc-if value="{{ hasParsed }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:12px;border:1px solid #e9e5f0;border-radius:8px;background:#f3f0f8;display:flex;flex-direction:column;gap:8px">
+                  <p style="margin:0;font-size:12px;font-weight:500">{{ parsedSummary }}</p>
+                  <div style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto">
+                    <sc-for list="{{ parsedItems }}" as="it" hint-placeholder-count="0">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px">
+                        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.label }}</span>
+                        <span style="flex:none;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:1px 8px;border-radius:4px;color:{{ it.tagColor }};background:{{ it.tagBg }}">{{ it.tag }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-if>
+
+            <sc-if value="{{ showStarterDivider }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:8px 0 0;font-size:12px;font-weight:500">Or add from a starter set</p>
+            </sc-if>
+
+            <sc-if value="{{ showStarters }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:8px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                <sc-for list="{{ sets }}" as="s" hint-placeholder-count="6">
+                  <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                    <button onClick="{{ s.toggle }}" aria-expanded="{{ s.open }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;text-align:left;background:#fff" style-hover="background:#f7f4fb">
+                      <span style="font-size:12px;font-weight:500;white-space:nowrap">{{ s.label }}</span>
+                      <span style="font-size:11px;color:#9a93a8;line-height:1.45">{{ s.hint }}</span>
+                      <sc-if value="{{ s.hasChosen }}" hint-placeholder-val="{{ false }}">
+                        <span style="margin-left:auto;min-width:18px;padding:0 5px;border-radius:999px;background:#5b4bd6;color:#fff;font-size:10px;font-weight:700;text-align:center;line-height:16px">{{ s.chosen }}</span>
+                      </sc-if>
+                      <span style="{{ s.chevStyle }}">{{ s.chev }}</span>
+                    </button>
+                    <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:12px;border-top:1px solid #e9e5f0;background:#f3f0f8;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                        <button onClick="{{ s.toggleAll }}" style="height:26px;padding:0 12px;border-radius:999px;font-size:11px;font-weight:500;color:#6b6480" style-hover="background:#eeebfd;color:#5b4bd6">{{ s.allLabel }}</button>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px">
+                          <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="4">
+                            <button onClick="{{ it.onClick }}" aria-pressed="{{ it.on }}" style="{{ it.style }}">{{ it.label }}<sc-if value="{{ it.requiresDetail }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;opacity:0.7">detail</span></sc-if></button>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">{{ reviewHeading }}</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">This is how the record will look - every part stays editable from the board.</p>
+            </div>
+            <div style="border:1px solid #e9e5f0;border-radius:14px;background:#fff;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:14px;padding:20px 24px 16px">
+                <div style="flex:none;width:44px;height:44px;border-radius:999px;background:#eeebfd;color:#5b4bd6;display:grid;place-items:center;font-size:15px;font-weight:600">{{ discText }}</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+                    <span style="font-size:17px;font-weight:600">{{ nameTitle }}</span>
+                    <span style="{{ planPillStyle }}">{{ plan }}</span>
+                  </div>
+                  <span style="font-size:12px;color:#6b6480">{{ metaText }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;align-self:flex-start">
+                  <span style="font-size:11px;color:#9a93a8">Edit</span>
+                  <button onClick="{{ editStep1 }}" style="font-size:11px;color:#6b6480;padding:2px 0" style-hover="color:#5b4bd6">Name</button>
+                  <span style="width:5px;height:5px;border:1px solid #9a93a8;border-radius:50%;flex:none"></span>
+                  <button onClick="{{ editStep2 }}" style="font-size:11px;color:#6b6480;padding:2px 0" style-hover="color:#5b4bd6">Details</button>
+                </div>
+              </div>
+              <sc-if value="{{ isMulti }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-wrap:wrap;gap:4px;padding:0 24px 16px">
+                  <sc-for list="{{ nameChips }}" as="n" hint-placeholder-count="0">
+                    <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">{{ n }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="border-top:1px solid #e9e5f0;background:#faf8fc;padding:16px 24px 20px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:12px;font-weight:500">{{ accomCountLabel }}</span>
+                  <button onClick="{{ editStep3 }}" style="margin-left:auto;font-size:11px;color:#6b6480;padding:2px 0" style-hover="color:#5b4bd6">Edit</button>
+                </div>
+                <sc-if value="{{ hasAccoms }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:4px">
+                    <sc-for list="{{ combinedItems }}" as="c" hint-placeholder-count="3">
+                      <span style="display:inline-block;padding:5px 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#2a2438;font-size:12px;line-height:1.4">{{ c }}</span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ noAccoms }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:12px;color:#9a93a8">None yet - add them any time from the board.</span>
+                </sc-if>
+              </div>
+            </div>
+            <sc-if value="{{ isMulti }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:12px;border-radius:8px;background:#f3f0f8;font-size:12px;color:#6b6480;line-height:1.45">Each of the {{ nameCount }} students gets this same setup, editable per student afterwards.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="width:44px;height:44px;border-radius:999px;background:#e4f4ed;color:#2f7d63;display:grid;place-items:center;font-size:20px;font-weight:600">&#10003;</div>
+            <h1 style="margin:0;font-size:24px;font-weight:600;line-height:1.25">{{ doneTitle }}</h1>
+            <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">{{ doneBody }}</p>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button onClick="{{ reset }}" style="height:32px;padding:0 16px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;font-size:12px;font-weight:500" style-hover="background:#f7f4fb">Add another student</button>
+              <button onClick="{{ reset }}" style="height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Done</button>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;border-top:1px solid #e9e5f0;flex:none">
+          <div style="min-width:64px">
+            <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ back }}" style="height:32px;padding:0 16px;border-radius:999px;font-size:12px;font-weight:500;color:#6b6480" style-hover="background:#f3f0f8;color:#2a2438">Back</button>
+            </sc-if>
+          </div>
+          <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:12px;color:#6b6480;opacity:0.65;white-space:nowrap">{{ statusText }}</div>
+          <button onClick="{{ next }}" disabled="{{ nextDisabled }}" style="{{ nextStyle }}">{{ nextLabel }}</button>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accomPicker&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ask-first&quot;,&quot;both-visible&quot;],&quot;default&quot;:&quot;ask-first&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Accommodations step&quot;},&quot;requireAccoms&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Accommodations step&quot;},&quot;showStepNames&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Navigation&quot;}}">
+class Component extends DCLogic {
+  state = {
+    step: 0, done: null,
+    name: '', plan: 'IEP', periodIds: [], customPeriods: [],
+    addingPeriod: false, newPeriod: '', enrolled: '',
+    mode: null, paste: '', picked: [], openSet: null,
+  };
+
+  STARTERS = [
+    { id: 'presentation', label: 'Presentation & instruction', hint: 'How material reaches the student', items: [['Text read aloud', true], ['Directions read aloud and restated', false], ['Copy of teacher notes / guided notes', false], ['Visual supports and graphic organisers', false], ['Chunked instructions (one step at a time)', false], ['Check for understanding', false]] },
+    { id: 'timing', label: 'Timing & scheduling', hint: 'Extra time, breaks, pacing', items: [['Extended time (1.5x) on assessments', false], ['Extended time (2x) on assessments', false], ['Extended time on assignments', false], ['Frequent breaks', false], ['Assessment split across sessions', true]] },
+    { id: 'setting', label: 'Setting', hint: 'Where the student works', items: [['Preferential seating (front, near instruction)', false], ['Small-group testing', false], ['Separate setting, reduced distraction', false], ['Testing in a familiar room with a familiar adult', false]] },
+    { id: 'response', label: 'Response', hint: 'How the student shows what they know', items: [['Answers may be dictated to a scribe', true], ['Word processor permitted for written work', false], ['Calculator permitted', false], ['Reduced-item assignments', true], ['Oral response instead of written', true], ['Spelling not penalised', false]] },
+    { id: 'behavior', label: 'Behaviour & regulation', hint: 'Self-regulation and support', items: [['Sensory break pass', true], ['Movement breaks', false], ['Advance warning of transitions', false], ['Access to a calming space', true], ['Daily check-in / check-out', false]] },
+    { id: 'assistive', label: 'Assistive technology', hint: 'Tools and software', items: [['Text-to-speech software', false], ['Speech-to-text software', false], ['Audio recording of lessons permitted', false], ['Enlarged print / adjusted contrast', false]] },
+  ];
+
+  BASE_PERIODS = [{ id: 'p1', label: 'P1' }, { id: 'p3', label: 'P3' }, { id: 'p5', label: 'P5' }, { id: 'p4', label: 'P4' }];
+  STEP_NAMES = ['Who', 'Class details', 'Accommodations', 'Review'];
+
+  splitNames(text) {
+    const seen = new Set(); const out = [];
+    for (const raw of text.split(/[,\n]/)) {
+      const n = raw.trim();
+      if (n && !seen.has(n.toLowerCase())) { seen.add(n.toLowerCase()); out.push(n); }
+    }
+    return out;
+  }
+
+  splitAccoms(text) {
+    const parts = [];
+    for (const line of text.split(/\n/)) {
+      let depth = 0, cur = '';
+      for (const ch of line) {
+        if (ch === '(' || ch === '[') depth++;
+        if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+        if (ch === ',' && depth === 0) { parts.push(cur); cur = ''; } else cur += ch;
+      }
+      parts.push(cur);
+    }
+    const seen = new Set(); const items = []; let dups = 0;
+    for (const p of parts) {
+      const label = p.trim();
+      if (!label) continue;
+      if (seen.has(label.toLowerCase())) { dups++; continue; }
+      seen.add(label.toLowerCase());
+      items.push(label);
+    }
+    return { items, dups };
+  }
+
+  fmtDate(key) {
+    const d = new Date(key + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  chipStyle(on, opts) {
+    return Object.assign({
+      display: 'inline-flex', alignItems: 'center', gap: '4px', height: '28px', padding: '0 12px',
+      borderRadius: '999px', border: '1px solid ' + (on ? '#5b4bd6' : '#e9e5f0'),
+      background: on ? '#eeebfd' : '#fff', color: on ? '#5b4bd6' : '#6b6480',
+      fontSize: '12px', fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+    }, opts || {});
+  }
+
+  renderVals() {
+    const s = this.state;
+    const variant = this.props.accomPicker ?? 'ask-first';
+    const requireAccoms = this.props.requireAccoms ?? false;
+    const showStepName = this.props.showStepNames ?? false;
+
+    const names = this.splitNames(s.name);
+    const isMulti = names.length > 1;
+    const parsed = this.splitAccoms(s.paste);
+    const starterLabels = new Set(this.STARTERS.flatMap((x) => x.items.map(([l]) => l.toLowerCase())));
+    const parsedLower = new Set(parsed.items.map((l) => l.toLowerCase()));
+    const pickedExtra = s.picked.filter((l) => !parsedLower.has(l.toLowerCase()));
+    const combined = [...parsed.items, ...pickedExtra];
+
+    const periodsAll = [...this.BASE_PERIODS, ...s.customPeriods];
+    const chosenPeriods = periodsAll.filter((p) => s.periodIds.includes(p.id));
+
+    const nextDisabled = (s.step === 0 && names.length === 0) || (s.step === 2 && requireAccoms && combined.length === 0);
+    const goTo = (i) => this.setState({ step: i });
+    const next = () => {
+      if (nextDisabled) return;
+      if (s.step === 3) {
+        this.setState({ done: { names: [...names], count: combined.length } });
+      } else this.setState({ step: s.step + 1 });
+    };
+
+    const dots = this.STEP_NAMES.map((title, i) => {
+      const current = !s.done && i === s.step;
+      const past = s.done ? true : i < s.step;
+      return {
+        title,
+        onClick: () => { if (past && !s.done) goTo(i); },
+        style: {
+          width: current ? '22px' : '6px', height: '6px', borderRadius: '999px', padding: 0, border: 'none',
+          background: current ? '#5b4bd6' : past ? '#b7a6f4' : '#d6d0e2',
+          cursor: past && !s.done ? 'pointer' : 'default',
+          transition: 'width 260ms cubic-bezier(0.16,1,0.3,1), background-color 160ms',
+        },
+      };
+    });
+
+    const togglePick = (label) => {
+      this.setState((st) => ({
+        picked: st.picked.some((p) => p.toLowerCase() === label.toLowerCase())
+          ? st.picked.filter((p) => p.toLowerCase() !== label.toLowerCase())
+          : [...st.picked, label],
+      }));
+    };
+
+    const sets = this.STARTERS.map((set) => {
+      const open = s.openSet === set.id;
+      const items = set.items.map(([label, requiresDetail]) => {
+        const on = s.picked.some((p) => p.toLowerCase() === label.toLowerCase());
+        return { label, requiresDetail, on, onClick: () => togglePick(label), style: this.chipStyle(on, { height: 'auto', minHeight: '28px', padding: '4px 12px', whiteSpace: 'normal', lineHeight: 1.35 }) };
+      });
+      const chosen = items.filter((i) => i.on).length;
+      return {
+        label: set.label, hint: set.hint, open, items, chosen, hasChosen: chosen > 0,
+        chev: open ? '\u2212' : '+',
+        chevStyle: { marginLeft: chosen > 0 ? '8px' : 'auto', color: '#9a93a8', fontSize: '15px', lineHeight: 1 },
+        allLabel: chosen === items.length ? 'Clear all' : 'Select all',
+        toggle: () => this.setState({ openSet: open ? null : set.id }),
+        toggleAll: () => {
+          const all = items.every((i) => i.on);
+          this.setState((st) => {
+            const without = st.picked.filter((p) => !items.some((i) => i.label.toLowerCase() === p.toLowerCase()));
+            return { picked: all ? without : [...without, ...items.map((i) => i.label)] };
+          });
+        },
+      };
+    });
+
+    const planPillColors = { IEP: ['#e8eeff', '#3d5bbf'], 504: ['#f0e9fd', '#6b4bb8'] };
+    const [pillBg, pillFg] = planPillColors[s.plan] || ['#f3f0f8', '#6b6480'];
+
+    const statusByStep = [
+      isMulti ? names.length + ' students will be added together.' : 'Only a name is needed to continue.',
+      'Skip anything you do not know yet.',
+      combined.length > 0
+        ? combined.length + ' accommodation' + (combined.length === 1 ? '' : 's') + ' ready'
+        : 'You can skip this and add accommodations later.',
+      'This writes the record and seeds today\u2019s board.',
+    ];
+
+    const done = s.done;
+    return {
+      isStep1: !done && s.step === 0, isStep2: !done && s.step === 1,
+      isStep3: !done && s.step === 2, isStep4: !done && s.step === 3,
+      isDone: !!done, notDone: !done,
+      dots, showStepName, stepName: this.STEP_NAMES[s.step],
+      name: s.name,
+      setName: (e) => this.setState({ name: e.target.value }),
+      nameKey: (e) => { if (e.key === 'Enter' && names.length) this.setState({ step: 1 }); },
+      namePaste: (e) => {
+        const text = e.clipboardData && e.clipboardData.getData('text');
+        if (!text || !/\n/.test(text)) return;
+        e.preventDefault();
+        const pastedNames = this.splitNames(text);
+        const existing = s.name.trim();
+        this.setState({ name: (existing ? existing + ', ' : '') + pastedNames.join(', ') });
+      },
+      isMulti, nameCount: names.length, nameChips: names,
+      setPlan: (e) => this.setState({ plan: e.target.value }),
+      planSelectStyle: {
+        border: 'none', outline: 'none', borderLeft: '1px solid #e9e5f0',
+        background: pillBg + ' url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath d=\'M2.5 4.5 6 8l3.5-3.5\' fill=\'none\' stroke=\'' + encodeURIComponent(pillFg) + '\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/%3E%3C/svg%3E") no-repeat right 12px center',
+        appearance: 'none', WebkitAppearance: 'none', padding: '0 32px 0 14px',
+        fontSize: '12px', fontWeight: 600, color: pillFg, cursor: 'pointer',
+      },
+      discText: isMulti ? String(names.length) : (names[0] || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase(),
+      nameTitle: isMulti ? names.length + ' students' : (names[0] || 'Student'),
+      metaText: (chosenPeriods.length ? chosenPeriods.map((p) => p.label).join(', ') : 'No periods yet') + ' \u00b7 ' + (s.enrolled ? 'Enrolled ' + this.fmtDate(s.enrolled) : 'Start of year'),
+      planChips: ['IEP', '504', 'Other'].map((p) => ({ label: p, on: s.plan === p, onClick: () => this.setState({ plan: p }), style: this.chipStyle(s.plan === p) })),
+      periodChips: periodsAll.map((p) => {
+        const on = s.periodIds.includes(p.id);
+        return { label: p.label, on, onClick: () => this.setState((st) => ({ periodIds: on ? st.periodIds.filter((x) => x !== p.id) : [...st.periodIds, p.id] })), style: this.chipStyle(on, { height: '40px', padding: '0 16px', fontSize: '13px' }) };
+      }),
+      addingPeriod: s.addingPeriod, notAddingPeriod: !s.addingPeriod,
+      startAddPeriod: () => this.setState({ addingPeriod: true, newPeriod: '' }),
+      newPeriod: s.newPeriod,
+      setNewPeriod: (e) => this.setState({ newPeriod: e.target.value }),
+      newPeriodKey: (e) => {
+        if (e.key === 'Escape') this.setState({ addingPeriod: false, newPeriod: '' });
+        if (e.key === 'Enter') {
+          const label = s.newPeriod.trim();
+          if (!label) return;
+          const id = 'c' + Date.now();
+          this.setState((st) => ({ customPeriods: [...st.customPeriods, { id, label }], periodIds: [...st.periodIds, id], addingPeriod: false, newPeriod: '' }));
+        }
+      },
+      enrolled: s.enrolled,
+      setEnrolled: (e) => this.setState({ enrolled: e.target.value }),
+      enrolHint: s.enrolled
+        ? 'Every day before ' + this.fmtDate(s.enrolled) + ' stays locked and reads \u201cnot applicable - enrolled ' + this.fmtDate(s.enrolled) + '\u201d, so nothing is ever recorded against them for a class they were not in yet.'
+        : 'Leave blank if they have been in this class since the start of the year.',
+      accomHeading: isMulti ? 'Their accommodations' : 'How do you want to add their accommodations?',
+      showCards: variant === 'ask-first' && s.mode === null,
+      showBackLink: variant === 'ask-first' && s.mode !== null,
+      showPaste: (variant === 'ask-first' && s.mode === 'paste') || variant === 'both-visible',
+      showStarters: (variant === 'ask-first' && s.mode === 'starter') || variant === 'both-visible',
+      showStarterDivider: variant === 'both-visible',
+      choosePaste: () => this.setState({ mode: 'paste' }),
+      chooseStarter: () => this.setState({ mode: 'starter' }),
+      clearMode: () => this.setState({ mode: null }),
+      paste: s.paste,
+      setPaste: (e) => this.setState({ paste: e.target.value }),
+      hasParsed: parsed.items.length > 0,
+      parsedSummary: parsed.items.length + ' accommodation' + (parsed.items.length === 1 ? '' : 's') + ' found' + (parsed.dups > 0 ? ', ' + parsed.dups + ' duplicate skipped' : ''),
+      parsedItems: parsed.items.map((label) => {
+        const isNew = !starterLabels.has(label.toLowerCase());
+        return { label, tag: isNew ? 'New' : 'Already in your list', tagColor: isNew ? '#2f7d63' : '#6b6480', tagBg: isNew ? '#e4f4ed' : '#ffffff' };
+      }),
+      sets,
+      reviewHeading: done ? '' : isMulti ? 'Ready to add ' + names.length + ' students' : 'Ready to add ' + (names[0] || 'this student'),
+      studentsLabel: isMulti ? 'Students' : 'Student',
+      plan: s.plan,
+      planPillStyle: { display: 'inline-flex', alignItems: 'center', height: '20px', padding: '0 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.02em', background: pillBg, color: pillFg },
+      periodsText: chosenPeriods.length ? chosenPeriods.map((p) => p.label).join(', ') : 'Not set',
+      periodsColor: chosenPeriods.length ? '#2a2438' : '#9a93a8',
+      enrolledText: s.enrolled ? this.fmtDate(s.enrolled) : 'Start of year',
+      accomCountLabel: combined.length ? combined.length + ' accommodation' + (combined.length === 1 ? '' : 's') : 'Accommodations',
+      hasAccoms: combined.length > 0, noAccoms: combined.length === 0,
+      combinedItems: combined,
+      editStep1: () => goTo(0), editStep2: () => goTo(1), editStep3: () => goTo(2),
+      showBack: s.step > 0,
+      back: () => this.setState({ step: Math.max(0, s.step - 1) }),
+      next, nextDisabled,
+      nextLabel: s.step === 3 ? (isMulti ? 'Add ' + names.length + ' students' : 'Add student') : 'Next',
+      nextStyle: {
+        display: 'inline-flex', alignItems: 'center', gap: '8px', height: '38px', padding: '0 20px',
+        borderRadius: '999px', border: '1px solid #5b4bd6', background: '#5b4bd6', color: '#fff',
+        fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap',
+        boxShadow: '0 4px 12px -4px rgba(91,75,214,0.4)',
+        opacity: nextDisabled ? 0.45 : 1, cursor: nextDisabled ? 'default' : 'pointer',
+      },
+      statusText: statusByStep[s.step],
+      doneTitle: done ? 'Added ' + done.names.join(', ') : '',
+      doneBody: done
+        ? (done.names.length > 1 ? 'Each student was added' : done.names[0] + ' was added') + ' with ' + done.count + ' accommodation' + (done.count === 1 ? '' : 's') + '. Today\u2019s board is seeded and ready to record against.'
+        : '',
+      reset: () => this.setState({ step: 0, done: null, name: '', plan: 'IEP', periodIds: [], addingPeriod: false, newPeriod: '', enrolled: '', mode: null, paste: '', picked: [], openSet: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>
