@@ -21,7 +21,16 @@ import { splitStudentNames, readPastedNames } from '../../../domain/importStuden
  */
 const AVATARS = ['a', 'b', 'c', 'd', 'e'];
 
-export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
+export function RosterStep({
+  students,
+  periods,
+  periodNames,
+  onAdd,
+  onRemove,
+  onEdit,
+  onTogglePeriod,
+  onBoard,
+}) {
   const [name, setName] = useState('');
   const [plan, setPlan] = useState('IEP');
 
@@ -137,6 +146,36 @@ export function RosterStep({ students, onAdd, onRemove, onEdit, onBoard }) {
                       : `${s.accoms.length} support${s.accoms.length === 1 ? '' : 's'}`}
                   </span>
                 </span>
+                {/*
+                  Which class they are in, answered where the name is typed.
+                  
+                  It used to be unanswerable anywhere: everyone landed in every
+                  period and no later screen asked, so a roster could not be
+                  filtered or grouped by period at all. Optional on purpose -
+                  leaving it blank still means "all of them", because a teacher
+                  entering names at speed should not have to stop for a
+                  timetable they may not have to hand yet.
+                */}
+                {periods.length > 0 && (
+                  <span className="acc-ob__student-periods">
+                    {periods.map((n) => {
+                      const on = (s.periods || []).includes(n);
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          className={`acc-ob__pchip${on ? ' acc-ob__pchip--on' : ''}`}
+                          aria-pressed={on}
+                          title={`${periodNames[n] || `Period ${n}`}${on ? ' - click to remove' : ''}`}
+                          onClick={() => onTogglePeriod(s.id, n)}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </span>
+                )}
+
                 <button type="button" className="acc-ob__outline" onClick={() => onEdit(s.id)}>
                   Choose supports
                 </button>

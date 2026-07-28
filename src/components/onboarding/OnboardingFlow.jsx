@@ -262,12 +262,22 @@ export default function OnboardingFlow({ needsLocation }) {
         return (
           <RosterStep
             students={answers.students}
+            periods={answers.periods}
+            periodNames={answers.periodNames}
+            onTogglePeriod={(id, n) =>
+              updateStudent(id, (s) => ({
+                ...s,
+                periods: (s.periods || []).includes(n)
+                  ? (s.periods || []).filter((p) => p !== n)
+                  : [...(s.periods || []), n].sort((a, b) => a - b),
+              }))
+            }
             onAdd={(name, plan) =>
               setAnswers((a) => ({
                 ...a,
                 students: [
                   ...a.students,
-                  { id: `s${a.students.length}-${name}`, name, plan, accoms: [] },
+                  { id: `s${a.students.length}-${name}`, name, plan, accoms: [], periods: [] },
                 ],
               }))
             }

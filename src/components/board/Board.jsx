@@ -42,7 +42,7 @@ function parseDroppable(id) {
   return { studentId, status };
 }
 
-export default function Board({ onAddStudent }) {
+export default function Board({ onAddStudent, onEditStudent }) {
   const { doc, mutate, readOnly } = useData();
 
   // Date, period filter and search live in BoardContext because the Bloom shell
@@ -567,6 +567,7 @@ export default function Board({ onAddStudent }) {
 
       {laneMenu && (
         <StudentContextMenu
+          onEditProfile={() => onEditStudent?.(laneMenu.lane.studentId)}
           lane={laneMenu.lane}
           dateKey={dateKey}
           unenrolledFrom={

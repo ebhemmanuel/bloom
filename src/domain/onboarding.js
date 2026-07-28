@@ -97,6 +97,12 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
 
   const allPeriodIds = Object.values(periodIdByNumber);
 
+  /** Chosen periods, or every one of them when the teacher did not narrow it. */
+  const pickPeriods = (chosen) => {
+    const ids = (chosen || []).map((n) => periodIdByNumber[n]).filter(Boolean);
+    return ids.length ? ids : allPeriodIds;
+  };
+
   /**
    * One preset to start from, whether or not any student was added.
    *
@@ -120,10 +126,20 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
       {
         displayName: label,
         planType: PLAN_TYPES.includes(student.plan) ? student.plan : 'IEP',
-        // Onboarding does not ask which period each student is in; that is a
-        // question with no good answer this early. Everyone starts in every
-        // period the teacher named, and the roster screens narrow it later.
-        periodIds: allPeriodIds,
+        /**
+         * Which classes they are in, if the teacher said.
+         *
+         * Everyone used to land in every period on the grounds that this was
+         * too early to ask. But nothing downstream ever asked either, so a
+         * roster built here could not be sorted or filtered by period without
+         * going student by student through a screen that did not exist. Asking
+         * on the roster row is cheap; leaving it unanswerable was not.
+         *
+         * Blank still means all of them. A teacher who does not answer has said
+         * "they are in my class", and dropping them out of every period would
+         * hide them from a filtered board entirely.
+         */
+        periodIds: pickPeriods(student.periods),
         accommodations: (student.accoms || []).map(resolveStarterItem),
       },
       now

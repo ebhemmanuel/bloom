@@ -31,15 +31,37 @@
     border-radius: var(--acc-radius-md);
     box-shadow: var(--acc-shadow-card);
   }
+}
 
+/**
+ * The shared find-or-add field. See AccommodationPicker.
+ *
+ * These rules used to live on `.acc-addacc` and applied only inside a lane. The
+ * student profile grew its own plain rectangle doing the same job, which is the
+ * inconsistency this block exists to make impossible: one control, one look,
+ * wherever an accommodation gets added.
+ */
+.acc-accpick {
   &__input {
     inline-size: 100%;
     box-sizing: border-box;
-    padding: var(--acc-space-2);
-    border: 1px solid var(--acc-border-strong);
-    border-radius: var(--acc-radius-sm);
+    block-size: 34px;
+    padding-inline: var(--acc-space-4);
+    // The app's search shape, matching the presets search and the palette
+    // rather than the square form fields around it - this is a lookup that can
+    // also create, not a field you fill in and submit.
+    border-radius: var(--acc-radius-pill);
+    border: 1px solid var(--acc-border);
+    background: var(--acc-surface);
     font-size: var(--acc-fs-card);
     outline: none;
+    transition:
+      border-color var(--acc-dur-fast) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover:not(:focus):not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
 
     &:focus {
       border-color: var(--acc-accent);
@@ -61,8 +83,8 @@
       justify-content: space-between;
       gap: var(--acc-space-2);
       inline-size: 100%;
-      padding: var(--acc-space-2);
-      border-radius: var(--acc-radius-sm);
+      padding: var(--acc-space-2) var(--acc-space-3);
+      border-radius: var(--acc-radius-md);
       background: var(--acc-surface-sunken);
       font-size: var(--acc-fs-tiny);
       text-align: start;

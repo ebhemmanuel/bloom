@@ -1,0 +1,10 @@
+// Period assignment, above the accommodation list. See the modal for why this
+// is the only place it can be answered.
+.acc-stumod__periods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--acc-space-2);
+  padding-block-end: var(--acc-space-4);
+  margin-block-end: var(--acc-space-2);
+  border-block-end: 1px solid var(--acc-border);
+}

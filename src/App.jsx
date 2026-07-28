@@ -59,6 +59,8 @@ function AppShell() {
   const { openPanel, toggle, close } = useHeaderPanel();
   // One slot: only ever one modal at a time, and dismissing is a single action.
   const [modal, setModal] = useState(null);
+  // Which student the profile modal opens on, when it was reached from a lane.
+  const [editingStudentId, setEditingStudentId] = useState(null);
   const palette = useCommandPalette();
 
   const notifications = useMemo(
@@ -102,7 +104,13 @@ function AppShell() {
         id: 'edit',
         label: 'Edit',
         items: [
-          { label: 'Student accommodations…', onSelect: () => setModal('students') },
+          {
+            label: 'Student accommodations…',
+            onSelect: () => {
+              setEditingStudentId(null);
+              setModal('students');
+            },
+          },
           { label: 'Add a student…', onSelect: () => setModal('addStudent') },
           { separator: true },
           { label: 'Update accommodations…', hint: 'presets', onSelect: () => setModal('catalog') },
@@ -187,7 +195,15 @@ function AppShell() {
           </Modal>
         )}
 
-        {modal === 'students' && <StudentAccommodationsModal onClose={() => setModal(null)} />}
+        {modal === 'students' && (
+          <StudentAccommodationsModal
+            studentId={editingStudentId}
+            onClose={() => {
+              setModal(null);
+              setEditingStudentId(null);
+            }}
+          />
+        )}
         {modal === 'catalog' && <CatalogModal onClose={() => setModal(null)} />}
         {modal === 'copy' && <CopyAccommodationsModal onClose={() => setModal(null)} />}
         {modal === 'print' && <PrintReportModal onClose={() => setModal(null)} />}
@@ -267,7 +283,13 @@ function AppShell() {
         )}
 
         <main className="acc-app__main">
-          <Board onAddStudent={() => setModal('addStudent')} />
+          <Board
+            onAddStudent={() => setModal('addStudent')}
+            onEditStudent={(id) => {
+              setEditingStudentId(id);
+              setModal('students');
+            }}
+          />
         </main>
       </div>
     </div>

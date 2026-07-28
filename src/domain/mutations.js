@@ -456,6 +456,27 @@ export function setStudentEnrollment(doc, studentId, unenrolledFrom) {
 }
 
 /**
+ * Which of this teacher's classes a student is in.
+ *
+ * Undated, unlike enrolment. A period records which room a student sits in, not
+ * a claim about any particular day, so correcting it is a correction and not an
+ * amendment - no day record is touched and nothing already recorded moves.
+ *
+ * Ids are filtered against the periods that actually exist, so a stale id left
+ * behind by a deleted period cannot quietly survive in a student row and put
+ * them in a class nobody can see.
+ */
+export function setStudentPeriods(doc, studentId, periodIds) {
+  const known = new Set(doc.periods.map((p) => p.id));
+  const next = [...new Set(periodIds || [])].filter((id) => known.has(id));
+
+  return {
+    ...doc,
+    students: doc.students.map((s) => (s.id === studentId ? { ...s, periodIds: next } : s)),
+  };
+}
+
+/**
  * Rename a student.
  *
  * Only the display label changes; their id, and therefore every day already

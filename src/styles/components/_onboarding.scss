@@ -1484,3 +1484,44 @@
     transform: none;
   }
 }
+
+/**
+ * Per-student period chips on the roster row.
+ *
+ * Deliberately small and numeric. The row already carries a name, a plan pill
+ * and a supports button; spelling out "Period 3" here would make the timetable
+ * the loudest thing on a screen that is about who is in the class.
+ */
+.acc-ob__student-periods {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.acc-ob__pchip {
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--acc-border);
+  background: var(--acc-surface);
+  color: var(--acc-fg-faint);
+  font-size: var(--acc-fs-tiny);
+  font-weight: var(--acc-fw-semibold);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--acc-dur-instant) var(--acc-ease-standard),
+    border-color var(--acc-dur-instant) var(--acc-ease-standard),
+    color var(--acc-dur-instant) var(--acc-ease-standard);
+
+  &:hover {
+    border-color: var(--acc-accent);
+    color: var(--acc-accent);
+  }
+
+  &--on {
+    background: var(--acc-accent);
+    border-color: var(--acc-accent);
+    color: var(--acc-accent-fg);
+  }
+}

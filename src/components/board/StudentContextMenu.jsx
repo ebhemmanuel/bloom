@@ -24,6 +24,7 @@ export default function StudentContextMenu({
   onToggleAbsent,
   onUnenrol,
   onCopyPrevious,
+  onEditProfile,
 }) {
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(lane.displayName);
@@ -61,6 +62,29 @@ export default function StudentContextMenu({
         style={{ '--acc-ctx-left': `${left}px`, '--acc-ctx-top': `${top}px` }}
       >
         <p className="acc-ctx__title">{lane.displayName}</p>
+
+        {/*
+          The way into everything this menu does not: their periods, their
+          accommodations, their enrolment. Renaming is here because it is a
+          one-field edit worth doing in place; the rest belongs on a screen.
+        */}
+        <div className="acc-ctx__group">
+          <p className="acc-ctx__heading">Profile</p>
+          <button
+            type="button"
+            role="menuitem"
+            className="acc-ctx__item"
+            onClick={() => {
+              onEditProfile();
+              onClose();
+            }}
+          >
+            Edit {lane.displayName}&rsquo;s profile&hellip;
+          </button>
+          <p className="acc-ctx__note">
+            Which periods they are in, their accommodations, and their enrolment.
+          </p>
+        </div>
 
         <div className="acc-ctx__group">
           <p className="acc-ctx__heading">Name</p>

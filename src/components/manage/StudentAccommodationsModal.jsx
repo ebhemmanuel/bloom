@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import Modal from '../shared/Modal.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
+import AccommodationPicker from '../shared/AccommodationPicker.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import {
@@ -8,12 +9,9 @@ import {
   retireAssignment,
   reinstateAssignment,
   renameAccommodation,
+  setStudentPeriods,
 } from '../../domain/mutations.js';
-import {
-  addAccommodationsToStudent,
-  splitAccommodationList,
-  suggestAccommodations,
-} from '../../domain/importStudent.js';
+import { addAccommodationsToStudent } from '../../domain/importStudent.js';
 import { ensureDay } from '../../domain/seed.js';
 import { assignmentConfig } from '../../domain/schema.js';
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
@@ -28,12 +26,14 @@ import { PencilIcon, ArchiveIcon, RestoreIcon } from '../shared/RowIcons.jsx';
  * exactly as recorded, because this file is a compliance history first and a
  * roster second.
  */
-export default function StudentAccommodationsModal({ onClose }) {
+export default function StudentAccommodationsModal({ onClose, studentId = null }) {
   const { doc, mutate, readOnly } = useData();
   const { dateKey } = useBoard();
 
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState(null);
+  // Seeded from the caller: right-clicking a lane opens this already on that
+  // student, so the profile is one action away rather than a search away.
+  const [selectedId, setSelectedId] = useState(studentId);
   const [draft, setDraft] = useState('');
   const [renamingId, setRenamingId] = useState(null);
   const [renameText, setRenameText] = useState('');
@@ -59,12 +59,6 @@ export default function StudentAccommodationsModal({ onClose }) {
       .map((a) => ({ assignment: a, cfg: assignmentConfig(a, catalogById) }))
       .sort((x, y) => x.assignment.sortOrder - y.assignment.sortOrder);
   }, [doc.assignments, student, catalogById]);
-
-  const suggestions = useMemo(
-    () => (student ? suggestAccommodations(doc, student.id, draft) : []),
-    [doc, student, draft]
-  );
-  const parsed = useMemo(() => splitAccommodationList(draft), [draft]);
 
   const add = (items) => {
     if (!student || items.length === 0) return;
@@ -130,6 +124,58 @@ export default function StudentAccommodationsModal({ onClose }) {
                   </p>
                 </div>
               </header>
+
+              {/*
+                Which of this teacher's classes they are in.
+                
+                This is the only place it can be answered. Onboarding assigns
+                everyone to every period the teacher named, deliberately, since
+                the roster is being typed and nobody knows the timetable yet -
+                but nothing downstream ever asked again, so a board could not be
+                filtered or grouped by period without editing the file by hand.
+                
+                Undated, unlike enrolment below: a period says which room a
+                student sits in, not a claim about a particular day, so fixing
+                it is a correction and leaves every day record alone.
+              */}
+              {doc.periods.length > 0 && (
+                <div className="acc-stumod__periods">
+                  <span className="acc-field__label">Periods</span>
+                  <div className="acc-chipset">
+                    {doc.periods.map((p) => {
+                      const on = (student.periodIds || []).includes(p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className={`acc-chip${on ? ' acc-chip--on' : ''}`}
+                          disabled={readOnly}
+                          aria-pressed={on}
+                          title={`${p.name}${on ? ' - click to remove' : ''}`}
+                          onClick={() =>
+                            mutate((d) =>
+                              setStudentPeriods(
+                                d,
+                                student.id,
+                                on
+                                  ? (student.periodIds || []).filter((id) => id !== p.id)
+                                  : [...(student.periodIds || []), p.id]
+                              )
+                            )
+                          }
+                        >
+                          {p.shortName}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className="acc-field__hint">
+                    {(student.periodIds || []).length === 0
+                      ? 'In none of your periods - they will not appear on a board filtered by period.'
+                      : 'Used by the period filter, the P# sort and the printed report.'}
+                  </span>
+                </div>
+              )}
 
               {unenrolled && (
                 <p className="acc-stumod__banner">
@@ -245,59 +291,16 @@ export default function StudentAccommodationsModal({ onClose }) {
               </ul>
 
               <div className="acc-stumod__add">
-                <label className="acc-field">
-                  <span className="acc-field__label">Add accommodations</span>
-                  <input
-                    className="acc-field__input"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        add(parsed);
-                      }
-                    }}
-                    placeholder="Type one, or paste several"
-                    disabled={readOnly}
-                  />
-                  <span className="acc-field__hint">
-                    Records from {formatDateMedium(dateKey)} forward - earlier days are untouched.
-                  </span>
-                </label>
-
-                {suggestions.length > 0 && parsed.length <= 1 && (
-                  <ul className="acc-stumod__suggest">
-                    {suggestions.map((s) => (
-                      <li key={s.id}>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            add([
-                              {
-                                label: s.label,
-                                category: s.category,
-                                requiresDetail: s.requiresDetail,
-                              },
-                            ])
-                          }
-                        >
-                          {s.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {parsed.length > 0 && (
-                  <button
-                    type="button"
-                    className="acc-btn acc-btn--primary acc-btn--small"
-                    onClick={() => add(parsed)}
-                    disabled={readOnly}
-                  >
-                    {parsed.length > 1 ? `Add all ${parsed.length}` : 'Add'}
-                  </button>
-                )}
+                <span className="acc-field__label">Add accommodations</span>
+                <AccommodationPicker
+                  studentId={student.id}
+                  value={draft}
+                  onChange={setDraft}
+                  onCommit={add}
+                  disabled={readOnly}
+                  placeholder="Find one, or paste several"
+                  hint={`Records from ${formatDateMedium(dateKey)} forward - earlier days are untouched.`}
+                />
               </div>
 
               <footer className="acc-stumod__foot">
