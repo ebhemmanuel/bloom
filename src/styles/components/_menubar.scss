@@ -270,9 +270,45 @@
     font-weight: var(--acc-fw-medium);
   }
 
+  /**
+   * The trailing note - a student count, or "unenrolled" - at the far end.
+   *
+   * It sat hard against the name, so on a list of results it landed somewhere
+   * different on every row. Pushed right, the notes line up as a column you can
+   * read down.
+   */
+  /**
+   * The trailing note - a student count, or "unenrolled" - at the far end.
+   *
+   * It sat hard against the name, so down a list of results it landed in a
+   * different place on every row. Pushed right, the notes line up as a column.
+   */
   &__meta {
+    margin-inline-start: auto;
+    padding-inline-start: var(--acc-space-3);
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-muted);
+  }
+
+  // The plan tag goes to the same end. Whichever of the two comes first takes
+  // the auto margin, so a row carrying both keeps them together.
+  &__plan {
+    margin-inline-start: auto;
+    flex: none;
+
+    + .acc-palette__meta {
+      margin-inline-start: var(--acc-space-2);
+    }
+  }
+
+  // The plan tag, also at the far end. `margin-inline-start: auto` on whichever
+  // of the two comes first, so a row with both keeps them together.
+  &__plan {
+    margin-inline-start: auto;
+
+    + .acc-palette__meta {
+      margin-inline-start: var(--acc-space-2);
+    }
   }
 
   &__none {

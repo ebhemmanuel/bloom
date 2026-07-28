@@ -2,9 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
+
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 import useAutoHeight from '../../hooks/useAutoHeight.js';
+
+// The same map the board and the student profile use, so a plan reads
+// identically wherever it appears.
+const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
 
 /**
  * Ctrl+Space: jump to a student.
@@ -77,7 +82,10 @@ export default function CommandPalette({ onClose }) {
         kind: 'student',
         id: s.id,
         label: s.displayName,
-        meta: `${s.planType}${s.unenrolledFrom ? ' · unenrolled' : ''}`,
+        // The plan is a TAG, not a sentence: it is the same fact the board
+        // shows on a pill, and one fact should not be two shapes.
+        plan: s.planType,
+        meta: s.unenrolledFrom ? 'unenrolled' : '',
       }));
 
     return [...periods, ...students].slice(0, 9);
@@ -187,7 +195,17 @@ export default function CommandPalette({ onClose }) {
                       {item.kind === 'period' ? 'Period' : 'Student'}
                     </span>
                     <span className="acc-palette__name">{item.label}</span>
-                    <span className="acc-palette__meta">{item.meta}</span>
+                    {/* Pushed to the far end: the name is what you are reading
+                        down, and a count or a plan sitting hard against it
+                        lands in a different place on every row. */}
+                    {item.plan && (
+                      <span
+                        className={`acc-pill acc-pill--${PLAN_CLASS[item.plan] || 'other'} acc-palette__plan`}
+                      >
+                        {item.plan}
+                      </span>
+                    )}
+                    {item.meta && <span className="acc-palette__meta">{item.meta}</span>}
                   </button>
                 </li>
               ))}
