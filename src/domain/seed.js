@@ -346,6 +346,109 @@ export function backfillRange(doc, now = new Date()) {
   return compareDateKeys(from, to) <= 0 ? { from, to } : null;
 }
 
+/**
+ * Copy one student's previous day forward, leaving everyone else alone.
+ *
+ * The whole-board version is all or nothing, which is the wrong shape when a
+ * teacher's day was routine for most of the class and not for one student. This
+ * is the granular one: same source-finding, same overwrite guard, one lane.
+ *
+ * Always full: statuses and details. Copying only which cards appear for a
+ * single student would do nothing at all, since the cards are already there.
+ *
+ * @returns {{ doc: object, applied: boolean, reason?: string, copied: number }}
+ */
+export function copyStudentFromPreviousDay(
+  doc,
+  targetDate,
+  studentId,
+  { sourceDate, force = false, now = new Date() } = {}
+) {
+  const from = sourceDate || findPreviousWorkedDayFor(doc, targetDate, studentId);
+  if (!from) return { doc, applied: false, reason: 'no-source', copied: 0 };
+
+  const source = doc.days?.[from]?.students?.[studentId];
+  if (!source) return { doc, applied: false, reason: 'no-source', copied: 0 };
+
+  const target = doc.days?.[targetDate];
+  if (target?.sealed) return { doc, applied: false, reason: 'sealed', copied: 0 };
+
+  if (!force && studentHasWork(doc, targetDate, studentId)) {
+    return { doc, applied: false, reason: 'would-overwrite', copied: 0 };
+  }
+
+  const stamp = isoTimestamp(now);
+  const seeded = ensureDay(doc, targetDate, now);
+  const day = seeded.days[targetDate];
+  const studentDay = day.students?.[studentId];
+  if (!studentDay) return { doc, applied: false, reason: 'not-on-this-day', copied: 0 };
+
+  const entries = {};
+  let copied = 0;
+
+  for (const [asgId, entry] of Object.entries(studentDay.entries)) {
+    const sourceEntry = source.entries?.[asgId];
+    if (!sourceEntry || sourceEntry.status === STATUS.UNASSIGNED) {
+      entries[asgId] = entry;
+      continue;
+    }
+    entries[asgId] = {
+      ...entry,
+      status: sourceEntry.status,
+      detail: sourceEntry.detail || '',
+      useCount: sourceEntry.useCount || 1,
+      resolvedBy: RESOLVED_BY.USER,
+      resolvedAt: null,
+      updatedAt: stamp,
+    };
+    copied += 1;
+  }
+
+  return {
+    doc: {
+      ...seeded,
+      days: {
+        ...seeded.days,
+        [targetDate]: {
+          ...day,
+          // The day has been worked now, so it is no longer bulk-laid-out
+          // structure and anything still blank on it resolves normally.
+          backfilled: false,
+          students: { ...day.students, [studentId]: { ...studentDay, entries } },
+        },
+      },
+    },
+    applied: true,
+    copied,
+    sourceDate: from,
+  };
+}
+
+/** Has this ONE student got anything recorded on this day? */
+export function studentHasWork(doc, dateKey, studentId) {
+  const s = doc.days?.[dateKey]?.students?.[studentId];
+  if (!s) return false;
+  return (
+    Boolean(s.absent) ||
+    Boolean(s.notes) ||
+    Object.values(s.entries || {}).some(
+      (e) => e.status !== STATUS.UNASSIGNED && e.resolvedBy !== RESOLVED_BY.DEFAULT
+    )
+  );
+}
+
+/** The last day THIS student had something recorded. */
+export function findPreviousWorkedDayFor(doc, fromDate, studentId, maxLookback = 30) {
+  const earliest = addDays(fromDate, -maxLookback);
+  return (
+    Object.keys(doc.days || {})
+      .filter((k) => compareDateKeys(k, fromDate) < 0 && compareDateKeys(k, earliest) >= 0)
+      .sort()
+      .reverse()
+      .find((k) => studentHasWork(doc, k, studentId)) || null
+  );
+}
+
 /** Walk backwards for the most recent date that already has a record. */
 export function findPreviousDayWithRecord(doc, fromDate, maxLookback = 30) {
   const keys = Object.keys(doc.days || {})

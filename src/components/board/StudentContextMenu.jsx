@@ -23,6 +23,7 @@ export default function StudentContextMenu({
   onRename,
   onToggleAbsent,
   onUnenrol,
+  onCopyPrevious,
 }) {
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(lane.displayName);
@@ -96,6 +97,30 @@ export default function StudentContextMenu({
               Rename…
             </button>
           )}
+        </div>
+
+        {/*
+          The granular copy. The toolbar's version is all or nothing, which is
+          the wrong shape when a day was routine for most of the class and not
+          for one student.
+        */}
+        <div className="acc-ctx__group">
+          <p className="acc-ctx__heading">From their last day</p>
+          <button
+            type="button"
+            role="menuitem"
+            className="acc-ctx__item"
+            onClick={() => {
+              onCopyPrevious();
+              onClose();
+            }}
+          >
+            Copy {lane.displayName}&rsquo;s last recorded day
+          </button>
+          <p className="acc-ctx__note">
+            Brings their statuses and details forward from the last day you recorded anything for
+            them. Nobody else on the board is touched.
+          </p>
         </div>
 
         <div className="acc-ctx__group">

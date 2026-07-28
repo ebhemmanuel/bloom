@@ -25,7 +25,7 @@ import CardContextMenu from './CardContextMenu.jsx';
 import StudentContextMenu from './StudentContextMenu.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
-import { ensureDay, copyFromPreviousDay } from '../../domain/seed.js';
+import { ensureDay, copyFromPreviousDay, copyStudentFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
 import { todayKey, formatDateLong, addDays, isWeekend } from '../../domain/dates.js';
@@ -210,17 +210,33 @@ export default function Board({ onAddStudent }) {
     mutate((d) => ensureDay(d, dateKey));
   }, [dateKey, mutate]);
 
+  /**
+   * Computed against the current document, THEN applied.
+   *
+   * It used to run inside the `mutate` updater and read the outcome straight
+   * afterwards, which cannot work: React calls an updater when it re-renders,
+   * not when you hand it over, so the outcome was still null by the time it was
+   * returned. The toolbar treats a null result as "nothing to report" and
+   * showed nothing, so every refusal - no earlier day, would-overwrite, sealed -
+   * was silent, and the whole action looked broken whether or not it had copied.
+   */
   const copyPrevious = useCallback(
-    (mode = SEED_MODE.STRUCTURE, force = false) => {
-      let outcome = null;
-      mutate((d) => {
-        const result = copyFromPreviousDay(d, dateKey, { mode, force });
-        outcome = result;
-        return result.applied ? result.doc : d;
-      });
-      return outcome;
+    (mode = SEED_MODE.FULL, force = false) => {
+      const result = copyFromPreviousDay(doc, dateKey, { mode, force });
+      if (result.applied) mutate(() => result.doc);
+      return result;
     },
-    [dateKey, mutate]
+    [doc, dateKey, mutate]
+  );
+
+  /** The same thing for one student, from their lane menu. */
+  const copyPreviousForStudent = useCallback(
+    (studentId, force = false) => {
+      const result = copyStudentFromPreviousDay(doc, dateKey, studentId, { force });
+      if (result.applied) mutate(() => result.doc);
+      return result;
+    },
+    [doc, dateKey, mutate]
   );
 
   const closeOutDay = useCallback(() => {
@@ -497,6 +513,15 @@ export default function Board({ onAddStudent }) {
               return;
             }
             setConfirmUnenrol({ lane: laneMenu.lane, from });
+          }}
+          onCopyPrevious={() => {
+            const id = laneMenu.lane.studentId;
+            const result = copyPreviousForStudent(id, false);
+            // Overwriting one lane is small and undoable, so a refusal here just
+            // asks once rather than routing through the toolbar's toast.
+            if (!result.applied && result.reason === 'would-overwrite') {
+              copyPreviousForStudent(id, true);
+            }
           }}
         />
       )}

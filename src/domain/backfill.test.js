@@ -8,6 +8,7 @@ import {
   activeStudentsFor,
   findPreviousWorkedDay,
   copyFromPreviousDay,
+  copyStudentFromPreviousDay,
 } from './seed.js';
 import { SEED_MODE } from './constants.js';
 import { setEntryStatus } from './mutations.js';
@@ -121,6 +122,51 @@ describe('backfilling the year', () => {
     expect(result.copied).toBe(1);
     expect(result.doc.days[TODAY].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
       STATUS.USED
+    );
+  });
+
+  /** The reported case: record on day A, stand on day B, copy it across. */
+  it('carries a full day across to the next one', () => {
+    const A = '2026-09-15';
+    const B = TODAY; // the 16th
+    let doc = ensureDay(docWithTerm(), A, now);
+    doc = setEntryStatus(doc, A, T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    doc = setEntryStatus(doc, A, T.jordan, T.asgJordanReadAloud, STATUS.USED_WITH_DETAIL, {
+      detail: 'Aide read section 3.',
+      now,
+    });
+    doc = ensureDay(doc, B, now);
+
+    const result = copyFromPreviousDay(doc, B, { mode: SEED_MODE.FULL, now });
+
+    expect(result.applied).toBe(true);
+    expect(result.sourceDate).toBe(A);
+    expect(result.copied).toBe(2);
+
+    const landed = result.doc.days[B].students[T.jordan].entries;
+    expect(landed[T.asgJordanExtTime].status).toBe(STATUS.USED);
+    expect(landed[T.asgJordanReadAloud].status).toBe(STATUS.USED_WITH_DETAIL);
+    expect(landed[T.asgJordanReadAloud].detail).toBe('Aide read section 3.');
+  });
+
+  it('copies one student without touching the others', () => {
+    const A = '2026-09-15';
+    const B = TODAY;
+    let doc = ensureDay(docWithTerm(), A, now);
+    doc = setEntryStatus(doc, A, T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    doc = setEntryStatus(doc, A, T.priya, T.asgPriyaExtTime, STATUS.USED, { now });
+    doc = ensureDay(doc, B, now);
+
+    const result = copyStudentFromPreviousDay(doc, B, T.jordan, { now });
+
+    expect(result.applied).toBe(true);
+    expect(result.copied).toBe(1);
+    expect(result.doc.days[B].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
+      STATUS.USED
+    );
+    // Priya worked that day too, and must be left exactly as she was.
+    expect(result.doc.days[B].students[T.priya].entries[T.asgPriyaExtTime].status).toBe(
+      STATUS.UNASSIGNED
     );
   });
 
