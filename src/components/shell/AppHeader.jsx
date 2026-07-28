@@ -105,15 +105,6 @@ export default function AppHeader({
       </div>
 
       <div className="acc-header__right">
-        {/*
-          The wall clock. Useful here rather than decorative: the day closes
-          itself at the end time in the profile, so "have I still got time to
-          record this" is a real question with a real answer.
-        */}
-        <time className="acc-header__clock acc-numeric" dateTime={now.toISOString()}>
-          {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-        </time>
-
         <button
           type="button"
           className="acc-header__icon"
@@ -159,6 +150,18 @@ export default function AppHeader({
         >
           {initialsOf(teacher?.displayName)}
         </button>
+
+        {/*
+          The wall clock, last. Useful here rather than decorative: the day
+          closes itself at the end time in the profile, so "have I still got
+          time to record this" is a real question with a real answer.
+
+          It sits past the avatar because it is the only thing in this row that
+          is not a control. Putting it among the buttons made it look like one.
+        */}
+        <time className="acc-header__clock acc-numeric" dateTime={now.toISOString()}>
+          {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+        </time>
       </div>
     </header>
   );

@@ -48,12 +48,17 @@
 
   // Quiet by default. It is a reference, not a notification, so it sits at the
   // weight of the icons beside it rather than competing with them.
+  //
+  // Last in the row, past the avatar, with a hairline before it: it is the one
+  // thing here that is not a control, and standing among the buttons made it
+  // read like one.
   &__clock {
+    padding-inline-start: var(--acc-space-3);
+    border-inline-start: 1px solid var(--acc-border);
     font-size: var(--acc-fs-sub);
     font-variant-numeric: tabular-nums;
     color: var(--acc-fg-muted);
     white-space: nowrap;
-    padding-inline-end: var(--acc-space-1);
   }
 
   &__count {
