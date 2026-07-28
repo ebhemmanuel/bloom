@@ -140,8 +140,7 @@ export default function BoardToolbar({
   onAddStudent,
   allFolded,
   onToggleFoldAll,
-  activeFilter,
-  onClearFilter,
+  activeFilters,
   sort,
   onToggleSort,
 }) {
@@ -198,6 +197,28 @@ export default function BoardToolbar({
           <Chevron down={!allFolded} />
         </button>
 
+        {/*
+          Which end of the alphabet the roster starts from. A toggle rather than
+          a menu, because there are only two answers and a dropdown to choose
+          between two things is a click spent on nothing.
+
+          It sits with fold-all and add, on the left: all three are about the
+          roster itself - how much of it you can see, how much of it there is,
+          and in what order - rather than about which slice you are looking at.
+        */}
+        <button
+          type="button"
+          className="acc-btn acc-sortbtn"
+          onClick={onToggleSort}
+          aria-label={
+            sort === 'az' ? 'Sorted A to Z. Switch to Z to A.' : 'Sorted Z to A. Switch to A to Z.'
+          }
+          title={sort === 'az' ? 'Sorted A to Z' : 'Sorted Z to A'}
+        >
+          <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
+          <Caret up={sort === 'za'} />
+        </button>
+
         <button
           type="button"
           className="acc-btn acc-btn--round"
@@ -216,25 +237,36 @@ export default function BoardToolbar({
           </svg>
         </button>
 
-        {/*
-          What you are looking at, and a way out of it.
+        <span className="acc-toolbar__count acc-numeric">
+          {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
+        </span>
 
-          Ctrl+Space narrows the board to one student or one period, and until
-          now the only sign of that was the roster count quietly reading "1
-          student" - which is indistinguishable from a class of one. The filter
-          says its own name and carries the way to drop it, so nobody can get
-          stuck inside a search they have forgotten making.
+        {/*
+          What you are looking at, and a way out of each of it.
+
+          The count stays put and the chips stand beside it. They used to
+          REPLACE the count, which meant a filtered board could not tell you how
+          many students it was showing - and only ever one appeared, so a period
+          filter hid the fact that you were also on a date in September.
+
+          A date is a filter here whenever it is not today. The date control
+          itself looks identical whichever day it holds, so without this a
+          teacher who wandered off today had nothing to tell them so.
         */}
-        {activeFilter ? (
-          <span className="acc-filterchip">
-            <span className="acc-filterchip__kind">{activeFilter.kind}</span>
-            <span className="acc-filterchip__label">{activeFilter.label}</span>
+        {activeFilters.map((filter) => (
+          <span className="acc-filterchip" key={filter.id}>
+            <span className="acc-filterchip__kind">{filter.kind}</span>
+            <span className="acc-filterchip__label">{filter.label}</span>
             <button
               type="button"
               className="acc-filterchip__clear"
-              onClick={onClearFilter}
-              aria-label={`Show everyone again, clearing the ${activeFilter.kind.toLowerCase()} filter`}
-              title="Show everyone again"
+              onClick={filter.onClear}
+              aria-label={`Clear the ${filter.kind.toLowerCase()} filter`}
+              title={
+                filter.id === 'date' || filter.id === 'dates'
+                  ? 'Back to today'
+                  : 'Show everyone again'
+              }
             >
               {/* Drawn, not typed. The × character sits off its own centre and
                   carries the font's weight, so it never quite lines up inside a
@@ -249,11 +281,7 @@ export default function BoardToolbar({
               </svg>
             </button>
           </span>
-        ) : (
-          <span className="acc-toolbar__count acc-numeric">
-            {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
-          </span>
-        )}
+        ))}
 
         <div className="acc-toolbar__spacer" />
 
@@ -264,24 +292,6 @@ export default function BoardToolbar({
           bigger question than how this board is arranged.
         */}
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
-
-        {/*
-          Which end of the alphabet the roster starts from. A toggle rather than
-          a menu, because there are only two answers and a dropdown to choose
-          between two things is a click spent on nothing.
-        */}
-        <button
-          type="button"
-          className="acc-btn acc-sortbtn"
-          onClick={onToggleSort}
-          aria-label={
-            sort === 'az' ? 'Sorted A to Z. Switch to Z to A.' : 'Sorted Z to A. Switch to A to Z.'
-          }
-          title={sort === 'az' ? 'Sorted A to Z' : 'Sorted Z to A'}
-        >
-          <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
-          <Caret up={sort === 'za'} />
-        </button>
 
         <OverflowMenu
           disabled={disabled}

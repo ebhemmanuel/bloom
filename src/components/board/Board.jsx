@@ -28,8 +28,13 @@ import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay, copyStudentFromPreviousDay } from '../../domain/seed.js';
 import { sealDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
-import { todayKey, formatDateLong, addDays, isWeekend } from '../../domain/dates.js';
-import { formatRangeLabel } from '../../domain/report.js';
+import {
+  todayKey,
+  formatDateLong,
+  formatDateMedium,
+  addDays,
+  isWeekend,
+} from '../../domain/dates.js';
 
 /** `drop:<studentId>:<status>` → parts. */
 function parseDroppable(id) {
@@ -343,39 +348,70 @@ export default function Board({ onAddStudent }) {
   // --- render -------------------------------------------------------------
 
   /**
-   * The narrowing currently in force, if any.
+   * Every narrowing currently in force, each with its own way out.
    *
-   * Ctrl+Space sets exactly one of these and clears the other, so there is never
-   * more than one to show. Naming it in the toolbar is what stops a teacher
-   * being stuck inside a search they no longer remember making: before this the
-   * only trace was the roster count reading "1 student", which looks exactly
-   * like a class that genuinely has one.
+   * A list rather than the single chip this replaces. More than one of these can
+   * be true at once - a period AND a date, say - and showing only the first left
+   * the others invisible and unreachable.
+   *
+   * A date counts as a filter whenever it is not today. It narrows the board
+   * exactly as a search does, and a teacher who wandered to a Tuesday in
+   * September had nothing to tell them so except the date control itself, which
+   * looks the same whichever day it holds.
    */
-  const activeFilter = range
-    ? { kind: 'Dates', label: formatRangeLabel(range.from, range.to) }
-    : search.trim()
-      ? { kind: 'Student', label: search.trim() }
-      : periodIds.length === 1
-        ? { kind: 'Period', label: periods.find((p) => p.id === periodIds[0])?.name || 'Period' }
-        : periodIds.length > 1
-          ? { kind: 'Periods', label: `${periodIds.length} selected` }
-          : null;
+  const today = todayKey();
+  const activeFilters = [];
 
-  /**
-   * Drop the narrowing and land back on today.
-   *
-   * Clearing a date range has to move the date too. The range replaces the day
-   * board outright, so on clearing it the board falls back to whatever `dateKey`
-   * happened to be underneath - some day in September the teacher last looked
-   * at, with no sign that is where they now are. Today is the only answer that
-   * is never a surprise.
-   */
-  const clearFilter = useCallback(() => {
-    if (range) setDateKey(todayKey());
-    setRange(null);
-    setSearch('');
-    setPeriodIds([]);
-  }, [range, setRange, setDateKey, setSearch, setPeriodIds]);
+  if (range) {
+    activeFilters.push({
+      id: 'dates',
+      kind: 'Dates',
+      // The medium form, not the report's long one. "Monday, July 20, 2026 –
+      // Friday, July 24, 2026" is 43 characters in a chip that ellipsises at
+      // 30, so the end of the range - the half a teacher is checking - was the
+      // half that got cut.
+      label:
+        range.from === range.to
+          ? formatDateMedium(range.from)
+          : `${formatDateMedium(range.from)} – ${formatDateMedium(range.to)}`,
+      // Clearing a range has to move the date too. The range replaces the day
+      // board outright, so dropping it falls back to whatever `dateKey` was
+      // underneath - some day the teacher last looked at, with no sign that is
+      // where they now are. Today is the only answer that is never a surprise.
+      onClear: () => {
+        setRange(null);
+        setDateKey(today);
+      },
+    });
+  } else if (dateKey !== today) {
+    activeFilters.push({
+      id: 'date',
+      kind: 'Date',
+      label: formatDateMedium(dateKey),
+      onClear: () => setDateKey(today),
+    });
+  }
+
+  if (search.trim()) {
+    activeFilters.push({
+      id: 'student',
+      kind: 'Student',
+      label: search.trim(),
+      onClear: () => setSearch(''),
+    });
+  }
+
+  if (periodIds.length) {
+    activeFilters.push({
+      id: 'periods',
+      kind: periodIds.length === 1 ? 'Period' : 'Periods',
+      label:
+        periodIds.length === 1
+          ? periods.find((p) => p.id === periodIds[0])?.name || 'Period'
+          : `${periodIds.length} selected`,
+      onClear: () => setPeriodIds([]),
+    });
+  }
 
   const toolbar = (
     <BoardToolbar
@@ -387,8 +423,7 @@ export default function Board({ onAddStudent }) {
       onCopyPrevious={copyPrevious}
       onCloseOutDay={closeOutDay}
       onAddStudent={onAddStudent}
-      activeFilter={activeFilter}
-      onClearFilter={clearFilter}
+      activeFilters={activeFilters}
       sort={sort}
       onToggleSort={toggleSort}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
