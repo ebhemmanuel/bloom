@@ -567,7 +567,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--acc-space-2);
+    // Set apart from the primary rather than stacked against it: they are a
+    // sequence of two answers, not a two-line button.
+    gap: var(--acc-space-5);
     margin-block-start: var(--acc-space-3);
 
     // A four-letter label left the one button on this screen shorter than the
@@ -575,6 +577,14 @@
     .acc-btn--primary {
       min-inline-size: 180px;
       justify-content: center;
+    }
+
+    // A link in a button's clothing: no surface under it, just the accent. A
+    // filled hover under the filled primary made two buttons of the pair
+    // again, which is the arrangement this replaced.
+    .acc-btn--quiet:hover:not(:disabled) {
+      background: transparent;
+      color: var(--acc-accent);
     }
   }
 

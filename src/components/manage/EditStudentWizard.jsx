@@ -23,7 +23,12 @@ import {
 } from '../../domain/mutations.js';
 import { itemsForSet } from '../../domain/starterSets.js';
 import { PLAN_TYPES } from '../../domain/constants.js';
-import { periodOptions, normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
+import {
+  periodOptions,
+  normalizeSearch,
+  studentSearchTerms,
+  recordStartDate,
+} from '../../domain/selectors.js';
 import { assignmentConfig } from '../../domain/schema.js';
 import { ensureDay } from '../../domain/seed.js';
 import { formatDateMedium, todayKey, addDays } from '../../domain/dates.js';
@@ -70,7 +75,10 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   const { dateKey } = useBoard();
   const periods = useMemo(() => periodOptions(doc), [doc]);
   const today = todayKey();
-  const termStart = doc.schoolCalendar?.termStart || '';
+
+  // What a student with no enrolment date of their own falls back to. See the
+  // selector: the term start, or the earliest day the board holds.
+  const recordStart = useMemo(() => recordStartDate(doc), [doc]);
 
   // Named on the way in means the find step is behind us, not skipped: the dots
   // still show it, and it is still reachable if the wrong lane was clicked.
@@ -655,8 +663,8 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 <input
                   type="date"
                   className="acc-wiz__date"
-                  value={student.enrolledFrom || termStart || ''}
-                  min={termStart || undefined}
+                  value={student.enrolledFrom || recordStart}
+                  min={recordStart || undefined}
                   max={today}
                   onChange={(e) =>
                     write((d) => setStudentEnrolledFrom(d, student.id, e.target.value))

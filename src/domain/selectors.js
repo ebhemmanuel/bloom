@@ -345,3 +345,22 @@ export function columnCounts(model) {
   }
   return counts;
 }
+
+/**
+ * The day this record starts.
+ *
+ * The term start when the teacher gave one, and otherwise the earliest day the
+ * board holds. Used where a student has no enrolment date of their own and the
+ * honest answer is "since the beginning" - a field showing that date reads as
+ * an answer, where an empty one reads as information nobody entered.
+ *
+ * The fall-through matters: a file can reach here without a term start, from a
+ * setup where that question was skipped or a document written by an older
+ * version. Day keys are `YYYY-MM-DD`, so sorting them as text sorts them by
+ * date.
+ */
+export function recordStartDate(doc) {
+  const term = doc?.schoolCalendar?.termStart;
+  if (term) return term;
+  return Object.keys(doc?.days || {}).sort()[0] || '';
+}
