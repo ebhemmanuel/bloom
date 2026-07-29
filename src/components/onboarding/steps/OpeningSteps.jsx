@@ -63,7 +63,7 @@ export function WelcomeStep({ onNext }) {
       <div className="acc-ob__column acc-ob__column--wide">
         <div className="acc-ob__eyebrow-row">
           <BloomMark size={34} />
-          <span className="acc-ob__brand">Bloom</span>
+          <span className="acc-ob__brand">BLOOM</span>
         </div>
         <h1 className="acc-ob__title">Hi there.</h1>
         <p className="acc-ob__lede">

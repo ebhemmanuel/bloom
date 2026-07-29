@@ -18,7 +18,7 @@ export const CURRENT_SCHEMA_VERSION = 1;
 export const APP_NAME = 'accommodations-tracker';
 
 /** Product name, as it appears in the UI and on printed reports. */
-export const PRODUCT_NAME = 'Bloom';
+export const PRODUCT_NAME = 'BLOOM';
 
 // --- Coercion helpers ------------------------------------------------------
 

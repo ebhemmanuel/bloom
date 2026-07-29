@@ -134,10 +134,12 @@
   // The same lavender the wordmark wears in setup. In ink it read as a heading
   // for the bar rather than as the product's name, and the mark beside it is
   // the only coloured thing in the nav - the two belong to each other.
+  // The same 0.2em the lockup wears on About. It sat at -0.01em here, so the
+  // one word that appears on both screens was set two different ways.
   &__name {
     font-size: var(--acc-fs-subhead);
     font-weight: var(--acc-fw-semibold);
-    letter-spacing: -0.01em;
+    letter-spacing: 0.2em;
     color: var(--acc-brand);
     white-space: nowrap;
     overflow: hidden;
