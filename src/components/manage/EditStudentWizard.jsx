@@ -70,6 +70,7 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   const { dateKey } = useBoard();
   const periods = useMemo(() => periodOptions(doc), [doc]);
   const today = todayKey();
+  const termStart = doc.schoolCalendar?.termStart || '';
 
   // Named on the way in means the find step is behind us, not skipped: the dots
   // still show it, and it is still reachable if the wrong lane was clicked.
@@ -626,7 +627,13 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               <span className="acc-wiz__rule" aria-hidden="true" />
 
               <div className="acc-wiz__cell">
-                <span className="acc-wiz__label">Newly enrolled?</span>
+                {/*
+                  "Enrolled date", not the add step's "Newly enrolled?". That
+                  question is asked of someone being typed in for the first
+                  time; this is a student who has been on the board for months,
+                  and the honest label for the field is what it holds.
+                */}
+                <span className="acc-wiz__label">Enrolled date</span>
                 {/*
                   The same field the add-student step carries, on the same
                   student. Setting it late is the correction it exists for: a
@@ -638,11 +645,18 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   and it deletes nothing: move the date back and those days
                   return with whatever they already held.
                 */}
+                {/*
+                  Filled, not blank. A student with no date of their own has
+                  been here since the year opened, and the field showing empty
+                  read as missing information rather than as that answer - so it
+                  falls back to the term's own start, which is the same fact
+                  written out.
+                */}
                 <input
                   type="date"
                   className="acc-wiz__date"
-                  value={student.enrolledFrom || ''}
-                  min={doc.schoolCalendar?.termStart || undefined}
+                  value={student.enrolledFrom || termStart || ''}
+                  min={termStart || undefined}
                   max={today}
                   onChange={(e) =>
                     write((d) => setStudentEnrolledFrom(d, student.id, e.target.value))
@@ -652,8 +666,8 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 />
                 <span className="acc-wiz__hint">
                   {student.enrolledFrom
-                    ? `Every day before ${formatDateMedium(student.enrolledFrom)} stays locked and reads “not applicable - enrolled ${formatDateMedium(student.enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
-                    : 'Leave blank if they have been in this class since the start of the year.'}
+                    ? `Every day before ${formatDateMedium(student.enrolledFrom)} reads “not applicable - enrolled ${formatDateMedium(student.enrolledFrom)}”, so nothing is recorded against them for a class they were not in yet.`
+                    : 'The start of the year, so every day on the board is theirs. Set a later one if they joined partway through.'}
                 </span>
               </div>
             </div>
@@ -685,11 +699,14 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   Disenroll from tomorrow
                 </button>
               )}
-              <span className="acc-wiz__hint">
-                {student.unenrolledFrom
-                  ? `Disenrolled from ${formatDateMedium(student.unenrolledFrom)}. Every day before that keeps their record exactly as it is.`
-                  : 'Dated, never deleted - every day already recorded keeps their record exactly as it is.'}
-              </span>
+              {/* Only when there is something to report. The reassurance that
+                  used to sit here said what the confirm dialog already says,
+                  under a button nobody had pressed yet. */}
+              {student.unenrolledFrom && (
+                <span className="acc-wiz__hint">
+                  Disenrolled from {formatDateMedium(student.unenrolledFrom)}.
+                </span>
+              )}
             </div>
           </div>
         ) : step === 3 ? (

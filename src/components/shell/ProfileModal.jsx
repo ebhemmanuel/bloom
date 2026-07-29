@@ -28,14 +28,24 @@ import SceneFrame from '../shared/SceneFrame.jsx';
  * screen has no outside to click.
  */
 
+/**
+ * Four tabs, not three.
+ *
+ * The handoff put the report header and what you teach on one screen, and at
+ * ten subjects and thirteen grades that screen ran past the frame - three
+ * fields, then two wrapping chip fields under them. They are also two different
+ * questions: who signs the report, and what you teach. One each.
+ */
 const SECTIONS = [
   { id: 'you', label: 'You' },
+  { id: 'classes', label: 'Classes' },
   { id: 'day', label: 'Your day' },
   { id: 'look', label: 'Appearance' },
 ];
 
 const TIPS = {
   you: 'Everything here saves as it changes - close whenever.',
+  classes: 'Used on the report header, and to suggest catalogs. Nothing else.',
   day: 'Applies from today. Sealed days never change.',
   look: 'Changes the scene immediately.',
 };
@@ -189,6 +199,18 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                 Prints as &ldquo;{printLine}&rdquo; at the top of every report.
               </span>
             </div>
+          </div>
+        )}
+
+        {section === 'classes' && (
+          <div className="acc-sheet__pane acc-sheet__pane--wide acc-set__pane">
+            <div className="acc-sheet__intro acc-sheet__intro--center">
+              <h1 className="acc-sheet__title">What you teach</h1>
+              <p className="acc-sheet__sub acc-sheet__sub--balance">
+                Your subjects and the grades you see. Both print on the report header, and both
+                shape which starter sets get suggested.
+              </p>
+            </div>
 
             <div className="acc-set__split">
               <div className="acc-set__cell acc-set__cell--end">
@@ -258,7 +280,7 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                   )}
                 </div>
                 <span className="acc-set__hint">
-                  Pick as many as you teach. Use + for anything not listed.
+                  Pick as many as you teach. Use + for anything not on the list.
                 </span>
               </div>
 
@@ -289,7 +311,7 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                   ))}
                 </div>
                 <span className="acc-set__hint">
-                  Used on the report header and for suggested catalogs - nothing else.
+                  Every grade you see, not only the one you teach most.
                 </span>
               </div>
             </div>

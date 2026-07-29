@@ -82,6 +82,8 @@
     font-size: var(--acc-fs-tiny);
     line-height: var(--acc-lh-normal);
     color: var(--acc-fg-muted);
+    // Two even lines rather than a full one and a two-word orphan.
+    text-wrap: balance;
   }
 
   &__chips {
@@ -94,12 +96,24 @@
       justify-content: flex-end;
     }
 
-    // Single characters and two-digit numbers in the same row, so they are
-    // sized to the widest rather than to their own content.
-    &--grades .acc-chip {
-      min-inline-size: 28px;
-      justify-content: center;
-      padding-inline: var(--acc-space-2);
+    /**
+     * Thirteen grades as a fixed five-wide grid, not a wrapping row.
+     *
+     * Wrapped, they filled two ragged lines and left this half a good deal
+     * shorter than the subjects opposite. Five across gives three even rows,
+     * which both squares the column off and puts K-4, 5-9 and 10-12 on lines
+     * you can aim at.
+     */
+    &--grades {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      max-inline-size: 240px;
+
+      .acc-chip {
+        min-inline-size: 28px;
+        justify-content: center;
+        padding-inline: var(--acc-space-2);
+      }
     }
   }
 
