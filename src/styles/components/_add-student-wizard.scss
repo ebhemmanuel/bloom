@@ -587,6 +587,13 @@
     }
   }
 
+  // Holds the floating scrollbar, which is positioned against this rather than
+  // against the list it measures - that is what puts it outside.
+  &__findwrap {
+    position: relative;
+    min-inline-size: 0;
+  }
+
   &__find {
     display: flex;
     flex-direction: column;
@@ -595,6 +602,17 @@
     // rather than pushing the footer off the frame.
     max-block-size: 300px;
     overflow-y: auto;
+
+    // Native bar hidden; `.acc-scrollbar` draws the one you see. See the
+    // findwrap above and useCustomScrollbar.
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      inline-size: 0;
+      block-size: 0;
+    }
   }
 
   /**

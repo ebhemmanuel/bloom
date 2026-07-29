@@ -4,6 +4,7 @@ import Caret from '../shared/Caret.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AccommodationChooser from './AccommodationChooser.jsx';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
+import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import {
@@ -83,6 +84,10 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   const [picked, setPicked] = useState([]);
   const [openSet, setOpenSet] = useState(null);
   const [confirming, setConfirming] = useState(null);
+
+  // The roster on the find step scrolls, and gets the board's own floating bar
+  // rather than the native one.
+  const listScroll = useCustomScrollbar();
 
   const [planOpen, setPlanOpen] = useState(false);
   const closePlan = useCallback(() => setPlanOpen(false), []);
@@ -314,35 +319,66 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               />
             </div>
 
-            <ul className="acc-wiz__find">
-              {matches.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}`}
-                    onClick={() => {
-                      setSelectedId(s.id);
-                      setStep(1);
-                    }}
-                  >
-                    {/* Plan first, then the name: thirty rows stacked, and a
+            {/*
+              The board's floating scrollbar, on the roster. The native bar cut
+              a full-height grey rule down the inside edge of the list, over the
+              period column it was measuring; this one is the app's own - short,
+              lavender, outside the list, and only there while you are moving.
+            */}
+            <div className="acc-wiz__findwrap">
+              <ul
+                className="acc-wiz__find"
+                ref={listScroll.scrollRef}
+                onScroll={listScroll.onScroll}
+              >
+                {matches.map((s) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}`}
+                      onClick={() => {
+                        setSelectedId(s.id);
+                        setStep(1);
+                      }}
+                    >
+                      {/* Plan first, then the name: thirty rows stacked, and a
                         trailing pill lands somewhere different on every one. */}
-                    <span className={`acc-pill acc-pill--${PLAN_CLASS[s.planType] || 'other'}`}>
-                      {s.planType}
-                    </span>
-                    <span className="acc-wiz__found-name">{s.displayName}</span>
-                    {s.unenrolledFrom && <span className="acc-wiz__found-meta">disenrolled</span>}
-                    <span className="acc-wiz__found-periods">
-                      {(s.periodIds || [])
-                        .map((id) => periodById.get(id)?.shortName)
-                        .filter(Boolean)
-                        .join(' ')}
-                    </span>
-                  </button>
-                </li>
-              ))}
-              {matches.length === 0 && <li className="acc-wiz__found-none">No students match.</li>}
-            </ul>
+                      <span className={`acc-pill acc-pill--${PLAN_CLASS[s.planType] || 'other'}`}>
+                        {s.planType}
+                      </span>
+                      <span className="acc-wiz__found-name">{s.displayName}</span>
+                      {s.unenrolledFrom && <span className="acc-wiz__found-meta">disenrolled</span>}
+                      <span className="acc-wiz__found-periods">
+                        {(s.periodIds || [])
+                          .map((id) => periodById.get(id)?.shortName)
+                          .filter(Boolean)
+                          .join(' ')}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+                {matches.length === 0 && (
+                  <li className="acc-wiz__found-none">No students match.</li>
+                )}
+              </ul>
+
+              {listScroll.bar.height > 0 && (
+                <div
+                  className={`acc-scrollbar${listScroll.bar.visible ? ' acc-scrollbar--visible' : ''}`}
+                  style={{
+                    top: `${listScroll.bar.trackTop}px`,
+                    height: `${listScroll.bar.trackHeight}px`,
+                  }}
+                  aria-hidden="true"
+                >
+                  <div
+                    className="acc-scrollbar__thumb"
+                    style={{ top: `${listScroll.bar.top}px`, height: `${listScroll.bar.height}px` }}
+                    onPointerDown={listScroll.onThumbPointerDown}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         ) : !student ? (
           <div className="acc-sheet__pane">
