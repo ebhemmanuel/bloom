@@ -164,33 +164,15 @@
 // ---------------------------------------------------------------------------
 
 .acc-firstrun {
-  // Header, toolbar, lanes: the pieces that cascade, in reading order.
-  .acc-header,
-  .acc-board__scroll > *,
-  .acc-board__lanes > * {
-    opacity: 0;
-  }
-
-  // The beat. Everything is mounted and measured, so there is no layout shift
-  // when it arrives, but nothing is visible yet.
+  // The beat only. Opacity 0 on the root `.acc-firstrun` used to stick through
+  // `--in` and hide the scroll wrapper even while lanes were trying to animate.
+  // The cascade itself is `data-board-cascade='in'`, same as About - see App.jsx.
   &--held {
     .acc-header,
     .acc-board__scroll > *,
     .acc-board__lanes > * {
       opacity: 0;
     }
-  }
-
-  /**
-   * The board arriving after setup - the same cascade About uses to bring it
-   * back, at the same speed.
-   *
-   * It ran at 220ms with a 30ms stagger, which beside About's 550ms/90ms made
-   * the app look like it had two ideas about how fast it moves. A teacher meets
-   * both inside their first minute.
-   */
-  &--in {
-    @include cascade-rows(acc-cascade-in, both);
   }
 
   // Reduced motion: one fade, no transforms, no stagger.
@@ -215,7 +197,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .acc-firstrun--in {
+  .acc-firstrun--fade {
     .acc-header,
     .acc-board__scroll > *,
     .acc-board__lanes > * {

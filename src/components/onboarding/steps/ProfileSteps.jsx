@@ -21,14 +21,14 @@ import {
  * row: Back on the left, the one line of guidance centred, primary on the
  * right. No eyebrow: the view's own heading is the title.
  */
-function Card({ wide, title, note, children, footer }) {
+function Card({ wide, centerIntro, title, note, children, footer }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
       <div className={`acc-sheet__dialog${wide ? ' acc-sheet__dialog--wide' : ''}`}>
         <div className="acc-sheet__body">
           <div className="acc-sheet__view">
             <div className={`acc-sheet__pane${wide ? ' acc-sheet__pane--wide' : ''}`}>
-              <div className="acc-sheet__intro">
+              <div className={`acc-sheet__intro${centerIntro ? ' acc-sheet__intro--center' : ''}`}>
                 <h1 className="acc-sheet__title">{title}</h1>
                 {note && <p className="acc-sheet__sub">{note}</p>}
               </div>
@@ -198,6 +198,7 @@ const PERIOD_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
 export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, onNext }) {
   return (
     <Card
+      centerIntro
       title="Which periods do you see students?"
       note="Just the ones where you deliver accommodations."
       footer={
@@ -218,7 +219,6 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
 
       {periods.length > 0 && (
         <div className="acc-ob__group acc-fade-enter">
-          <p className="acc-ob__hint">Call them whatever you do out loud, optional.</p>
           {[...periods]
             .sort((a, b) => a - b)
             .map((n) => (

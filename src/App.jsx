@@ -57,7 +57,7 @@ function Loader({ loadState }) {
 function AppShell() {
   const { doc, meta, repairs, dismissRepairs, firstRun, clearFirstRun } = useData();
   // Plays only on the run that just finished onboarding. See the hook.
-  const cascade = useFirstRunCascade(firstRun, clearFirstRun);
+  const firstrunClass = useFirstRunCascade(firstRun, clearFirstRun);
   const { model, setDateKey } = useBoard();
   const background = doc.settings?.backgroundStyle || DEFAULT_BACKGROUND_STYLE;
   const { openPanel, toggle, close } = useHeaderPanel();
@@ -86,7 +86,40 @@ function AppShell() {
   const [boardCascade, setBoardCascade] = useState('rest');
   const [sceneLeaving, setSceneLeaving] = useState(false);
   const sceneTimers = useRef([]);
-  useEffect(() => () => sceneTimers.current.forEach(clearTimeout), []);
+  const firstrunTimers = useRef([]);
+  useEffect(
+    () => () => {
+      sceneTimers.current.forEach(clearTimeout);
+      firstrunTimers.current.forEach(clearTimeout);
+    },
+    []
+  );
+
+  /**
+   * First-run uses the same `data-board-cascade='in'` the About close does.
+   *
+   * Leaving it on `rest` was the bug: that rule sets `animation: none` on the
+   * header, toolbar and lanes, and it sits later in the sheet than
+   * `.acc-firstrun--in`, so the board appeared in one frame after onboarding
+   * cleared instead of cascading. The hook's `--held` beat still hides
+   * everything for 280ms; then we hand off to the shared cascade.
+   */
+  useEffect(() => {
+    firstrunTimers.current.forEach(clearTimeout);
+    firstrunTimers.current = [];
+
+    if (!firstRun) return;
+
+    if (firstrunClass.includes('--held')) {
+      setBoardCascade('rest');
+      return;
+    }
+
+    if (firstrunClass.includes('--in') || firstrunClass.includes('--fade')) {
+      setBoardCascade('in');
+      firstrunTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
+    }
+  }, [firstRun, firstrunClass]);
 
   const openScene = useCallback((id) => {
     setBoardCascade('out');
@@ -196,7 +229,7 @@ function AppShell() {
           { separator: true },
           // The shared catalog, not one student's list - which is what the
           // hint says and why it sits apart from the two above.
-          { label: 'Edit Accommodations', hint: 'presets', onSelect: () => setModal('catalog') },
+          { label: 'Accommodations', hint: 'presets', onSelect: () => setModal('catalog') },
           // Hidden for now, not removed: the modal behind it still works and
           // the item goes back in the same place when it returns.
           { label: 'Copy', hidden: true, onSelect: () => setModal('copy') },
@@ -219,7 +252,7 @@ function AppShell() {
   );
 
   return (
-    <div className={`acc-app ${cascade}`.trim()}>
+    <div className={`acc-app ${firstrunClass}`.trim()}>
       {/*
         The scene the app sits in front of, and the teacher's choice of it.
 
