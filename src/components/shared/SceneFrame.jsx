@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import AmbientScene from './AmbientScene.jsx';
+import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 
 /**
  * The frame the app's full-screen sheets are built on.
@@ -38,6 +39,17 @@ export default function SceneFrame({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose, canClose]);
 
+  // The scroller is the frame's, and a caller may want it too - day notes
+  // scrolls its own reported box into view. Both get the same element.
+  const scroll = useCustomScrollbar();
+  const setBody = useCallback(
+    (el) => {
+      scroll.scrollRef.current = el;
+      if (bodyRef) bodyRef.current = el;
+    },
+    [scroll.scrollRef, bodyRef]
+  );
+
   return (
     <div
       className={`acc-sheet${leaving ? ' acc-sheet--leaving' : ''}`}
@@ -57,8 +69,36 @@ export default function SceneFrame({
           </button>
         </header>
 
-        <div className="acc-sheet__body" ref={bodyRef}>
-          {children}
+        {/*
+          The board's own floating scrollbar, on the sheet. The native bar drew
+          a full-height grey rule down the inside edge of every long step; this
+          one is short, lavender, and only there while you are moving. It sits
+          in this wrapper rather than in the scroller, or it would scroll away
+          with the content it measures.
+        */}
+        <div className="acc-sheet__scroll">
+          <div className="acc-sheet__body" ref={setBody} onScroll={scroll.onScroll}>
+            {children}
+          </div>
+
+          {scroll.bar.height > 0 && (
+            <div
+              className={`acc-scrollbar acc-scrollbar--inset${
+                scroll.bar.visible ? ' acc-scrollbar--visible' : ''
+              }`}
+              style={{
+                top: `${scroll.bar.trackTop}px`,
+                height: `${scroll.bar.trackHeight}px`,
+              }}
+              aria-hidden="true"
+            >
+              <div
+                className="acc-scrollbar__thumb"
+                style={{ top: `${scroll.bar.top}px`, height: `${scroll.bar.height}px` }}
+                onPointerDown={scroll.onThumbPointerDown}
+              />
+            </div>
+          )}
         </div>
 
         {footer && <footer className="acc-sheet__foot">{footer}</footer>}

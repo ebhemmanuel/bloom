@@ -111,6 +111,13 @@
     opacity: 1;
   }
 
+  // Inside a dialog rather than floating beside the board: the sheets have an
+  // edge of their own, so the bar sits 4px in from it instead of hanging out
+  // over the aurora.
+  &--inset {
+    inset-inline-end: 4px;
+  }
+
   &__thumb {
     position: absolute;
     inline-size: 100%;

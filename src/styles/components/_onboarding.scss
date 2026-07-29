@@ -939,10 +939,29 @@
   }
 }
 
-// One focus treatment for the whole flow: an inner halo in the page colour so
-// the accent ring reads on glass as well as on white.
+/**
+ * One focus treatment for the whole flow: an inner halo in the page colour so
+ * the accent ring reads on glass as well as on white.
+ *
+ * The two halves are separate rules on purpose. Dropping the browser's own
+ * outline applies to everything - taking the exemption below out of this half
+ * as well simply swapped our ring for Chrome's, which is the same rectangle in
+ * a different colour.
+ */
 .acc-ob :where(button, input, [tabindex]):focus-visible {
   outline: none;
+}
+
+/**
+ * The name field draws no ring at all.
+ *
+ * A text input always matches `:focus-visible` when it is focused, whatever
+ * put the focus there - the browser decides a field you can type into always
+ * deserves an indicator - so this lit up the moment anyone clicked into it.
+ * The group it sits in answers for its own focus quietly, and the caret says
+ * where you are.
+ */
+.acc-ob :where(button, input, [tabindex]):focus-visible:not(.acc-wiz__nameinput) {
   box-shadow:
     0 0 0 2px #faf8fc,
     0 0 0 4px var(--acc-accent);

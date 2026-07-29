@@ -110,6 +110,16 @@ export function RosterStep({
   const roster = students.length;
 
   /**
+   * What everyone already has, chosen one at a time from the list.
+   *
+   * The two shared screens exist to answer for people who were just named. If
+   * nobody was, and everyone on the list has already been through Choose
+   * supports, there is nothing left for those screens to ask.
+   */
+  const alreadyChosen = roster > 0 && students.every((s) => s.accoms.length > 0);
+  const ownAccoms = [...new Set(students.flatMap((s) => s.accoms))];
+
+  /**
    * Next takes the field with it.
    *
    * A name typed and left sitting there was the one way to lose work on this
@@ -117,7 +127,15 @@ export function RosterStep({
    * question nobody needs. Enter still adds, for a list entered one at a time.
    */
   const next = () => {
-    if (step === 0) add();
+    if (step === 0) {
+      const typed = ready;
+      add();
+      // Straight to the confirmation when the shared screens have nothing to
+      // ask: no new name in the field, and everyone already supported.
+      setStep(!typed && alreadyChosen ? 3 : 1);
+      return;
+    }
+
     if (step < 3) {
       setStep(step + 1);
       return;
@@ -469,12 +487,23 @@ export function RosterStep({
                       ))}
                     </div>
 
+                    {/*
+                      What each student will actually have: their own picks
+                      from Choose supports, and anything the shared screen
+                      added. Reading only the shared list said "None yet" over
+                      a student with five of their own, which is a card
+                      describing a record it was about to write wrongly.
+                    */}
                     <div className="acc-wiz__accoms">
                       <div className="acc-wiz__accomhead">
                         <span className="acc-wiz__label">
-                          {staged.length
-                            ? `${staged.length} accommodation${staged.length === 1 ? '' : 's'} each`
-                            : 'Accommodations'}
+                          {staged.length > 0 && ownAccoms.length > 0
+                            ? `${ownAccoms.length} already chosen, ${staged.length} more for everyone`
+                            : staged.length > 0
+                              ? `${staged.length} accommodation${staged.length === 1 ? '' : 's'} each`
+                              : ownAccoms.length > 0
+                                ? `${ownAccoms.length} accommodation${ownAccoms.length === 1 ? '' : 's'} chosen`
+                                : 'Accommodations'}
                         </span>
                         <button
                           type="button"
@@ -485,13 +514,21 @@ export function RosterStep({
                         </button>
                       </div>
 
-                      {staged.length > 0 ? (
+                      {ownAccoms.length > 0 || staged.length > 0 ? (
                         <div className="acc-wiz__chips">
-                          {staged.map((s) => (
-                            <span key={s.label} className="acc-wiz__accom">
-                              {s.label}
+                          {ownAccoms.map((label) => (
+                            <span key={label} className="acc-wiz__accom">
+                              {label}
                             </span>
                           ))}
+                          {/* Marked apart: these do not exist on anyone yet. */}
+                          {staged
+                            .filter((s) => !ownAccoms.includes(s.label))
+                            .map((s) => (
+                              <span key={s.label} className="acc-wiz__accom acc-wiz__accom--new">
+                                {s.label}
+                              </span>
+                            ))}
                         </div>
                       ) : (
                         <span className="acc-wiz__empty">

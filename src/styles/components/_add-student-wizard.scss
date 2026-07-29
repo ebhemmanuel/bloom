@@ -151,14 +151,17 @@
     }
 
     /**
-     * The ring is kept for the case that needs it.
+     * The ring belongs to the PLAN BUTTON, and only to it.
      *
-     * `:has(:focus-visible)` is keyboard focus only: someone tabbing through
-     * has no caret to follow yet and must be told where they are. Removing the
-     * indicator outright would have traded a visual nit for an accessibility
-     * one.
+     * `:has(:focus-visible)` was the wrong hook: a text field always matches
+     * `:focus-visible` when it is focused, however focus arrived - the browser
+     * decides that a field you can type into always deserves an indicator - so
+     * the ring came back the moment anyone clicked into the name. The caret is
+     * the indicator there, and it is enough.
+     *
+     * The button has no caret and does need one when it is tabbed to.
      */
-    &:has(:focus-visible) {
+    &:has(.acc-wiz__plan:focus-visible) {
       border-color: var(--acc-accent);
       box-shadow: 0 0 0 3px var(--acc-accent-soft);
     }

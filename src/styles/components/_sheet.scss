@@ -123,12 +123,39 @@
 
   // --- Body ----------------------------------------------------------------
 
+  // Holds the floating scrollbar. The bar cannot live inside the scroller it
+  // measures - it would scroll away with the content.
+  &__scroll {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-block-size: 0;
+  }
+
   &__body {
     flex: 1;
     min-block-size: 0;
     display: flex;
     justify-content: center;
     overflow-y: auto;
+  }
+
+  /**
+   * The native bar goes only where a custom one replaces it.
+   *
+   * Scoped to the wrapper rather than to the body: the setup screens build
+   * this same frame by hand without SceneFrame, so hiding it on the class
+   * would have left those steps with no scrollbar at all.
+   */
+  &__scroll &__body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      inline-size: 0;
+      block-size: 0;
+    }
   }
 
   // Centred in both axes by the auto margin, so a short view sits in the middle
