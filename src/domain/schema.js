@@ -443,8 +443,9 @@ export function normalizeDoc(raw, now = new Date()) {
       date: dateKey,
       createdAt: asString(rawDay.createdAt, base.app.createdAt),
       /**
-       * Whole-day handoff notes - for a substitute, or for tomorrow-you.
-       * Distinct from the per-student notes in `students[].notes`.
+       * Whole-day notes: prep, reminders, where the day left off. Written by
+       * the teacher for the teacher, and distinct from the per-student notes in
+       * `students[].notes`.
        */
       notes: asString(rawDay.notes),
       notesUpdatedAt: asNullableString(rawDay.notesUpdatedAt),

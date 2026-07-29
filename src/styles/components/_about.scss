@@ -40,8 +40,11 @@
    * Everything above the scene goes first and the scene follows, so the board
    * cascading back in is uncovered rather than revealed all at once.
    */
+  // Same curve as the sheets: `--acc-ease-exit` holds a full-screen surface at
+  // full opacity and then drops it in the last few frames, which reads as a cut
+  // rather than a fade. See `.acc-sheet--leaving`.
   &--leaving {
-    animation: acc-fade-out 420ms var(--acc-ease-exit) both;
+    animation: acc-fade-out 460ms var(--acc-ease-standard) both;
 
     .acc-about__stage,
     .acc-about__brand,

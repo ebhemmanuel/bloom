@@ -1,0 +1,253 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// The full-screen sheet: a fixed frame that LANDS WHERE THE BOARD WAS.
+//
+// Two screens are built on it - the add-student wizard and day notes - and both
+// arrive the way About does: the board cascades away, the aurora comes up
+// through where the rows were, and the sheet fades in on the same beat. No dark
+// scrim over anything; there is nothing behind it to look at.
+//
+// Two registers meet here on purpose. The SCREEN is ambient. The DIALOG on top
+// of it is working: crisp edges, no blur behind text, and a fixed height so the
+// views inside it swap without the window resizing under the pointer.
+//
+// Measurements come from design_handoff_add_student_wizard/ and
+// design_handoff_day_notes/, which share this grammar.
+// ---------------------------------------------------------------------------
+
+.acc-sheet {
+  position: fixed;
+  inset: 0;
+  // Above the pill nav (70), same plane as About: while this is open it is the
+  // whole app.
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  overflow: hidden;
+  color: var(--acc-fg);
+  box-sizing: border-box;
+
+  /**
+   * Arrives OVER the board as it cascades away, rather than covering it.
+   *
+   * Identical beat to About: the veil clears at 750ms, which is where the rows
+   * have fallen far enough to be worth replacing. An opaque background from the
+   * first frame would hide the board before it could move, and the screen would
+   * simply cut.
+   */
+  background: var(--acc-bg);
+  animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+
+  .acc-scene {
+    animation: acc-fade-in 700ms var(--acc-ease-standard) 750ms both;
+  }
+
+  /**
+   * Leaving: the dialog drops away first, then the veil clears over the board
+   * as it cascades back in.
+   *
+   * The veil is on `--acc-ease-standard`, NOT the exit curve. Exit easing is
+   * cubic-bezier(0.7, 0, 0.84, 0), which holds opacity near 1 for most of its
+   * run and then drops it in the last few frames - correct for something small
+   * getting out of the way, and wrong for a full-screen sheet, where it reads
+   * as the screen cutting rather than fading. It also hid the first two thirds
+   * of the board's cascade behind an opaque page, so the rows appeared to be
+   * half-way in by the time anyone saw them.
+   *
+   * The card keeps the exit curve: it is the thing getting out of the way.
+   */
+  &--leaving {
+    animation: acc-fade-out 460ms var(--acc-ease-standard) both;
+
+    .acc-sheet__dialog {
+      animation: acc-sheet-leave 240ms var(--acc-ease-exit) both;
+    }
+  }
+
+  // --- Frame ---------------------------------------------------------------
+
+  /**
+   * Fixed height, unlike every other modal in the app.
+   *
+   * The views inside ask for very different amounts of room - a name, then six
+   * accordions; a textarea, then a row of chips - and a frame that resized
+   * between them would move the primary button out from under the pointer.
+   */
+  &__dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(720px, 96vw);
+    block-size: min(640px, 90vh);
+    background: var(--acc-surface);
+    border-radius: var(--acc-radius-xl);
+    box-shadow: var(--acc-shadow-overlay);
+    overflow: hidden;
+    animation: acc-enter 600ms var(--acc-ease-entrance) 1000ms both;
+
+    // The wizard, which carries two columns on its class-details step.
+    &--wide {
+      inline-size: min(900px, 96vw);
+      block-size: min(660px, 92vh);
+    }
+  }
+
+  // --- Header --------------------------------------------------------------
+
+  // No title and no rule under it. The view's own heading is the title, and a
+  // second one above it would say the same thing twice.
+  &__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: none;
+    padding: 20px 28px 0;
+  }
+
+  &__close {
+    @include motion.interactive(color);
+    padding: 0;
+    color: var(--acc-fg-faint);
+    font-size: 19px;
+    line-height: 1;
+
+    &:hover {
+      color: var(--acc-fg);
+    }
+  }
+
+  // --- Body ----------------------------------------------------------------
+
+  &__body {
+    flex: 1;
+    min-block-size: 0;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+  }
+
+  // Centred in both axes by the auto margin, so a short view sits in the middle
+  // of the frame rather than pinned under the header.
+  &__view {
+    display: flex;
+    justify-content: center;
+    inline-size: 100%;
+    margin: auto;
+    animation: acc-sheet-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
+  }
+
+  // Each screen sets its own measure through `--acc-sheet-pane`.
+  &__pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-5);
+    inline-size: 100%;
+    max-inline-size: var(--acc-sheet-pane, 620px);
+    padding: var(--acc-space-7);
+    box-sizing: border-box;
+  }
+
+  &__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &--center {
+      text-align: center;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: var(--acc-fw-semibold);
+    line-height: 1.25;
+    text-wrap: pretty;
+  }
+
+  &__sub {
+    margin: 0;
+    font-size: var(--acc-fs-body);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+    text-wrap: pretty;
+
+    // The centred views balance instead, so a two-line sub breaks evenly under
+    // its heading rather than leaving one word on the second line.
+    &--balance {
+      text-wrap: balance;
+    }
+  }
+
+  // --- Footer --------------------------------------------------------------
+
+  &__foot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acc-space-4);
+    flex: none;
+    padding: 14px 28px;
+    border-block-start: 1px solid var(--acc-border);
+  }
+
+  // Holds the row still when the left-hand control is not there to hold it.
+  &__footside {
+    display: flex;
+    min-inline-size: 64px;
+  }
+
+  /**
+   * The one line of guidance per view, centred on the frame rather than in the
+   * gap between the buttons - it stays put as the left control appears and the
+   * primary label changes length.
+   */
+  &__tip {
+    position: absolute;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+    opacity: 0.65;
+    white-space: nowrap;
+  }
+}
+
+// The card leaving: back down the way it came in, and faster.
+@keyframes acc-sheet-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+
+// A view's own entrance: a short fade and rise, so moving through a sheet reads
+// as one column of questions rather than as several screens.
+@keyframes acc-sheet-step {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-sheet,
+  .acc-sheet * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}

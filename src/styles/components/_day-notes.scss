@@ -1,155 +1,144 @@
-// Day notes dialog. Values taken directly from the prototype rather than
-// approximated from the token scale - this panel has its own tighter type.
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// Day notes. Built to design_handoff_day_notes/.
 //
-// A dialog rather than the corner popover it began as. Day notes are composed,
-// not glanced at: it is the one place in the app a teacher writes prose, and a
-// 380px card pinned under a corner icon is the wrong room to write it in. It
-// now opens in the middle behind a scrim, like every other thing you fill in.
+// The frame is `.acc-sheet` (see _sheet.scss), shared with the add-student
+// wizard: fixed size, no scrim, landing where the board was. What follows is
+// only what is INSIDE it.
+//
+// This is the one place in the app a teacher writes prose, and it used to do
+// that in a 520px card that grew a form under the pointer when an absence was
+// reported. The room is now the size of the task, and reporting an absence is a
+// second view inside a frame that does not move.
+// ---------------------------------------------------------------------------
 
-.acc-daypanel {
-  inline-size: min(520px, calc(100vw - var(--acc-space-6)));
-  max-block-size: min(80vh, 720px);
-  overflow-y: auto;
-  background: var(--acc-surface);
-  border: 1px solid var(--acc-border-strong);
-  border-radius: var(--acc-radius-lg);
-  box-shadow: var(--acc-shadow-overlay);
+.acc-daynotes {
+  &__pane {
+    --acc-sheet-pane: 560px;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--acc-border);
-  }
-
-  &__eyebrow {
-    font-size: 11px;
-    font-weight: var(--acc-fw-semibold);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--acc-fg-muted);
-  }
-
-  &__close {
-    color: var(--acc-fg-faint);
-    font-size: 19px;
-    line-height: 1;
-    padding: 2px 6px;
-
-    &:hover {
-      color: var(--acc-fg);
+    // The report view breathes a little wider between its three parts, which
+    // are a question, a row of chips and a field rather than one column of
+    // prose.
+    &--report {
+      gap: var(--acc-space-6);
     }
   }
 
-  &__body {
+  &__field {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+    gap: var(--acc-space-2);
   }
 
-  &__intro {
-    font-size: 11px;
-    color: var(--acc-fg-faint);
-    line-height: 1.45;
-    text-wrap: pretty;
-  }
-
-  &__notes {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  // Borderless on a sunken fill until focused - the resting state should read as
-  // a place to write, not as a form control.
+  /**
+   * The room to write.
+   *
+   * Borderless on a sunken fill until focused: at rest it should read as a
+   * place to write rather than as a form control, and it only draws its edges
+   * once you are actually in it.
+   */
   &__textarea {
-    padding: 10px;
+    inline-size: 100%;
+    min-block-size: 190px;
+    padding: var(--acc-space-4) 18px;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--acc-surface-sunken);
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: var(--acc-fs-subhead);
+    line-height: 1.6;
+    color: var(--acc-fg);
     resize: vertical;
     outline: none;
-    color: var(--acc-fg);
+    box-sizing: border-box;
     transition:
       border-color 160ms var(--acc-ease-standard),
       background-color 160ms var(--acc-ease-standard),
       box-shadow 160ms var(--acc-ease-standard);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
 
     &:focus {
       background: var(--acc-surface);
       border-color: var(--acc-accent);
       box-shadow: 0 0 0 3px var(--acc-accent-soft);
     }
-  }
 
-  &__saved {
-    align-self: flex-end;
-    font-size: 11px;
-    color: var(--acc-status-used);
-    opacity: 0;
-    transition: opacity 160ms var(--acc-ease-standard);
-
-    &--on {
-      opacity: 1;
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
     }
   }
 
-  &__absence {
-    border-top: 1px solid var(--acc-border);
-    padding-block-start: 12px;
+  /**
+   * The line under the writing surface: what this note is filed under, and
+   * whether it is safe.
+   *
+   * The date is centred on the column and Saved is pinned to the right of the
+   * same row, so the flash appearing and going never moves the date.
+   */
+  &__context {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 16px;
   }
+
+  &__eyebrow {
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-semibold);
+    letter-spacing: var(--acc-ls-cap);
+    text-transform: uppercase;
+    color: var(--acc-fg-faint);
+    white-space: nowrap;
+  }
+
+  &__saved {
+    position: absolute;
+    inset-inline-end: 0;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-status-used);
+    animation: acc-fade-in 200ms var(--acc-ease-standard) both;
+  }
+
+  // --- The absence, once it is on record -----------------------------------
 
   &__reported {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--acc-space-3);
+    padding: 14px var(--acc-space-4);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    animation: acc-sheet-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
   }
 
   &__reported-text {
-    font-size: 12px;
-    color: var(--acc-fg-muted);
+    margin: 0;
+    font-size: var(--acc-fs-sub);
     line-height: 1.5;
+    color: var(--acc-fg-muted);
     text-wrap: pretty;
   }
 
   &__undo {
-    height: 26px;
-    padding: 0 12px;
+    @include motion.interactive(background-color, color);
+    flex: none;
+    block-size: 26px;
+    padding: 0 var(--acc-space-3);
     border-radius: var(--acc-radius-pill);
     background: transparent;
     color: var(--acc-fg-muted);
-    font-size: 11px;
+    font-size: var(--acc-fs-tiny);
     font-weight: var(--acc-fw-medium);
-    flex-shrink: 0;
 
     &:hover:not(:disabled) {
-      background: var(--acc-surface-sunken);
+      background: var(--acc-surface);
       color: var(--acc-fg);
-    }
-  }
-
-  &__start {
-    align-self: flex-start;
-    height: 28px;
-    padding: 0 12px;
-    border-radius: var(--acc-radius-pill);
-    border: 1px solid var(--acc-border-strong);
-    background: var(--acc-surface);
-    color: var(--acc-fg);
-    font-size: 11px;
-    font-weight: var(--acc-fw-medium);
-
-    &:hover:not(:disabled) {
-      background: var(--acc-surface-hover);
-      border-color: var(--acc-fg-faint);
     }
 
     &:disabled {
@@ -158,76 +147,33 @@
     }
   }
 
-  &__form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  &__label {
-    font-size: 12px;
-    font-weight: var(--acc-fw-medium);
-    color: var(--acc-fg);
-  }
+  // --- Reporting one -------------------------------------------------------
 
   &__reasons {
     display: flex;
-    gap: 6px;
     flex-wrap: wrap;
-  }
-
-  &__reason {
-    height: 26px;
-    padding: 0 12px;
-    border-radius: var(--acc-radius-pill);
-    border: 1px solid var(--acc-border);
-    background: var(--acc-surface);
-    color: var(--acc-fg-muted);
-    font-size: 11px;
-    font-weight: var(--acc-fw-medium);
-    transition:
-      background-color var(--acc-dur-instant) var(--acc-ease-standard),
-      border-color var(--acc-dur-instant) var(--acc-ease-standard),
-      color var(--acc-dur-instant) var(--acc-ease-standard);
-
-    &:hover {
-      border-color: #c9c0f2;
-    }
-
-    &--on {
-      background: var(--acc-accent-soft);
-      border-color: var(--acc-accent);
-      color: var(--acc-accent);
-    }
+    gap: var(--acc-space-2);
   }
 
   &__input {
-    padding: 8px 10px;
-    border: 1px solid var(--acc-border-strong);
-    border-radius: 8px;
+    block-size: 44px;
+    padding: 0 var(--acc-space-4);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
     background: var(--acc-surface);
-    font-size: 12px;
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
     outline: none;
+    box-sizing: border-box;
+    @include motion.interactive(border-color, box-shadow);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
 
     &:focus {
       border-color: var(--acc-accent);
       box-shadow: 0 0 0 3px var(--acc-accent-soft);
-    }
-  }
-
-  // Full width, and no Cancel beside it - closing the popover cancels.
-  &__submit {
-    inline-size: 100%;
-    height: 34px;
-    border-radius: var(--acc-radius-pill);
-    background: var(--acc-accent);
-    color: var(--acc-accent-fg);
-    font-size: 12px;
-    font-weight: var(--acc-fw-semibold);
-    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
-
-    &:hover {
-      background: var(--acc-accent-hover);
     }
   }
 }

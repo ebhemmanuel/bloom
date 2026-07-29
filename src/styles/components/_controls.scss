@@ -312,6 +312,13 @@
     height: 40px;
     padding: 0 var(--acc-space-4);
     font-size: var(--acc-fs-card);
+
+    // The + is a circle at this size, not a stretched pill. Two classes deep,
+    // so it wins over the 28px `--add` rule wherever the two land together.
+    &.acc-chip--add {
+      inline-size: 40px;
+      padding-inline: 0;
+    }
   }
 
   // Real accommodation wording is a sentence. A row of these has to fold rather

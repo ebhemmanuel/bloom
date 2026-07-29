@@ -368,7 +368,7 @@ export function setAssignmentNotRelevant(
 
 // --- day notes & teacher absence --------------------------------------------
 
-/** Whole-day handoff notes - for a substitute, or for tomorrow-you. */
+/** Whole-day notes: prep, reminders, and where the day left off. */
 export function setDayNotes(doc, dateKey, notes, now = new Date()) {
   const day = doc.days?.[dateKey];
   if (!day || day.notes === notes) return doc;

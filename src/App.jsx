@@ -97,12 +97,18 @@ function AppShell() {
   const closeScene = useCallback(() => {
     setSceneLeaving(true);
     setBoardCascade('in');
-    // Long enough for the scene's own fade, then the cascade runs itself out.
+    /*
+      Unmounted AFTER the fade has finished, not on its last frame.
+
+      This sat on 420ms against a 420ms fade, so React pulled the element on
+      the same tick the animation was still painting - the screen disappeared
+      instead of clearing. 520 leaves the sheet's 460ms fade room to land.
+    */
     sceneTimers.current.push(
       setTimeout(() => {
         setModal(null);
         setSceneLeaving(false);
-      }, 420)
+      }, 520)
     );
     sceneTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
   }, []);
@@ -195,7 +201,7 @@ function AppShell() {
       {
         id: 'notes',
         label: 'Notes',
-        onSelect: () => toggle('daynotes'),
+        onSelect: () => openScene('daynotes'),
         pip: Boolean(model.dayNotes || model.teacherAbsence),
       },
       // A direct action, like Notes. A dropdown holding one item is a click
@@ -249,14 +255,16 @@ function AppShell() {
         {palette.open && <CommandPalette onClose={palette.close} />}
 
         {openPanel === 'settings' && <ProfileModal onClose={close} />}
-        {openPanel === 'daynotes' && <DayNotesPanel onClose={close} />}
         {openPanel === 'notifications' && (
           <NotificationsPanel
             notifications={notifications}
             onClose={close}
             onAct={(n) => {
               if (n.act === 'revealFolder') dataBridge.revealFolder();
-              if (n.act === 'openNotes') toggle('daynotes');
+              if (n.act === 'openNotes') {
+                close();
+                openScene('daynotes');
+              }
               if (n.act === 'goToDate' && n.payload) setDateKey(n.payload);
             }}
           />
@@ -269,6 +277,12 @@ function AppShell() {
         */}
         {modal === 'addStudent' && (
           <AddStudentWizard background={background} leaving={sceneLeaving} onClose={closeScene} />
+        )}
+
+        {/* The same sheet, for the same reason: the day's notes are something
+            you sit down to write, not something you jot in a corner card. */}
+        {modal === 'daynotes' && (
+          <DayNotesPanel background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
         {modal === 'students' && (

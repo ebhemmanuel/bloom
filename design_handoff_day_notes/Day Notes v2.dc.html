@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,textarea,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+    <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px">
+      <div style="width:min(720px,96vw);height:min(640px,90vh);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.28);overflow:hidden;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+
+        <div style="position:relative;display:flex;align-items:center;justify-content:flex-end;padding:20px 28px 0;flex:none">
+          <button onClick="{{ close }}" aria-label="Close" style="color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+        </div>
+
+        <div data-scroll="1" style="flex:1;overflow-y:auto;display:flex;justify-content:center">
+
+          <sc-if value="{{ isNotes }}" hint-placeholder-val="{{ true }}">
+            <div style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:20px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+              <div style="display:flex;flex-direction:column;gap:10px;text-align:center">
+                <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25;text-wrap:pretty">What should tomorrow-you know?</h1>
+                <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:balance">Prep, reminders, where the day left off - a private note for your eyes only.</p>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <textarea value="{{ draft }}" onChange="{{ setDraft }}" autoFocus="{{ true }}" rows="7" placeholder="Handoff notes, prep for tomorrow&hellip;" aria-label="Day notes" style="width:100%;min-height:190px;padding:16px 18px;border:1px solid transparent;border-radius:12px;background:#f3f0f8;font-size:15px;line-height:1.6;resize:vertical;outline:none;transition:border-color 160ms ease,background-color 160ms ease,box-shadow 160ms ease" style-focus="background:#fff;border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"></textarea>
+                <div style="position:relative;min-height:16px;display:flex;align-items:center;justify-content:center">
+                  <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#9a93a8;white-space:nowrap">{{ heading }}</span>
+                  <sc-if value="{{ saved }}" hint-placeholder-val="{{ false }}">
+                    <span aria-live="polite" style="position:absolute;right:0;font-size:11px;color:#2f7d63;animation:stepIn 200ms ease both">Saved</span>
+                  </sc-if>
+                </div>
+              </div>
+              <sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}">
+                <div ref="{{ reportedRef }}" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:8px;background:#f3f0f8;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                  <p style="margin:0;font-size:12px;color:#6b6480;line-height:1.5;text-wrap:pretty">{{ reportedText }}</p>
+                  <button onClick="{{ undoReport }}" style="flex:none;height:26px;padding:0 12px;border-radius:999px;color:#6b6480;font-size:11px;font-weight:500" style-hover="background:#fff;color:#2a2438">Undo</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ showInlineStart }}" hint-placeholder-val="{{ false }}">
+                <div style="border-top:1px solid #e9e5f0;padding-top:16px;display:flex">
+                  <button onClick="{{ startReport }}" style="height:32px;padding:0 16px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;color:#2a2438;font-size:12px;font-weight:500" style-hover="background:#f7f4fb">Report an absence</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:24px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25;text-wrap:pretty">What happened?</h1>
+                <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">This appends a line to the day notes and flags the day in the report header, so a thin day carries its own explanation.</p>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ reasonChips }}" as="r" hint-placeholder-count="4">
+                  <button onClick="{{ r.onClick }}" aria-pressed="{{ r.on }}" style="{{ r.style }}">{{ r.label }}</button>
+                </sc-for>
+              </div>
+              <input value="{{ detail }}" onChange="{{ setDetail }}" onKeyDown="{{ detailKey }}" autoFocus="{{ false }}" placeholder="Anything to add? (optional)" aria-label="Absence detail" style="height:44px;padding:0 16px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none;transition:border-color 160ms ease,box-shadow 160ms ease" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+            </div>
+          </sc-if>
+
+        </div>
+
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;border-top:1px solid #e9e5f0;flex:none">
+          <div style="min-width:64px;display:flex">
+            <sc-if value="{{ showFooterStart }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ startReport }}" style="height:32px;padding:0 16px;border-radius:999px;font-size:12px;font-weight:500;color:#6b6480;white-space:nowrap" style-hover="background:#f3f0f8;color:#2a2438">Report an absence</button>
+            </sc-if>
+            <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ backToNotes }}" style="height:32px;padding:0 16px;border-radius:999px;font-size:12px;font-weight:500;color:#6b6480" style-hover="background:#f3f0f8;color:#2a2438">Back</button>
+            </sc-if>
+          </div>
+          <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:12px;color:#6b6480;opacity:0.65;white-space:nowrap">{{ tip }}</div>
+          <sc-if value="{{ isNotes }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ close }}" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Done</button>
+          </sc-if>
+          <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ submitReport }}" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Add to notes</button>
+          </sc-if>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center">
+      <button onClick="{{ reopen }}" style="height:38px;padding:0 20px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;font-size:12px;font-weight:500;color:#2a2438;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1)" style-hover="background:#f7f4fb">Open day notes</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;absenceEntry&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;footer&quot;,&quot;inline&quot;],&quot;default&quot;:&quot;footer&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Absence flow&quot;},&quot;seedReported&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  state = { open: true, view: 'notes', draft: '', saved: false, reason: 'Out sick', detail: '', report: undefined };
+  REASONS = ['Out sick', 'TDY', 'Left early', 'Sub covered'];
+
+  componentWillUnmount() { clearTimeout(this._debounce); clearTimeout(this._flash); }
+
+  heading() {
+    const d = new Date();
+    const wd = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const md = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return 'Day notes \u00b7 Today, ' + wd + ', ' + md;
+  }
+
+  absenceLine(reason, text) { return 'Absence \u2014 ' + reason + (text ? ': ' + text : ''); }
+
+  renderVals() {
+    const s = this.state;
+    const entry = this.props.absenceEntry ?? 'footer';
+    const seedReported = this.props.seedReported ?? false;
+    // undefined = untouched (seed may apply); null = explicitly cleared
+    const report = s.report !== undefined ? s.report
+      : (seedReported ? { reason: 'Out sick', text: 'Left at noon, Mr. Patel covered P5.', line: null } : null);
+    const isNotes = s.view === 'notes';
+    const isReport = s.view === 'report';
+
+    const reasonChips = this.REASONS.map((label) => {
+      const on = s.reason === label;
+      return {
+        label, on,
+        onClick: () => this.setState({ reason: label }),
+        style: {
+          display: 'inline-flex', alignItems: 'center', height: '40px', padding: '0 16px',
+          borderRadius: '999px', border: '1px solid ' + (on ? '#5b4bd6' : '#e9e5f0'),
+          background: on ? '#eeebfd' : '#fff', color: on ? '#5b4bd6' : '#6b6480',
+          fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+          transition: 'background-color 120ms ease, border-color 120ms ease, color 120ms ease',
+        },
+      };
+    });
+
+    const submitReport = () => {
+      this._scrollReported = true;
+      const line = this.absenceLine(s.reason, s.detail.trim());
+      this.setState((st) => ({
+        report: { reason: st.reason, text: st.detail.trim(), line },
+        draft: st.draft.trim() ? st.draft.replace(/\s+$/, '') + '\n' + line : line,
+        detail: '', view: 'notes', saved: true,
+      }));
+      clearTimeout(this._flash);
+      this._flash = setTimeout(() => this.setState({ saved: false }), 1400);
+    };
+
+    return {
+      open: s.open, isClosed: !s.open,
+      heading: this.heading(),
+      isNotes, isReport,
+      draft: s.draft,
+      setDraft: (e) => {
+        this.setState({ draft: e.target.value, saved: false });
+        clearTimeout(this._debounce);
+        this._debounce = setTimeout(() => {
+          this.setState({ saved: true });
+          clearTimeout(this._flash);
+          this._flash = setTimeout(() => this.setState({ saved: false }), 1400);
+        }, 500);
+      },
+      saved: s.saved,
+      hasReport: isNotes && !!report,
+      reportedRef: (el) => {
+        if (el && this._scrollReported) {
+          this._scrollReported = false;
+          const sc = el.closest('[data-scroll]');
+          if (sc) sc.scrollTop = sc.scrollHeight;
+        }
+      },
+      reportedText: report
+        ? 'Absence noted \u2014 ' + report.reason + (report.text ? ': ' + report.text : '') +
+          '. This prints in the report header, so whoever reads the record knows why entries are thin.'
+        : '',
+      undoReport: () => this.setState((st) => {
+        const line = st.report && st.report.line;
+        let draft = st.draft;
+        if (line) {
+          draft = draft.split('\n').filter((l) => l !== line).join('\n').replace(/\s+$/, '');
+        }
+        return { report: null, draft };
+      }),
+      showInlineStart: isNotes && entry === 'inline' && !report,
+      showFooterStart: isNotes && entry === 'footer' && !report,
+      startReport: () => this.setState({ view: 'report' }),
+      backToNotes: () => this.setState({ view: 'notes', detail: '' }),
+      reasonChips,
+      detail: s.detail,
+      setDetail: (e) => this.setState({ detail: e.target.value }),
+      detailKey: (e) => { if (e.key === 'Enter') submitReport(); },
+      submitReport,
+      tip: isReport
+        ? 'Back keeps your notes untouched.'
+        : (report ? 'The reason is on record for today\u2019s report.' : 'Saves as you type \u00b7 Prints on today\u2019s report'),
+      close: () => this.setState({ open: false }),
+      reopen: () => this.setState({ open: true, view: 'notes' }),
+    };
+  }
+}
+</script>
+</body>
+</html>
