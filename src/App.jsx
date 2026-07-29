@@ -86,40 +86,28 @@ function AppShell() {
   const [boardCascade, setBoardCascade] = useState('rest');
   const [sceneLeaving, setSceneLeaving] = useState(false);
   const sceneTimers = useRef([]);
-  const firstrunTimers = useRef([]);
-  useEffect(
-    () => () => {
-      sceneTimers.current.forEach(clearTimeout);
-      firstrunTimers.current.forEach(clearTimeout);
-    },
-    []
-  );
+  useEffect(() => () => sceneTimers.current.forEach(clearTimeout), []);
 
   /**
-   * First-run uses the same `data-board-cascade='in'` the About close does.
+   * First-run rides the same cascade About's close does, DERIVED rather than
+   * set from an effect.
    *
-   * Leaving it on `rest` was the bug: that rule sets `animation: none` on the
-   * header, toolbar and lanes, and it sits later in the sheet than
-   * `.acc-firstrun--in`, so the board appeared in one frame after onboarding
-   * cleared instead of cascading. The hook's `--held` beat still hides
-   * everything for 280ms; then we hand off to the shared cascade.
+   * An effect was one commit too late: the `--held` class came off in the frame
+   * the hook started running, and `data-board-cascade` only reached `in` on the
+   * next one. For that frame the board was fully visible with no animation
+   * attached, so it flashed into place and then cascaded from nothing - which
+   * read as the board simply appearing.
+   *
+   * Reading it during render puts both in the same commit. `--held` rests
+   * (nothing animating, the hook's own rule holds everything at zero) and the
+   * running state hands straight over to the shared cascade.
    */
-  useEffect(() => {
-    firstrunTimers.current.forEach(clearTimeout);
-    firstrunTimers.current = [];
-
-    if (!firstRun) return;
-
-    if (firstrunClass.includes('--held')) {
-      setBoardCascade('rest');
-      return;
-    }
-
-    if (firstrunClass.includes('--in') || firstrunClass.includes('--fade')) {
-      setBoardCascade('in');
-      firstrunTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1900));
-    }
-  }, [firstRun, firstrunClass]);
+  const firstRunCascade = firstrunClass.includes('--held')
+    ? 'rest'
+    : firstrunClass.includes('--in') || firstrunClass.includes('--fade')
+      ? 'in'
+      : null;
+  const cascadeAttr = firstRunCascade ?? boardCascade;
 
   const openScene = useCallback((id) => {
     setBoardCascade('out');
@@ -278,7 +266,7 @@ function AppShell() {
         lives inside it, so nothing can drift out of alignment the way it does
         when each piece caps its own width.
       */}
-      <div className="acc-app__frame" data-board-cascade={boardCascade}>
+      <div className="acc-app__frame" data-board-cascade={cascadeAttr}>
         <AppHeader
           menus={menus}
           notifications={notifications}

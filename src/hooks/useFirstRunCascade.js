@@ -50,11 +50,19 @@ export default function useFirstRunCascade(active, onDone) {
     // The beat. Empty aurora, no board yet, while the field eases back to
     // centre. Not trimmed below 250ms: it is what separates the two cascades.
     const start = setTimeout(() => setState('running'), 280);
-    // 900ms of cascade, plus the beat.
+    /**
+     * The beat, plus the whole cascade.
+     *
+     * This ran for 900ms, which was shorter than the cascade it was covering:
+     * the board's last row does not land until 1870ms (160ms of surface lead,
+     * the toolbar at 80, twelve lanes 90 apart, 550 each - see
+     * `cascade-rows`). Ending early dropped the board back to its resting
+     * state mid-flight and the remaining rows snapped into place.
+     */
     const end = setTimeout(() => {
       setState('idle');
       done.current?.();
-    }, 280 + 900);
+    }, 280 + 1900);
 
     const finishNow = () => {
       clearTimeout(start);
