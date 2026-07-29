@@ -1,0 +1,211 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// Print report. Built to design_handoff_print_report/.
+//
+// The frame is `.acc-sheet` (see _sheet.scss), shared with the student sheets
+// and settings. What follows is only what is inside it: the two scope cards,
+// the date row, the period chips and the review card.
+//
+// It was one 560px modal holding all of that at once, which put the least
+// reversible thing in the app - a compliance record someone will sign - behind
+// its most crowded screen.
+// ---------------------------------------------------------------------------
+
+.acc-print {
+  // Each step is one question, centred on the frame.
+  &__pane {
+    align-items: center;
+    text-align: center;
+  }
+
+  // --- Coverage ------------------------------------------------------------
+
+  &__scopes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--acc-space-3);
+    inline-size: 100%;
+  }
+
+  /**
+   * A choice you can see the state of.
+   *
+   * Filled when chosen rather than merely ringed: this is the one answer on the
+   * screen, and a border alone left the two cards near enough identical that
+   * the reading was "which of these did I pick" rather than "this one".
+   */
+  &__scope {
+    @include motion.interactive(border-color, background-color);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--acc-space-6) var(--acc-space-5);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    text-align: start;
+
+    &:hover {
+      border-color: var(--acc-accent);
+    }
+
+    &--on {
+      border-color: var(--acc-accent);
+      background: var(--acc-accent-soft);
+    }
+  }
+
+  &__scope-title {
+    font-size: var(--acc-fs-subhead);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__scope-hint {
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__range {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--acc-space-2);
+    animation: acc-sheet-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
+  }
+
+  &__dates {
+    display: flex;
+    justify-content: center;
+    gap: var(--acc-space-3);
+  }
+
+  &__datefield {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-1);
+    text-align: start;
+  }
+
+  &__date {
+    block-size: 40px;
+    inline-size: 200px;
+    padding: 0 var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
+    outline: none;
+    box-sizing: border-box;
+    @include motion.interactive(border-color, box-shadow);
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  // The one message on this screen that is a correction rather than a note.
+  &__invalid {
+    margin: 0;
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-danger);
+  }
+
+  // --- Periods -------------------------------------------------------------
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--acc-space-2);
+  }
+
+  // --- Review --------------------------------------------------------------
+
+  /**
+   * What reaches the paper, before it does.
+   *
+   * The old modal said it in one line under the controls; a signed compliance
+   * record deserves to be read back in full first.
+   */
+  &__card {
+    inline-size: 100%;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    box-shadow: var(--acc-shadow-raised);
+    overflow: hidden;
+    text-align: start;
+  }
+
+  &__cardhead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-1);
+    padding: var(--acc-space-5) var(--acc-space-6) var(--acc-space-4);
+  }
+
+  &__rangeline {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  &__range-label {
+    flex: 1;
+    min-inline-size: 0;
+    font-size: 17px;
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__cardbody {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--acc-space-4) var(--acc-space-6) var(--acc-space-5);
+    border-block-start: 1px solid var(--acc-border);
+    background: var(--acc-bg);
+  }
+
+  &__what {
+    margin: 0;
+    font-size: var(--acc-fs-sub);
+    line-height: 1.5;
+    color: var(--acc-fg-muted);
+  }
+
+  // Amber, never danger red: an empty range is a fact about the dates, not a
+  // failure by the teacher.
+  &__empty {
+    margin: 0;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-warning-soft);
+    color: var(--acc-warning);
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    text-align: start;
+  }
+
+  &__error {
+    margin: 0;
+    padding: var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface-sunken);
+    color: var(--acc-danger);
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    text-align: start;
+  }
+
+  // Save and Print, as one group at the end of the footer row.
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+  }
+}

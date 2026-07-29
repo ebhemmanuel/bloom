@@ -143,7 +143,7 @@ function AppShell() {
         id: 'file',
         label: 'File',
         items: [
-          { label: 'Print report', onSelect: () => setModal('print') },
+          { label: 'Print report', onSelect: () => openScene('print') },
           { separator: true },
           { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
           { label: 'Save a copy', onSelect: () => dataBridge.exportBackup() },
@@ -305,7 +305,9 @@ function AppShell() {
         )}
         {modal === 'catalog' && <CatalogModal onClose={() => setModal(null)} />}
         {modal === 'copy' && <CopyAccommodationsModal onClose={() => setModal(null)} />}
-        {modal === 'print' && <PrintReportModal onClose={() => setModal(null)} />}
+        {modal === 'print' && (
+          <PrintReportModal background={background} leaving={sceneLeaving} onClose={closeScene} />
+        )}
 
         {modal === 'about' && (
           <AboutBloom
