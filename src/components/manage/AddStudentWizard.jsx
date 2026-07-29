@@ -394,7 +394,7 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
             )}
           </div>
         ) : step === 1 ? (
-          <div className="acc-sheet__pane acc-wiz__pane--wide">
+          <div className="acc-sheet__pane acc-sheet__pane--wide">
             <div className="acc-sheet__intro acc-sheet__intro--center">
               <h1 className="acc-sheet__title">Class details</h1>
               <p className="acc-sheet__sub">
@@ -489,7 +489,7 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
             </div>
           </div>
         ) : step === 2 ? (
-          <div className="acc-sheet__pane acc-wiz__pane--wide">
+          <div className="acc-sheet__pane acc-sheet__pane--wide">
             <div className="acc-sheet__intro">
               <h1 className="acc-sheet__title">
                 {isMulti ? 'Their accommodations' : 'How do you want to add their accommodations?'}

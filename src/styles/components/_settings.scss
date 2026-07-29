@@ -1,0 +1,292 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// Settings. Built to design_handoff_settings_redesign/.
+//
+// The frame is `.acc-sheet` (see _sheet.scss), shared with the add-student
+// wizard and day notes. What follows is only what is inside it: the header
+// tabs, the three sections, and the reminder switches.
+//
+// The tabs are the wizard's progress dots grown into labelled pills. They are
+// the same object doing a different job: settings is not a sequence, so each
+// one has to say where it goes rather than only how far along you are.
+// ---------------------------------------------------------------------------
+
+.acc-set {
+  &__tabs {
+    position: absolute;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__tab {
+    @include motion.interactive(background-color, color);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    block-size: 26px;
+    padding: 0 var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    background: transparent;
+    color: var(--acc-fg-muted);
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+
+    &:hover:not(&--on) {
+      color: var(--acc-fg);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+      color: var(--acc-accent);
+      font-weight: var(--acc-fw-semibold);
+    }
+  }
+
+  &__tabdot {
+    flex: none;
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-border-strong);
+    transition: background-color var(--acc-dur-fast) var(--acc-ease-standard);
+  }
+
+  &__tab--on &__tabdot {
+    background: var(--acc-accent);
+  }
+
+  // --- Sections ------------------------------------------------------------
+
+  // A little more air than the wizard's steps: these are groups of settings
+  // rather than one question at a time.
+  &__pane {
+    gap: var(--acc-space-6);
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+  }
+
+  &__label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-tiny);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--acc-space-1);
+
+    &--end {
+      justify-content: flex-end;
+    }
+
+    // Single characters and two-digit numbers in the same row, so they are
+    // sized to the widest rather than to their own content.
+    &--grades .acc-chip {
+      min-inline-size: 28px;
+      justify-content: center;
+      padding-inline: var(--acc-space-2);
+    }
+  }
+
+  // --- You -----------------------------------------------------------------
+
+  /**
+   * Name, school and room on one row, in the proportion they print in.
+   *
+   * They were two separate sections - a page for the name and a page for the
+   * school - which is a lot of navigation for three fields that together make
+   * one line of a report header.
+   */
+  &__ids {
+    display: grid;
+    grid-template-columns: 1fr 180px 90px;
+    gap: var(--acc-space-2);
+  }
+
+  &__input {
+    min-inline-size: 0;
+    block-size: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
+    outline: none;
+    box-sizing: border-box;
+    @include motion.interactive(border-color, box-shadow);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+
+    &:hover:not(:focus):not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    // The one you actually read on the report.
+    &--name {
+      padding-inline: var(--acc-space-4);
+      font-size: var(--acc-fs-subhead);
+    }
+  }
+
+  // The wizard's step-2 layout: a true half each, with the rule counted as its
+  // own column so neither side is a pixel wider than the other.
+  &__split {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: var(--acc-space-6);
+    align-items: stretch;
+  }
+
+  &__rule {
+    inline-size: 1px;
+    background: linear-gradient(to bottom, transparent, var(--acc-border-strong), transparent);
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+
+    // Right-aligned so the two halves meet at the rule rather than both running
+    // away from it.
+    &--end {
+      align-items: flex-end;
+      text-align: end;
+    }
+  }
+
+  &__newsubj {
+    block-size: 28px;
+    inline-size: 120px;
+    padding: 0 var(--acc-space-3);
+    border: 1px solid var(--acc-accent);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--acc-accent-soft);
+  }
+
+  // --- Your day ------------------------------------------------------------
+
+  &__toggles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+  }
+
+  /**
+   * The whole row is the switch.
+   *
+   * A 36px target beside a paragraph explaining it is a small thing to hit for
+   * a setting whose own description is the reason you are turning it on.
+   */
+  &__toggle {
+    @include motion.interactive(border-color, background-color);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    inline-size: 100%;
+    padding: var(--acc-space-3) 14px;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    text-align: start;
+
+    &:hover:not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &--on {
+      border-color: var(--acc-accent);
+      background: #faf8ff;
+
+      &:hover:not(:disabled) {
+        border-color: var(--acc-accent);
+      }
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__toggle-text {
+    flex: 1;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__toggle-title {
+    font-size: var(--acc-fs-card);
+    font-weight: var(--acc-fw-medium);
+  }
+
+  &__toggle-body {
+    font-size: var(--acc-fs-tiny);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__track {
+    flex: none;
+    display: inline-block;
+    inline-size: 36px;
+    block-size: 20px;
+    padding: 2px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-border-strong);
+    box-sizing: border-box;
+    transition: background-color var(--acc-dur-fast) var(--acc-ease-standard);
+  }
+
+  &__toggle--on &__track {
+    background: var(--acc-accent);
+  }
+
+  &__knob {
+    display: block;
+    inline-size: 16px;
+    block-size: 16px;
+    border-radius: var(--acc-radius-pill);
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(42, 36, 56, 0.2);
+    transition: transform var(--acc-dur-fast) var(--acc-ease-entrance);
+  }
+
+  &__toggle--on &__knob {
+    transform: translateX(16px);
+  }
+}

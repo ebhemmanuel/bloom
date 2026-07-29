@@ -150,7 +150,7 @@ function AppShell() {
           { separator: true },
           // Where a desktop app puts it. This replaces the avatar button, which
           // spent a permanent slot in the bar on something opened once a term.
-          { label: 'Settings', onSelect: () => toggle('settings') },
+          { label: 'Settings', onSelect: () => openScene('settings') },
           { separator: true },
           {
             label: 'Save and exit',
@@ -256,7 +256,6 @@ function AppShell() {
 
         {palette.open && <CommandPalette onClose={palette.close} />}
 
-        {openPanel === 'settings' && <ProfileModal onClose={close} />}
         {openPanel === 'notifications' && (
           <NotificationsPanel
             notifications={notifications}
@@ -285,6 +284,10 @@ function AppShell() {
             you sit down to write, not something you jot in a corner card. */}
         {modal === 'daynotes' && (
           <DayNotesPanel background={background} leaving={sceneLeaving} onClose={closeScene} />
+        )}
+
+        {modal === 'settings' && (
+          <ProfileModal background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
         {modal === 'students' && (

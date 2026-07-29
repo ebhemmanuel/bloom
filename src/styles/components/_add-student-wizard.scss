@@ -57,12 +57,6 @@
 
   // --- Body ----------------------------------------------------------------
 
-  // The two-column class-details step needs the extra measure; every other step
-  // takes the sheet's own 620px.
-  &__pane--wide {
-    --acc-sheet-pane: 680px;
-  }
-
   // The success screen's heading, which is a confirmation rather than a
   // question and does not need the full 28px.
   &__title--done {

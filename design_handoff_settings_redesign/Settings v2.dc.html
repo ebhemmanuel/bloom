@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,textarea,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div data-screen-label="Settings v2" style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+  <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px">
+    <div style="width:min(900px,96vw);height:min(660px,92vh);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.28);overflow:hidden">
+
+      <div style="position:relative;display:flex;align-items:center;justify-content:flex-end;padding:20px 28px 0;flex:none">
+        <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px" role="tablist" aria-label="Settings sections">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.onClick }}" aria-selected="{{ t.on }}" role="tab" style="{{ t.style }}">
+              <span style="{{ t.dotStyle }}"></span>{{ t.label }}
+            </button>
+          </sc-for>
+        </div>
+        <button aria-label="Close" style="color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;display:flex;justify-content:center">
+
+        <sc-if value="{{ isYou }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="You" style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:24px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">You, on the printed report</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">Everything here is the header of every report you sign. None of it affects your totals.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;font-weight:500">What should we call you?</span>
+              <div style="display:grid;grid-template-columns:1fr 180px 90px;gap:8px">
+                <input value="{{ profName }}" onChange="{{ setProfName }}" placeholder="Ms. Rivera" aria-label="Your name" style="min-width:0;height:44px;padding:0 16px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:15px;outline:none" style-hover="border-color:#d6d0e2" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+                <input value="{{ school }}" onChange="{{ setSchool }}" placeholder="School" aria-label="School" style="min-width:0;height:44px;padding:0 14px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none" style-hover="border-color:#d6d0e2" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+                <input value="{{ room }}" onChange="{{ setRoom }}" placeholder="Rm" aria-label="Room" style="min-width:0;height:44px;padding:0 14px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none" style-hover="border-color:#d6d0e2" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+              </div>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">Prints as &ldquo;{{ printLine }}&rdquo; at the top of every report.</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:24px;align-items:stretch">
+              <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right">
+                <span style="font-size:12px;font-weight:500">What do you teach?</span>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center">
+                  <sc-for list="{{ subjectChips }}" as="c" hint-placeholder-count="10">
+                    <button onClick="{{ c.onClick }}" aria-pressed="{{ c.on }}" style="{{ c.style }}">{{ c.label }}</button>
+                  </sc-for>
+                  <sc-if value="{{ addingSubj }}" hint-placeholder-val="{{ false }}">
+                    <input value="{{ newSubj }}" onChange="{{ setNewSubj }}" onKeyDown="{{ newSubjKey }}" autoFocus="{{ true }}" placeholder="Journalism" aria-label="Add another subject" style="height:28px;width:120px;padding:0 12px;border:1px solid #5b4bd6;border-radius:999px;background:#fff;font-size:12px;outline:none;box-shadow:0 0 0 3px #eeebfd">
+                  </sc-if>
+                  <sc-if value="{{ notAddingSubj }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ startAddSubj }}" title="Add another subject" aria-label="Add another subject" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:13px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">+</button>
+                  </sc-if>
+                </div>
+                <span style="font-size:11px;color:#6b6480;line-height:1.45">Pick as many as you teach. Use + for anything not listed.</span>
+              </div>
+              <div style="width:1px;background:linear-gradient(to bottom,transparent,#d6d0e2,transparent)"></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:12px;font-weight:500">Which grades?</span>
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  <sc-for list="{{ gradeChips }}" as="c" hint-placeholder-count="13">
+                    <button onClick="{{ c.onClick }}" aria-pressed="{{ c.on }}" style="{{ c.style }}">{{ c.label }}</button>
+                  </sc-for>
+                </div>
+                <span style="font-size:11px;color:#6b6480;line-height:1.45">Used on the report header and for suggested catalogs - nothing else.</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDay }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Your day" style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:24px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">Your day</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">When the day closes out, and what Bloom says to you along the way.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;font-weight:500">End of school day</span>
+              <sc-if value="{{ endTimeChips }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  <sc-for list="{{ timeChips }}" as="c" hint-placeholder-count="6">
+                    <button onClick="{{ c.onClick }}" aria-pressed="{{ c.on }}" style="{{ c.style }}">{{ c.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ endTimeField }}" hint-placeholder-val="{{ false }}">
+                <input type="time" value="{{ endTime }}" onChange="{{ setEndTime }}" aria-label="End of school day" style="height:40px;max-width:150px;padding:0 12px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+              </sc-if>
+              <span style="font-size:11px;color:#6b6480;line-height:1.45">After this, anything still unassigned shows as Not Used. Today stays editable until the date rolls over.</span>
+            </div>
+            <sc-if value="{{ showReminders }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:12px;font-weight:500">Reminders</span>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ reminderRows }}" as="r" hint-placeholder-count="3">
+                    <button onClick="{{ r.onClick }}" aria-pressed="{{ r.on }}" style="{{ r.style }}">
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left">
+                        <span style="font-size:13px;font-weight:500">{{ r.title }}</span>
+                        <span style="font-size:11px;color:#6b6480;line-height:1.45">{{ r.body }}</span>
+                      </span>
+                      <span aria-hidden="true" style="{{ r.trackStyle }}">
+                        <span style="{{ r.knobStyle }}"></span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+                <span style="font-size:11px;color:#6b6480;line-height:1.45">All off unless you turn them on. Nothing here is ever urgent.</span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLook }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Appearance" style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:24px;padding:32px;margin:auto;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">The scene behind the board</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.45;text-wrap:pretty">Three weathers, same room. The board itself stays clean white on all of them.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <sc-for list="{{ scenes }}" as="b" hint-placeholder-count="3">
+                <button onClick="{{ b.onClick }}" aria-pressed="{{ b.on }}" style="{{ b.style }}">
+                  <span aria-hidden="true" style="{{ b.swatchStyle }}" style-after="content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 22% 68%,rgba(255,255,255,0.95) 0 2px,transparent 2px),radial-gradient(circle at 54% 34%,rgba(255,255,255,0.85) 0 1.5px,transparent 1.5px),radial-gradient(circle at 78% 58%,rgba(255,255,255,0.9) 0 2px,transparent 2px)"></span>
+                  <span style="display:flex;align-items:center;gap:6px;padding:0 4px">
+                    <span style="font-size:12px;font-weight:500;color:#2a2438">{{ b.label }}</span>
+                    <sc-if value="{{ b.on }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:10px;font-weight:600;color:#5b4bd6">&#10003;</span>
+                    </sc-if>
+                  </span>
+                  <span style="font-size:10px;color:#9a93a8;line-height:1.45;padding:0 4px 4px">{{ b.hint }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <span style="font-size:11px;color:#6b6480;line-height:1.45">Calm is the scene setup opens in, so the board arrives in the room you started in rather than changing it as it appears.</span>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;border-top:1px solid #e9e5f0;flex:none">
+        <div style="min-width:64px"></div>
+        <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:12px;color:#6b6480;opacity:0.65;white-space:nowrap">{{ tipText }}</div>
+        <button style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Done</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;dayEndControl&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;chips&quot;,&quot;time-field&quot;],&quot;default&quot;:&quot;chips&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Your day&quot;},&quot;showReminders&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Your day&quot;}}">
+class Component extends DCLogic {
+  state = {
+    section: 'you',
+    profName: 'Ms. Rivera', school: 'Northside Middle', room: '214',
+    subjects: ['Mathematics'], grades: ['7', '8'],
+    addingSubj: false, newSubj: '',
+    endTime: '16:00', reminders: { morning: false, details: false, weekly: false },
+    scene: 'aurora',
+  };
+
+  SECTIONS = [
+    { id: 'you', label: 'You' },
+    { id: 'day', label: 'Your day' },
+    { id: 'look', label: 'Appearance' },
+  ];
+  SUBJECTS = ['Mathematics', 'English / ELA', 'Science', 'Social Studies', 'Special Education', 'World Languages', 'Art', 'Music', 'Physical Education', 'Technology'];
+  GRADES = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  TIMES = [['14:30', '2:30'], ['15:00', '3:00'], ['15:30', '3:30'], ['16:00', '4:00'], ['16:30', '4:30'], ['17:00', '5:00']];
+  REMINDERS = [
+    { id: 'morning', title: 'A gentle morning check-in', body: 'One quiet note at the start of the day. Never urgent.' },
+    { id: 'details', title: 'Details, before you close out', body: 'Only if a card says \u2018used with detail\u2019 and nothing\u2019s written yet.' },
+    { id: 'weekly', title: 'A weekly recap', body: 'A short summary of the week, ready when reports are due.' },
+  ];
+  SCENES = [
+    { id: 'aurora', label: 'Aurora', hint: 'The standard scene', grad: 'linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%)' },
+    { id: 'calm', label: 'Calm', hint: 'Paler, on a slower cycle', grad: 'linear-gradient(115deg,#f4efff 0%,#fdf3f7 30%,#faf6ee 55%,#eff7f3 80%,#f0f2fd 100%)' },
+    { id: 'drift', label: 'Drift', hint: 'Blooms pan as one', grad: 'linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%)' },
+  ];
+  TIPS = {
+    you: 'Everything here saves as it changes - close whenever.',
+    day: 'Applies from today. Sealed days never change.',
+    look: 'Changes the scene immediately.',
+  };
+
+  chip(on, opts) {
+    return Object.assign({
+      display: 'inline-flex', alignItems: 'center', gap: '4px', height: '28px', padding: '0 12px',
+      borderRadius: '999px', border: '1px solid ' + (on ? '#5b4bd6' : '#e9e5f0'),
+      background: on ? '#eeebfd' : '#fff', color: on ? '#5b4bd6' : '#6b6480',
+      fontSize: '12px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
+    }, opts || {});
+  }
+
+  renderVals() {
+    const s = this.state;
+    const showReminders = this.props.showReminders ?? true;
+    const endControl = this.props.dayEndControl ?? 'chips';
+    const toggle = (key, v) => this.setState((st) => ({ [key]: st[key].includes(v) ? st[key].filter((x) => x !== v) : [...st[key], v] }));
+    const extras = s.subjects.filter((x) => !this.SUBJECTS.includes(x));
+    const timeLabel = (this.TIMES.find(([v]) => v === s.endTime) || [])[1];
+
+    return {
+      tabs: this.SECTIONS.map((t) => {
+        const on = t.id === s.section;
+        return {
+          label: t.label, on,
+          onClick: () => this.setState({ section: t.id }),
+          style: {
+            display: 'inline-flex', alignItems: 'center', gap: '6px', height: '26px', padding: '0 12px',
+            borderRadius: '999px', background: on ? '#eeebfd' : 'transparent',
+            color: on ? '#5b4bd6' : '#6b6480', fontSize: '12px', fontWeight: on ? 600 : 500,
+            transition: 'background-color 160ms cubic-bezier(0.65,0,0.35,1), color 160ms cubic-bezier(0.65,0,0.35,1)', cursor: 'pointer',
+          },
+          dotStyle: { width: '6px', height: '6px', borderRadius: '999px', background: on ? '#5b4bd6' : '#d6d0e2', transition: 'background-color 160ms', flex: 'none' },
+        };
+      }),
+      isYou: s.section === 'you', isDay: s.section === 'day', isLook: s.section === 'look',
+      tipText: this.TIPS[s.section],
+
+      profName: s.profName, setProfName: (e) => this.setState({ profName: e.target.value }),
+      school: s.school, setSchool: (e) => this.setState({ school: e.target.value }),
+      room: s.room, setRoom: (e) => this.setState({ room: e.target.value }),
+      printLine: (s.profName.trim() || 'Ms. Rivera')
+        + (s.school.trim() ? ' \u00b7 ' + s.school.trim() : '')
+        + (s.room.trim() ? ', Rm ' + s.room.trim() : ''),
+
+      subjectChips: [...this.SUBJECTS.map((o) => ({ label: o, on: s.subjects.includes(o), onClick: () => toggle('subjects', o), style: this.chip(s.subjects.includes(o)) })),
+        ...extras.map((o) => ({ label: o + ' \u00d7', on: true, onClick: () => toggle('subjects', o), style: this.chip(true) }))],
+      addingSubj: s.addingSubj, notAddingSubj: !s.addingSubj,
+      startAddSubj: () => this.setState({ addingSubj: true, newSubj: '' }),
+      newSubj: s.newSubj,
+      setNewSubj: (e) => this.setState({ newSubj: e.target.value }),
+      newSubjKey: (e) => {
+        if (e.key === 'Escape') this.setState({ addingSubj: false, newSubj: '' });
+        if (e.key === 'Enter') {
+          const v = s.newSubj.trim();
+          if (v && !s.subjects.some((x) => x.toLowerCase() === v.toLowerCase())) this.setState({ subjects: [...s.subjects, v], addingSubj: false, newSubj: '' });
+          else this.setState({ addingSubj: false, newSubj: '' });
+        }
+      },
+      gradeChips: this.GRADES.map((o) => ({ label: o, on: s.grades.includes(o), onClick: () => toggle('grades', o), style: this.chip(s.grades.includes(o), { minWidth: '28px', justifyContent: 'center', padding: '0 8px' }) })),
+
+      endTimeChips: endControl === 'chips', endTimeField: endControl === 'time-field',
+      timeChips: this.TIMES.map(([value, label]) => ({
+        label, on: s.endTime === value,
+        onClick: () => this.setState({ endTime: value }),
+        style: this.chip(s.endTime === value, { height: '40px', padding: '0 16px', fontSize: '13px' }),
+      })),
+      endTime: s.endTime, setEndTime: (e) => this.setState({ endTime: e.target.value }),
+
+      showReminders,
+      reminderRows: this.REMINDERS.map((r) => {
+        const on = !!s.reminders[r.id];
+        return {
+          title: r.title, body: r.body, on,
+          onClick: () => this.setState((st) => ({ reminders: { ...st.reminders, [r.id]: !st.reminders[r.id] } })),
+          style: {
+            display: 'flex', alignItems: 'center', gap: '14px', width: '100%', padding: '12px 14px',
+            border: '1px solid ' + (on ? '#5b4bd6' : '#e9e5f0'), borderRadius: '8px',
+            background: on ? '#faf8ff' : '#fff', textAlign: 'left', cursor: 'pointer',
+            transition: 'border-color 160ms cubic-bezier(0.65,0,0.35,1), background-color 160ms cubic-bezier(0.65,0,0.35,1)',
+          },
+          trackStyle: {
+            flex: 'none', display: 'inline-block', width: '36px', height: '20px', borderRadius: '999px', padding: '2px',
+            background: on ? '#5b4bd6' : '#d6d0e2', transition: 'background-color 160ms cubic-bezier(0.65,0,0.35,1)',
+          },
+          knobStyle: {
+            display: 'block', width: '16px', height: '16px', borderRadius: '999px', background: '#fff',
+            boxShadow: '0 1px 2px rgba(42,36,56,0.2)',
+            transform: on ? 'translateX(16px)' : 'none', transition: 'transform 160ms cubic-bezier(0.16,1,0.3,1)',
+          },
+        };
+      }),
+
+      scenes: this.SCENES.map((b) => {
+        const on = s.scene === b.id;
+        return {
+          label: b.label, hint: b.hint, on, onClick: () => this.setState({ scene: b.id }),
+          style: {
+            display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '6px', padding: '8px',
+            border: '1px solid ' + (on ? '#5b4bd6' : '#e9e5f0'), borderRadius: '14px', background: '#fff', textAlign: 'left',
+            boxShadow: on ? '0 0 0 3px #eeebfd' : 'none',
+            transition: 'border-color 160ms cubic-bezier(0.65,0,0.35,1), box-shadow 160ms cubic-bezier(0.65,0,0.35,1)', cursor: 'pointer',
+          },
+          swatchStyle: { position: 'relative', display: 'block', height: '64px', borderRadius: '8px', overflow: 'hidden', backgroundImage: b.grad, backgroundSize: '180% 180%' },
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -150,6 +150,11 @@
     max-inline-size: var(--acc-sheet-pane, 620px);
     padding: var(--acc-space-7);
     box-sizing: border-box;
+
+    // For the views that carry two columns rather than one.
+    &--wide {
+      --acc-sheet-pane: 680px;
+    }
   }
 
   &__intro {
