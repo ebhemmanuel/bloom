@@ -328,6 +328,7 @@ export default function OnboardingFlow({ needsLocation }) {
               setEditingId(id);
               go('accom');
             }}
+            onBack={() => go('set')}
             onBoard={finish}
           />
         );

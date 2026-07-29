@@ -125,6 +125,32 @@
     }
   }
 
+  /**
+   * The name group with a commit button beside it.
+   *
+   * The wizard has no such button - Next carries you on - but setup adds
+   * student after student on one screen, so the field needs somewhere to send
+   * them. `align-items: stretch` makes the button exactly as tall as the group
+   * without either of them naming a height.
+   */
+  &__addrow {
+    display: flex;
+    align-items: stretch;
+    gap: var(--acc-space-2);
+
+    .acc-wiz__namegroup {
+      flex: 1;
+      min-inline-size: 0;
+    }
+  }
+
+  &__addbtn {
+    flex: none;
+    block-size: auto;
+    min-inline-size: 96px;
+    justify-content: center;
+  }
+
   &__nameinput {
     flex: 1;
     min-inline-size: 0;

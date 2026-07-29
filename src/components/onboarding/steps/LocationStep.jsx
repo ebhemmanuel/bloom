@@ -28,7 +28,7 @@ export default function LocationStep({ onChoose, busy, error }) {
 
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-sheet__dialog">
+      <div className="acc-sheet__dialog acc-sheet__dialog--wide">
         <div className="acc-sheet__body">
           <div className="acc-sheet__view">
             <div className="acc-sheet__pane">

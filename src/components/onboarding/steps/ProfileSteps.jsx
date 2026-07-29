@@ -24,7 +24,14 @@ import {
 function Card({ wide, centerIntro, title, note, children, footer }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className={`acc-sheet__dialog${wide ? ' acc-sheet__dialog--wide' : ''}`}>
+      {/*
+        Always the wide frame, whatever the step holds. Setup is one window a
+        teacher watches for two minutes, and a card that grew for the subjects
+        screen and shrank again for the next one made it look like three
+        different dialogs. `wide` is only the measure of the COLUMN inside it
+        now - the same 900x660 the add-student sheet uses.
+      */}
+      <div className="acc-sheet__dialog acc-sheet__dialog--wide">
         <div className="acc-sheet__body">
           <div className="acc-sheet__view">
             <div className={`acc-sheet__pane${wide ? ' acc-sheet__pane--wide' : ''}`}>
@@ -75,7 +82,12 @@ function Chip({ on, onClick, children, wide }) {
 
 function Next({ onClick, disabled, children = 'Continue' }) {
   return (
-    <button type="button" className="acc-btn acc-btn--primary" onClick={onClick} disabled={disabled}>
+    <button
+      type="button"
+      className="acc-btn acc-btn--primary"
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
@@ -298,7 +310,7 @@ export function DayStep({ endTime, reminders, onPickTime, onToggleReminder, onBa
 export function SetStep({ summary, onRoster, onBoard }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-sheet__dialog">
+      <div className="acc-sheet__dialog acc-sheet__dialog--wide">
         <div className="acc-sheet__body">
           <div className="acc-sheet__view">
             {/* The wizard's done state, worn by the summary: centred, actions
