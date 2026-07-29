@@ -328,6 +328,22 @@ export default function OnboardingFlow({ needsLocation }) {
               setEditingId(id);
               go('accom');
             }}
+            /*
+              The two shared screens of the add-student flow, answered once for
+              everyone named. Unioned rather than assigned over: a period or a
+              support chosen for one student from the list survives the shared
+              answer.
+            */
+            onApplyToAll={({ periods: chosen, accoms }) =>
+              setAnswers((a) => ({
+                ...a,
+                students: a.students.map((s) => ({
+                  ...s,
+                  periods: [...new Set([...(s.periods || []), ...chosen])].sort((x, y) => x - y),
+                  accoms: [...new Set([...(s.accoms || []), ...accoms])],
+                })),
+              }))
+            }
             onBack={() => go('set')}
             onBoard={finish}
           />

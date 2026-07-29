@@ -67,6 +67,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--acc-space-2);
+
+    // A field that is the only thing on its screen, under a centred heading.
+    &--center {
+      align-items: center;
+      text-align: center;
+    }
   }
 
   &__label {
@@ -95,6 +101,11 @@
 
     &--end {
       justify-content: flex-end;
+    }
+
+    // Under a centred heading, on the setup screens that ask one thing.
+    &--center {
+      justify-content: center;
     }
 
     &--card {
