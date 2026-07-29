@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AmbientScene from '../shared/AmbientScene.jsx';
+import Caret from '../shared/Caret.jsx';
+import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import {
@@ -87,9 +89,25 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
 
   const nextDisabled = step === 0 && names.length === 0;
 
+  const [planOpen, setPlanOpen] = useState(false);
+  const closePlan = useCallback(() => setPlanOpen(false), []);
+  const planRef = usePopoverDismiss(planOpen, closePlan);
+
+  /**
+   * Escape closes the plan menu first, and the wizard only once it is shut.
+   *
+   * Read through a ref rather than the state: both listeners fire inside the
+   * same keypress, and the menu's own handler has not re-rendered yet by the
+   * time this one runs - so the state still says open, which is exactly what
+   * this needs it to say.
+   */
+  const planOpenRef = useRef(false);
+  planOpenRef.current = planOpen;
+
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Escape' || planOpenRef.current) return;
+      onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -299,38 +317,52 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
                       aria-label="Student name"
                       autoFocus
                     />
-                    <span className={`acc-wiz__planwrap acc-wiz__planwrap--${planClass}`}>
-                      <select
+                    {/*
+                      A button and a menu, not a native select. Every other
+                      chooser in the app opens the same panel of rows with a
+                      tick beside the current one, and the OS dropdown this
+                      used to raise was the one control that looked like it
+                      came from somewhere else.
+                    */}
+                    <span
+                      className={`acc-wiz__planwrap acc-wiz__planwrap--${planClass}`}
+                      ref={planRef}
+                    >
+                      <button
+                        type="button"
                         className="acc-wiz__plan"
-                        value={plan}
-                        onChange={(e) => setPlan(e.target.value)}
-                        aria-label="Plan type"
+                        onClick={() => setPlanOpen((o) => !o)}
+                        aria-haspopup="menu"
+                        aria-expanded={planOpen}
+                        aria-label={`Plan type: ${plan}`}
                         title="Plan type"
                       >
-                        {PLAN_TYPES.map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </select>
-                      {/* Drawn rather than a background image, so it can take the
-                          plan colour from the wrapper. */}
-                      <svg
-                        className="acc-wiz__plancaret"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M2.5 4.5 6 8l3.5-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                        {plan}
+                        <Caret up={planOpen} />
+                      </button>
+
+                      {planOpen && (
+                        <div className="acc-wiz__planmenu acc-enter" role="menu">
+                          {PLAN_TYPES.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={p === plan}
+                              className={`acc-wiz__planrow${
+                                p === plan ? ' acc-wiz__planrow--on' : ''
+                              }`}
+                              onClick={() => {
+                                setPlan(p);
+                                setPlanOpen(false);
+                              }}
+                            >
+                              <span className="acc-wiz__plancheck">{p === plan ? '✓' : ''}</span>
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </span>
                   </div>
                   <span className="acc-wiz__hint">

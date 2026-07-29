@@ -253,7 +253,9 @@
     border: 1px solid var(--acc-border);
     border-radius: var(--acc-radius-md);
     background: var(--acc-surface);
-    overflow: hidden;
+    // Deliberately NOT `overflow: hidden`, which is how the handoff clips the
+    // plan fill to the corner: the plan menu opens below this row and would be
+    // cut off by it. The fill rounds its own end instead.
     @include motion.interactive(border-color, box-shadow);
 
     &:hover:not(:focus-within) {
@@ -288,6 +290,10 @@
     display: flex;
     align-items: stretch;
     border-inline-start: 1px solid var(--acc-border);
+    // One pixel inside the group's own 8px, so the fill follows the corner it
+    // sits in rather than squaring it off.
+    border-start-end-radius: 7px;
+    border-end-end-radius: 7px;
 
     &--iep {
       background: var(--acc-plan-iep-soft);
@@ -305,27 +311,79 @@
     }
   }
 
+  /**
+   * The trigger, centred on the field.
+   *
+   * The handoff draws this as a native select, left-padded 14px and
+   * right-padded 32px to clear the caret. Centring a label inside that box puts
+   * the word off the middle of the field, so the label and the caret are laid
+   * out as a row instead and the whole pair sits in the centre.
+   */
   &__plan {
-    appearance: none;
-    -webkit-appearance: none;
-    border: none;
-    outline: none;
-    padding: 0 32px 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--acc-space-2);
+    padding: 0 14px;
     background: transparent;
     color: inherit;
     font-size: var(--acc-fs-sub);
     font-weight: var(--acc-fw-semibold);
-    cursor: pointer;
+
+    // The shared chevron carries its own muted colour, and here it belongs to
+    // the plan rather than to the form.
+    .acc-caret {
+      color: inherit;
+    }
   }
 
-  // Drawn rather than a background image: an encoded SVG cannot read a custom
-  // property, and the arrow has to take the plan colour with everything else.
-  &__plancaret {
+  /**
+   * The app's own menu, not the operating system's.
+   *
+   * Same panel of rows with a tick beside the current one that the period
+   * filter and the day actions open. A native select popup was the one control
+   * in the wizard that looked like it came from somewhere else, and it could
+   * not carry the plan colours either.
+   */
+  &__planmenu {
     position: absolute;
-    inset-inline-end: 12px;
-    inset-block-start: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
+    z-index: 60;
+    inset-block-start: calc(100% + 6px);
+    inset-inline-end: 0;
+    inline-size: 148px;
+    padding: var(--acc-space-2);
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-md);
+    box-shadow: var(--acc-shadow-overlay);
+    text-align: start;
+  }
+
+  &__planrow {
+    @include motion.interactive(background-color, color);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg);
+    text-align: start;
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--on {
+      font-weight: var(--acc-fw-medium);
+    }
+  }
+
+  &__plancheck {
+    inline-size: 12px;
+    flex: none;
+    color: var(--acc-accent);
   }
 
   &__preview {
