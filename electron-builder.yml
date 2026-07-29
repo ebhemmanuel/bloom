@@ -26,7 +26,10 @@ win:
         - x64
   icon: build/icon.ico
   # Unsigned. District AppLocker / SmartScreen implications are documented in the README.
-  signAndEditExecutable: false
+  # signExecutable (not signAndEditExecutable) so the exe still gets the Bloom
+  # icon and version metadata stamped in; signAndEditExecutable: false would
+  # skip the icon along with the signature.
+  signExecutable: false
 
 portable:
   artifactName: 'Accommodations-Tracker.exe'

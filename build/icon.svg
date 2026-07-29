@@ -1,0 +1,24 @@
+<!-- The Bloom mark as a standalone asset for the app icon.
+     Geometry mirrors src/components/onboarding/BloomMark.jsx exactly:
+     five petals on a 72 degree rotation around (32,32), then the centre dot.
+     Colours are the light-theme petal tokens from _tokens.scss, baked in
+     because an .ico cannot resolve CSS custom properties.
+     Regenerate the .ico with: npx electron build/generate-icon.js -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <g transform="rotate(0 32 32)">
+    <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#b7a6f4"/>
+  </g>
+  <g transform="rotate(72 32 32)">
+    <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#f8aac9"/>
+  </g>
+  <g transform="rotate(144 32 32)">
+    <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#ffd39a"/>
+  </g>
+  <g transform="rotate(216 32 32)">
+    <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#96ddc1"/>
+  </g>
+  <g transform="rotate(288 32 32)">
+    <ellipse cx="32" cy="17" rx="9.5" ry="15" fill="#a9bcf7"/>
+  </g>
+  <circle cx="32" cy="32" r="7.5" fill="#5b4bd6"/>
+</svg>

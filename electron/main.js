@@ -38,7 +38,7 @@ function createWindow() {
     minHeight: 640,
     show: false,
     backgroundColor: '#101014',
-    title: 'Accommodations Tracker',
+    title: 'BLOOM',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import BloomMark from '../BloomMark.jsx';
 import useTilt from '../../../hooks/useTilt.js';
 
@@ -42,25 +43,69 @@ export function IntroStep({ onNext }) {
 
 const PROMISES = [
   {
+    id: 'board',
     title: 'One board for the day',
     body: "Move a card when support happens. That's the whole job.",
   },
   {
+    id: 'reports',
     title: 'Clean printed reports',
     body: 'Ready for IEP meetings, audits, and parent conferences.',
   },
   {
+    id: 'private',
     title: 'Private by design',
     body: 'Everything stays on this computer. Nothing is ever sent anywhere.',
   },
 ];
 
+/** Same pace as the About page's deck. See AboutBloom. */
+const AUTO_ADVANCE_MS = 9000;
+
+/**
+ * The welcome screen carries the About page's rotating deck rather than a grid
+ * of cards: one promise at a time, auto-advancing, with the slider dots at the
+ * bottom of the screen. The only difference from About is the CTA sitting
+ * under the rotating messages.
+ */
 export function WelcomeStep({ onNext }) {
   const tilt = useTilt();
+  const [index, setIndex] = useState(0);
+  const idle = useRef(null);
+
+  // Auto-advance, restarted by any manual move, exactly as AboutBloom does it:
+  // without the reset, clicking a dot could land you a fraction of a second
+  // before the timer fired and move you straight off it again.
+  const armIdle = useCallback(() => {
+    clearInterval(idle.current);
+    idle.current = setInterval(() => setIndex((i) => (i + 1) % PROMISES.length), AUTO_ADVANCE_MS);
+  }, []);
+
+  const go = useCallback(
+    (next) => {
+      setIndex(((next % PROMISES.length) + PROMISES.length) % PROMISES.length);
+      armIdle();
+    },
+    [armIdle]
+  );
+
+  useEffect(() => {
+    armIdle();
+    return () => clearInterval(idle.current);
+  }, [armIdle]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight') go(index + 1);
+      else if (e.key === 'ArrowLeft') go(index - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go, index]);
 
   return (
     <div className="acc-ob__screen">
-      <div className="acc-ob__column acc-ob__column--wide">
+      <div className="acc-ob__column">
         <div className="acc-ob__eyebrow-row">
           <BloomMark size={34} />
           <span className="acc-ob__brand">BLOOM</span>
@@ -70,17 +115,35 @@ export function WelcomeStep({ onNext }) {
           Bloom is a calm place to keep a daily record of the support you give your students. A few
           quiet minutes at the end of the day.
         </p>
-        <div className="acc-ob__promises">
-          {PROMISES.map((p) => (
-            <div key={p.title} className="acc-ob__promise">
-              <p className="acc-ob__promise-title">{p.title}</p>
-              <p className="acc-ob__promise-body">{p.body}</p>
-            </div>
+        <div className="acc-ob__deck">
+          {PROMISES.map((p, i) => (
+            <section
+              key={p.id}
+              className={`acc-ob__deck-slide acc-ob__deck-slide--${
+                i === index ? 'on' : i < index ? 'before' : 'after'
+              }`}
+              aria-hidden={i !== index}
+            >
+              <h2 className="acc-ob__deck-heading">{p.title}</h2>
+              <p className="acc-ob__deck-body">{p.body}</p>
+            </section>
           ))}
         </div>
         <button type="button" className="acc-ob__cta" ref={tilt} onClick={onNext}>
           Continue
         </button>
+      </div>
+      <div className="acc-ob__dots">
+        {PROMISES.map((p, i) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`acc-ob__dot${i === index ? ' acc-ob__dot--on' : ''}`}
+            aria-label={`Go to message ${i + 1}`}
+            aria-current={i === index ? 'true' : undefined}
+            onClick={() => go(i)}
+          />
+        ))}
       </div>
     </div>
   );

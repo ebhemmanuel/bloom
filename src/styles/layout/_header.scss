@@ -137,7 +137,7 @@
   // The same 0.2em the lockup wears on About. It sat at -0.01em here, so the
   // one word that appears on both screens was set two different ways.
   &__name {
-    font-size: var(--acc-fs-subhead);
+    font-size: 12px;
     font-weight: var(--acc-fw-semibold);
     letter-spacing: 0.2em;
     color: var(--acc-brand);

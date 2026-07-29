@@ -53,6 +53,19 @@ const CROSSFADE_MS = 560;
  */
 const OUTRO_MS = 3900;
 
+/**
+ * How long the outro takes to clear before the board arrives.
+ *
+ * It used to be cut away: the document was written, the route swapped, and the
+ * whole screen vanished in one frame with the board's cascade starting under
+ * nothing. The same 460ms fade the full-screen sheets leave on, so the handoff
+ * reads as one gesture rather than two screens changing places.
+ *
+ * Only the CONTENT fades. The aurora behind it is the same scene the board
+ * draws, and fading it would put a hole in the middle of the handoff.
+ */
+const OUTRO_FADE_MS = 460;
+
 /** "3, 4, 5" becomes "3-5". A list of thirteen grades is not a summary. */
 function summariseGrades(grades) {
   const idx = grades
@@ -78,6 +91,8 @@ export default function OnboardingFlow({ needsLocation }) {
   const [leaving, setLeaving] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  // The last beat of setup: the outro clearing before the board takes over.
+  const [outroLeaving, setOutroLeaving] = useState(false);
 
   const [answers, setAnswers] = useState({
     name: '',
@@ -133,19 +148,46 @@ export default function OnboardingFlow({ needsLocation }) {
   };
 
   /**
+   * The handover itself: writing the document swaps the route, so this is the
+   * exact frame setup stops existing.
+   *
+   * Guarded and held in a ref, because two things race to call it - the fade
+   * finishing and the timer behind it - and whichever arrives first should be
+   * the only one that lands. The ref keeps the timer's copy current with the
+   * answers rather than the ones that existed when it was scheduled.
+   */
+  const handedOver = useRef(false);
+  const handOver = () => {
+    if (handedOver.current) return;
+    handedOver.current = true;
+    setDoc(buildOnboardedDoc({ ...answers, termStart: todayKey() }, new Date()), {
+      firstRun: true,
+    });
+  };
+  const handOverRef = useRef(handOver);
+  handOverRef.current = handOver;
+
+  /**
    * Commit, then hand over.
    *
    * The document is written as the outro starts rather than after it, so the
    * three status lines describe work that is genuinely happening. If the write
    * were held until the end, the outro would be a loading screen for nothing.
+   *
+   * The outro CLEARS before the board takes over. It used to be cut: the route
+   * swapped in the same frame the document was written, so setup did not leave,
+   * it was deleted, and the board's cascade started under nothing.
+   *
+   * The fade's own end is what hands over - see `onAnimationEnd` on the stack -
+   * with a timer behind it for the case where no animation runs at all, which
+   * is what a hidden window does. Two timers 460ms apart would not survive
+   * that: a background tab clamps them into the same tick and the fade never
+   * gets a frame.
    */
   const finish = () => {
     go('outro');
-    after(() => {
-      setDoc(buildOnboardedDoc({ ...answers, termStart: todayKey() }, new Date()), {
-        firstRun: true,
-      });
-    }, OUTRO_MS);
+    after(() => setOutroLeaving(true), OUTRO_MS - OUTRO_FADE_MS);
+    after(() => handOverRef.current(), OUTRO_MS + 240);
   };
 
   const displayName = answers.name.trim() || 'Ms. Rivera';
@@ -340,10 +382,20 @@ export default function OnboardingFlow({ needsLocation }) {
   ];
 
   return (
-    <div className="acc-ob" data-phase={phase}>
+    <div className={`acc-ob${outroLeaving ? ' acc-ob--leaving' : ''}`} data-phase={phase}>
       <OnboardingAmbient phase={phase} />
 
-      <div className="acc-ob__stack">
+      {/*
+        The fade ending is the handover. `e.target === e.currentTarget` because
+        every status line and blooming petal inside this stack also ends an
+        animation here, and only this one means setup is done.
+      */}
+      <div
+        className="acc-ob__stack"
+        onAnimationEnd={(e) => {
+          if (outroLeaving && e.target === e.currentTarget) handOver();
+        }}
+      >
         {segment > 0 && (
           <div className="acc-ob__progress" role="presentation">
             {Array.from({ length: 6 }, (_, i) => (

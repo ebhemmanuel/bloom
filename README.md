@@ -58,6 +58,14 @@ npm run electron:build
 
 Produces `dist-electron/Accommodations-Tracker.exe` - a single portable file, no installer.
 
+The exe icon is the Bloom mark, packed into `build/icon.ico` from `build/icon.svg` (the same geometry as `BloomMark.jsx`, with the light-theme petal tokens baked in). To regenerate it after changing the mark:
+
+```bash
+npx electron build/generate-icon.js
+```
+
+The build config uses `signExecutable: false` rather than `signAndEditExecutable: false`; the exe stays unsigned, but the icon and version metadata are still stamped in.
+
 ---
 
 ## Architecture in one page
