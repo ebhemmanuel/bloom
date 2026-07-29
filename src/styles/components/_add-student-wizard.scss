@@ -604,9 +604,11 @@
    */
   &__find {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    // The rule is a column of its own, so both halves are exactly equal - the
+    // same shape the class-details step uses.
+    grid-template-columns: 1fr 1px 1fr;
     gap: var(--acc-space-5);
-    align-items: start;
+    align-items: stretch;
     // Inside the sheet's own fixed height, so a roster of forty scrolls here
     // rather than pushing the footer off the frame.
     max-block-size: 300px;
@@ -647,6 +649,18 @@
     padding-inline-start: var(--acc-space-3);
   }
 
+  /**
+   * The left-hand heading, facing the rule.
+   *
+   * `row-reverse` puts the pill against the middle with its count to the left
+   * of it, and packs the pair to that edge - so the two headings meet at the
+   * gradient instead of both running away from it.
+   */
+  &__group--end &__group-head {
+    flex-direction: row-reverse;
+    padding-inline: 0 var(--acc-space-3);
+  }
+
   &__group-count {
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-faint);
@@ -656,6 +670,46 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2px;
+  }
+
+  /**
+   * The plan's own colour, on its rows.
+   *
+   * Pointing at a name lights it in the colour of the pill heading its column,
+   * which makes that pill a key rather than a label: whatever you touch in the
+   * IEP half turns IEP blue, and the 504 half turns 504 violet. The generic
+   * grey hover said nothing about which column you were in.
+   */
+  &__group--iep &__found {
+    &:hover,
+    &.acc-wiz__found--on {
+      background: var(--acc-plan-iep-soft);
+      color: var(--acc-plan-iep);
+    }
+  }
+
+  &__group--504 &__found {
+    &:hover,
+    &.acc-wiz__found--on {
+      background: var(--acc-plan-504-soft);
+      color: var(--acc-plan-504);
+    }
+  }
+
+  &__group--other &__found {
+    &:hover,
+    &.acc-wiz__found--on {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
+  }
+
+  // The trailing period column takes the row's colour too, at the weight it
+  // already had - it is part of the same row, not a separate reading.
+  &__found:hover &__found-periods,
+  &__found--on &__found-periods {
+    color: currentColor;
+    opacity: 0.7;
   }
 
   /**

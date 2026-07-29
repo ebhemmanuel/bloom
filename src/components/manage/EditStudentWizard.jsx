@@ -226,6 +226,67 @@ export default function EditStudentWizard({ onClose, background, leaving = false
     'This writes the changes and seeds today’s board.',
   ];
 
+  // The two-up half of the roster, and the group that runs underneath it.
+  const sideGroups = groups.filter((g) => g.plan !== 'Other');
+  const otherGroup = groups.find((g) => g.plan === 'Other');
+
+  /**
+   * One plan's column.
+   *
+   * `end` right-aligns the heading against the rule, with the count inside the
+   * pill rather than trailing it - the two headings then face each other across
+   * the middle instead of both running away from it.
+   *
+   * A group alone on its row takes the full width and lays out four across.
+   */
+  const renderGroup = (g, end) => {
+    const plan = PLAN_CLASS[g.plan] || 'other';
+    const wide = g.plan === 'Other' || sideGroups.length === 1;
+    return (
+      <section
+        key={g.plan}
+        className={`acc-wiz__group acc-wiz__group--${plan}${wide ? ' acc-wiz__group--wide' : ''}${
+          end ? ' acc-wiz__group--end' : ''
+        }`}
+        aria-label={`${g.plan} students`}
+      >
+        <p className="acc-wiz__group-head">
+          <span className={`acc-pill acc-pill--${plan}`}>{g.plan}</span>
+          <span className="acc-wiz__group-count acc-numeric">{g.students.length}</span>
+        </p>
+
+        <ul className="acc-wiz__group-list">
+          {g.students.map((s) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}`}
+                onClick={() => {
+                  setSelectedId(s.id);
+                  setStep(1);
+                }}
+              >
+                {/* No plan pill on the row: the heading above the column
+                    already says it, and repeating it on every line spends a
+                    third of a narrow column saying the same word twenty
+                    times. The row's own hover carries the plan's colour
+                    instead, so the heading reads as the key to the column. */}
+                <span className="acc-wiz__found-name">{s.displayName}</span>
+                {s.unenrolledFrom && <span className="acc-wiz__found-meta">disenrolled</span>}
+                <span className="acc-wiz__found-periods">
+                  {(s.periodIds || [])
+                    .map((id) => periodById.get(id)?.shortName)
+                    .filter(Boolean)
+                    .join(' ')}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  };
+
   const dots = (
     <div className="acc-wiz__dots">
       {STEP_NAMES.map((title, i) => {
@@ -323,11 +384,13 @@ export default function EditStudentWizard({ onClose, background, leaving = false
           </div>
         ) : step === 0 ? (
           <div className="acc-sheet__pane">
-            <div className="acc-sheet__intro">
+            <div className="acc-sheet__intro acc-sheet__intro--center">
               <h1 className="acc-sheet__title">Who are you editing?</h1>
-              <p className="acc-sheet__sub">
-                Search by name, or pick from the list. Everything after this is the same four
-                screens you added them with.
+              {/* Two clauses, balanced onto two even lines rather than a long
+                  one and an orphan. See `--balance`. */}
+              <p className="acc-sheet__sub acc-sheet__sub--balance">
+                Search by name, or pick from the list. What follows is the same four screens you
+                added them with.
               </p>
             </div>
 
@@ -354,54 +417,15 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 ref={listScroll.scrollRef}
                 onScroll={listScroll.onScroll}
               >
-                {groups.map((g) => (
-                  <section
-                    key={g.plan}
-                    className={`acc-wiz__group${groups.length === 1 ? ' acc-wiz__group--wide' : ''}${
-                      g.plan === 'Other' ? ' acc-wiz__group--wide' : ''
-                    }`}
-                    aria-label={`${g.plan} students`}
-                  >
-                    <p className="acc-wiz__group-head">
-                      <span className={`acc-pill acc-pill--${PLAN_CLASS[g.plan] || 'other'}`}>
-                        {g.plan}
-                      </span>
-                      <span className="acc-wiz__group-count acc-numeric">{g.students.length}</span>
-                    </p>
-
-                    <ul className="acc-wiz__group-list">
-                      {g.students.map((s) => (
-                        <li key={s.id}>
-                          <button
-                            type="button"
-                            className={`acc-wiz__found${
-                              s.id === selectedId ? ' acc-wiz__found--on' : ''
-                            }`}
-                            onClick={() => {
-                              setSelectedId(s.id);
-                              setStep(1);
-                            }}
-                          >
-                            {/* No plan pill on the row: the heading above the
-                                column already says it, and repeating it on
-                                every line spends a third of a narrow column
-                                saying the same word twenty times. */}
-                            <span className="acc-wiz__found-name">{s.displayName}</span>
-                            {s.unenrolledFrom && (
-                              <span className="acc-wiz__found-meta">disenrolled</span>
-                            )}
-                            <span className="acc-wiz__found-periods">
-                              {(s.periodIds || [])
-                                .map((id) => periodById.get(id)?.shortName)
-                                .filter(Boolean)
-                                .join(' ')}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
+                {sideGroups[0] && renderGroup(sideGroups[0], sideGroups.length === 2)}
+                {/*
+                  The same gradient rule the class-details step puts between its
+                  two halves, so a split down the middle looks the same wherever
+                  the app makes one.
+                */}
+                {sideGroups.length === 2 && <span className="acc-wiz__rule" aria-hidden="true" />}
+                {sideGroups[1] && renderGroup(sideGroups[1], false)}
+                {otherGroup && renderGroup(otherGroup, false)}
 
                 {matches.length === 0 && <p className="acc-wiz__found-none">No students match.</p>}
               </div>
