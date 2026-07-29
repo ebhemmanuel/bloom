@@ -192,7 +192,9 @@ function AppShell() {
             },
           },
           { label: 'Update', hint: 'presets', indent: true, onSelect: () => setModal('catalog') },
-          { label: 'Copy', indent: true, onSelect: () => setModal('copy') },
+          // Hidden for now, not removed: the modal behind it still works and
+          // the item goes back in the same place when it returns.
+          { label: 'Copy', indent: true, hidden: true, onSelect: () => setModal('copy') },
         ],
       },
       // A word in the bar rather than an icon in the corner. Day notes are
