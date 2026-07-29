@@ -39,6 +39,11 @@ export function studentSearchTerms(student) {
     last,
     first,
     normalizeSearch(student.planRef),
+    // The plan type, so "504" or "iep" narrows the board to that group. It is
+    // the one fact about a student that is on screen everywhere - the pill in
+    // every lane header, the heading over every roster column - and typing it
+    // into the search returned nothing.
+    normalizeSearch(student.planType),
   ].filter(Boolean);
 }
 

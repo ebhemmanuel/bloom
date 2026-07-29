@@ -1,0 +1,139 @@
+@use '../abstracts/motion' as motion;
+
+// ---------------------------------------------------------------------------
+// Accommodation presets. Built to design_handoff_accommodation_presets/.
+//
+// The frame is `.acc-sheet` (see _sheet.scss), shared with the student sheets,
+// day notes, settings and print. The rows themselves are unchanged - see
+// `.acc-catmod` - because the anatomy of a preset row was already right; what
+// moved is the room around it.
+//
+// The heading and the search are PINNED and only the list scrolls. In the old
+// dialog the search sat in the header slot and the whole body scrolled under
+// it; here the pane fills the frame and gives its height to the list, so the
+// field you are typing in never leaves the screen.
+// ---------------------------------------------------------------------------
+
+.acc-cat {
+  /**
+   * Fills the frame rather than centring in it: the list underneath takes
+   * whatever is left, which is what makes the scroll happen down there.
+   *
+   * Full WIDTH as well, with the measure moved onto the pieces inside. The
+   * scrollbar hangs off this element, and a pane capped at 680 in a 900 frame
+   * would have parked it in the middle of the dialog rather than at its edge.
+   */
+  &__pane {
+    block-size: 100%;
+    margin: 0;
+    max-inline-size: none;
+    inline-size: 100%;
+    padding-inline: 0;
+    padding-block-end: var(--acc-space-4);
+    box-sizing: border-box;
+  }
+
+  // The heading and the search: pinned, and holding the column's measure.
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-5);
+    inline-size: 100%;
+    max-inline-size: 744px;
+    margin-inline: auto;
+    padding-inline: var(--acc-space-7);
+    box-sizing: border-box;
+  }
+
+  /**
+   * One field for both jobs: find a wording, or type one that is not there yet.
+   *
+   * A pill, like every other search in the app. The square field radius belongs
+   * to a form input you fill in and submit, not to a box you type into to look
+   * for something.
+   */
+  &__search {
+    flex: none;
+    block-size: 44px;
+    padding-inline: 18px;
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
+    outline: none;
+    @include motion.interactive(border-color, box-shadow);
+
+    &::placeholder {
+      color: var(--acc-fg-faint);
+    }
+
+    &:hover:not(:focus) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  /**
+   * Holds the floating scrollbar, which cannot live inside the list it
+   * measures - it would scroll away with the rows.
+   *
+   * It spans the whole frame so the bar lands 4px off the DIALOG's edge, the
+   * same place the sheet's own bar sits. The list keeps the column's measure
+   * and scrolls underneath it.
+   */
+  &__scroll {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-block-size: 0;
+    inline-size: 100%;
+
+    .acc-catmod__list {
+      flex: 1;
+      inline-size: 100%;
+      max-inline-size: 744px;
+      margin-inline: auto;
+      padding-inline: var(--acc-space-7);
+      box-sizing: border-box;
+      // The window is the frame's now, not a fixed 380px guess.
+      max-block-size: none;
+
+      // Native bar hidden; `.acc-scrollbar--inset` draws the one you see.
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+        inline-size: 0;
+        block-size: 0;
+      }
+    }
+  }
+
+  /**
+   * How much of a starter set is left to add, at the end of its head.
+   *
+   * ONE auto margin in the row. The chevron carries one of its own, and two of
+   * them split the leftover space between them - so every row parked its count
+   * somewhere different depending on how long its hint was. The chevron gets a
+   * measure instead, which is what lines the counts up down the column.
+   */
+  &__count {
+    margin-inline-start: auto;
+    flex: none;
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+    white-space: nowrap;
+  }
+
+  &__count + .acc-starter__chevron {
+    margin-inline-start: 0;
+    inline-size: 16px;
+    text-align: center;
+  }
+}

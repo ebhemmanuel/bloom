@@ -401,6 +401,41 @@ export function reportTeacherAbsence(doc, dateKey, reason, text, now = new Date(
 
   const line = absenceLine(reason, text);
   const notes = day.notes ? `${day.notes.replace(/\s*$/, '')}\n${line}` : line;
+  const stamp = isoTimestamp(now);
+
+  /**
+   * The day closes with nothing claimed against it.
+   *
+   * Every entry goes back to `unassigned` and the day is sealed: the teacher was
+   * not there, so there is nothing to record and nothing more to add. This does
+   * clear statuses that were entered before the report - with "Left early" that
+   * can be a morning's real work, and Undo cannot bring it back, which is the
+   * one thing to know about pressing this.
+   *
+   * Sealing is safe here only because of the ORDER in `effectiveStatus`: the
+   * teacher-absence branch is checked before the sealed branch, so these entries
+   * resolve to "teacher absent" and never to "not used". A day the teacher was
+   * out of the building must never read as support they failed to deliver.
+   */
+  const students = {};
+  for (const [studentId, studentDay] of Object.entries(day.students || {})) {
+    const entries = {};
+    for (const [id, entry] of Object.entries(studentDay.entries || {})) {
+      entries[id] =
+        entry.status === STATUS.UNASSIGNED
+          ? entry
+          : {
+              ...entry,
+              status: STATUS.UNASSIGNED,
+              useCount: 1,
+              detail: '',
+              resolvedBy: null,
+              resolvedAt: null,
+              updatedAt: stamp,
+            };
+    }
+    students[studentId] = { ...studentDay, entries };
+  }
 
   return {
     ...doc,
@@ -409,14 +444,27 @@ export function reportTeacherAbsence(doc, dateKey, reason, text, now = new Date(
       [dateKey]: {
         ...day,
         notes,
-        notesUpdatedAt: isoTimestamp(now),
-        teacherAbsence: { reason, text: String(text || '').trim(), reportedAt: isoTimestamp(now) },
+        notesUpdatedAt: stamp,
+        students,
+        sealed: true,
+        sealedAt: stamp,
+        sealedBy: 'teacher_absence',
+        teacherAbsence: { reason, text: String(text || '').trim(), reportedAt: stamp },
       },
     },
   };
 }
 
-/** Undo an absence report, removing both the record and the appended line. */
+/**
+ * Undo an absence report, removing both the record and the appended line.
+ *
+ * It also unseals the day, since reporting sealed it: undoing has to give the
+ * board back, or a mis-click would lock the day for good. Only a seal this
+ * function put there is lifted - a day closed out at the end of its cycle stays
+ * closed, and going back through THAT is what `amendEntry` is for.
+ *
+ * The statuses the report cleared are gone. Nothing here can invent them again.
+ */
 export function clearTeacherAbsence(doc, dateKey, now = new Date()) {
   const day = doc.days?.[dateKey];
   if (!day || !day.teacherAbsence) return doc;
@@ -428,11 +476,19 @@ export function clearTeacherAbsence(doc, dateKey, now = new Date()) {
     .join('\n')
     .replace(/\s*$/, '');
 
+  const wasSealedByAbsence = day.sealedBy === 'teacher_absence';
+
   return {
     ...doc,
     days: {
       ...doc.days,
-      [dateKey]: { ...day, notes, notesUpdatedAt: isoTimestamp(now), teacherAbsence: null },
+      [dateKey]: {
+        ...day,
+        notes,
+        notesUpdatedAt: isoTimestamp(now),
+        teacherAbsence: null,
+        ...(wasSealedByAbsence ? { sealed: false, sealedAt: null, sealedBy: null } : {}),
+      },
     },
   };
 }

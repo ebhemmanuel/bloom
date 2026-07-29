@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
+    input,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    ul{list-style:none;margin:0;padding:0}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+    <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div role="dialog" aria-modal="true" aria-label="Accommodation presets" style="width:100%;max-width:980px;max-height:min(92vh,932px);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);overflow:hidden;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+
+        <header style="display:flex;align-items:flex-start;gap:16px;padding:16px 20px;border-bottom:1px solid #e9e5f0;flex:none">
+          <div style="flex:1;min-width:0">
+            <h2 style="margin:0;font-size:20px;font-weight:600;line-height:1.2">Accommodation presets</h2>
+            <p style="margin:4px 0 0;font-size:12px;color:#6b6480">The shared list every student picks from. Renaming one updates it everywhere it is used.</p>
+          </div>
+          <div style="flex:none;align-self:flex-end">
+            <input value="{{ query }}" onChange="{{ setQuery }}" onKeyDown="{{ queryKey }}" autoFocus="{{ true }}" placeholder="Search, or type a new one&hellip;" aria-label="Search presets, or type a new one" style="width:280px;height:34px;padding:0 16px;border:1px solid #e9e5f0;border-radius:999px;background:#fff;font-size:14px;outline:none;transition:border-color 160ms ease,box-shadow 160ms ease" style-hover="border-color:#d6d0e2" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+          </div>
+          <button type="button" onClick="{{ close }}" aria-label="Close" style="align-self:flex-start;color:#9a93a8;font-size:19px;line-height:1;transition:color 160ms ease" style-hover="color:#2a2438">&times;</button>
+        </header>
+
+        <div style="padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px">
+          <ul style="display:flex;flex-direction:column;gap:2px;max-height:380px;overflow-y:auto">
+            <sc-for list="{{ activeRows }}" as="r" hint-placeholder-count="6">
+              <li style="{{ r.rowStyle }}" style-hover="background:#f7f4fb">
+                <sc-if value="{{ r.renaming }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex-shrink:0;width:100%;display:flex;align-items:stretch;height:32px;border:1px solid #5b4bd6;border-radius:999px;background:#fff;overflow:hidden;box-shadow:0 0 0 3px #eeebfd">
+                    <input value="{{ r.renameVal }}" onChange="{{ r.renameChange }}" onKeyDown="{{ r.renameKey }}" autoFocus="{{ true }}" aria-label="New wording" style="flex:1;min-width:0;padding:0 16px;border:none;background:none;outline:none;font-size:12px">
+                    <button type="button" onClick="{{ r.renameSave }}" disabled="{{ r.renameDisabled }}" style="flex:none;padding:0 16px;border-left:1px solid #e9e5f0;background:#f3f0f8;color:#6b6480;font-size:11px;font-weight:600;transition:background-color 90ms ease,color 90ms ease" style-hover="background:#eeebfd;color:#5b4bd6">Save</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ r.notRenaming }}" hint-placeholder-val="{{ true }}">
+                  <span style="flex:1 1 auto;min-width:18ch;line-height:1.45">{{ r.label }}</span>
+                  <span style="position:relative;display:inline-flex;align-items:center;flex:none">
+                    <select value="{{ r.category }}" onChange="{{ r.onCat }}" aria-label="{{ r.catAria }}" style="appearance:none;width:160px;height:32px;padding:0 30px 0 12px;border:1px solid #e9e5f0;border-radius:4px;background:#fff;color:#2a2438;font-size:12px;outline:none;transition:border-color 160ms ease,box-shadow 160ms ease" style-hover="border-color:#d6d0e2" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd">
+                      <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="8">
+                        <option value="{{ cat.id }}">{{ cat.label }}</option>
+                      </sc-for>
+                    </select>
+                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" style="position:absolute;right:12px;pointer-events:none;color:#6b6480"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </span>
+                  <label title="Requires a written detail each time" style="display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#6b6480;flex:none;transition:background-color 90ms ease" style-hover="background:#f7f4fb">
+                    <input type="checkbox" checked="{{ r.detail }}" onChange="{{ r.onDetail }}" style="accent-color:#5b4bd6;width:13px;height:13px;margin:0">
+                    detail
+                  </label>
+                  <span title="Students using this" style="width:24px;text-align:center;font-size:11px;color:#9a93a8;font-variant-numeric:tabular-nums;flex:none">{{ r.used }}</span>
+                  <span style="display:flex;align-items:center;gap:4px;flex:none">
+                    <button type="button" title="{{ r.renameTitle }}" aria-label="{{ r.renameAria }}" onClick="{{ r.startRename }}" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid transparent;border-radius:4px;color:#6b6480;transition:background-color 90ms ease,color 90ms ease,border-color 90ms ease" style-hover="background:#f7f4fb;border-color:#e9e5f0;color:#2a2438">
+                      <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M11.2 2.3a1.4 1.4 0 0 1 2 2l-7 7-2.7.7.7-2.7 7-7Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+                    </button>
+                    <button type="button" title="{{ r.archTitle }}" aria-label="{{ r.archAria }}" onClick="{{ r.toggleArchive }}" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid transparent;border-radius:4px;color:#6b6480;transition:background-color 90ms ease,color 90ms ease,border-color 90ms ease" style-hover="background:#f7f4fb;border-color:#e9e5f0;color:#2a2438">
+                      <sc-if value="{{ r.archived }}" hint-placeholder-val="{{ false }}">
+                        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2 6.5h12V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 11V6.5M8 6.5 6.2 8.3M8 6.5l1.8 1.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1.5 4h13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+                      </sc-if>
+                      <sc-if value="{{ r.notArchived }}" hint-placeholder-val="{{ true }}">
+                        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2 5.5h12V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M1.5 3.2a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v2.3h-13V3.2Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M6.5 8.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+                      </sc-if>
+                    </button>
+                  </span>
+                </sc-if>
+              </li>
+            </sc-for>
+
+            <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ false }}">
+              <li style="padding:0;border:1px dashed #d6d0e2;border-radius:8px;background:transparent;transition:background-color 90ms ease,border-color 90ms ease;animation:stepIn 160ms ease both" style-hover="background:#eeebfd;border-color:#5b4bd6">
+                <button type="button" onClick="{{ addTyped }}" style="display:flex;align-items:center;gap:8px;width:100%;min-height:46px;padding:0 12px;border-radius:8px;text-align:start;font-size:12px;color:#5b4bd6">
+                  <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#eeebfd;font-size:14px;line-height:1;flex:none">+</span>
+                  <span>Add <strong style="font-weight:600">{{ typed }}</strong> as a preset</span>
+                </button>
+              </li>
+            </sc-if>
+
+            <sc-if value="{{ showNone }}" hint-placeholder-val="{{ false }}">
+              <li style="padding:16px;font-size:12px;color:#9a93a8">{{ noneText }}</li>
+            </sc-if>
+
+            <sc-if value="{{ hasArchived }}" hint-placeholder-val="{{ true }}">
+              <li style="margin-top:8px;padding-top:8px;border-top:1px solid #e9e5f0">
+                <button type="button" onClick="{{ toggleArchived }}" aria-expanded="{{ archivedOpen }}" style="display:flex;align-items:center;gap:8px;width:100%;min-height:34px;padding:0 12px;border-radius:8px;text-align:start;font-size:12px;color:#6b6480;transition:background-color 90ms ease,color 90ms ease" style-hover="background:#f7f4fb;color:#2a2438">
+                  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" style="{{ archCaretStyle }}"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  <span>Archived</span>
+                  <span style="width:24px;text-align:center;font-size:11px;color:#9a93a8;font-variant-numeric:tabular-nums">{{ archivedTotal }}</span>
+                </button>
+                <sc-if value="{{ archivedOpen }}" hint-placeholder-val="{{ false }}">
+                  <ul style="display:flex;flex-direction:column;gap:2px;padding-top:4px">
+                    <sc-for list="{{ archivedRows }}" as="r" hint-placeholder-count="2">
+                      <li style="{{ r.rowStyle }}" style-hover="background:#f7f4fb">
+                        <span style="flex:1 1 auto;min-width:18ch;line-height:1.45">{{ r.label }}</span>
+                        <span style="width:24px;text-align:center;font-size:11px;color:#9a93a8;font-variant-numeric:tabular-nums;flex:none">{{ r.used }}</span>
+                        <span style="display:flex;align-items:center;gap:4px;flex:none">
+                          <button type="button" title="{{ r.archTitle }}" aria-label="{{ r.archAria }}" onClick="{{ r.toggleArchive }}" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid transparent;border-radius:4px;color:#6b6480;transition:background-color 90ms ease,color 90ms ease,border-color 90ms ease" style-hover="background:#f7f4fb;border-color:#e9e5f0;color:#2a2438">
+                            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2 6.5h12V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 11V6.5M8 6.5 6.2 8.3M8 6.5l1.8 1.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1.5 4h13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+                          </button>
+                        </span>
+                      </li>
+                    </sc-for>
+                    <sc-if value="{{ archNone }}" hint-placeholder-val="{{ false }}">
+                      <li style="padding:16px;font-size:12px;color:#9a93a8">No archived preset matches that.</li>
+                    </sc-if>
+                  </ul>
+                </sc-if>
+              </li>
+            </sc-if>
+          </ul>
+
+          <div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid #e9e5f0">
+            <p style="margin:0;font-size:12px;font-weight:500">Add from a starter set</p>
+            <sc-for list="{{ sets }}" as="set" hint-placeholder-count="6">
+              <div style="border:1px solid #e9e5f0;border-radius:8px;overflow:hidden">
+                <button type="button" onClick="{{ set.toggle }}" aria-expanded="{{ set.open }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;text-align:start;background:#fff;transition:background-color 90ms ease" style-hover="background:#f7f4fb">
+                  <span style="font-size:12px;font-weight:500">{{ set.label }}</span>
+                  <span style="font-size:11px;color:#9a93a8;line-height:1.45">{{ set.hint }}</span>
+                  <span style="margin-left:auto;color:#9a93a8;font-size:15px;line-height:1">{{ set.chev }}</span>
+                </button>
+                <sc-if value="{{ set.showBody }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:12px;border-top:1px solid #e9e5f0;background:#f3f0f8;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                    <button type="button" onClick="{{ set.addAll }}" style="display:inline-flex;align-items:center;flex:none;white-space:nowrap;height:26px;padding:0 12px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;font-size:11px;font-weight:500;transition:background-color 90ms ease" style-hover="background:#f7f4fb">{{ set.addAllLabel }}</button>
+                    <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px;width:100%">
+                      <sc-for list="{{ set.chips }}" as="chip" hint-placeholder-count="4">
+                        <button type="button" onClick="{{ chip.add }}" style="display:inline-flex;align-items:center;flex:none;height:auto;min-height:28px;max-width:100%;padding:4px 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500;line-height:1.35;white-space:normal;text-align:start;transition:background-color 160ms ease,color 160ms ease" style-hover="background:#f7f4fb;color:#2a2438">{{ chip.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center">
+      <button type="button" onClick="{{ reopen }}" style="height:38px;padding:0 20px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;font-size:12px;font-weight:500;color:#2a2438;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1)" style-hover="background:#f7f4fb">Open accommodation presets</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    open: true, query: '', renamingId: null, renameText: '', archivedOpen: false, openSet: null,
+    catalog: [
+      { id: 'c1', label: 'Text read aloud', category: 'presentation', detail: true, archived: false, used: 4 },
+      { id: 'c2', label: 'Extended time (1.5x) on assessments', category: 'timing', detail: false, archived: false, used: 6 },
+      { id: 'c3', label: 'Preferential seating (front, near instruction)', category: 'setting', detail: false, archived: false, used: 3 },
+      { id: 'c4', label: 'Directions read aloud and restated', category: 'presentation', detail: false, archived: false, used: 2 },
+      { id: 'c5', label: 'Calculator permitted', category: 'response', detail: false, archived: false, used: 1 },
+      { id: 'c6', label: 'Small-group testing', category: 'setting', detail: false, archived: false, used: 5 },
+      { id: 'c7', label: 'Frequent breaks', category: 'timing', detail: false, archived: false, used: 2 },
+      { id: 'c8', label: 'Word processor permitted for written work', category: 'response', detail: false, archived: false, used: 0 },
+      { id: 'c9', label: 'Movement breaks', category: 'behavior', detail: false, archived: true, used: 1 },
+      { id: 'c10', label: 'Sensory break pass', category: 'behavior', detail: true, archived: true, used: 0 },
+    ],
+  };
+
+  CATEGORIES = [
+    { id: 'presentation', label: 'Presentation' },
+    { id: 'response', label: 'Response' },
+    { id: 'setting', label: 'Setting' },
+    { id: 'timing', label: 'Timing & scheduling' },
+    { id: 'assessment', label: 'Assessment' },
+    { id: 'environment', label: 'Environment' },
+    { id: 'behavior', label: 'Behavior & regulation' },
+    { id: 'other', label: 'Other' },
+  ];
+
+  SETS = [
+    { id: 'presentation', label: 'Presentation & instruction', items: [
+      ['Text read aloud', 'presentation', true],
+      ['Directions read aloud and restated', 'presentation', false],
+      ['Copy of teacher notes / guided notes', 'presentation', false],
+      ['Visual supports and graphic organisers', 'presentation', false],
+      ['Chunked instructions (one step at a time)', 'presentation', false],
+      ['Check for understanding', 'presentation', false],
+    ]},
+    { id: 'timing', label: 'Timing & scheduling', items: [
+      ['Extended time (1.5x) on assessments', 'timing', false],
+      ['Extended time (2x) on assessments', 'timing', false],
+      ['Extended time on assignments', 'timing', false],
+      ['Frequent breaks', 'timing', false],
+      ['Assessment split across sessions', 'timing', true],
+    ]},
+    { id: 'setting', label: 'Setting', items: [
+      ['Preferential seating (front, near instruction)', 'setting', false],
+      ['Small-group testing', 'setting', false],
+      ['Separate setting, reduced distraction', 'setting', false],
+      ['Testing in a familiar room with a familiar adult', 'setting', false],
+    ]},
+    { id: 'response', label: 'Response', items: [
+      ['Answers may be dictated to a scribe', 'response', true],
+      ['Word processor permitted for written work', 'response', false],
+      ['Calculator permitted', 'response', false],
+      ['Reduced-item assignments', 'response', true],
+      ['Oral response instead of written', 'response', true],
+      ['Spelling not penalised', 'response', false],
+    ]},
+    { id: 'behavior', label: 'Behaviour & regulation', items: [
+      ['Sensory break pass', 'behavior', true],
+      ['Movement breaks', 'behavior', false],
+      ['Advance warning of transitions', 'behavior', false],
+      ['Access to a calming space', 'behavior', true],
+      ['Daily check-in / check-out', 'behavior', false],
+    ]},
+    { id: 'assistive', label: 'Assistive technology', items: [
+      ['Text-to-speech software', 'presentation', false],
+      ['Speech-to-text software', 'response', false],
+      ['Audio recording of lessons permitted', 'presentation', false],
+      ['Enlarged print / adjusted contrast', 'presentation', false],
+    ]},
+  ];
+
+  upd(id, patch) {
+    this.setState((s) => ({ catalog: s.catalog.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+  }
+
+  saveRename(id) {
+    const t = this.state.renameText.trim();
+    if (!t) return;
+    this.setState((s) => ({
+      catalog: s.catalog.map((c) => (c.id === id ? { ...c, label: t } : c)),
+      renamingId: null,
+    }));
+  }
+
+  mkEntry(i) {
+    this._seq = (this._seq || 0) + 1;
+    return { id: 'n' + this._seq, label: i[0], category: i[1], detail: i[2], archived: false, used: 0 };
+  }
+
+  addItem(i) {
+    this.setState((s) => {
+      if (s.catalog.some((c) => c.label.toLowerCase() === i[0].toLowerCase())) return null;
+      return { catalog: s.catalog.concat([this.mkEntry(i)]) };
+    });
+  }
+
+  mkRow(c) {
+    const s = this.state;
+    const renaming = s.renamingId === c.id;
+    return {
+      key: c.id,
+      rowStyle: { display: 'flex', alignItems: 'center', gap: '8px', minHeight: '48px', padding: '8px 12px', width: '100%', borderRadius: '8px', fontSize: '12px', transition: 'background-color 90ms ease', opacity: c.archived ? 0.5 : 1 },
+      label: c.label, category: c.category,
+      catAria: 'Category for ' + c.label,
+      onCat: (e) => this.upd(c.id, { category: e.target.value }),
+      detail: c.detail,
+      onDetail: (e) => this.upd(c.id, { detail: e.target.checked }),
+      used: c.used,
+      renaming, notRenaming: !renaming,
+      renameVal: s.renameText,
+      renameChange: (e) => this.setState({ renameText: e.target.value }),
+      renameKey: (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); this.saveRename(c.id); }
+        if (e.key === 'Escape') this.setState({ renamingId: null });
+      },
+      renameSave: () => this.saveRename(c.id),
+      renameDisabled: !s.renameText.trim(),
+      startRename: () => this.setState({ renamingId: c.id, renameText: c.label }),
+      renameTitle: 'Rename "' + c.label + '" everywhere it is used',
+      renameAria: 'Rename ' + c.label,
+      archived: c.archived, notArchived: !c.archived,
+      archTitle: c.archived
+        ? 'Bring "' + c.label + '" back into the pickers'
+        : 'Archive "' + c.label + '". It leaves future pickers; nothing already recorded changes.',
+      archAria: (c.archived ? 'Restore ' : 'Archive ') + c.label,
+      toggleArchive: () => this.upd(c.id, { archived: !c.archived }),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const q = s.query.trim().toLowerCase();
+    const match = (c) => !q || c.label.toLowerCase().includes(q);
+    const sorted = s.catalog.filter(match).slice().sort((a, b) => a.label.localeCompare(b.label));
+    const activeRows = sorted.filter((c) => !c.archived).map((c) => this.mkRow(c));
+    const archivedRows = sorted.filter((c) => c.archived).map((c) => this.mkRow(c));
+    const archivedTotal = s.catalog.filter((c) => c.archived).length;
+    const existing = new Set(s.catalog.map((c) => c.label.toLowerCase()));
+    const typed = s.query.trim();
+    const canAdd = typed.length > 0 && !existing.has(typed.toLowerCase());
+
+    const addTyped = () => {
+      if (!canAdd) return;
+      this.setState((st) => ({ catalog: st.catalog.concat([this.mkEntry([typed, 'other', false])]), query: '' }));
+    };
+
+    const sets = this.SETS.map((set) => {
+      const items = set.items.filter((i) => !existing.has(i[0].toLowerCase()));
+      const open = s.openSet === set.id;
+      return {
+        key: set.id, label: set.label,
+        hint: items.length ? items.length + ' not yet added' : 'all added',
+        chev: open ? '\u2212' : '+', open,
+        toggle: () => this.setState({ openSet: open ? null : set.id }),
+        showBody: open && items.length > 0,
+        addAllLabel: 'Add all ' + items.length,
+        addAll: () => this.setState((st) => ({
+          catalog: st.catalog.concat(
+            items.filter((i) => !st.catalog.some((c) => c.label.toLowerCase() === i[0].toLowerCase()))
+              .map((i) => this.mkEntry(i))
+          ),
+        })),
+        chips: items.map((i) => ({ label: i[0], add: () => this.addItem(i) })),
+      };
+    });
+
+    return {
+      open: s.open, isClosed: !s.open,
+      query: s.query,
+      setQuery: (e) => this.setState({ query: e.target.value }),
+      queryKey: (e) => { if (e.key === 'Enter' && canAdd) { e.preventDefault(); addTyped(); } },
+      activeRows, archivedRows,
+      categories: this.CATEGORIES,
+      canAdd, typed, addTyped,
+      showNone: activeRows.length === 0 && !canAdd,
+      noneText: typed ? 'That one is already in your list.' : 'Nothing matches.',
+      hasArchived: archivedTotal > 0,
+      archivedTotal,
+      archivedOpen: s.archivedOpen,
+      toggleArchived: () => this.setState({ archivedOpen: !s.archivedOpen }),
+      archNone: archivedRows.length === 0,
+      archCaretStyle: { flex: 'none', color: 'currentColor', transform: s.archivedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 260ms cubic-bezier(0.34,1.28,0.64,1)' },
+      sets,
+      close: () => this.setState({ open: false }),
+      reopen: () => this.setState({ open: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

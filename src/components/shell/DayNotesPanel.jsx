@@ -46,7 +46,17 @@ export default function DayNotesPanel({ onClose, background, leaving = false }) 
   const bodyRef = useRef(null);
 
   const absence = model.teacherAbsence;
-  const locked = readOnly || model.sealed;
+
+  /**
+   * A day sealed BY an absence is not locked to this panel.
+   *
+   * Reporting one seals the day, and the way back is the Undo in the box it
+   * produced - so treating that seal as a lock disabled the only control that
+   * could lift it, and one click closed the day for good. Reporting is refused
+   * on an already-sealed day, so a seal sitting next to an absence record is
+   * always the absence's own.
+   */
+  const locked = readOnly || (model.sealed && !absence);
 
   const relative = relativeDayLabel(dateKey);
   const heading = `Day notes · ${relative ? `${relative}, ` : ''}${formatDateMedium(dateKey)}`;

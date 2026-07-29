@@ -217,7 +217,7 @@ function AppShell() {
           { separator: true },
           // The shared catalog, not one student's list - which is what the
           // hint says and why it sits apart from the two above.
-          { label: 'Accommodations', hint: 'presets', onSelect: () => setModal('catalog') },
+          { label: 'Accommodations', hint: 'presets', onSelect: () => openScene('catalog') },
           // Hidden for now, not removed: the modal behind it still works and
           // the item goes back in the same place when it returns.
           { label: 'Copy', hidden: true, onSelect: () => setModal('copy') },
@@ -326,7 +326,9 @@ function AppShell() {
             onClose={closeScene}
           />
         )}
-        {modal === 'catalog' && <CatalogModal onClose={() => setModal(null)} />}
+        {modal === 'catalog' && (
+          <CatalogModal background={background} leaving={sceneLeaving} onClose={closeScene} />
+        )}
         {modal === 'copy' && <CopyAccommodationsModal onClose={() => setModal(null)} />}
         {modal === 'print' && (
           <PrintReportModal background={background} leaving={sceneLeaving} onClose={closeScene} />

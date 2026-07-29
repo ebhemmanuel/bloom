@@ -234,6 +234,65 @@ describe('day notes and teacher absence', () => {
     expect(reportTeacherAbsence(doc, WED, 'TDY', '')).toBe(doc);
   });
 
+  /**
+   * The teacher was not there, so the day closes with nothing claimed against
+   * it: every entry back to unassigned, and the day sealed so nothing more can
+   * be added.
+   */
+  it('clears every recorded status and seals the day', () => {
+    let doc = withDay(makeDoc(), WED, {});
+    doc = setEntryStatus(doc, WED, T.jordan, T.asgJordanExtTime, STATUS.USED, { now });
+    expect(doc.days[WED].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(STATUS.USED);
+
+    doc = reportTeacherAbsence(doc, WED, 'Out sick', '', now);
+
+    for (const studentDay of Object.values(doc.days[WED].students)) {
+      for (const entry of Object.values(studentDay.entries)) {
+        expect(entry.status).toBe(STATUS.UNASSIGNED);
+      }
+    }
+    expect(doc.days[WED].sealed).toBe(true);
+    expect(doc.days[WED].sealedBy).toBe('teacher_absence');
+  });
+
+  /**
+   * The guarantee that makes sealing safe here. A sealed day resolves its blanks
+   * to NOT_USED; the teacher-absence branch is checked first, so a day the
+   * teacher was out of the building can never read as support they failed to
+   * deliver.
+   */
+  it('never lets that seal resolve to not used', () => {
+    let doc = reportTeacherAbsence(withDay(makeDoc(), WED, {}), WED, 'Out sick', '', now);
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(
+      DERIVED_STATUS.TEACHER_ABSENT
+    );
+  });
+
+  // Undo has to give the board back, or a mis-click locks the day for good.
+  it('undo unseals the day it sealed', () => {
+    let doc = reportTeacherAbsence(withDay(makeDoc(), WED, {}), WED, 'TDY', '', now);
+    expect(doc.days[WED].sealed).toBe(true);
+
+    doc = clearTeacherAbsence(doc, WED, now);
+    expect(doc.days[WED].sealed).toBe(false);
+    expect(doc.days[WED].sealedBy).toBeNull();
+  });
+
+  // A day closed out at the end of its own cycle stays closed. Going back
+  // through that is what amending is for.
+  it('undo leaves a seal it did not put there alone', () => {
+    let doc = withDay(makeDoc(), WED, {});
+    doc = reportTeacherAbsence(doc, WED, 'TDY', '', now);
+    doc = {
+      ...doc,
+      days: { ...doc.days, [WED]: { ...doc.days[WED], sealedBy: 'auto' } },
+    };
+
+    doc = clearTeacherAbsence(doc, WED, now);
+    expect(doc.days[WED].sealed).toBe(true);
+    expect(doc.days[WED].teacherAbsence).toBeNull();
+  });
+
   it('surfaces notes and absence on the board model', () => {
     let doc = setDayNotes(withDay(makeDoc(), WED, {}), WED, 'Fire drill 2nd period.');
     doc = reportTeacherAbsence(doc, WED, 'Left early', '');
@@ -281,14 +340,28 @@ describe('a day the TEACHER was out never resolves to Not Used', () => {
     expect(statuses).not.toContain(STATUS.NOT_USED);
   });
 
-  it('keeps whatever the teacher DID record before leaving', () => {
-    // "Left early" and "Sub covered" are partial days - real entries still stand.
+  /**
+   * Reporting an absence clears the day, including anything already recorded.
+   *
+   * This reverses an earlier choice: entries made before leaving used to stand,
+   * on the grounds that a morning taught is a morning delivered. Reporting the
+   * absence now closes the whole day at unassigned, so what the day claims is
+   * "the teacher was out" and nothing else. The cost is real and worth naming:
+   * on a "Left early" day, a morning's work is cleared, and Undo restores the
+   * board but not those statuses.
+   */
+  it('clears what was recorded before leaving, and covers the rest', () => {
     let doc = withDay(makeDoc(), WED, {
       [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.USED } },
     });
     doc = reportTeacherAbsence(doc, WED, 'Left early', '');
-    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(STATUS.USED);
-    // …while the untouched one is covered by the absence.
+
+    expect(doc.days[WED].students[T.jordan].entries[T.asgJordanExtTime].status).toBe(
+      STATUS.UNASSIGNED
+    );
+    expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanExtTime, nextDay)).toBe(
+      DERIVED_STATUS.TEACHER_ABSENT
+    );
     expect(effectiveStatus(doc, WED, T.jordan, T.asgJordanReadAloud, nextDay)).toBe(
       DERIVED_STATUS.TEACHER_ABSENT
     );

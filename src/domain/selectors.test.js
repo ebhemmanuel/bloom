@@ -43,6 +43,16 @@ describe('matchesSearch', () => {
     expect(matchesSearch(index, T.jordan, 'IEP-2026-0071')).toBe(true);
   });
 
+  /**
+   * The plan type is on screen everywhere - the pill in every lane header, the
+   * heading over every roster column - and typing it found nothing.
+   */
+  it('matches the plan type, so "504" narrows the board to that group', () => {
+    const plan = (id) => doc.students.find((s) => s.id === id).planType;
+    expect(matchesSearch(index, T.jordan, plan(T.jordan))).toBe(true);
+    expect(matchesSearch(index, T.jordan, plan(T.jordan).toLowerCase())).toBe(true);
+  });
+
   it('does not match an unrelated query', () => {
     expect(matchesSearch(index, T.jordan, 'zzz')).toBe(false);
   });
