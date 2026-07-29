@@ -41,6 +41,19 @@ $surface-lead: 160ms;
       }
     }
   }
+
+  /**
+   * A day with no lanes has an empty state where they would be, and it is the
+   * board just as much as they are.
+   *
+   * Left out, "No record for this day" sat at full strength through the whole
+   * cascade and vanished only when the incoming screen covered it - the one
+   * thing on the board that did not leave. It takes the first row's slot,
+   * because that is where it is standing.
+   */
+  .acc-empty {
+    animation: #{$name} 550ms var(--acc-ease-standard) #{$surface-lead + 170ms} #{$fill};
+  }
 }
 
 .acc-app {
@@ -292,6 +305,7 @@ body[data-dragging='true'] {
   .acc-header,
   .acc-toolbar,
   .acc-lane,
+  .acc-empty,
   // The surface too, or the `forwards` fill from the way out leaves the board
   // sitting there with no fill and no border once we are back.
   .acc-app__main {
@@ -375,6 +389,7 @@ body[data-dragging='true'] {
   [data-board-cascade] .acc-header,
   [data-board-cascade] .acc-toolbar,
   [data-board-cascade] .acc-lane,
+  [data-board-cascade] .acc-empty,
   [data-board-cascade] .acc-app__main {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
