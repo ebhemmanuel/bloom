@@ -377,10 +377,15 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 ? `${done.added} accommodation${done.added === 1 ? '' : 's'} added from ${formatDateMedium(dateKey)}. Everything before today is exactly as it was.`
                 : 'Their profile is saved. Everything already recorded is exactly as it was.'}
             </p>
+            {/* Done first, and the other one under it: they are not a pair of
+                equal choices, and side by side they read as one. */}
             <div className="acc-wiz__doneactions">
+              <button type="button" className="acc-btn acc-btn--primary" onClick={onClose}>
+                Done
+              </button>
               <button
                 type="button"
-                className="acc-btn"
+                className="acc-btn acc-btn--quiet"
                 onClick={() => {
                   setDone(null);
                   setSelectedId(null);
@@ -393,9 +398,6 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 }}
               >
                 Edit someone else
-              </button>
-              <button type="button" className="acc-btn acc-btn--primary" onClick={onClose}>
-                Done
               </button>
             </div>
           </div>
@@ -625,45 +627,59 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               <div className="acc-wiz__cell">
                 <span className="acc-wiz__label">Enrolment</span>
                 {/*
-                  Stated, not editable. Moving the start date backwards or
-                  forwards changes which days read "not applicable", and days
-                  already recorded would disappear behind a derived status - a
-                  correction worth having, but not one to make with a date field
-                  and no warning. Ending their enrolment is the decision this
-                  screen offers.
+                  A date when there is one, and nothing when there is not.
+                  "Since the start of the year" is the absence of a date rather
+                  than a fact about one, and printing it here made this half
+                  taller than the periods opposite it - the add-student step
+                  leaves the same space empty.
+
+                  Stated, not editable. Moving the start date changes which days
+                  read "not applicable", and days already recorded would vanish
+                  behind a derived status - a correction worth having, but not
+                  one to make with a bare date field. Ending an enrolment is the
+                  decision this screen offers, at the foot of it.
                 */}
-                <p className="acc-wiz__enrol">
-                  {student.unenrolledFrom
-                    ? `Disenrolled from ${formatDateMedium(student.unenrolledFrom)}.`
-                    : student.enrolledFrom
-                      ? `In this class from ${formatDateMedium(student.enrolledFrom)}.`
-                      : 'In this class since the start of the year.'}
-                </p>
-                {student.unenrolledFrom ? (
-                  <button
-                    type="button"
-                    className="acc-btn"
-                    disabled={readOnly}
-                    onClick={() => write((d) => setStudentEnrollment(d, student.id, null))}
-                  >
-                    Re-enroll {student.displayName}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="acc-btn acc-btn--danger"
-                    disabled={readOnly}
-                    title="They stop appearing from tomorrow. Their record so far is kept in full."
-                    onClick={() => setConfirming(addDays(today, 1))}
-                  >
-                    Disenroll from tomorrow
-                  </button>
+                {(student.unenrolledFrom || student.enrolledFrom) && (
+                  <p className="acc-wiz__enrol">
+                    {student.unenrolledFrom
+                      ? `Disenrolled from ${formatDateMedium(student.unenrolledFrom)}.`
+                      : `In this class from ${formatDateMedium(student.enrolledFrom)}.`}
+                  </p>
                 )}
                 <span className="acc-wiz__hint">
                   Dated, never deleted - every day already recorded keeps their record exactly as it
                   is.
                 </span>
               </div>
+            </div>
+
+            {/*
+              Ending an enrolment is not one of the two things this step is
+              about, and it sat in the right-hand column as though it were. It
+              is the one irreversible-feeling action here, so it stands alone
+              under both halves.
+            */}
+            <div className="acc-wiz__endrow">
+              {student.unenrolledFrom ? (
+                <button
+                  type="button"
+                  className="acc-btn"
+                  disabled={readOnly}
+                  onClick={() => write((d) => setStudentEnrollment(d, student.id, null))}
+                >
+                  Re-enroll {student.displayName}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--danger"
+                  disabled={readOnly}
+                  title="They stop appearing from tomorrow. Their record so far is kept in full."
+                  onClick={() => setConfirming(addDays(today, 1))}
+                >
+                  Disenroll from tomorrow
+                </button>
+              )}
             </div>
           </div>
         ) : step === 3 ? (
