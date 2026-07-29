@@ -52,15 +52,17 @@ export function RosterStep({
 
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-ob__card acc-ob__card--lg">
-        <header className="acc-ob__head">
-          <p className="acc-ob__eyebrow">Your students</p>
-          <h2 className="acc-ob__question">Who are you supporting?</h2>
-          <p className="acc-ob__note">
-            Names or initials, whatever you&rsquo;d write on a sticky note. Add one, add all, or
-            stop anytime.
-          </p>
-        </header>
+      <div className="acc-sheet__dialog">
+        <div className="acc-sheet__body">
+          <div className="acc-sheet__view">
+            <div className="acc-sheet__pane">
+              <div className="acc-sheet__intro">
+                <h1 className="acc-sheet__title">Who are you supporting?</h1>
+                <p className="acc-sheet__sub">
+                  Names or initials, whatever you&rsquo;d write on a sticky note. Add one, add all,
+                  or stop anytime.
+                </p>
+              </div>
 
         <div className="acc-ob__addrow">
           <input
@@ -192,11 +194,16 @@ export function RosterStep({
           </div>
         )}
 
-        <footer className="acc-ob__foot">
-          <p className="acc-ob__hint">
+            </div>
+          </div>
+        </div>
+
+        <footer className="acc-sheet__foot">
+          <div className="acc-sheet__footside" />
+          <span className="acc-sheet__tip">
             Paste a whole column straight from your roster, they all come in at once.
-          </p>
-          <button type="button" className="acc-ob__next" onClick={onBoard}>
+          </span>
+          <button type="button" className="acc-btn acc-btn--primary" onClick={onBoard}>
             {students.length > 0 ? 'Open my board' : 'Skip for now'}
           </button>
         </footer>
@@ -222,15 +229,17 @@ export function SupportsStep({ student, onToggle, onAddCustom, onDone }) {
 
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-ob__card acc-ob__card--xl">
-        <header className="acc-ob__head">
-          <p className="acc-ob__eyebrow">Supports · {student.name}</p>
-          <h2 className="acc-ob__question">What does {student.name} receive?</h2>
-          <p className="acc-ob__note">
-            Start from the common wordings below. The plan&rsquo;s exact language wins, edit
-            anything later to match it.
-          </p>
-        </header>
+      <div className="acc-sheet__dialog">
+        <div className="acc-sheet__body">
+          <div className="acc-sheet__view">
+            <div className="acc-sheet__pane acc-sheet__pane--wide">
+              <div className="acc-sheet__intro">
+                <h1 className="acc-sheet__title">What does {student.name} receive?</h1>
+                <p className="acc-sheet__sub">
+                  Start from the common wordings below. The plan&rsquo;s exact language wins, edit
+                  anything later to match it.
+                </p>
+              </div>
 
         <div className="acc-ob__groups">
           {STARTER_SETS.map((set) => {
@@ -308,13 +317,18 @@ export function SupportsStep({ student, onToggle, onAddCustom, onDone }) {
           />
         </div>
 
-        <footer className="acc-ob__foot">
-          <p className="acc-ob__hint acc-numeric">
+            </div>
+          </div>
+        </div>
+
+        <footer className="acc-sheet__foot">
+          <div className="acc-sheet__footside" />
+          <span className="acc-sheet__tip acc-numeric">
             {chosen.length === 0
               ? "Nothing chosen yet, that's fine"
               : `${chosen.length} support${chosen.length === 1 ? '' : 's'} chosen`}
-          </p>
-          <button type="button" className="acc-ob__next" onClick={onDone}>
+          </span>
+          <button type="button" className="acc-btn acc-btn--primary" onClick={onDone}>
             Done
           </button>
         </footer>

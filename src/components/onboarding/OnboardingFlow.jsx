@@ -10,7 +10,7 @@ import {
   GRADE_OPTIONS,
 } from '../../domain/constants.js';
 import OnboardingAmbient from './OnboardingAmbient.jsx';
-import { IntroStep, WelcomeStep, OutroStep } from './steps/OpeningSteps.jsx';
+import { IntroStep, OutroStep } from './steps/OpeningSteps.jsx';
 import { NameStep, TeachStep, PeriodsStep, DayStep, SetStep } from './steps/ProfileSteps.jsx';
 import { RosterStep, SupportsStep } from './steps/RosterSteps.jsx';
 import LocationStep from './steps/LocationStep.jsx';
@@ -233,9 +233,7 @@ export default function OnboardingFlow({ needsLocation }) {
   function renderScreen(key) {
     switch (key) {
       case 'intro':
-        return <IntroStep onNext={() => go('welcome')} />;
-      case 'welcome':
-        return <WelcomeStep onNext={() => go('name')} />;
+        return <IntroStep onNext={() => go('name')} />;
       case 'name':
         return (
           <NameStep
@@ -369,7 +367,6 @@ export default function OnboardingFlow({ needsLocation }) {
 
   const PHASES = [
     'intro',
-    'welcome',
     'name',
     'teach',
     'periods',

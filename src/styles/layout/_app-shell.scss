@@ -116,6 +116,36 @@
   }
 }
 
+/**
+ * Everything under the toolbar that belongs to one date: the lanes, or the
+ * day's empty state. Switching dates crossfades it - out, swap, in - per
+ * DESIGN_REQUIREMENTS §5.4. Opacity only, on the wrapper: the lanes hold
+ * their places and are never re-staggered. Durations are mirrored in
+ * useDaySwap.js, which owns the swap timing.
+ *
+ * Left as plain fades under reduced motion on purpose: an opacity crossfade
+ * carries meaning and causes no vestibular trouble, per the house rule in
+ * _motion.scss.
+ */
+.acc-board__day {
+  display: flex;
+  flex-direction: column;
+  // Grows to fill the scroll area so the empty states keep their centring,
+  // without ever squashing a tall board.
+  flex: 1 0 auto;
+  gap: var(--acc-space-4);
+
+  &--out {
+    animation: acc-fade-out 160ms var(--acc-ease-exit) both;
+    // A board mid-goodbye must not take clicks meant for the incoming day.
+    pointer-events: none;
+  }
+
+  &--in {
+    animation: acc-fade-in 200ms var(--acc-ease-entrance) both;
+  }
+}
+
 .acc-board__lanes {
   display: flex;
   flex-direction: column;

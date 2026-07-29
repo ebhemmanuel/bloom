@@ -66,7 +66,10 @@ export default function AppHeader({
 }) {
   const { doc } = useData();
   const { dateKey, setDateKey } = useBoard();
-  const unread = notifications.length;
+  // Only warnings light the bell. The info items (nothing recorded yet, days
+  // not closed out) are ambient status for when the panel is opened - a badge
+  // that stays lit over them all day reads as a problem that never was.
+  const unread = notifications.filter((n) => n.tone === 'warn').length;
   // The mark turns under the pointer and finishes the turn on the way out.
   const { turning, spinProps } = useSpinOnHover();
   const now = useClock();

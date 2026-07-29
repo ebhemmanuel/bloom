@@ -687,6 +687,35 @@
     padding-inline: 0 var(--acc-space-3);
   }
 
+  /**
+   * Its rows face the rule too, or the mirroring stops at the heading: the
+   * first name used to land in the group's far-left cell, start-aligned,
+   * leaving a hole beside the divider under a heading pressed against it.
+   *
+   * `direction: rtl` on the list is only for GRID PLACEMENT - it makes
+   * auto-flow fill from the divider outward. Every child is put straight
+   * back to ltr so names never render with bidi quirks or a left-side
+   * ellipsis.
+   */
+  &__group--end &__group-list {
+    direction: rtl;
+
+    > * {
+      direction: ltr;
+    }
+  }
+
+  // The row mirrored like the heading: name against the rule, the period
+  // column out at the far edge.
+  &__group--end &__found {
+    flex-direction: row-reverse;
+
+    .acc-wiz__found-periods {
+      margin-inline-start: 0;
+      margin-inline-end: auto;
+    }
+  }
+
   &__group-count {
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-faint);

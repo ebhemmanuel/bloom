@@ -198,7 +198,10 @@
 .acc-scrim {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  // Above the full-screen sheets (100): confirms open from inside the edit
+  // wizard and settings, and a scrim below them is an invisible dialog. It is
+  // portalled to <body> to cover the whole app, so it outranks everything.
+  z-index: 110;
   display: flex;
   align-items: center;
   justify-content: center;

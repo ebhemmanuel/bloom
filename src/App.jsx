@@ -172,32 +172,34 @@ function AppShell() {
       {
         id: 'edit',
         label: 'Edit',
+        /*
+          The two student sheets first, then the preset list.
+
+          The heading these sat under is gone. It was there so three items
+          could be named for their verb alone - Add, Update, Copy - but two of
+          those now open the same pair of screens the rest of the app calls
+          Add student and Edit student, and a group label above them was
+          filing them under the wrong noun.
+        */
         items: [
-          // The roster first, on its own. Adding a student is the one thing
-          // here that is not about accommodations.
-          { label: 'Add a student', onSelect: () => openScene('addStudent') },
-          { separator: true },
-          /*
-            Grouped under a heading so each item can be named for its verb.
-            The three of these repeated the same noun and pushed the only
-            word that differed to the far end of a long label.
-          */
-          { heading: 'Accommodations' },
+          { label: 'Add Student', onSelect: () => openScene('addStudent') },
           {
-            label: 'Add',
-            indent: true,
-            // The edit sheet, starting on its find step. Adding to someone is
-            // one of the things editing them does, so it is the same screen
-            // reached without a name.
+            label: 'Edit Student',
+            // The edit sheet, starting on its find step. Adding accommodations
+            // to someone is one of the things editing them does, so it is the
+            // same screen reached without a name.
             onSelect: () => {
               setEditingStudentId(null);
               openScene('editStudent');
             },
           },
-          { label: 'Update', hint: 'presets', indent: true, onSelect: () => setModal('catalog') },
+          { separator: true },
+          // The shared catalog, not one student's list - which is what the
+          // hint says and why it sits apart from the two above.
+          { label: 'Edit Accommodations', hint: 'presets', onSelect: () => setModal('catalog') },
           // Hidden for now, not removed: the modal behind it still works and
           // the item goes back in the same place when it returns.
-          { label: 'Copy', indent: true, hidden: true, onSelect: () => setModal('copy') },
+          { label: 'Copy', hidden: true, onSelect: () => setModal('copy') },
         ],
       },
       // A word in the bar rather than an icon in the corner. Day notes are

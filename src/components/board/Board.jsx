@@ -8,6 +8,7 @@ import RangeView from './RangeView.jsx';
 import useCollapsedLanes from '../../hooks/useCollapsedLanes.js';
 import useCardSelection from '../../hooks/useCardSelection.js';
 import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
+import useDaySwap from '../../hooks/useDaySwap.js';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import {
@@ -82,6 +83,13 @@ export default function Board({ onAddStudent, onEditStudent }) {
     clear: clearSelection,
   } = useCardSelection();
   const { scrollRef, bar, onScroll, onThumbPointerDown } = useCustomScrollbar();
+
+  /**
+   * The date-change crossfade (§5.4). Everything under the toolbar renders
+   * from `view`, which trails `model` by one fade when the DATE moves and is
+   * identical to it the rest of the time. Same-day edits are never delayed.
+   */
+  const view = useDaySwap(dateKey, model, Boolean(rangeModel));
 
   /**
    * Mirror drag state onto <body> so global styles (grab cursor, empty-column
@@ -460,7 +468,9 @@ export default function Board({ onAddStudent, onEditStudent }) {
 
   return (
     <div className="acc-board">
-      {model.sealed && (
+      {/* From the buffered view, so it appears with the sealed day it
+          describes rather than a fade ahead of it. */}
+      {view.model.sealed && (
         <div className="acc-banner acc-banner--sealed acc-fade-enter">
           This day is closed out and read-only. Use <strong>Amend</strong> on a card to correct it;
           the change is logged.
@@ -492,60 +502,74 @@ export default function Board({ onAddStudent, onEditStudent }) {
                 setDateKey(date);
               }}
             />
-          ) : model.noClassToday ? (
-            <EmptyState
-              title={
-                model.isNonInstructional
-                  ? 'Not a school day'
-                  : `No classes meet on ${formatDateLong(dateKey)}`
-              }
-              body={
-                model.isNonInstructional
-                  ? 'This date is marked as non-instructional, so there are no accommodations to record. It prints as “n/a”.'
-                  : 'None of your class periods meet on this day, so there is nothing to record. It prints as “n/a”, not as a missed accommodation.'
-              }
-              actionLabel="Go to the last school day"
-              onAction={() => setDateKey(previousSchoolDay(dateKey, doc))}
-            />
-          ) : !model.hasRecord ? (
-            <EmptyState
-              title="No record for this day"
-              // The single most important sentence in the product.
-              body="Nothing was recorded on this date. That is different from the accommodations not being delivered, and it prints as “no record”, never as “not used”."
-              actionLabel={readOnly ? null : 'Start a record for this day'}
-              onAction={startRecord}
-            />
-          ) : model.lanes.length === 0 ? (
-            <EmptyState
-              title={search ? 'No students match that search' : 'No students yet'}
-              body={
-                search
-                  ? `Nothing matches “${search}”. Try a last name, or clear the filters.`
-                  : 'Add students and their accommodations to start tracking.'
-              }
-              actionLabel={search ? 'Clear search' : null}
-              onAction={() => setSearch('')}
-            />
           ) : (
-            <div className="acc-board__lanes acc-cascade">
-              {model.lanes.map((lane) => (
-                <Swimlane
-                  key={lane.studentId}
-                  lane={lane}
-                  collapsed={collapsed.has(lane.studentId)}
-                  readOnly={locked}
-                  onToggleCollapse={() => toggle(lane.studentId)}
-                  onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
-                  onOpenDetail={setDetailCard}
-                  onContextMenu={openContextMenu}
-                  onLaneContextMenu={(l, mx, my) => setLaneMenu({ lane: l, x: mx, y: my })}
-                  onSelectClick={handleSelectClick}
-                  isSelected={isSelected}
-                  selectionCount={selectionCount}
-                  onNotesCommit={commitNotes}
-                  renderColumnFooter={renderAddAccommodation}
+            /*
+              The day in view, rendered from the buffered `view` rather than
+              the live model so a date change can fade the old day out before
+              the new one fades in (§5.4). Lanes are keyed by student and are
+              NOT re-staggered - only the wrapper's opacity moves.
+            */
+            <div
+              className={`acc-board__day${
+                view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
+              }`}
+            >
+              {view.model.noClassToday ? (
+                <EmptyState
+                  title={
+                    view.model.isNonInstructional
+                      ? 'Not a school day'
+                      : `No classes meet on ${formatDateLong(view.dateKey)}`
+                  }
+                  body={
+                    view.model.isNonInstructional
+                      ? 'This date is marked as non-instructional, so there are no accommodations to record. It prints as “n/a”.'
+                      : 'None of your class periods meet on this day, so there is nothing to record. It prints as “n/a”, not as a missed accommodation.'
+                  }
+                  actionLabel="Go to the last school day"
+                  onAction={() => setDateKey(previousSchoolDay(view.dateKey, doc))}
                 />
-              ))}
+              ) : !view.model.hasRecord ? (
+                <EmptyState
+                  title="No record for this day"
+                  // The single most important sentence in the product.
+                  body="Nothing was recorded on this date. That is different from the accommodations not being delivered, and it prints as “no record”, never as “not used”."
+                  actionLabel={readOnly ? null : 'Start a record for this day'}
+                  onAction={startRecord}
+                />
+              ) : view.model.lanes.length === 0 ? (
+                <EmptyState
+                  title={search ? 'No students match that search' : 'No students yet'}
+                  body={
+                    search
+                      ? `Nothing matches “${search}”. Try a last name, or clear the filters.`
+                      : 'Add students and their accommodations to start tracking.'
+                  }
+                  actionLabel={search ? 'Clear search' : null}
+                  onAction={() => setSearch('')}
+                />
+              ) : (
+                <div className="acc-board__lanes acc-cascade">
+                  {view.model.lanes.map((lane) => (
+                    <Swimlane
+                      key={lane.studentId}
+                      lane={lane}
+                      collapsed={collapsed.has(lane.studentId)}
+                      readOnly={locked}
+                      onToggleCollapse={() => toggle(lane.studentId)}
+                      onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
+                      onOpenDetail={setDetailCard}
+                      onContextMenu={openContextMenu}
+                      onLaneContextMenu={(l, mx, my) => setLaneMenu({ lane: l, x: mx, y: my })}
+                      onSelectClick={handleSelectClick}
+                      isSelected={isSelected}
+                      selectionCount={selectionCount}
+                      onNotesCommit={commitNotes}
+                      renderColumnFooter={renderAddAccommodation}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

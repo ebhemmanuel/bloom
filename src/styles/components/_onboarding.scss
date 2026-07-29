@@ -391,40 +391,25 @@
   }
 }
 
-// --- Intro and welcome -----------------------------------------------------
+// --- Intro: the About page as the opening screen ----------------------------
+//
+// The first thing a new user sees is the About deck itself: the mark blooming,
+// the five slides cycling under it, the dots at the bottom. Every timing here
+// is _about.scss's, so the intro and About are the same room. The one thing
+// About does not have is the CTA under the rotating messages.
 
-.acc-ob__lockup {
+.acc-ob__corner {
+  position: absolute;
+  inset-block-start: 28px;
+  inset-inline-start: 32px;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 10px;
-}
-
-// The wordmark sits a touch closer to the mark than the hero's 26px default:
-// at 52px the word reads as part of the lockup, not a caption under it.
-.acc-ob__screen--intro .acc-ob__lockup {
-  margin-block-start: -12px;
-}
-
-.acc-ob__wordmark {
-  font-size: 52px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--acc-brand);
+  // Only the lockup itself, so the turn starts when the mark is pointed at
+  // rather than whenever the pointer crosses the corner of the screen.
+  inline-size: fit-content;
   animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
-}
-
-.acc-ob__tagline {
-  font-size: 16px;
-  color: var(--acc-ob-ink-2);
-  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 3150ms backwards;
-}
-
-.acc-ob__eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 150ms backwards;
 }
 
 .acc-ob__brand {
@@ -435,50 +420,51 @@
   color: var(--acc-brand);
 }
 
-.acc-ob__title {
-  font-size: 44px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
-  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 300ms backwards;
+.acc-ob__intro-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  inline-size: 100%;
 }
 
-.acc-ob__lede {
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--acc-ob-ink-2);
-  max-inline-size: 42ch;
-  text-wrap: pretty;
-  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 480ms backwards;
+// The idle pinwheel from About: starts once the mark has bloomed and the page
+// has settled. The PETAL GROUP turns, not the mark: the centre dot sits on the
+// rotation origin, and rotating the whole layer makes its edge shimmer.
+.acc-ob__intro-mark {
+  inline-size: 96px;
+  block-size: 96px;
+
+  .acc-mark__petals {
+    animation: acc-about-pinwheel 30s linear 4600ms infinite;
+  }
 }
 
 /**
- * The welcome deck: the About page's rotating slides, transplanted.
+ * The rotating deck: About's slides, About's travel.
  *
- * Same 360ms travel on the same curve, same before/on/after choreography, so
- * the deck reads as a single column moving under a fixed window rather than as
- * three things crossfading. See `.acc-about__slide` in _about.scss.
+ * Same 360ms on the same curve, same before/on/after choreography, so the deck
+ * reads as a single column moving under a fixed window rather than as five
+ * things crossfading. See `.acc-about__slide` in _about.scss.
  *
  * The container is sized by hand because every slide is absolutely stacked:
- * nothing in flow would hold the height open while they trade places.
+ * nothing in flow would hold the height open while they trade places. 250px
+ * clears the tallest slide (the two-line heading with a four-line body), so
+ * the CTA below never moves.
  */
 .acc-ob__deck {
   position: relative;
   inline-size: 100%;
-  min-block-size: 110px;
-  margin-block-start: 4px;
-  animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 660ms backwards;
+  min-block-size: 250px;
+  animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 1250ms both;
 }
 
 .acc-ob__deck-slide {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  text-align: center;
+  align-items: flex-start;
+  justify-content: center;
   pointer-events: none;
   transition:
     opacity 360ms var(--acc-ease-entrance),
@@ -501,23 +487,78 @@
   }
 }
 
-.acc-ob__deck-heading {
-  font-size: 24px;
+.acc-ob__deck-copy {
+  max-inline-size: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+
+  &--hero {
+    max-inline-size: 680px;
+  }
+}
+
+.acc-ob__deck-kicker {
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acc-brand);
+
+  // Private by design gets the accent: it is the product's central promise
+  // rather than one more section heading.
+  &--accent {
+    color: var(--acc-accent);
+  }
+}
+
+.acc-ob__deck-heading {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.18;
   text-wrap: balance;
+
+  &--hero {
+    font-size: 48px;
+    line-height: 1.12;
+  }
 }
 
 .acc-ob__deck-body {
-  font-size: 15px;
-  line-height: 1.6;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
   color: var(--acc-ob-ink-2);
-  max-inline-size: 46ch;
+  max-inline-size: 540px;
   text-wrap: pretty;
+
+  &--hero {
+    font-size: 17px;
+    line-height: 1.65;
+  }
 }
 
-// The slider dots, pinned where the About page pins its nav. The welcome
-// screen lights no progress segments, so the bottom edge is theirs alone.
+/**
+ * The first slide arrives with the mark, not before it: About's entrance,
+ * beat for beat. Only the hero; every later slide is reached by navigating,
+ * and an entrance animation on those would fight the deck's own transition.
+ */
+.acc-ob__deck-slide:first-of-type {
+  .acc-ob__deck-kicker,
+  .acc-ob__deck-heading {
+    animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 2750ms backwards;
+  }
+
+  .acc-ob__deck-body {
+    animation: acc-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 3050ms backwards;
+  }
+}
+
+// The slider dots, pinned where the About page pins its nav. The intro lights
+// no progress segments, so the bottom edge is theirs alone.
 .acc-ob__dots {
   position: absolute;
   inset-inline: 0;
@@ -526,7 +567,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 820ms backwards;
+  animation: acc-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) 1450ms backwards;
 }
 
 .acc-ob__dot {
@@ -548,97 +589,32 @@
   }
 }
 
-// --- Glass card ------------------------------------------------------------
+// --- The sheet frame, inside onboarding --------------------------------------
+//
+// The question screens wear the same frame as the add-student wizard and
+// settings: `.acc-sheet__dialog` and its body, intro and footer grammar. See
+// _sheet.scss. Only the differences live here.
 
-.acc-ob__card {
-  inline-size: 560px;
-  max-inline-size: 100%;
-  box-sizing: border-box;
-  padding: 52px 56px;
-  margin: auto;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(28px) saturate(1.15);
-  -webkit-backdrop-filter: blur(28px) saturate(1.15);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 20px;
-  box-shadow: 0 12px 32px -8px rgba(42, 36, 56, 0.18);
-  display: flex;
-  flex-direction: column;
-  gap: 26px;
-
-  &--md {
-    inline-size: 620px;
-  }
-  &--lg {
-    inline-size: 640px;
-    gap: 24px;
-  }
-  &--xl {
-    inline-size: 680px;
-    padding: 46px 52px;
-    gap: 20px;
+.acc-ob {
+  // The stage crossfade is the entrance for every onboarding screen, so the
+  // sheet's own delayed arrival (tuned for landing over the board's cascade)
+  // is switched off.
+  .acc-sheet__dialog {
+    animation: none;
   }
 
-  &--centred {
-    align-items: center;
-    text-align: center;
-    padding: 64px 56px;
-    gap: 18px;
+  // The teach step's 50/50 split needs more room than the sheet's default wide
+  // measure; anything narrower folds the grade chips into a fourth row and the
+  // halves stop reading as halves.
+  .acc-sheet__pane--wide {
+    --acc-sheet-pane: 780px;
   }
 }
 
-/**
- * Children arrive on a short stagger.
- *
- * Deliberately tight (180 to 300ms): this is a form the teacher is about to type
- * into, so the entrance has to be finished by the time their hands arrive.
- */
-.acc-ob__card > * {
-  animation: acc-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-
-  &:nth-child(1) {
-    animation-delay: 180ms;
-  }
-  &:nth-child(2) {
-    animation-delay: 225ms;
-  }
-  &:nth-child(3) {
-    animation-delay: 260ms;
-  }
-  &:nth-child(n + 4) {
-    animation-delay: 300ms;
-  }
-}
-
-.acc-ob__head {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.acc-ob__eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--acc-ob-muted);
-}
-
-.acc-ob__question {
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.2;
-
-  &--big {
-    font-size: 28px;
-  }
-}
-
-.acc-ob__note {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--acc-ob-ink-2);
-  text-wrap: pretty;
+// The summary screen: the wizard's done state, centred in the frame.
+.acc-ob__pane--centred {
+  align-items: center;
+  text-align: center;
 }
 
 .acc-ob__label {
@@ -662,13 +638,6 @@
   &--tight {
     gap: 4px;
   }
-}
-
-.acc-ob__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
 }
 
 // --- Fields ----------------------------------------------------------------
@@ -700,29 +669,6 @@
   }
 }
 
-.acc-ob__preview {
-  background: #ffffff;
-  border: 1px solid var(--acc-ob-line);
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.acc-ob__preview-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--acc-ob-faint);
-}
-
-.acc-ob__preview-line {
-  font-size: 12.5px;
-  font-variant-numeric: tabular-nums;
-}
-
 // --- Chips -----------------------------------------------------------------
 
 .acc-ob__chips {
@@ -733,6 +679,51 @@
 
   &--custom {
     gap: 7px;
+  }
+
+  // The left half of a split: chips run toward the rule, not away from it.
+  &--end {
+    justify-content: flex-end;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+}
+
+// Deliberate rows of chips: each child row keeps the chips' own 8px rhythm
+// vertically, rather than the cell's wider 12px field gap.
+.acc-ob__chip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// The settings Classes tab's 50/50, transplanted: a true half each, with the
+// rule counted as its own column so neither side is a pixel wider than the
+// other. See `.acc-set__split` in _settings.scss.
+.acc-ob__split {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.acc-ob__rule {
+  inline-size: 1px;
+  background: linear-gradient(to bottom, transparent, var(--acc-ob-line-input), transparent);
+}
+
+.acc-ob__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  // Right-aligned so the two halves meet at the rule rather than both running
+  // away from it.
+  &--end {
+    align-items: flex-end;
+    text-align: end;
   }
 }
 
@@ -902,23 +893,6 @@
   &--waiting {
     opacity: 0.45;
     cursor: default;
-  }
-}
-
-.acc-ob__ghost {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--acc-ob-ink-2);
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 220ms var(--acc-ob-ease);
-
-  &:hover:not(:disabled) {
-    background: rgba(42, 36, 56, 0.05);
   }
 }
 

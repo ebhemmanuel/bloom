@@ -28,15 +28,17 @@ export default function LocationStep({ onChoose, busy, error }) {
 
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-ob__card acc-ob__card--md">
-        <header className="acc-ob__head">
-          <p className="acc-ob__eyebrow">Your records</p>
-          <h2 className="acc-ob__question">Where should your records live?</h2>
-          <p className="acc-ob__note">
-            Your students&rsquo; information is saved as a single file on this computer. It is never
-            sent anywhere.
-          </p>
-        </header>
+      <div className="acc-sheet__dialog">
+        <div className="acc-sheet__body">
+          <div className="acc-sheet__view">
+            <div className="acc-sheet__pane">
+              <div className="acc-sheet__intro">
+                <h1 className="acc-sheet__title">Where should your records live?</h1>
+                <p className="acc-sheet__sub">
+                  Your students&rsquo; information is saved as a single file on this computer. It is
+                  never sent anywhere.
+                </p>
+              </div>
 
         <ul className="acc-ob__locations">
           {options.map((option) => (
@@ -77,11 +79,25 @@ export default function LocationStep({ onChoose, busy, error }) {
           ))}
         </ul>
 
-        <button type="button" className="acc-ob__ghost" onClick={browse} disabled={busy}>
-          Choose a different folder
-        </button>
+              {error && <p className="acc-ob__error">{error}</p>}
+            </div>
+          </div>
+        </div>
 
-        {error && <p className="acc-ob__error">{error}</p>}
+        {/* Choosing a folder above is what advances, so the footer carries no
+            primary: only the escape hatch to somewhere not on the list. */}
+        <footer className="acc-sheet__foot">
+          <div className="acc-sheet__footside">
+            <button
+              type="button"
+              className="acc-btn acc-btn--quiet"
+              onClick={browse}
+              disabled={busy}
+            >
+              Choose a different folder
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
   );

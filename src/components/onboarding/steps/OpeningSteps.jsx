@@ -1,75 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import BloomMark from '../BloomMark.jsx';
 import useTilt from '../../../hooks/useTilt.js';
+import useSpinOnHover from '../../../hooks/useSpinOnHover.js';
+import { ABOUT_SLIDES } from '../../about/aboutSlides.js';
 
 /**
- * The three screens with no card: intro, welcome, outro.
+ * The screens with no card: intro and outro.
  *
  * They sit directly on the aurora rather than on glass, which is what separates
  * "here is Bloom" from "here is a question". The questions all wear the card.
  */
 
-/**
- * The logo reveal.
- *
- * It holds forever. There is no auto-advance and there must not be one: a first
- * launch is the one moment a teacher has not agreed to anything yet, and a
- * screen that moves on by itself decides for them. The mark blooms, the name
- * arrives, and then it waits.
- */
-export function IntroStep({ onNext }) {
-  const tilt = useTilt();
-
-  return (
-    <div className="acc-ob__screen acc-ob__screen--intro">
-      <div className="acc-ob__hero">
-        <BloomMark size={132} bloom delay={1250} label="Bloom" />
-        <div className="acc-ob__lockup">
-          <p className="acc-ob__wordmark">Bloom</p>
-          <p className="acc-ob__tagline">A calm record of the support you give.</p>
-        </div>
-        <button
-          type="button"
-          className="acc-ob__cta acc-ob__cta--intro"
-          ref={tilt}
-          onClick={onNext}
-        >
-          Begin when you&rsquo;re ready
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const PROMISES = [
-  {
-    id: 'board',
-    title: 'One board for the day',
-    body: "Move a card when support happens. That's the whole job.",
-  },
-  {
-    id: 'reports',
-    title: 'Clean printed reports',
-    body: 'Ready for IEP meetings, audits, and parent conferences.',
-  },
-  {
-    id: 'private',
-    title: 'Private by design',
-    body: 'Everything stays on this computer. Nothing is ever sent anywhere.',
-  },
-];
-
-/** Same pace as the About page's deck. See AboutBloom. */
+/** Same pace as the About page's deck. The intro IS that deck. */
 const AUTO_ADVANCE_MS = 9000;
 
 /**
- * The welcome screen carries the About page's rotating deck rather than a grid
- * of cards: one promise at a time, auto-advancing, with the slider dots at the
- * bottom of the screen. The only difference from About is the CTA sitting
- * under the rotating messages.
+ * The opening screen: the About page, playing as the first thing a new user
+ * sees.
+ *
+ * Same mark, same five slides, same auto-advance and dots, from the same
+ * ABOUT_SLIDES list AboutBloom renders. What About does not have is the CTA
+ * under the rotating messages, and what this screen does not have is About's
+ * close button, feedback link and stats: there is nothing to close to, no
+ * record yet to count, and a first launch is not the moment to ask for mail.
+ *
+ * It holds forever. There is no auto-advance to the next step and there must
+ * not be one: a first launch is the one moment a teacher has not agreed to
+ * anything yet, and a screen that moves on by itself decides for them.
  */
-export function WelcomeStep({ onNext }) {
+export function IntroStep({ onNext }) {
   const tilt = useTilt();
+  const { turning, spinProps } = useSpinOnHover();
   const [index, setIndex] = useState(0);
   const idle = useRef(null);
 
@@ -78,12 +39,15 @@ export function WelcomeStep({ onNext }) {
   // before the timer fired and move you straight off it again.
   const armIdle = useCallback(() => {
     clearInterval(idle.current);
-    idle.current = setInterval(() => setIndex((i) => (i + 1) % PROMISES.length), AUTO_ADVANCE_MS);
+    idle.current = setInterval(
+      () => setIndex((i) => (i + 1) % ABOUT_SLIDES.length),
+      AUTO_ADVANCE_MS
+    );
   }, []);
 
   const go = useCallback(
     (next) => {
-      setIndex(((next % PROMISES.length) + PROMISES.length) % PROMISES.length);
+      setIndex(((next % ABOUT_SLIDES.length) + ABOUT_SLIDES.length) % ABOUT_SLIDES.length);
       armIdle();
     },
     [armIdle]
@@ -104,42 +68,66 @@ export function WelcomeStep({ onNext }) {
   }, [go, index]);
 
   return (
-    <div className="acc-ob__screen">
-      <div className="acc-ob__column">
-        <div className="acc-ob__eyebrow-row">
-          <BloomMark size={34} />
-          <span className="acc-ob__brand">BLOOM</span>
+    <div className="acc-ob__screen acc-ob__screen--intro">
+      {/* About's corner lockup, standing in for the wordmark the old intro
+          carried. The spin belongs to the mark alone, as everywhere else. */}
+      <div className={`acc-ob__corner${turning ? ' acc-spin' : ''}`} {...spinProps}>
+        <BloomMark size={26} />
+        <span className="acc-ob__brand">BLOOM</span>
+      </div>
+
+      <div className="acc-ob__intro-stage">
+        <div className="acc-ob__intro-mark">
+          <BloomMark size={96} bloom delay={1500} step={120} label="Bloom" />
         </div>
-        <h1 className="acc-ob__title">Hi there.</h1>
-        <p className="acc-ob__lede">
-          Bloom is a calm place to keep a daily record of the support you give your students. A few
-          quiet minutes at the end of the day.
-        </p>
+
         <div className="acc-ob__deck">
-          {PROMISES.map((p, i) => (
+          {ABOUT_SLIDES.map((s, i) => (
             <section
-              key={p.id}
+              key={s.id}
               className={`acc-ob__deck-slide acc-ob__deck-slide--${
                 i === index ? 'on' : i < index ? 'before' : 'after'
               }`}
               aria-hidden={i !== index}
             >
-              <h2 className="acc-ob__deck-heading">{p.title}</h2>
-              <p className="acc-ob__deck-body">{p.body}</p>
+              <div className={`acc-ob__deck-copy${s.hero ? ' acc-ob__deck-copy--hero' : ''}`}>
+                <span
+                  className={`acc-ob__deck-kicker${
+                    s.accentKicker ? ' acc-ob__deck-kicker--accent' : ''
+                  }`}
+                >
+                  {s.kicker}
+                </span>
+                {s.hero ? (
+                  <h1 className="acc-ob__deck-heading acc-ob__deck-heading--hero">{s.heading}</h1>
+                ) : (
+                  <h2 className="acc-ob__deck-heading">{s.heading}</h2>
+                )}
+                <p className={`acc-ob__deck-body${s.hero ? ' acc-ob__deck-body--hero' : ''}`}>
+                  {s.body}
+                </p>
+              </div>
             </section>
           ))}
         </div>
-        <button type="button" className="acc-ob__cta" ref={tilt} onClick={onNext}>
-          Continue
+
+        <button
+          type="button"
+          className="acc-ob__cta acc-ob__cta--intro"
+          ref={tilt}
+          onClick={onNext}
+        >
+          Begin when you&rsquo;re ready
         </button>
       </div>
+
       <div className="acc-ob__dots">
-        {PROMISES.map((p, i) => (
+        {ABOUT_SLIDES.map((s, i) => (
           <button
-            key={p.id}
+            key={s.id}
             type="button"
             className={`acc-ob__dot${i === index ? ' acc-ob__dot--on' : ''}`}
-            aria-label={`Go to message ${i + 1}`}
+            aria-label={`Go to slide ${i + 1}`}
             aria-current={i === index ? 'true' : undefined}
             onClick={() => go(i)}
           />

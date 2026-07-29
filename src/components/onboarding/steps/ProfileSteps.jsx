@@ -5,7 +5,6 @@ import {
   CYCLE_END_OPTIONS,
   REMINDER_OPTIONS,
 } from '../../../domain/constants.js';
-import { PRODUCT_NAME } from '../../../domain/schema.js';
 
 /**
  * The four questions that build the teacher's own profile, plus the summary.
@@ -15,20 +14,49 @@ import { PRODUCT_NAME } from '../../../domain/schema.js';
  * able to, and none of these change what the app can record.
  */
 
-/** The shared shell: glass card, eyebrow, question, note, then a footer. */
-function Card({ width, eyebrow, title, note, children, footer }) {
+/**
+ * The shared shell: the same sheet frame the add-student wizard and settings
+ * wear (see SceneFrame and _sheet.scss), minus the close button - onboarding
+ * has nowhere to close to. Title and sub in the body, and the standard footer
+ * row: Back on the left, the one line of guidance centred, primary on the
+ * right. No eyebrow: the view's own heading is the title.
+ */
+function Card({ wide, title, note, children, footer }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className={`acc-ob__card acc-ob__card--${width}`}>
-        <header className="acc-ob__head">
-          <p className="acc-ob__eyebrow">{eyebrow}</p>
-          <h2 className="acc-ob__question">{title}</h2>
-          {note && <p className="acc-ob__note">{note}</p>}
-        </header>
-        {children}
-        <footer className="acc-ob__foot">{footer}</footer>
+      <div className={`acc-sheet__dialog${wide ? ' acc-sheet__dialog--wide' : ''}`}>
+        <div className="acc-sheet__body">
+          <div className="acc-sheet__view">
+            <div className={`acc-sheet__pane${wide ? ' acc-sheet__pane--wide' : ''}`}>
+              <div className="acc-sheet__intro">
+                <h1 className="acc-sheet__title">{title}</h1>
+                {note && <p className="acc-sheet__sub">{note}</p>}
+              </div>
+              {children}
+            </div>
+          </div>
+        </div>
+        {footer && <footer className="acc-sheet__foot">{footer}</footer>}
       </div>
     </div>
+  );
+}
+
+/** The standard footer row. `next` is the primary button, already built. */
+function Foot({ onBack, tip, next }) {
+  return (
+    <>
+      {/* The spacer holds the row still when Back is not there to hold it. */}
+      <div className="acc-sheet__footside">
+        {onBack && (
+          <button type="button" className="acc-btn acc-btn--quiet" onClick={onBack}>
+            Back
+          </button>
+        )}
+      </div>
+      {tip && <span className="acc-sheet__tip">{tip}</span>}
+      {next}
+    </>
   );
 }
 
@@ -45,22 +73,9 @@ function Chip({ on, onClick, children, wide }) {
   );
 }
 
-function Back({ onClick }) {
-  return (
-    <button type="button" className="acc-ob__ghost" onClick={onClick}>
-      Back
-    </button>
-  );
-}
-
 function Next({ onClick, disabled, children = 'Continue' }) {
   return (
-    <button
-      type="button"
-      className={`acc-ob__next${disabled ? ' acc-ob__next--waiting' : ''}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <button type="button" className="acc-btn acc-btn--primary" onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
@@ -71,15 +86,13 @@ export function NameStep({ value, onChange, onNext }) {
 
   return (
     <Card
-      width="sm"
-      eyebrow="About you"
       title="What should we call you?"
       note={`However you'd like it to read on your printed reports, "Ms. Rivera" and "Jordan" are both fine.`}
       footer={
-        <>
-          <p className="acc-ob__hint">That&rsquo;s the only thing we need to start.</p>
-          <Next onClick={onNext} disabled={!ready} />
-        </>
+        <Foot
+          tip="That's the only thing we need to start."
+          next={<Next onClick={onNext} disabled={!ready} />}
+        />
       }
     >
       <div className="acc-ob__group">
@@ -94,23 +107,17 @@ export function NameStep({ value, onChange, onNext }) {
           aria-label="Your name"
           autoFocus
         />
-        {/*
-          Shows exactly where the name lands, so it is obvious this is for the
-          paperwork rather than a login. It is also the first time the teacher
-          sees the thing they are actually building.
-        */}
-        {ready && (
-          <div className="acc-ob__preview acc-fade-enter">
-            <p className="acc-ob__preview-label">On your printed reports</p>
-            <p className="acc-ob__preview-line">
-              {PRODUCT_NAME} · Daily Accommodation Record · {value.trim()}
-            </p>
-          </div>
-        )}
       </div>
     </Card>
   );
 }
+
+// Where the grade rows break: after 3, then after 7.
+const GRADE_ROWS = [
+  GRADE_OPTIONS.slice(0, GRADE_OPTIONS.indexOf('4')),
+  GRADE_OPTIONS.slice(GRADE_OPTIONS.indexOf('4'), GRADE_OPTIONS.indexOf('8')),
+  GRADE_OPTIONS.slice(GRADE_OPTIONS.indexOf('8')),
+];
 
 export function TeachStep({ name, subjects, grades, onToggle, onAddSubject, onBack, onNext }) {
   const [draft, setDraft] = useState('');
@@ -125,48 +132,61 @@ export function TeachStep({ name, subjects, grades, onToggle, onAddSubject, onBa
 
   return (
     <Card
-      width="md"
-      eyebrow="Your classroom"
+      wide
       title={`What do you teach, ${name}?`}
-      note="Pick any that apply. These only personalize your reports, they're never used to score anything."
+      note="Pick any that apply."
       footer={
-        <>
-          <Back onClick={onBack} />
-          <Next onClick={onNext} />
-        </>
+        <Foot
+          onBack={onBack}
+          tip="These only personalize your reports, they're never used to score anything."
+          next={<Next onClick={onNext} />}
+        />
       }
     >
-      <div className="acc-ob__group">
-        <div className="acc-ob__chips">
-          {[...SUBJECT_OPTIONS, ...extras].map((s) => (
-            <Chip key={s} on={subjects.includes(s)} onClick={() => onToggle('subjects', s)}>
-              {s}
-            </Chip>
-          ))}
-          <input
-            className="acc-ob__chip-input"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                add();
-              }
-            }}
-            placeholder="Something else…"
-            aria-label="Add a subject"
-          />
+      {/* The settings Classes tab's layout: subjects and grades a true half
+          each, meeting at the rule. See ProfileModal and `.acc-set__split`. */}
+      <div className="acc-ob__split">
+        <div className="acc-ob__cell acc-ob__cell--end">
+          <p className="acc-ob__label">Subjects</p>
+          <div className="acc-ob__chips acc-ob__chips--end">
+            {[...SUBJECT_OPTIONS, ...extras].map((s) => (
+              <Chip key={s} on={subjects.includes(s)} onClick={() => onToggle('subjects', s)}>
+                {s}
+              </Chip>
+            ))}
+            <input
+              className="acc-ob__chip-input"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  add();
+                }
+              }}
+              placeholder="Something else…"
+              aria-label="Add a subject"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="acc-ob__group">
-        <p className="acc-ob__label">Which grades?</p>
-        <div className="acc-ob__chips">
-          {GRADE_OPTIONS.map((g) => (
-            <Chip key={g} wide on={grades.includes(g)} onClick={() => onToggle('grades', g)}>
-              {g}
-            </Chip>
-          ))}
+        <span className="acc-ob__rule" aria-hidden="true" />
+
+        <div className="acc-ob__cell">
+          <p className="acc-ob__label">Which grades?</p>
+          {/* Fixed rows rather than free wrap: K-3, 4-7, 8-12, so the bands a
+              school actually splits on read as bands. */}
+          <div className="acc-ob__chip-rows">
+            {GRADE_ROWS.map((row) => (
+              <div key={row[0]} className="acc-ob__chips">
+                {row.map((g) => (
+                  <Chip key={g} wide on={grades.includes(g)} onClick={() => onToggle('grades', g)}>
+                    {g}
+                  </Chip>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Card>
@@ -178,18 +198,17 @@ const PERIOD_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
 export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, onNext }) {
   return (
     <Card
-      width="md"
-      eyebrow="Your day"
       title="Which periods do you see students?"
-      note="Just the ones where you deliver accommodations. You can add or change these anytime."
+      note="Just the ones where you deliver accommodations."
       footer={
-        <>
-          <Back onClick={onBack} />
-          <Next onClick={onNext} />
-        </>
+        <Foot
+          onBack={onBack}
+          tip="You can add or change these anytime."
+          next={<Next onClick={onNext} />}
+        />
       }
     >
-      <div className="acc-ob__chips">
+      <div className="acc-ob__chips acc-ob__chips--center">
         {PERIOD_NUMBERS.map((n) => (
           <Chip key={n} wide on={periods.includes(n)} onClick={() => onToggle(n)}>
             P{n}
@@ -223,15 +242,14 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
 export function DayStep({ endTime, reminders, onPickTime, onToggleReminder, onBack, onNext }) {
   return (
     <Card
-      width="md"
-      eyebrow="Your rhythm"
       title="When does your day usually end?"
-      note="Bloom uses this to quietly close out the day. Nothing pings you at this time."
+      note="Bloom uses this to quietly close out the day."
       footer={
-        <>
-          <Back onClick={onBack} />
-          <Next onClick={onNext} />
-        </>
+        <Foot
+          onBack={onBack}
+          tip="Nothing pings you at this time."
+          next={<Next onClick={onNext} />}
+        />
       }
     >
       <div className="acc-ob__chips">
@@ -280,20 +298,30 @@ export function DayStep({ endTime, reminders, onPickTime, onToggleReminder, onBa
 export function SetStep({ summary, onRoster, onBoard }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
-      <div className="acc-ob__card acc-ob__card--sm acc-ob__card--centred">
-        <h2 className="acc-ob__question acc-ob__question--big">That&rsquo;s the paperwork done.</h2>
-        <p className="acc-ob__summary acc-numeric">{summary}</p>
-        <p className="acc-ob__note">
-          Your students come next: names, plans, and their supports. A few minutes, or later. Both
-          are fine.
-        </p>
-        <div className="acc-ob__actions">
-          <button type="button" className="acc-ob__cta" onClick={onRoster}>
-            Add my students
-          </button>
-          <button type="button" className="acc-ob__ghost" onClick={onBoard}>
-            Later, open my board
-          </button>
+      <div className="acc-sheet__dialog">
+        <div className="acc-sheet__body">
+          <div className="acc-sheet__view">
+            {/* The wizard's done state, worn by the summary: centred, actions
+                in the pane, no footer row to Back out of. */}
+            <div className="acc-sheet__pane acc-ob__pane--centred">
+              <div className="acc-sheet__intro acc-sheet__intro--center">
+                <h1 className="acc-sheet__title">That&rsquo;s the paperwork done.</h1>
+                <p className="acc-sheet__sub acc-sheet__sub--balance">
+                  Your students come next: names, plans, and their supports. A few minutes, or
+                  later. Both are fine.
+                </p>
+              </div>
+              <p className="acc-ob__summary acc-numeric">{summary}</p>
+              <div className="acc-ob__actions">
+                <button type="button" className="acc-btn acc-btn--primary" onClick={onRoster}>
+                  Add my students
+                </button>
+                <button type="button" className="acc-btn acc-btn--quiet" onClick={onBoard}>
+                  Later, open my board
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
