@@ -117,7 +117,7 @@ function AppShell() {
 
     if (firstrunClass.includes('--in') || firstrunClass.includes('--fade')) {
       setBoardCascade('in');
-      firstrunTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
+      firstrunTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1900));
     }
   }, [firstRun, firstrunClass]);
 
@@ -143,7 +143,7 @@ function AppShell() {
         setSceneLeaving(false);
       }, 520)
     );
-    sceneTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1500));
+    sceneTimers.current.push(setTimeout(() => setBoardCascade('rest'), 1900));
   }, []);
   const palette = useCommandPalette();
 

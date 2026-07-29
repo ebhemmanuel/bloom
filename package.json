@@ -11,6 +11,7 @@
     "electron:dev": "npm run build && electron .",
     "dev:electron": "concurrently -k -n vite,electron -c cyan,magenta \"vite\" \"wait-on tcp:5180 && cross-env ACC_DEV_SERVER=http://localhost:5180 electron .\"",
     "electron:build": "npm run build && electron-builder --win",
+    "electron:build:win": "npm run build && node scripts/electron-build-win.js",
     "smoke": "npm run build && electron scripts/smoke.js",
     "test": "vitest run",
     "test:watch": "vitest",

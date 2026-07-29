@@ -58,6 +58,14 @@ npm run electron:build
 
 Produces `dist-electron/Accommodations-Tracker.exe` - a single portable file, no installer.
 
+On Windows, if the repo is under Documents and OneDrive sync is on, `electron:build` may fail with `EPERM` while renaming `win-unpacked.tmp`. Use this instead:
+
+```bash
+npm run electron:build:win
+```
+
+That builds to `C:\Temp\accom-electron-build` and copies the exe into `dist-electron/` when it finishes.
+
 The exe icon is the Bloom mark, packed into `build/icon.ico` from `build/icon.svg` (the same geometry as `BloomMark.jsx`, with the light-theme petal tokens baked in). To regenerate it after changing the mark:
 
 ```bash

@@ -8,24 +8,36 @@
 // only what surrounds it moves.
 // ---------------------------------------------------------------------------
 
+/**
+ * The head start the board's own SURFACE takes.
+ *
+ * The frosted card - its fill, its border, the blur behind it - clears before
+ * anything inside it moves, so the rows fall through open air rather than
+ * inside a panel that is still there. It used to be the other way round by
+ * omission: the card never animated at all, so it sat until About's background
+ * covered it, which made the room the last thing to leave rather than the
+ * first.
+ */
+$surface-lead: 160ms;
+
 @mixin cascade-rows($name, $fill: forwards) {
   .acc-header {
-    animation: #{$name} 550ms var(--acc-ease-standard) 0ms #{$fill};
+    animation: #{$name} 550ms var(--acc-ease-standard) $surface-lead #{$fill};
   }
 
   .acc-toolbar {
-    animation: #{$name} 550ms var(--acc-ease-standard) 80ms #{$fill};
+    animation: #{$name} 550ms var(--acc-ease-standard) #{$surface-lead + 80ms} #{$fill};
   }
 
   // Capped at twelve: a forty-student roster must not stretch this past the
   // point where it stops reading as one gesture. Everything past the twelfth
   // shares the last slot and lands together.
   .acc-lane {
-    animation: #{$name} 550ms var(--acc-ease-standard) 1160ms #{$fill};
+    animation: #{$name} 550ms var(--acc-ease-standard) #{$surface-lead + 1160ms} #{$fill};
 
     @for $i from 1 through 12 {
       &:nth-of-type(#{$i}) {
-        animation-delay: #{80 + $i * 90}ms;
+        animation-delay: #{$surface-lead + (80 + $i * 90) * 1ms};
       }
     }
   }
@@ -232,10 +244,29 @@ body[data-dragging='true'] {
 
 [data-board-cascade='out'] {
   @include cascade-rows(acc-cascade-out);
+
+  /**
+   * The room goes first: fill, border, shadow and the blur behind them, gone
+   * before a single row has moved. What is left standing is the aurora, and
+   * the rows fall through it.
+   *
+   * Not `opacity` - that would take the rows down with it in one block, which
+   * is the opposite of the point. Only the surface's own properties animate,
+   * so its children keep their own timing.
+   */
+  .acc-app__main {
+    animation: acc-surface-out 260ms var(--acc-ease-standard) forwards;
+  }
 }
 
 [data-board-cascade='in'] {
   @include cascade-rows(acc-cascade-in, both);
+
+  // Coming back, the room arrives first as well: the rows land on a surface
+  // that is already there rather than materialising one under themselves.
+  .acc-app__main {
+    animation: acc-surface-in 320ms var(--acc-ease-standard) both;
+  }
 }
 
 /**
@@ -260,7 +291,10 @@ body[data-dragging='true'] {
 [data-board-cascade='rest'] {
   .acc-header,
   .acc-toolbar,
-  .acc-lane {
+  .acc-lane,
+  // The surface too, or the `forwards` fill from the way out leaves the board
+  // sitting there with no fill and no border once we are back.
+  .acc-app__main {
     animation: none;
   }
 }
@@ -275,6 +309,51 @@ body[data-dragging='true'] {
     opacity: 0;
     transform: translateY(26px);
     filter: blur(6px);
+  }
+}
+
+/**
+ * The board's surface leaving, and coming back.
+ *
+ * Every property the frosted card is made of, animated to nothing: the fill,
+ * the hairline, the shadow and the blur it holds over the aurora. The shadow
+ * keeps its geometry and loses only its alpha, so it thins out rather than
+ * snapping to a different shape at the halfway point.
+ *
+ * `blur(0) saturate(1)` rather than `none` on the way out - `none` is not a
+ * filter list and does not interpolate, so the blur would drop in one frame.
+ */
+@keyframes acc-surface-out {
+  from {
+    background: var(--acc-frost);
+    border-color: var(--acc-frost-border);
+    box-shadow: var(--acc-shadow-raised);
+    backdrop-filter: var(--acc-frost-blur);
+    -webkit-backdrop-filter: var(--acc-frost-blur);
+  }
+  to {
+    background: rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 0);
+    box-shadow: 0 4px 12px -2px rgba(42, 36, 56, 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+}
+
+@keyframes acc-surface-in {
+  from {
+    background: rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 0);
+    box-shadow: 0 4px 12px -2px rgba(42, 36, 56, 0);
+    backdrop-filter: blur(0) saturate(1);
+    -webkit-backdrop-filter: blur(0) saturate(1);
+  }
+  to {
+    background: var(--acc-frost);
+    border-color: var(--acc-frost-border);
+    box-shadow: var(--acc-shadow-raised);
+    backdrop-filter: var(--acc-frost-blur);
+    -webkit-backdrop-filter: var(--acc-frost-blur);
   }
 }
 
@@ -295,7 +374,8 @@ body[data-dragging='true'] {
 @media (prefers-reduced-motion: reduce) {
   [data-board-cascade] .acc-header,
   [data-board-cascade] .acc-toolbar,
-  [data-board-cascade] .acc-lane {
+  [data-board-cascade] .acc-lane,
+  [data-board-cascade] .acc-app__main {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
   }
