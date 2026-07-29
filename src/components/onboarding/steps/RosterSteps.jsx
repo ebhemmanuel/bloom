@@ -59,17 +59,34 @@ export function RosterStep({
     setName('');
   };
 
+  /**
+   * Continue takes the field with it.
+   *
+   * There is no Add button any more: a name typed and left sitting there was
+   * the one way to lose work on this screen, and a button whose whole job is
+   * "yes, I meant the thing I just typed" is a question nobody needs asked.
+   * Enter still adds, for the teacher entering a list one at a time.
+   */
+  const continueOn = () => {
+    add();
+    onBoard();
+  };
+
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
       <div className="acc-sheet__dialog acc-sheet__dialog--wide">
         <div className="acc-sheet__body">
           <div className="acc-sheet__view">
             <div className="acc-sheet__pane">
-              <div className="acc-sheet__intro">
+              <div className="acc-sheet__intro acc-sheet__intro--center">
                 <h1 className="acc-sheet__title">Who are you supporting?</h1>
+                {/* The break is authored rather than left to the measure: the
+                    first sentence says what to type and the second says how
+                    much, and they are easier to take in a line each. */}
                 <p className="acc-sheet__sub">
-                  Names or initials, whatever you&rsquo;d write on a sticky note. Add one, add all,
-                  or stop anytime.
+                  Names or initials, whatever you&rsquo;d write on a sticky note.
+                  <br />
+                  Add one, add all, or stop anytime.
                 </p>
               </div>
 
@@ -81,89 +98,79 @@ export function RosterStep({
                 way now.
               */}
               <div className="acc-wiz__field">
-                <div className="acc-wiz__addrow">
-                  <div className="acc-wiz__namegroup">
-                    <input
-                      className="acc-wiz__nameinput"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          add();
-                        }
-                      }}
-                      /*
+                <div className="acc-wiz__namegroup">
+                  <input
+                    className="acc-wiz__nameinput"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        add();
+                      }
+                    }}
+                    /*
                         Straight from the clipboard, before the single-line
                         field can turn every newline into a space. A pasted
                         roster is added on the spot; there is nothing to
                         confirm when the names are right there.
                       */
-                      onPaste={(e) => {
-                        const names = readPastedNames(e);
-                        if (!names) return;
-                        e.preventDefault();
-                        names.forEach((n) => onAdd(n, plan));
-                        setName('');
-                      }}
-                      placeholder="J. Alvarez, or JA, or Student 4"
-                      aria-label="Student name"
-                      autoFocus
-                    />
+                    onPaste={(e) => {
+                      const names = readPastedNames(e);
+                      if (!names) return;
+                      e.preventDefault();
+                      names.forEach((n) => onAdd(n, plan));
+                      setName('');
+                    }}
+                    placeholder="J. Alvarez, or JA, or Student 4"
+                    aria-label="Student name"
+                    autoFocus
+                  />
 
-                    <span
-                      className={`acc-wiz__planwrap acc-wiz__planwrap--${PLAN_CLASS[plan] || 'other'}`}
-                      ref={planRef}
-                    >
-                      <button
-                        type="button"
-                        className="acc-wiz__plan"
-                        onClick={() => setPlanOpen((o) => !o)}
-                        aria-haspopup="menu"
-                        aria-expanded={planOpen}
-                        aria-label={`Plan type: ${plan}`}
-                        title="Plan type"
-                      >
-                        {plan}
-                        <Caret up={planOpen} />
-                      </button>
-
-                      {planOpen && (
-                        <div className="acc-wiz__planmenu acc-enter" role="menu">
-                          {PLAN_TYPES.map((p) => (
-                            <button
-                              key={p}
-                              type="button"
-                              role="menuitemradio"
-                              aria-checked={p === plan}
-                              className={`acc-wiz__planrow${p === plan ? ' acc-wiz__planrow--on' : ''}`}
-                              onClick={() => {
-                                setPlan(p);
-                                setPlanOpen(false);
-                              }}
-                            >
-                              <span className="acc-wiz__plancheck">{p === plan ? '✓' : ''}</span>
-                              {p}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="acc-btn acc-btn--primary acc-wiz__addbtn"
-                    onClick={add}
-                    disabled={!ready}
+                  <span
+                    className={`acc-wiz__planwrap acc-wiz__planwrap--${PLAN_CLASS[plan] || 'other'}`}
+                    ref={planRef}
                   >
-                    {parsed.length > 1 ? `Add ${parsed.length}` : 'Add'}
-                  </button>
+                    <button
+                      type="button"
+                      className="acc-wiz__plan"
+                      onClick={() => setPlanOpen((o) => !o)}
+                      aria-haspopup="menu"
+                      aria-expanded={planOpen}
+                      aria-label={`Plan type: ${plan}`}
+                      title="Plan type"
+                    >
+                      {plan}
+                      <Caret up={planOpen} />
+                    </button>
+
+                    {planOpen && (
+                      <div className="acc-wiz__planmenu acc-enter" role="menu">
+                        {PLAN_TYPES.map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            role="menuitemradio"
+                            aria-checked={p === plan}
+                            className={`acc-wiz__planrow${p === plan ? ' acc-wiz__planrow--on' : ''}`}
+                            onClick={() => {
+                              setPlan(p);
+                              setPlanOpen(false);
+                            }}
+                          >
+                            <span className="acc-wiz__plancheck">{p === plan ? '✓' : ''}</span>
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </span>
                 </div>
 
-                <span className="acc-wiz__hint">
-                  Paste a whole list, separated by commas or one per line, to add several students
-                  together.
+                <span className="acc-wiz__hint acc-wiz__hint--center">
+                  Press Enter to add another, or just continue - whatever is in the field comes with
+                  you. Paste a whole list, separated by commas or one per line, to add several at
+                  once.
                 </span>
               </div>
 
@@ -174,7 +181,7 @@ export function RosterStep({
                 the list afterwards.
               */}
               {parsed.length > 1 && (
-                <div className="acc-preview acc-wiz__preview">
+                <div className="acc-preview acc-wiz__preview acc-wiz__preview--center">
                   <p className="acc-preview__summary">{parsed.length} students, added together</p>
                   <div className="acc-wiz__chips">
                     {parsed.map((n) => (
@@ -275,7 +282,7 @@ export function RosterStep({
           {/* Continue, whether or not anybody was named. This screen is
               optional, and a button that says Skip makes leaving it empty feel
               like giving up on something rather than answering it. */}
-          <button type="button" className="acc-btn acc-btn--primary" onClick={onBoard}>
+          <button type="button" className="acc-btn acc-btn--primary" onClick={continueOn}>
             Continue
           </button>
         </footer>
