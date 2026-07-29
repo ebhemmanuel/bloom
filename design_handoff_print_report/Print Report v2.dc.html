@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+  <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div role="dialog" aria-label="Print report" style="width:min(900px,96vw);height:min(660px,92vh);display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);overflow:hidden">
+
+      <div style="position:relative;display:flex;align-items:center;justify-content:flex-end;padding:20px 28px 0;flex:none">
+        <sc-if value="{{ notSaved }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:0;right:0;display:flex;justify-content:center;gap:8px;pointer-events:none">
+            <sc-for list="{{ dots }}" as="d" hint-placeholder-count="3">
+              <button aria-label="{{ d.label }}" onClick="{{ d.onClick }}" style="width:{{ d.w }};height:6px;padding:0;border-radius:999px;background:{{ d.bg }};cursor:{{ d.cursor }};pointer-events:auto;transition:width 260ms cubic-bezier(0.16,1,0.3,1),background 260ms cubic-bezier(0.16,1,0.3,1)"></button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button aria-label="Close" style="color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+      </div>
+
+      <div style="flex:1;min-height:0;overflow-y:auto;display:flex">
+
+        <sc-if value="{{ onStep1 }}" hint-placeholder-val="{{ true }}">
+          <div style="margin:auto;display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:620px;padding:24px 28px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:center">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">What should this report cover?</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.5">The report is the printable compliance record: one page per student, dates down the page, a column for each accommodation.</p>
+            </div>
+            <div role="radiogroup" aria-label="Report range" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%">
+              <button role="radio" aria-checked="{{ isTodate }}" onClick="{{ pickTodate }}" style="display:flex;flex-direction:column;gap:6px;padding:24px 20px;text-align:left;border:1px solid {{ todateBorder }};border-radius:14px;background:{{ todateBg }};transition:border-color 160ms cubic-bezier(0.65,0,0.35,1),background-color 160ms cubic-bezier(0.65,0,0.35,1)" style-hover="border-color:#5b4bd6">
+                <span style="font-size:15px;font-weight:600">Everything so far</span>
+                <span style="font-size:12px;color:#6b6480;line-height:1.45">From your first record through today. At the end of the year this is the whole year, so there is no separate whole-year option.</span>
+              </button>
+              <button role="radio" aria-checked="{{ isRange }}" onClick="{{ pickRange }}" style="display:flex;flex-direction:column;gap:6px;padding:24px 20px;text-align:left;border:1px solid {{ rangeBorder }};border-radius:14px;background:{{ rangeBg }};transition:border-color 160ms cubic-bezier(0.65,0,0.35,1),background-color 160ms cubic-bezier(0.65,0,0.35,1)" style-hover="border-color:#5b4bd6">
+                <span style="font-size:15px;font-weight:600">A range of dates</span>
+                <span style="font-size:12px;color:#6b6480;line-height:1.45">For a review meeting, a quarter, or a single week. Set the first and last day on the next line.</span>
+              </button>
+            </div>
+            <sc-if value="{{ isRange }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:8px;align-items:center;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+                <div style="display:flex;gap:12px;justify-content:center">
+                  <label style="display:flex;flex-direction:column;gap:4px;text-align:left">
+                    <span style="font-size:12px;font-weight:500">From</span>
+                    <input type="date" value="{{ from }}" onChange="{{ setFrom }}" style="height:40px;width:200px;padding:0 12px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"></input>
+                  </label>
+                  <label style="display:flex;flex-direction:column;gap:4px;text-align:left">
+                    <span style="font-size:12px;font-weight:500">To</span>
+                    <input type="date" value="{{ to }}" onChange="{{ setTo }}" style="height:40px;width:200px;padding:0 12px;border:1px solid #e9e5f0;border-radius:8px;background:#fff;font-size:14px;outline:none" style-focus="border-color:#5b4bd6;box-shadow:0 0 0 3px #eeebfd"></input>
+                  </label>
+                </div>
+                <sc-if value="{{ invalid }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin:0;font-size:12px;font-weight:500;color:#a33a30">The end date is before the start date.</p>
+                </sc-if>
+                <sc-if value="{{ notInvalid }}" hint-placeholder-val="{{ true }}">
+                  <p style="margin:0;font-size:11px;color:#6b6480;line-height:1.45">Weekends and non-instructional days are left out automatically.</p>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ onStep2 }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:auto;display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:620px;padding:24px 28px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:center">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">Which periods should it include?</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.5">For a meeting about one class, narrow it to that period. This only changes what prints - every period stays in the record.</p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+              <sc-for list="{{ periodChips }}" as="c" hint-placeholder-count="5">
+                <button aria-pressed="{{ c.on }}" onClick="{{ c.onClick }}" style="display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};font-size:13px;font-weight:500;white-space:nowrap;transition:border-color 160ms cubic-bezier(0.65,0,0.35,1),background-color 160ms cubic-bezier(0.65,0,0.35,1),color 160ms cubic-bezier(0.65,0,0.35,1)">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <p style="margin:0;font-size:11px;color:#6b6480;line-height:1.45">Students outside the chosen periods are left off this report.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ onStep3 }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:auto;display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:620px;padding:24px 28px;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:center">
+              <h1 style="margin:0;font-size:28px;font-weight:600;line-height:1.25">Ready to print</h1>
+              <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.5">Check the coverage - this is exactly what reaches the paper.</p>
+            </div>
+            <div style="width:100%;border:1px solid #e9e5f0;border-radius:14px;box-shadow:0 4px 12px -2px rgba(42,36,56,0.1);overflow:hidden;text-align:left">
+              <div style="padding:20px 24px 16px;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:baseline;gap:14px">
+                  <span style="flex:1;min-width:0;font-size:17px;font-weight:600">{{ rangeLabel }}</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#9a93a8;white-space:nowrap">Edit
+                    <button onClick="{{ editCoverage }}" style="font-size:11px;font-weight:500;color:#6b6480;padding:0" style-hover="color:#5b4bd6">Coverage</button>
+                    <span style="width:5px;height:5px;border:1px solid #9a93a8;border-radius:50%;display:inline-block"></span>
+                    <button onClick="{{ editPeriods }}" style="font-size:11px;font-weight:500;color:#6b6480;padding:0" style-hover="color:#5b4bd6">Periods</button>
+                  </span>
+                </div>
+                <span style="font-size:12px;color:#6b6480">{{ daysCount }} school days &middot; {{ studentCount }} students &middot; {{ periodsLabel }}</span>
+              </div>
+              <div style="border-top:1px solid #e9e5f0;background:#faf8fc;padding:16px 24px 20px;display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:12px;font-weight:500">What prints</span>
+                <p style="margin:0;font-size:12px;color:#6b6480;line-height:1.5">One page per student: dates down the page, a column for each accommodation, and the day's status shown by glyph and text so the sheet survives a monochrome photocopier. Each student closes with their totals; the record closes with a signature and date line.</p>
+              </div>
+            </div>
+            <sc-if value="{{ noDays }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;padding:12px;border-radius:8px;background:#fbf1e2;color:#a06a2c;font-size:12px;line-height:1.45">There are no school days in this range, so there is nothing to print yet.</p>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:auto;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:460px;padding:24px 28px;text-align:center;animation:stepIn 260ms cubic-bezier(0.16,1,0.3,1) both">
+            <div style="width:44px;height:44px;border-radius:50%;background:#e4f4ed;color:#2f7d63;display:flex;align-items:center;justify-content:center;font-size:18px">&#10003;</div>
+            <h1 style="margin:0;font-size:24px;font-weight:600;line-height:1.25">Saved</h1>
+            <p style="margin:0;font-size:14px;color:#6b6480;line-height:1.5">The PDF covering <strong style="color:#2a2438">{{ rangeLabel }}</strong> was written next to your record file. Nothing left this computer.</p>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button style="display:inline-flex;align-items:center;height:32px;padding:0 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:#6b6480;font-size:12px;font-weight:500;white-space:nowrap" style-hover="background:#f3f0f8;color:#2a2438">Open it</button>
+              <button onClick="{{ doneSaved }}" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Done</button>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <sc-if value="{{ notSaved }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;border-top:1px solid #e9e5f0;flex:none">
+          <button onClick="{{ goBack }}" style="visibility:{{ backVis }};display:inline-flex;align-items:center;height:32px;padding:0 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:#6b6480;font-size:12px;font-weight:500;min-width:64px;justify-content:center" style-hover="background:#f3f0f8;color:#2a2438">Back</button>
+          <span style="position:absolute;left:0;right:0;text-align:center;font-size:12px;color:#6b6480;opacity:0.65;white-space:nowrap;pointer-events:none">{{ footerTip }}</span>
+          <sc-if value="{{ notLastStep }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goNext }}" disabled="{{ nextDisabled }}" style="position:relative;display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4);opacity:{{ nextOpacity }}" style-hover="background:#6d5ee6;border-color:#6d5ee6">Next</button>
+          </sc-if>
+          <sc-if value="{{ onStep3 }}" hint-placeholder-val="{{ false }}">
+            <div style="position:relative;display:flex;gap:8px;align-items:center">
+              <button onClick="{{ doSave }}" disabled="{{ printDisabled }}" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap;opacity:{{ printOpacity }}" style-hover="background:#f7f4fb;border-color:#9a93a8">Save as PDF</button>
+              <button onClick="{{ doPrint }}" disabled="{{ printDisabled }}" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4);opacity:{{ printOpacity }}" style-hover="background:#6d5ee6;border-color:#6d5ee6">{{ printLabel }}</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialStep&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;],&quot;default&quot;:&quot;1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Preview&quot;},&quot;showSaved&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  state = { stepOverride: null, kind: 'todate', from: '2025-09-02', to: '2026-07-28', selected: [], savedOverride: null, printing: false };
+  periods = [
+    { id: 'p1', label: 'P1' },
+    { id: 'p3', label: 'P3' },
+    { id: 'p4', label: 'P4' },
+    { id: 'p5', label: 'P5' }
+  ];
+  fmtLong(d) {
+    if (!d) return '';
+    const M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const [y, m, dd] = d.split('-').map(Number);
+    return M[m - 1] + ' ' + dd + ', ' + y;
+  }
+  weekdays(a, b) {
+    if (!a || !b || a > b) return 0;
+    let n = 0;
+    const cur = new Date(a + 'T12:00:00');
+    const end = new Date(b + 'T12:00:00');
+    while (cur <= end) {
+      const w = cur.getDay();
+      if (w !== 0 && w !== 6) n += 1;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return n;
+  }
+  go(i) { this.setState({ stepOverride: i }); }
+  renderVals() {
+    const s = this.state;
+    const step = s.stepOverride !== null ? s.stepOverride : Math.min(2, Math.max(0, (parseInt(this.props.initialStep || '1', 10) || 1) - 1));
+    const saved = s.savedOverride !== null ? s.savedOverride : Boolean(this.props.showSaved);
+    const isRange = s.kind === 'range';
+    const invalid = isRange && (!s.from || !s.to || s.from > s.to);
+    const resolvedFrom = isRange ? s.from : '2025-09-02';
+    const resolvedTo = isRange ? s.to : '2026-07-28';
+    const daysCount = invalid ? 0 : this.weekdays(resolvedFrom, resolvedTo);
+    const rangeLabel = resolvedFrom === resolvedTo
+      ? this.fmtLong(resolvedFrom)
+      : this.fmtLong(resolvedFrom) + ' \u2013 ' + this.fmtLong(resolvedTo);
+    const dots = [0, 1, 2].map((i) => ({
+      label: 'Step ' + (i + 1),
+      w: i === step ? '22px' : '6px',
+      bg: i === step ? '#5b4bd6' : (i < step ? '#b7a6f4' : '#d6d0e2'),
+      cursor: i < step ? 'pointer' : 'default',
+      onClick: i < step ? () => this.go(i) : () => {}
+    }));
+    const allOn = s.selected.length === 0;
+    const chip = (on) => ({
+      border: on ? '#5b4bd6' : '#e9e5f0',
+      bg: on ? '#eeebfd' : '#ffffff',
+      color: on ? '#5b4bd6' : '#6b6480',
+      on
+    });
+    const periodChips = [
+      { label: 'All periods', ...chip(allOn), onClick: () => this.setState({ selected: [] }) }
+    ].concat(this.periods.map((p) => {
+      const on = s.selected.includes(p.id);
+      return {
+        label: p.label, ...chip(on),
+        onClick: () => this.setState((prev) => ({
+          selected: prev.selected.includes(p.id)
+            ? prev.selected.filter((x) => x !== p.id)
+            : [...prev.selected, p.id]
+        }))
+      };
+    }));
+    const periodsLabel = allOn
+      ? 'All periods'
+      : this.periods.filter((p) => s.selected.includes(p.id)).map((p) => p.label).join(', ');
+    const tips = [
+      'Everything so far is the safe default.',
+      'Leave All periods selected for the full record.',
+      'Nothing is uploaded - the file is written on this computer.'
+    ];
+    const nextDisabled = step === 0 && invalid;
+    const printDisabled = s.printing || daysCount === 0;
+    return {
+      onStep1: !saved && step === 0,
+      onStep2: !saved && step === 1,
+      onStep3: !saved && step === 2,
+      notLastStep: step < 2,
+      isSaved: saved,
+      notSaved: !saved,
+      dots,
+      isTodate: !isRange,
+      isRange,
+      todateBorder: !isRange ? '#5b4bd6' : '#e9e5f0',
+      todateBg: !isRange ? '#eeebfd' : '#ffffff',
+      rangeBorder: isRange ? '#5b4bd6' : '#e9e5f0',
+      rangeBg: isRange ? '#eeebfd' : '#ffffff',
+      pickTodate: () => this.setState({ kind: 'todate' }),
+      pickRange: () => this.setState({ kind: 'range' }),
+      from: s.from,
+      to: s.to,
+      setFrom: (e) => this.setState({ from: e.target.value }),
+      setTo: (e) => this.setState({ to: e.target.value }),
+      invalid,
+      notInvalid: !invalid,
+      daysCount,
+      studentCount: 6,
+      rangeLabel,
+      periodChips,
+      periodsLabel,
+      noDays: daysCount === 0,
+      editCoverage: () => this.go(0),
+      editPeriods: () => this.go(1),
+      goBack: () => this.go(Math.max(0, step - 1)),
+      goNext: () => { if (!nextDisabled) this.go(Math.min(2, step + 1)); },
+      backVis: step > 0 ? 'visible' : 'hidden',
+      footerTip: tips[step],
+      nextDisabled,
+      nextOpacity: nextDisabled ? '0.45' : '1',
+      printDisabled,
+      printOpacity: printDisabled ? '0.45' : '1',
+      printLabel: s.printing ? 'Preparing\u2026' : 'Print',
+      doPrint: () => {
+        if (printDisabled) return;
+        this.setState({ printing: true });
+        setTimeout(() => this.setState({ printing: false }), 900);
+      },
+      doSave: () => {
+        if (printDisabled) return;
+        this.setState({ printing: true });
+        setTimeout(() => this.setState({ printing: false, savedOverride: true }), 900);
+      },
+      doneSaved: () => this.setState({ savedOverride: false, stepOverride: 0 })
+    };
+  }
+}
+</script>
+</body>
+</html>

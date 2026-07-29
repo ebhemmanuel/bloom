@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <style>
+    body{margin:0}
+    *{box-sizing:border-box}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,select{font-family:inherit;color:#2a2438}
+    ::placeholder{color:#9a93a8;opacity:1}
+    a{color:#5b4bd6}a:hover{color:#6d5ee6}
+  </style>
+</helmet>
+<div style="position:relative;min-height:100vh;background:linear-gradient(115deg,#ece2ff 0%,#ffe4ef 25%,#fdf0dc 50%,#dcf3e8 75%,#dfe5ff 100%);font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#2a2438">
+  <div style="position:absolute;inset:0;background:rgba(42,36,56,0.28);backdrop-filter:blur(18px) saturate(1.1)"></div>
+  <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div role="dialog" aria-label="Print report" style="width:100%;max-width:560px;display:flex;flex-direction:column;background:#ffffff;border-radius:20px;box-shadow:0 12px 32px -8px rgba(42,36,56,0.18);overflow:hidden">
+      <div style="display:flex;align-items:flex-start;gap:16px;padding:16px 20px;border-bottom:1px solid #e9e5f0">
+        <div style="flex:1;min-width:0">
+          <h2 style="margin:0;font-size:20px;font-weight:600;line-height:1.2">Print report</h2>
+          <p style="margin:4px 0 0;font-size:12px;color:#6b6480">What should this cover?</p>
+        </div>
+        <button aria-label="Close" style="margin-left:auto;align-self:flex-start;color:#9a93a8;font-size:19px;line-height:1;padding:0" style-hover="color:#2a2438">&times;</button>
+      </div>
+      <div style="padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px">
+        <div role="radiogroup" aria-label="Report range" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <button role="radio" aria-checked="true" style="display:flex;flex-direction:column;gap:4px;padding:16px;text-align:left;border:1px solid #5b4bd6;border-radius:14px;background:#eeebfd">
+            <span style="font-size:15px;font-weight:600">Everything so far</span>
+            <span style="font-size:11px;color:#6b6480;line-height:1.45">From your first record through today. At the end of the year this is the whole year.</span>
+          </button>
+          <button role="radio" aria-checked="false" style="display:flex;flex-direction:column;gap:4px;padding:16px;text-align:left;border:1px solid #d6d0e2;border-radius:14px;background:#ffffff" style-hover="border-color:#5b4bd6">
+            <span style="font-size:15px;font-weight:600">A range of dates</span>
+            <span style="font-size:11px;color:#6b6480;line-height:1.45">For a review meeting, a quarter, or a single week.</span>
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:12px;font-weight:500">Which periods?</span>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <button aria-pressed="false" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e9e5f0;background:#fff;color:#6b6480;font-size:12px;font-weight:500" style-hover="background:#f7f4fb;color:#2a2438">All</button>
+            <button aria-pressed="true" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">P1</button>
+            <button aria-pressed="true" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">P3</button>
+            <button aria-pressed="true" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">P4</button>
+            <button aria-pressed="true" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #5b4bd6;background:#eeebfd;color:#5b4bd6;font-size:12px;font-weight:500">P5</button>
+          </div>
+        </div>
+        <p style="margin:0;padding:12px;border-radius:8px;background:#f3f0f8;font-size:12px;color:#6b6480"><strong>September 2, 2025 &ndash; July 28, 2026</strong> &middot; 236 school days &middot; 6 students</p>
+        <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center">
+          <button style="display:inline-flex;align-items:center;height:32px;padding:0 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:#6b6480;font-size:12px;font-weight:500;white-space:nowrap" style-hover="background:#f3f0f8;color:#2a2438">Cancel</button>
+          <button style="display:inline-flex;align-items:center;height:32px;padding:0 16px;border-radius:999px;border:1px solid #d6d0e2;background:#fff;color:#2a2438;font-size:12px;font-weight:500;white-space:nowrap" style-hover="background:#f7f4fb;border-color:#9a93a8">Save as PDF</button>
+          <button style="display:inline-flex;align-items:center;height:38px;padding:0 20px;border-radius:999px;border:1px solid #5b4bd6;background:#5b4bd6;color:#fff;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(91,75,214,0.4)" style-hover="background:#6d5ee6;border-color:#6d5ee6">Print</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

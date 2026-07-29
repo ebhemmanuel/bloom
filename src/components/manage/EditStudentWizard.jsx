@@ -109,6 +109,29 @@ export default function EditStudentWizard({ onClose, background, leaving = false
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [doc.students, query]);
 
+  /**
+   * The roster split by plan, IEP beside 504, each in two columns.
+   *
+   * One long single-column list of forty names is a scroll and a scan; the
+   * question a teacher is actually answering here is "which of my IEP students
+   * is this", and the plan is the one thing about them that never changes. An
+   * empty group is dropped rather than left as a headed blank, and `Other`
+   * appears only when somebody is on it - it runs full width underneath, since
+   * it is usually one or two people.
+   *
+   * Sorted by the name on the row, which is what an eye runs down.
+   */
+  const groups = useMemo(() => {
+    const by = { IEP: [], 504: [], Other: [] };
+    for (const s of matches) (by[s.planType] || by.Other).push(s);
+    return ['IEP', '504', 'Other']
+      .map((plan) => ({
+        plan,
+        students: by[plan].slice().sort((a, b) => a.displayName.localeCompare(b.displayName)),
+      }))
+      .filter((g) => g.students.length > 0);
+  }, [matches]);
+
   const periodById = useMemo(() => new Map(doc.periods.map((p) => [p.id, p])), [doc.periods]);
   const catalogById = useMemo(() => new Map(doc.catalog.map((c) => [c.id, c])), [doc.catalog]);
 
@@ -326,41 +349,62 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               lavender, outside the list, and only there while you are moving.
             */}
             <div className="acc-wiz__findwrap">
-              <ul
+              <div
                 className="acc-wiz__find"
                 ref={listScroll.scrollRef}
                 onScroll={listScroll.onScroll}
               >
-                {matches.map((s) => (
-                  <li key={s.id}>
-                    <button
-                      type="button"
-                      className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}`}
-                      onClick={() => {
-                        setSelectedId(s.id);
-                        setStep(1);
-                      }}
-                    >
-                      {/* Plan first, then the name: thirty rows stacked, and a
-                        trailing pill lands somewhere different on every one. */}
-                      <span className={`acc-pill acc-pill--${PLAN_CLASS[s.planType] || 'other'}`}>
-                        {s.planType}
+                {groups.map((g) => (
+                  <section
+                    key={g.plan}
+                    className={`acc-wiz__group${groups.length === 1 ? ' acc-wiz__group--wide' : ''}${
+                      g.plan === 'Other' ? ' acc-wiz__group--wide' : ''
+                    }`}
+                    aria-label={`${g.plan} students`}
+                  >
+                    <p className="acc-wiz__group-head">
+                      <span className={`acc-pill acc-pill--${PLAN_CLASS[g.plan] || 'other'}`}>
+                        {g.plan}
                       </span>
-                      <span className="acc-wiz__found-name">{s.displayName}</span>
-                      {s.unenrolledFrom && <span className="acc-wiz__found-meta">disenrolled</span>}
-                      <span className="acc-wiz__found-periods">
-                        {(s.periodIds || [])
-                          .map((id) => periodById.get(id)?.shortName)
-                          .filter(Boolean)
-                          .join(' ')}
-                      </span>
-                    </button>
-                  </li>
+                      <span className="acc-wiz__group-count acc-numeric">{g.students.length}</span>
+                    </p>
+
+                    <ul className="acc-wiz__group-list">
+                      {g.students.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            className={`acc-wiz__found${
+                              s.id === selectedId ? ' acc-wiz__found--on' : ''
+                            }`}
+                            onClick={() => {
+                              setSelectedId(s.id);
+                              setStep(1);
+                            }}
+                          >
+                            {/* No plan pill on the row: the heading above the
+                                column already says it, and repeating it on
+                                every line spends a third of a narrow column
+                                saying the same word twenty times. */}
+                            <span className="acc-wiz__found-name">{s.displayName}</span>
+                            {s.unenrolledFrom && (
+                              <span className="acc-wiz__found-meta">disenrolled</span>
+                            )}
+                            <span className="acc-wiz__found-periods">
+                              {(s.periodIds || [])
+                                .map((id) => periodById.get(id)?.shortName)
+                                .filter(Boolean)
+                                .join(' ')}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 ))}
-                {matches.length === 0 && (
-                  <li className="acc-wiz__found-none">No students match.</li>
-                )}
-              </ul>
+
+                {matches.length === 0 && <p className="acc-wiz__found-none">No students match.</p>}
+              </div>
 
               {listScroll.bar.height > 0 && (
                 <div

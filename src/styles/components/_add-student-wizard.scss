@@ -594,10 +594,19 @@
     min-inline-size: 0;
   }
 
+  /**
+   * Four columns: IEP on the left in two, 504 on the right in two.
+   *
+   * A roster is read by plan first - "which of my IEP students is this" - and a
+   * single column of forty names answered that question by making you read all
+   * forty. Two groups side by side, each two names wide, puts most rosters on
+   * one screen with no scrolling at all.
+   */
   &__find {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--acc-space-5);
+    align-items: start;
     // Inside the sheet's own fixed height, so a roster of forty scrolls here
     // rather than pushing the footer off the frame.
     max-block-size: 300px;
@@ -615,12 +624,46 @@
     }
   }
 
+  // One plan's worth. Alone, or when it is the Other group, it takes the whole
+  // width and lays its names out four across instead of two.
+  &__group {
+    min-inline-size: 0;
+
+    &--wide {
+      grid-column: 1 / -1;
+
+      .acc-wiz__group-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+  }
+
+  // The pill that every row underneath would otherwise have repeated.
+  &__group-head {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    margin: 0 0 var(--acc-space-2);
+    padding-inline-start: var(--acc-space-3);
+  }
+
+  &__group-count {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+
+  &__group-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
   /**
-   * A row, not a stack: plan, then name, then which classes at the far end.
+   * A row: the name, then which classes at the far end.
    *
-   * Plan first because thirty of these are stacked and a trailing pill lands at
-   * a different place on every one - leading, they form a column you can run an
-   * eye down.
+   * The plan pill that used to lead it is gone - the column it sits in is
+   * headed by that plan now, and a word repeated down twenty lines is a column
+   * of noise rather than information.
    */
   &__found {
     @include motion.interactive(background-color);
@@ -638,14 +681,6 @@
 
     &--on {
       background: var(--acc-accent-soft);
-    }
-
-    // A fixed measure on the leading pill, so the names line up too: "IEP" and
-    // "504" render at different widths in a proportional face.
-    .acc-pill {
-      flex: none;
-      min-inline-size: 34px;
-      justify-content: center;
     }
   }
 
