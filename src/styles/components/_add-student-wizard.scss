@@ -569,6 +569,13 @@
     align-items: center;
     gap: var(--acc-space-2);
     margin-block-start: var(--acc-space-3);
+
+    // A four-letter label left the one button on this screen shorter than the
+    // word above it. Padding alone cannot fix that; it needs a measure.
+    .acc-btn--primary {
+      min-inline-size: 180px;
+      justify-content: center;
+    }
   }
 
   // --- Editing an existing student -----------------------------------------
@@ -874,8 +881,11 @@
   // than brushed.
   &__endrow {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--acc-space-2);
     margin-block-start: var(--acc-space-4);
+    text-align: center;
   }
 
   // Marked apart on the review card: these do not exist yet.

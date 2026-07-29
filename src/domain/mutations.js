@@ -494,6 +494,26 @@ export function renameStudent(doc, studentId, displayName) {
 }
 
 /**
+ * When a student joined THIS class.
+ *
+ * Blank means "since the start of the year", which is the common case and the
+ * one that needs no explaining on a report.
+ *
+ * Dated, and it reaches backwards: `effectiveStatus` reads every day before it
+ * as `not_applicable`, so setting one is how a teacher says "nothing was owed
+ * to them yet". Nothing is deleted either way - move the date back and the days
+ * in between return with whatever they already held.
+ */
+export function setStudentEnrolledFrom(doc, studentId, enrolledFrom) {
+  return {
+    ...doc,
+    students: doc.students.map((s) =>
+      s.id === studentId ? { ...s, enrolledFrom: enrolledFrom || null } : s
+    ),
+  };
+}
+
+/**
  * Which plan a student is on.
  *
  * Undated, like their periods and unlike their enrolment: a plan type is who

@@ -17,6 +17,7 @@ import {
   setStudentPlan,
   setStudentPeriods,
   setStudentEnrollment,
+  setStudentEnrolledFrom,
   retireAssignment,
   reinstateAssignment,
 } from '../../domain/mutations.js';
@@ -372,7 +373,7 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               ✓
             </span>
             <h1 className="acc-sheet__title acc-wiz__title--done">Updated {done.name}</h1>
-            <p className="acc-sheet__sub">
+            <p className="acc-sheet__sub acc-sheet__sub--balance">
               {done.added > 0
                 ? `${done.added} accommodation${done.added === 1 ? '' : 's'} added from ${formatDateMedium(dateKey)}. Everything before today is exactly as it was.`
                 : 'Their profile is saved. Everything already recorded is exactly as it was.'}
@@ -625,30 +626,34 @@ export default function EditStudentWizard({ onClose, background, leaving = false
               <span className="acc-wiz__rule" aria-hidden="true" />
 
               <div className="acc-wiz__cell">
-                <span className="acc-wiz__label">Enrolment</span>
+                <span className="acc-wiz__label">Newly enrolled?</span>
                 {/*
-                  A date when there is one, and nothing when there is not.
-                  "Since the start of the year" is the absence of a date rather
-                  than a fact about one, and printing it here made this half
-                  taller than the periods opposite it - the add-student step
-                  leaves the same space empty.
+                  The same field the add-student step carries, on the same
+                  student. Setting it late is the correction it exists for: a
+                  student typed in during onboarding with the rest of the roster
+                  had no way to say they actually joined in November.
 
-                  Stated, not editable. Moving the start date changes which days
-                  read "not applicable", and days already recorded would vanish
-                  behind a derived status - a correction worth having, but not
-                  one to make with a bare date field. Ending an enrolment is the
-                  decision this screen offers, at the foot of it.
+                  It reaches backwards, which is the point - `effectiveStatus`
+                  reads every day before it as "not applicable - enrolled X" -
+                  and it deletes nothing: move the date back and those days
+                  return with whatever they already held.
                 */}
-                {(student.unenrolledFrom || student.enrolledFrom) && (
-                  <p className="acc-wiz__enrol">
-                    {student.unenrolledFrom
-                      ? `Disenrolled from ${formatDateMedium(student.unenrolledFrom)}.`
-                      : `In this class from ${formatDateMedium(student.enrolledFrom)}.`}
-                  </p>
-                )}
+                <input
+                  type="date"
+                  className="acc-wiz__date"
+                  value={student.enrolledFrom || ''}
+                  min={doc.schoolCalendar?.termStart || undefined}
+                  max={today}
+                  onChange={(e) =>
+                    write((d) => setStudentEnrolledFrom(d, student.id, e.target.value))
+                  }
+                  aria-label="First day in this class"
+                  disabled={readOnly}
+                />
                 <span className="acc-wiz__hint">
-                  Dated, never deleted - every day already recorded keeps their record exactly as it
-                  is.
+                  {student.enrolledFrom
+                    ? `Every day before ${formatDateMedium(student.enrolledFrom)} stays locked and reads “not applicable - enrolled ${formatDateMedium(student.enrolledFrom)}”, so nothing is ever recorded against them for a class they were not in yet.`
+                    : 'Leave blank if they have been in this class since the start of the year.'}
                 </span>
               </div>
             </div>
@@ -680,6 +685,11 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   Disenroll from tomorrow
                 </button>
               )}
+              <span className="acc-wiz__hint">
+                {student.unenrolledFrom
+                  ? `Disenrolled from ${formatDateMedium(student.unenrolledFrom)}. Every day before that keeps their record exactly as it is.`
+                  : 'Dated, never deleted - every day already recorded keeps their record exactly as it is.'}
+              </span>
             </div>
           </div>
         ) : step === 3 ? (

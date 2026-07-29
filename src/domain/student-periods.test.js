@@ -1,7 +1,36 @@
 import { describe, it, expect } from 'vitest';
-import { setStudentPeriods, setStudentPlan } from './mutations.js';
+import { setStudentPeriods, setStudentPlan, setStudentEnrolledFrom } from './mutations.js';
 import { buildOnboardedDoc } from './onboarding.js';
 import { makeDoc, deepFreeze, T } from './test-helpers.js';
+
+describe('setStudentEnrolledFrom', () => {
+  const enrolOf = (doc, id) => doc.students.find((s) => s.id === id).enrolledFrom;
+
+  it('records when a student joined this class', () => {
+    const doc = setStudentEnrolledFrom(deepFreeze(makeDoc()), T.jordan, '2026-10-05');
+    expect(enrolOf(doc, T.jordan)).toBe('2026-10-05');
+  });
+
+  /** Blank is a real answer: they have been here since the start of the year. */
+  it('clears back to no date', () => {
+    const set = setStudentEnrolledFrom(makeDoc(), T.jordan, '2026-10-05');
+    expect(enrolOf(setStudentEnrolledFrom(set, T.jordan, ''), T.jordan)).toBeNull();
+  });
+
+  /**
+   * Nothing is deleted, in either direction. The date only changes what
+   * `effectiveStatus` computes, so moving it back returns those days with
+   * whatever they already held.
+   */
+  it('leaves every day record and every other student alone', () => {
+    const base = makeDoc();
+    const doc = setStudentEnrolledFrom(base, T.jordan, '2026-10-05');
+    expect(doc.days).toBe(base.days);
+    expect(doc.students.find((s) => s.id === T.priya)).toBe(
+      base.students.find((s) => s.id === T.priya)
+    );
+  });
+});
 
 describe('setStudentPlan', () => {
   const planOf = (doc, id) => doc.students.find((s) => s.id === id).planType;

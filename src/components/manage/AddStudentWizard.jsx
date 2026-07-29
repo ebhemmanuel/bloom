@@ -279,17 +279,19 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
               ✓
             </span>
             <h1 className="acc-sheet__title acc-wiz__title--done">Added {done.names.join(', ')}</h1>
-            <p className="acc-sheet__sub">
+            <p className="acc-sheet__sub acc-sheet__sub--balance">
               {done.names.length > 1 ? 'Each student was added' : `${done.names[0]} was added`} with{' '}
               {done.count} accommodation{done.count === 1 ? '' : 's'}. Today’s board is seeded and
               ready to record against.
             </p>
+            {/* Done first, and the other one under it: they are not a pair of
+                equal choices, and side by side they read as one. */}
             <div className="acc-wiz__doneactions">
-              <button type="button" className="acc-btn" onClick={reset}>
-                Add another student
-              </button>
               <button type="button" className="acc-btn acc-btn--primary" onClick={onClose}>
                 Done
+              </button>
+              <button type="button" className="acc-btn acc-btn--quiet" onClick={reset}>
+                Add another student
               </button>
             </div>
           </div>
