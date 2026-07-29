@@ -65,7 +65,7 @@ export default function AppHeader({
   onOpenSearch,
 }) {
   const { doc } = useData();
-  const { dateKey, setDateKey, range, setRange } = useBoard();
+  const { dateKey, setDateKey } = useBoard();
   const unread = notifications.length;
   // The mark turns under the pointer and finishes the turn on the way out.
   const { turning, spinProps } = useSpinOnHover();
@@ -127,8 +127,6 @@ export default function AppHeader({
         <DatePicker
           dateKey={dateKey}
           onChange={setDateKey}
-          onRangeChange={setRange}
-          activeRange={range}
           nonInstructionalDates={doc.schoolCalendar?.nonInstructionalDates || []}
         />
 

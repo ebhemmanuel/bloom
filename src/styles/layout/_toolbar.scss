@@ -228,31 +228,6 @@
     font-weight: var(--acc-fw-semibold);
   }
 
-  &__modes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    padding: 2px;
-    background: var(--acc-surface-sunken);
-    border-radius: var(--acc-radius-md);
-    margin-block-end: var(--acc-space-3);
-  }
-
-  &__mode {
-    block-size: 24px;
-    border-radius: var(--acc-radius-sm);
-    font-size: var(--acc-fs-tiny);
-    color: var(--acc-fg-muted);
-    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
-
-    &--on {
-      background: var(--acc-surface);
-      color: var(--acc-fg);
-      font-weight: var(--acc-fw-semibold);
-      box-shadow: var(--acc-shadow-card);
-    }
-  }
-
   &__grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -303,35 +278,6 @@
       color: var(--acc-accent-fg);
       font-weight: var(--acc-fw-semibold);
     }
-
-    // The days between the two ends. Square-sided so the run reads as one band
-    // rather than as five separate pills.
-    &#{&}--inrange {
-      background: var(--acc-accent-soft);
-      border-radius: 0;
-    }
-
-    &#{&}--edge {
-      background: var(--acc-accent);
-      color: var(--acc-accent-fg);
-      font-weight: var(--acc-fw-semibold);
-      border-radius: var(--acc-radius-sm);
-    }
-  }
-
-  &__range {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--acc-space-2);
-    margin-block-start: var(--acc-space-3);
-    padding-block-start: var(--acc-space-3);
-    border-top: 1px solid var(--acc-border);
-  }
-
-  &__rangelabel {
-    font-size: var(--acc-fs-tiny);
-    color: var(--acc-fg-muted);
   }
 }
 
