@@ -561,4 +561,184 @@
     gap: var(--acc-space-2);
     margin-block-start: var(--acc-space-3);
   }
+
+  // --- Editing an existing student -----------------------------------------
+  //
+  // The find step in front of the four screens, and the list of what a student
+  // already has. See EditStudentWizard.
+
+  // The app's search shape - the palette, the presets list, the accommodation
+  // picker. A square form field would read as something you fill in and submit.
+  &__find-search {
+    block-size: 44px;
+    padding-inline: var(--acc-space-4);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    @include motion.interactive(border-color, box-shadow);
+
+    &:hover:not(:focus) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &:focus {
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+  }
+
+  &__find {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    // Inside the sheet's own fixed height, so a roster of forty scrolls here
+    // rather than pushing the footer off the frame.
+    max-block-size: 300px;
+    overflow-y: auto;
+  }
+
+  /**
+   * A row, not a stack: plan, then name, then which classes at the far end.
+   *
+   * Plan first because thirty of these are stacked and a trailing pill lands at
+   * a different place on every one - leading, they form a column you can run an
+   * eye down.
+   */
+  &__found {
+    @include motion.interactive(background-color);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    inline-size: 100%;
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    text-align: start;
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--on {
+      background: var(--acc-accent-soft);
+    }
+
+    // A fixed measure on the leading pill, so the names line up too: "IEP" and
+    // "504" render at different widths in a proportional face.
+    .acc-pill {
+      flex: none;
+      min-inline-size: 34px;
+      justify-content: center;
+    }
+  }
+
+  &__found-name {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--acc-fs-sub);
+  }
+
+  &__found-meta {
+    font-size: var(--acc-fs-tiny);
+    color: var(--acc-fg-faint);
+  }
+
+  &__found-periods {
+    margin-inline-start: auto;
+    flex: none;
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--acc-fg-faint);
+  }
+
+  &__found-none {
+    padding: var(--acc-space-3);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-faint);
+  }
+
+  // What they already have. Retired ones stay listed, struck back rather than
+  // hidden: a list that drops what was removed cannot explain the board.
+  &__current {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-block-size: 220px;
+    overflow-y: auto;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-2) var(--acc-space-3);
+    border-radius: var(--acc-radius-md);
+
+    &:hover {
+      background: var(--acc-surface-hover);
+    }
+
+    &--retired {
+      color: var(--acc-fg-faint);
+    }
+  }
+
+  &__row-label {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    min-inline-size: 0;
+    font-size: var(--acc-fs-sub);
+  }
+
+  &__row-tag {
+    flex: none;
+    padding: 1px var(--acc-space-2);
+    border-radius: var(--acc-radius-sm);
+    background: var(--acc-surface-sunken);
+    color: var(--acc-fg-muted);
+    font-size: 10px;
+    font-weight: var(--acc-fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--acc-ls-cap);
+  }
+
+  &__row-action {
+    @include motion.interactive(background-color, color);
+    margin-inline-start: auto;
+    flex: none;
+    block-size: 26px;
+    padding: 0 var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    color: var(--acc-fg-muted);
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__enrol {
+    margin: 0;
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  // Marked apart on the review card: these do not exist yet.
+  &__accom--new {
+    border-color: var(--acc-accent);
+    background: var(--acc-accent-soft);
+    color: var(--acc-accent);
+  }
 }

@@ -1,7 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { setStudentPeriods } from './mutations.js';
+import { setStudentPeriods, setStudentPlan } from './mutations.js';
 import { buildOnboardedDoc } from './onboarding.js';
 import { makeDoc, deepFreeze, T } from './test-helpers.js';
+
+describe('setStudentPlan', () => {
+  const planOf = (doc, id) => doc.students.find((s) => s.id === id).planType;
+
+  it('corrects a plan type', () => {
+    const doc = setStudentPlan(deepFreeze(makeDoc()), T.jordan, '504');
+    expect(planOf(doc, T.jordan)).toBe('504');
+  });
+
+  /** It prints on a compliance header, so an unknown value is refused. */
+  it('refuses a plan type that is not one of ours', () => {
+    const base = makeDoc();
+    const doc = setStudentPlan(base, T.jordan, 'IEEP');
+    expect(planOf(doc, T.jordan)).toBe(planOf(base, T.jordan));
+    expect(doc).toBe(base);
+  });
+
+  /** Undated: no entry snapshots a plan, so nothing recorded may move. */
+  it('leaves every day record and every other student alone', () => {
+    const base = makeDoc();
+    const doc = setStudentPlan(base, T.jordan, 'Other');
+    expect(doc.days).toBe(base.days);
+    expect(doc.students.find((s) => s.id === T.priya)).toBe(
+      base.students.find((s) => s.id === T.priya)
+    );
+  });
+});
 
 describe('setStudentPeriods', () => {
   it('sets which classes a student is in', () => {

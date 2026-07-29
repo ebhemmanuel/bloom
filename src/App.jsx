@@ -10,7 +10,7 @@ import ProfileModal from './components/shell/ProfileModal.jsx';
 import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
 import DayNotesPanel from './components/shell/DayNotesPanel.jsx';
 import AddStudentWizard from './components/manage/AddStudentWizard.jsx';
-import StudentAccommodationsModal from './components/manage/StudentAccommodationsModal.jsx';
+import EditStudentWizard from './components/manage/EditStudentWizard.jsx';
 import CatalogModal from './components/manage/CatalogModal.jsx';
 import CopyAccommodationsModal from './components/manage/CopyAccommodationsModal.jsx';
 import PrintReportModal from './components/print/PrintReportModal.jsx';
@@ -186,9 +186,12 @@ function AppShell() {
           {
             label: 'Add',
             indent: true,
+            // The edit sheet, starting on its find step. Adding to someone is
+            // one of the things editing them does, so it is the same screen
+            // reached without a name.
             onSelect: () => {
               setEditingStudentId(null);
-              setModal('students');
+              openScene('editStudent');
             },
           },
           { label: 'Update', hint: 'presets', indent: true, onSelect: () => setModal('catalog') },
@@ -290,13 +293,14 @@ function AppShell() {
           <ProfileModal background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
-        {modal === 'students' && (
-          <StudentAccommodationsModal
+        {/* The same four screens adding a student uses, with a find step in
+            front of them when nobody has been named. */}
+        {modal === 'editStudent' && (
+          <EditStudentWizard
             studentId={editingStudentId}
-            onClose={() => {
-              setModal(null);
-              setEditingStudentId(null);
-            }}
+            background={background}
+            leaving={sceneLeaving}
+            onClose={closeScene}
           />
         )}
         {modal === 'catalog' && <CatalogModal onClose={() => setModal(null)} />}
@@ -355,7 +359,7 @@ function AppShell() {
             onAddStudent={() => openScene('addStudent')}
             onEditStudent={(id) => {
               setEditingStudentId(id);
-              setModal('students');
+              openScene('editStudent');
             }}
           />
         </main>

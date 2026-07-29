@@ -1,4 +1,4 @@
-import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES } from './constants.js';
+import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES, PLAN_TYPES } from './constants.js';
 import { isoTimestamp } from './dates.js';
 import { newCatalogId, newPeriodId } from './ids.js';
 import { ensureDay } from './seed.js';
@@ -490,6 +490,26 @@ export function renameStudent(doc, studentId, displayName) {
     students: doc.students.map((s) =>
       s.id === studentId ? { ...s, displayName: trimmed, lastName: trimmed } : s
     ),
+  };
+}
+
+/**
+ * Which plan a student is on.
+ *
+ * Undated, like their periods and unlike their enrolment: a plan type is who
+ * this student is on the roster, not a claim about any particular day, so
+ * correcting a 504 that should have said IEP is a correction. No day record
+ * carries it - entries snapshot their label and nothing else - so nothing
+ * already recorded moves or is re-interpreted.
+ *
+ * An unknown value is refused rather than written. This lands on a printed
+ * compliance header, and "IEP" there has a legal meaning.
+ */
+export function setStudentPlan(doc, studentId, planType) {
+  if (!PLAN_TYPES.includes(planType)) return doc;
+  return {
+    ...doc,
+    students: doc.students.map((s) => (s.id === studentId ? { ...s, planType } : s)),
   };
 }
 

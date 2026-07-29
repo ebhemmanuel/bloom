@@ -321,6 +321,26 @@
     }
   }
 
+  /**
+   * The `+` that stands among a row of chips and turns into a field.
+   *
+   * Same footprint as its neighbours, so the row does not jump when it opens.
+   * Used wherever something can be named on the spot: a period in either
+   * student sheet, a subject in settings.
+   */
+  &--add {
+    padding-inline: 0;
+    inline-size: 28px;
+    justify-content: center;
+    color: var(--acc-fg-faint);
+    font-size: var(--acc-fs-body);
+
+    &:hover {
+      border-color: var(--acc-accent);
+      color: var(--acc-accent);
+    }
+  }
+
   // Real accommodation wording is a sentence. A row of these has to fold rather
   // than run off the edge, so the height gives way instead of the text.
   &--wrap {

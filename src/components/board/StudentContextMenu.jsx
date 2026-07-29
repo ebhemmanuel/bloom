@@ -64,9 +64,11 @@ export default function StudentContextMenu({
         <p className="acc-ctx__title">{lane.displayName}</p>
 
         {/*
-          The way into everything this menu does not: their periods, their
-          accommodations, their enrolment. Renaming is here because it is a
-          one-field edit worth doing in place; the rest belongs on a screen.
+          The way into everything this menu does not do in place: their name and
+          plan, their periods, their accommodations, their enrolment. It opens
+          the same four screens the student was added with, on this student.
+          Renaming stays here as well, because it is a one-field edit worth
+          doing without leaving the board.
         */}
         <div className="acc-ctx__group">
           <p className="acc-ctx__heading">Profile</p>
@@ -79,10 +81,10 @@ export default function StudentContextMenu({
               onClose();
             }}
           >
-            Edit {lane.displayName}&rsquo;s profile
+            Edit
           </button>
           <p className="acc-ctx__note">
-            Which periods they are in, their accommodations, and their enrolment.
+            Their name and plan, which periods they are in, and their accommodations.
           </p>
         </div>
 
