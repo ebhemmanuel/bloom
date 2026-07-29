@@ -101,12 +101,25 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   const planClass = PLAN_CLASS[plan] || 'other';
   const periodIds = student?.periodIds || [];
 
-  const matches = useMemo(() => {
+  /**
+   * Who the search picks out - not who survives it.
+   *
+   * Typing DIMS the rest rather than removing them. A filtering list rebuilds
+   * itself on every keystroke: the columns reflow, the name you were reaching
+   * for moves, and the roster you had just learned the shape of is gone. Dimmed,
+   * everyone holds their place and the matches simply light up in it, which also
+   * answers "is that name even on my roster" without emptying the screen to say
+   * no.
+   *
+   * `null` means nothing has been typed, which is different from "nothing
+   * matched" - see the empty line below the field.
+   */
+  const hits = useMemo(() => {
     const q = normalizeSearch(query);
-    return doc.students
-      .filter((s) => !q || studentSearchTerms(s).some((t) => t.includes(q)))
-      .slice()
-      .sort((a, b) => a.sortOrder - b.sortOrder);
+    if (!q) return null;
+    return new Set(
+      doc.students.filter((s) => studentSearchTerms(s).some((t) => t.includes(q))).map((s) => s.id)
+    );
   }, [doc.students, query]);
 
   /**
@@ -119,18 +132,20 @@ export default function EditStudentWizard({ onClose, background, leaving = false
    * appears only when somebody is on it - it runs full width underneath, since
    * it is usually one or two people.
    *
+   * Built from the whole roster, never from the search: see `hits`.
+   *
    * Sorted by the name on the row, which is what an eye runs down.
    */
   const groups = useMemo(() => {
     const by = { IEP: [], 504: [], Other: [] };
-    for (const s of matches) (by[s.planType] || by.Other).push(s);
+    for (const s of doc.students) (by[s.planType] || by.Other).push(s);
     return ['IEP', '504', 'Other']
       .map((plan) => ({
         plan,
         students: by[plan].slice().sort((a, b) => a.displayName.localeCompare(b.displayName)),
       }))
       .filter((g) => g.students.length > 0);
-  }, [matches]);
+  }, [doc.students]);
 
   const periodById = useMemo(() => new Map(doc.periods.map((p) => [p.id, p])), [doc.periods]);
   const catalogById = useMemo(() => new Map(doc.catalog.map((c) => [c.id, c])), [doc.catalog]);
@@ -260,7 +275,9 @@ export default function EditStudentWizard({ onClose, background, leaving = false
             <li key={s.id}>
               <button
                 type="button"
-                className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}`}
+                className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}${
+                  hits && !hits.has(s.id) ? ' acc-wiz__found--dim' : ''
+                }`}
                 onClick={() => {
                   setSelectedId(s.id);
                   setStep(1);
@@ -417,6 +434,12 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 ref={listScroll.scrollRef}
                 onScroll={listScroll.onScroll}
               >
+                {/* Said out loud, because nothing lighting up is easy to read
+                    as the search being broken. */}
+                {hits && hits.size === 0 && (
+                  <p className="acc-wiz__found-none">Nothing matches “{query.trim()}”.</p>
+                )}
+
                 {sideGroups[0] && renderGroup(sideGroups[0], sideGroups.length === 2)}
                 {/*
                   The same gradient rule the class-details step puts between its
@@ -427,7 +450,9 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                 {sideGroups[1] && renderGroup(sideGroups[1], false)}
                 {otherGroup && renderGroup(otherGroup, false)}
 
-                {matches.length === 0 && <p className="acc-wiz__found-none">No students match.</p>}
+                {groups.length === 0 && (
+                  <p className="acc-wiz__found-none">Nobody on the roster yet.</p>
+                )}
               </div>
 
               {listScroll.bar.height > 0 && (

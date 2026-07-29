@@ -720,7 +720,7 @@
    * of noise rather than information.
    */
   &__found {
-    @include motion.interactive(background-color);
+    @include motion.interactive(background-color, color, opacity);
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
@@ -735,6 +735,22 @@
 
     &--on {
       background: var(--acc-accent-soft);
+    }
+
+    /**
+     * Set back by the search rather than removed by it.
+     *
+     * Still readable, still clickable: the point is that the roster keeps its
+     * shape while you type, so the name three rows down that you could see a
+     * moment ago is still exactly there. It comes back to full strength under
+     * the pointer, because a row you can see is a row you are allowed to pick.
+     */
+    &--dim {
+      opacity: 0.32;
+
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 
@@ -762,6 +778,8 @@
   }
 
   &__found-none {
+    grid-column: 1 / -1;
+    margin: 0;
     padding: var(--acc-space-3);
     font-size: var(--acc-fs-sub);
     color: var(--acc-fg-faint);
