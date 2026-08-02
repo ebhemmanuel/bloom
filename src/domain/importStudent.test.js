@@ -70,6 +70,25 @@ describe('splitStudentNames', () => {
     ]);
   });
 
+  it('recovers a shortened surname, not just a single initial', () => {
+    /*
+      "Ala De." is the case that broke it. The recovery only ever matched a
+      one-letter abbreviation, so a roster written this way came back as one
+      student with a very long name - and the teacher who pasted five of them
+      got one lane instead of five.
+    */
+    expect(splitStudentNames('Ser A. Ala De.')).toEqual(['Ser A.', 'Ala De.']);
+    expect(splitStudentNames('Ser A. Ala De. Ren Cru.')).toEqual(['Ser A.', 'Ala De.', 'Ren Cru.']);
+  });
+
+  it('still refuses when the abbreviations do not account for every word', () => {
+    // "Mary" and "Sarah" would be left outside the matches, so this is a name
+    // that happens to contain two abbreviations rather than a list of two.
+    expect(splitStudentNames('Mary Ann B. Sarah Lee C.')).toEqual(['Mary Ann B. Sarah Lee C.']);
+    expect(splitStudentNames('Alex St. John')).toEqual(['Alex St. John']);
+    expect(splitStudentNames('Maria De La Cruz Jr.')).toEqual(['Maria De La Cruz Jr.']);
+  });
+
   it('leaves a single name alone', () => {
     expect(splitStudentNames('Jordan Alvarez')).toEqual(['Jordan Alvarez']);
     expect(splitStudentNames('Priya S.')).toEqual(['Priya S.']);

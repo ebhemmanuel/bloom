@@ -32,19 +32,27 @@ import { CATEGORIES, PLAN_TYPES } from './constants.js';
  * text can still reach us flattened, and this is the last chance to recover it.
  *
  * The only safe signal is the shape teachers actually use: a name followed by a
- * single-letter initial and a full stop. Requiring that pattern at least twice,
- * and requiring the leading word to be two letters or more, is what keeps it
- * from firing on the cases that would be ruined by a wrong guess:
+ * shortened surname and a full stop. Requiring that pattern at least twice, and
+ * requiring the leading word to be two letters or more, is what keeps it from
+ * firing on the cases that would be ruined by a wrong guess:
  *
  *   "Priya S. David L. Sarah M."  -> three students
+ *   "Ser A. Ala De."              -> two students
  *   "J. M."                       -> one student, leading word is one letter
- *   "Ms. Rivera"                  -> one name, "Ms." is not a single initial
+ *   "Ms. Rivera"                  -> one name, nothing here ends in a stop
  *   "Jordan Alvarez Priya Raman"  -> one name, genuinely ambiguous, left alone
+ *
+ * The abbreviation is one to three letters rather than exactly one. A single
+ * initial is the common case but it is not the only one a teacher writes - a
+ * roster of "Ser A. Ala De. Ren Cru." was read as one student with a very long
+ * name, which is the exact failure this recovery exists to prevent. Widening it
+ * is safe because of the coverage check below: "Mary Ann B. Sarah Lee C." still
+ * refuses, since "Mary" and "Sarah" would be left outside the matches.
  *
  * A wrong split here is worse than no split: the teacher sees the chips either
  * way, but an unexpected split has to be understood before it can be undone.
  */
-const INITIAL_PATTERN = /(?:^|\s)[\p{L}][\p{L}'-]+\s+\p{L}\.(?=\s|$)/gu;
+const INITIAL_PATTERN = /(?:^|\s)[\p{L}][\p{L}'-]+\s+\p{L}{1,3}\.(?=\s|$)/gu;
 
 function splitOnTrailingInitials(text) {
   const matches = text.match(INITIAL_PATTERN);
