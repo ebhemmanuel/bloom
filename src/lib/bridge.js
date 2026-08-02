@@ -1,16 +1,40 @@
+import capacitorApi from './platform/capacitor.js';
+
 /**
- * Thin wrapper over the preload bridge.
+ * The one seam between the app and the machine it is running on.
  *
- * Every renderer module talks to main through this file rather than touching
- * `window.accommodations` directly, which gives us two things: a single place to
- * stub the whole surface for `npm run dev` in a plain browser, and one seam to
- * mock in tests.
+ * Every renderer module talks through this file rather than touching
+ * `window.accommodations` directly, which gives us three things: a single place
+ * to stub the whole surface for `npm run dev` in a plain browser, one seam to
+ * mock in tests, and - now - one place where a second platform plugs in.
+ *
+ * Three implementations, one contract:
+ *
+ *   - Electron, through the preload bridge. `electron/data-store.js`.
+ *   - iPad, through Capacitor. `platform/capacitor.js`.
+ *   - A plain browser tab, localStorage, for building UI. Below.
+ *
+ * Nothing above this file branches on platform. Where a platform genuinely
+ * cannot do something - choose a folder, save a PDF to a path - its
+ * implementation says so in the return value rather than throwing, and the UI
+ * reads that.
  */
 
 const native = typeof window !== 'undefined' ? window.accommodations : undefined;
 
+/**
+ * Capacitor injects `window.Capacitor` into the webview before any of our code
+ * runs, so this is answerable synchronously - which matters, because the whole
+ * app imports `dataBridge` at module scope.
+ */
+const isNativeShell =
+  typeof window !== 'undefined' && Boolean(window.Capacitor?.isNativePlatform?.());
+
 /** True when running inside Electron with the preload bridge attached. */
 export const isDesktop = Boolean(native);
+
+/** True on the iPad build. */
+export const isNativeMobile = isNativeShell;
 
 /**
  * Browser fallback for `npm run dev`. Persists to localStorage so the board is
@@ -65,7 +89,7 @@ const browserFallback = {
   },
 };
 
-const api = native || browserFallback;
+const api = native || (isNativeShell ? capacitorApi : browserFallback);
 
 export const dataBridge = api.data;
 export const pdfBridge = api.pdf;

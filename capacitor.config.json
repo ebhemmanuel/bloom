@@ -1,0 +1,20 @@
+{
+  "appId": "com.classroom.accommodations",
+  "appName": "Bloom",
+  "webDir": "dist-renderer",
+  "loggingBehavior": "none",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "capacitor",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "limitsNavigationsToAppBoundDomains": true,
+    "backgroundColor": "#faf8fc"
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": false },
+    "CapacitorCookies": { "enabled": false }
+  }
+}
