@@ -98,3 +98,17 @@ export function itemsForSet(setId) {
 export function allStarterItems() {
   return STARTER_SETS.flatMap((s) => itemsForSet(s.id));
 }
+
+/**
+ * A chosen label, back to the wording it came from.
+ *
+ * Starter wordings carry a `requiresDetail` flag the picker does not show. A
+ * student who gets "Text read aloud" needs a written detail each day, and that
+ * obligation comes from the accommodation rather than from anything the teacher
+ * clicked. Anything not on the list is the teacher's own words, which is a
+ * perfectly good accommodation and carries no such flag.
+ */
+export function resolveStarterItem(label) {
+  const match = allStarterItems().find((i) => i.label === label);
+  return match || { label, category: 'other', requiresDetail: false };
+}

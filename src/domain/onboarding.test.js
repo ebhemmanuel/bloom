@@ -98,6 +98,30 @@ describe('buildOnboardedDoc', () => {
     expect(doc.assignments).toHaveLength(2);
   });
 
+  it('records a student who joined partway through, even before the term it stamps', () => {
+    /*
+      A teacher setting up in February types their whole roster in one sitting,
+      and not all of it arrived on the same day. Being entered today is not a
+      claim about when they joined, so the date survives the build - including
+      one that predates the record's own start, which is a fact about the file
+      rather than about the student.
+    */
+    const doc = buildOnboardedDoc(
+      {
+        ...answers,
+        students: [
+          { id: 'a', name: 'Late Arrival', plan: 'IEP', accoms: [], enrolledFrom: '2026-11-03' },
+          { id: 'b', name: 'From The Start', plan: 'IEP', accoms: [] },
+        ],
+      },
+      now
+    );
+
+    expect(doc.students[0].enrolledFrom).toBe('2026-11-03');
+    // Unanswered stays unanswered: null is "here since the year opened".
+    expect(doc.students[1].enrolledFrom).toBeNull();
+  });
+
   it('puts every student in every period the teacher named', () => {
     const doc = buildOnboardedDoc(answers, now);
     const ids = doc.periods.map((p) => p.id);

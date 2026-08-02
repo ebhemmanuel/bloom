@@ -340,6 +340,33 @@
     background: var(--acc-surface-sunken);
   }
 
+  /**
+   * A question inside the confirm.
+   *
+   * Bordered rather than filled, so it reads as something to answer and does
+   * not collide with the reassurance block sitting under it, which is filled
+   * and is only there to be read.
+   */
+  &__extra {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+  }
+
+  &__label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+  }
+
+  &__hint {
+    font-size: var(--acc-fs-sub);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
   &__actions {
     display: flex;
     justify-content: flex-end;

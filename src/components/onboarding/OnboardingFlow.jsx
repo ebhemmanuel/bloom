@@ -12,7 +12,7 @@ import {
 import OnboardingAmbient from './OnboardingAmbient.jsx';
 import { IntroStep, OutroStep } from './steps/OpeningSteps.jsx';
 import { NameStep, TeachStep, PeriodsStep, DayStep, SetStep } from './steps/ProfileSteps.jsx';
-import { RosterStep, SupportsStep } from './steps/RosterSteps.jsx';
+import { RosterStep, SupportsStep, EMPTY_ROSTER_DRAFT } from './steps/RosterSteps.jsx';
 import LocationStep from './steps/LocationStep.jsx';
 
 /**
@@ -105,6 +105,18 @@ export default function OnboardingFlow({ needsLocation }) {
     students: [],
   });
   const [editingId, setEditingId] = useState(null);
+
+  /**
+   * The roster flow's own place in itself, held HERE rather than inside the
+   * step.
+   *
+   * Choosing supports for one student is a different phase, so the roster step
+   * unmounts to show it - and with the state inside, coming back reset the
+   * flow and lost the accommodations already chosen for the pass. Lifted, the
+   * trip is a detour rather than a restart.
+   */
+  const [rosterDraft, setRosterDraft] = useState(EMPTY_ROSTER_DRAFT);
+  const patchRosterDraft = (changes) => setRosterDraft((d) => ({ ...d, ...changes }));
 
   const timers = useRef([]);
   const after = (fn, ms) => {
@@ -312,12 +324,16 @@ export default function OnboardingFlow({ needsLocation }) {
                   : [...(s.periods || []), n].sort((a, b) => a - b),
               }))
             }
-            onAdd={(name, plan) =>
+            draft={rosterDraft}
+            onDraft={patchRosterDraft}
+            // The id comes from the step, which is what lets it tell the
+            // students of THIS pass from the ones already on the list.
+            onAdd={({ id, name, plan }) =>
               setAnswers((a) => ({
                 ...a,
                 students: [
                   ...a.students,
-                  { id: `s${a.students.length}-${name}`, name, plan, accoms: [], periods: [] },
+                  { id, name, plan, accoms: [], periods: [], enrolledFrom: null },
                 ],
               }))
             }
@@ -334,14 +350,32 @@ export default function OnboardingFlow({ needsLocation }) {
               support chosen for one student from the list survives the shared
               answer.
             */
-            onApplyToAll={({ periods: chosen, accoms }) =>
+            /*
+              The two shared screens, answered once for the students just named
+              and unioned onto them - so a period or a support chosen for one
+              from the list survives, and an earlier pass keeps its own answers
+              rather than collecting this one's.
+            */
+            onApplyToPending={({ ids, periods: chosen, enrolledFrom, accoms }) =>
               setAnswers((a) => ({
                 ...a,
-                students: a.students.map((s) => ({
-                  ...s,
-                  periods: [...new Set([...(s.periods || []), ...chosen])].sort((x, y) => x - y),
-                  accoms: [...new Set([...(s.accoms || []), ...accoms])],
-                })),
+                students: a.students.map((s) =>
+                  ids.includes(s.id)
+                    ? {
+                        ...s,
+                        periods: [...new Set([...(s.periods || []), ...chosen])].sort(
+                          (x, y) => x - y
+                        ),
+                        /*
+                          Blank leaves what they had. Unlike the two lists this
+                          is a single answer, so an unanswered pass must not
+                          overwrite a date that came from somewhere else.
+                        */
+                        enrolledFrom: enrolledFrom || s.enrolledFrom || null,
+                        accoms: [...new Set([...(s.accoms || []), ...accoms])],
+                      }
+                    : s
+                ),
               }))
             }
             onBack={() => go('set')}
@@ -353,6 +387,19 @@ export default function OnboardingFlow({ needsLocation }) {
         return (
           <SupportsStep
             student={editing}
+            periods={answers.periods}
+            periodNames={answers.periodNames}
+            onTogglePeriod={(id, n) =>
+              updateStudent(id, (s) => ({
+                ...s,
+                periods: (s.periods || []).includes(n)
+                  ? (s.periods || []).filter((p) => p !== n)
+                  : [...(s.periods || []), n].sort((a, b) => a - b),
+              }))
+            }
+            onEnrolledFrom={(id, value) =>
+              updateStudent(id, (s) => ({ ...s, enrolledFrom: value || null }))
+            }
             onToggle={(label) =>
               updateStudent(editing.id, (s) => ({
                 ...s,

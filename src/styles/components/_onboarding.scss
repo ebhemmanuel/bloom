@@ -13,10 +13,17 @@
 // ---------------------------------------------------------------------------
 
 // --- Palette ---------------------------------------------------------------
-// Scoped to the onboarding root rather than the token map: these are the intro's
-// own colours (petals, motes) and mean nothing to the rest of the app.
+// Setup's own colours, kept out of the token map because they mean nothing to
+// the rest of the app.
+//
+// Declared on the sheet as well as on setup's root, because setup's roster rows
+// are now shared with the add-student sheet. Scoped to `.acc-ob` alone, every
+// `--acc-ob-*` those rows reach for resolved to nothing over there: an undefined
+// custom property inside `border: 1px solid var(...)` invalidates the whole
+// declaration, so "Choose supports" lost its outline and read as a bare link.
 
-.acc-ob {
+.acc-ob,
+.acc-sheet {
   // Petals and motes both live in the token map now: the same mark is the logo
   // in the pill nav, and the same ambient scene is the board's background.
 
@@ -32,7 +39,9 @@
 
   --acc-ob-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --acc-ob-press: cubic-bezier(0.34, 1.28, 0.64, 1);
+}
 
+.acc-ob {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -1136,6 +1145,21 @@
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid var(--acc-ob-line);
   border-radius: 14px;
+  transition:
+    border-color var(--acc-dur-normal) var(--acc-ease-standard),
+    box-shadow var(--acc-dur-normal) var(--acc-ease-standard);
+
+  /**
+   * Said no to "some of these have no accommodations" - so here they are.
+   *
+   * Amber rather than danger red, and it is the same distinction the board
+   * makes: an empty lane is a fact about a record, not a failure. The ring
+   * says which ones the question meant, and nothing else changes.
+   */
+  &--flagged {
+    border-color: var(--acc-warning);
+    box-shadow: 0 0 0 3px var(--acc-warning-soft);
+  }
 }
 
 .acc-ob__avatar {

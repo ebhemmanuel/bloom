@@ -1,7 +1,7 @@
 import { createEmptyDoc } from './schema.js';
 import { addPeriod, addCatalogEntry } from './mutations.js';
 import { addStudentWithAccommodations } from './importStudent.js';
-import { allStarterItems } from './starterSets.js';
+import { resolveStarterItem } from './starterSets.js';
 import { newTeacherId } from './ids.js';
 import { isoTimestamp, todayKey } from './dates.js';
 import { DEFAULT_CYCLE_END_TIME, DEFAULT_REMINDERS, PLAN_TYPES } from './constants.js';
@@ -20,18 +20,6 @@ import { DEFAULT_CYCLE_END_TIME, DEFAULT_REMINDERS, PLAN_TYPES } from './constan
  */
 
 /**
- * Starter wordings carry a `requiresDetail` flag that the picker does not show.
- *
- * A student who gets "Text read aloud" needs a written detail each day, and that
- * obligation comes from the accommodation rather than from anything the teacher
- * chose in onboarding. Losing the flag here would silently drop it.
- */
-function resolveStarterItem(label) {
-  const match = allStarterItems().find((i) => i.label === label);
-  return match || { label, category: 'other', requiresDetail: false };
-}
-
-/**
  * @param {object} answers
  * @param {string} answers.name
  * @param {string[]} answers.subjects
@@ -40,7 +28,7 @@ function resolveStarterItem(label) {
  * @param {Record<number, string>} answers.periodNames  optional spoken names
  * @param {string} answers.endTime
  * @param {Record<string, boolean>} answers.reminders
- * @param {Array<{name: string, plan: string, accoms: string[]}>} answers.students
+ * @param {Array<{name: string, plan: string, periods: number[], enrolledFrom: string|null, accoms: string[]}>} answers.students
  * @param {string|null} answers.termStart
  */
 export function buildOnboardedDoc(answers = {}, now = new Date()) {
@@ -140,6 +128,13 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
          * hide them from a filtered board entirely.
          */
         periodIds: pickPeriods(student.periods),
+        /*
+          Setup is where a whole roster arrives at once, and not all of it
+          arrived on the same day. A student who joined in November is recorded
+          from November, so the days before read "not applicable - enrolled"
+          rather than counting against a class they were not in yet.
+        */
+        enrolledFrom: student.enrolledFrom || null,
         accommodations: (student.accoms || []).map(resolveStarterItem),
       },
       now

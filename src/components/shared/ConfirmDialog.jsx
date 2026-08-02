@@ -18,6 +18,7 @@ export default function ConfirmDialog({
   tone = 'default',
   onConfirm,
   onCancel,
+  children,
 }) {
   const confirmRef = useRef(null);
   // Confirming animates out too. A dialog whose cancel eases away but whose
@@ -44,6 +45,14 @@ export default function ConfirmDialog({
       >
         <h2 className="acc-confirm__title">{title}</h2>
         <p className="acc-confirm__body">{body}</p>
+        {/*
+          Something to answer, not only something to agree to. The confirm that
+          holds a half-described student back is the right place to finish
+          describing them, rather than sending the teacher away to a screen and
+          back.
+        */}
+        {children && <div className="acc-confirm__extra">{children}</div>}
+
         {reassurance && <p className="acc-confirm__reassurance">{reassurance}</p>}
 
         {/*

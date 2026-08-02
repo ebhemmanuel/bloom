@@ -660,12 +660,16 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   falls back to the term's own start, which is the same fact
                   written out.
                 */}
+                {/*
+                  Unbounded, like the add step's. Pinned between the record's
+                  own start and today, it could not be moved at all on a file
+                  set up this morning, and "the record began today" is a fact
+                  about the file rather than about the student.
+                */}
                 <input
                   type="date"
                   className="acc-wiz__date"
                   value={student.enrolledFrom || recordStart}
-                  min={recordStart || undefined}
-                  max={today}
                   onChange={(e) =>
                     write((d) => setStudentEnrolledFrom(d, student.id, e.target.value))
                   }
