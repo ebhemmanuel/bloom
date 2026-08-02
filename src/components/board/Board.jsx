@@ -514,17 +514,25 @@ export default function Board({ onAddStudent, onEditStudent }) {
                 view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
               }`}
             >
+              {/*
+                Two reasons a date carries no obligation, and they are the only
+                two: it is a weekend, or the teacher marked it non-instructional.
+                The copy used to say "none of your class periods meet on this
+                day", which described a per-period timetable the app has never
+                had and does not want - a period records which class somebody is
+                in, not when it runs.
+              */}
               {view.model.noClassToday ? (
                 <EmptyState
                   title={
                     view.model.isNonInstructional
                       ? 'Not a school day'
-                      : `No classes meet on ${formatDateLong(view.dateKey)}`
+                      : `${formatDateLong(view.dateKey)} is a weekend`
                   }
                   body={
                     view.model.isNonInstructional
                       ? 'This date is marked as non-instructional, so there are no accommodations to record. It prints as “n/a”.'
-                      : 'None of your class periods meet on this day, so there is nothing to record. It prints as “n/a”, not as a missed accommodation.'
+                      : 'Weekends carry nothing to record. It prints as “n/a”, not as a missed accommodation.'
                   }
                   actionLabel="Go to the last school day"
                   onAction={() => setDateKey(previousSchoolDay(view.dateKey, doc))}
