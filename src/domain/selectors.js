@@ -55,11 +55,23 @@ export function buildSearchIndex(doc) {
   return index;
 }
 
+/**
+ * Every word has to land, and each may land somewhere different.
+ *
+ * The whole query used to be matched as one string, which made the field hold
+ * exactly one filter at a time: "iep" narrowed to the IEP students and "iep
+ * marcus" found nobody, because no single term contains both. Splitting on
+ * whitespace and requiring ALL tokens - each against any term - is what lets a
+ * plan type and a name be asked for together, and it stacks with the period
+ * filter and the date, which were always separate.
+ *
+ * AND rather than OR: adding a word should narrow the board, never widen it.
+ */
 export function matchesSearch(index, studentId, query) {
   const q = normalizeSearch(query);
   if (!q) return true;
   const terms = index.get(studentId) || [];
-  return terms.some((t) => t.includes(q));
+  return q.split(/\s+/).every((token) => terms.some((t) => t.includes(token)));
 }
 
 /**

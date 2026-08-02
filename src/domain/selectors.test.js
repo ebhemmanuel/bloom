@@ -53,6 +53,24 @@ describe('matchesSearch', () => {
     expect(matchesSearch(index, T.jordan, plan(T.jordan).toLowerCase())).toBe(true);
   });
 
+  /**
+   * One field, several filters. Matching the whole query as one string meant it
+   * held exactly one at a time: "iep marcus" found nobody, because no single
+   * term contains both words.
+   */
+  it('asks for a plan type and a name together', () => {
+    const plan = doc.students.find((s) => s.id === T.jordan).planType;
+    expect(matchesSearch(index, T.jordan, `${plan} alvarez`)).toBe(true);
+    expect(matchesSearch(index, T.jordan, `alvarez ${plan}`)).toBe(true);
+  });
+
+  // AND, not OR: another word narrows the board, it never widens it.
+  it('needs every word to land', () => {
+    const plan = doc.students.find((s) => s.id === T.jordan).planType;
+    expect(matchesSearch(index, T.jordan, `${plan} zzz`)).toBe(false);
+    expect(matchesSearch(index, T.jordan, 'alvarez zzz')).toBe(false);
+  });
+
   it('does not match an unrelated query', () => {
     expect(matchesSearch(index, T.jordan, 'zzz')).toBe(false);
   });
