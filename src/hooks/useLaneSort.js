@@ -1,22 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const KEY = 'acc-lane-sort';
-const BY_KEY = 'acc-lane-sort-by';
 
 /**
- * How the roster is ordered: by what, and which way round.
+ * Which way round the roster runs.
  *
- * Two independent controls rather than one three-state cycle. "Group by period"
- * and "which end of the alphabet" are different questions - a teacher who wants
- * their P1 class first still has an opinion about A-Z inside it - and folding
- * them into one button would make each answer cost the other.
+ * Grouping BY PERIOD is no longer a question. It used to be a toggle in the
+ * toolbar - the P# button - off by default, and it was the right answer nearly
+ * every time: a teacher works their day period by period, so a board that opens
+ * as one alphabetical list of thirty is a list they have to re-sort before it
+ * matches the room they are standing in. A control that everyone should leave
+ * on is a control nobody needed, so the grouping is simply how the board is
+ * ordered and the button is gone. See `sortBy` in `buildBoardModel`.
+ *
+ * The direction stays a real choice: someone who wants their last class first
+ * still has an opinion, and it costs one small button to answer it.
  *
  * localStorage, NOT data.json, for the same reason folded lanes live there: the
  * file is a compliance record, and how a teacher likes their list arranged has
  * no business in an audited document.
  *
  * It persists rather than resetting each launch because it is a habit, not a
- * mood. A teacher who works period by period does it every day.
+ * mood.
  */
 export default function useLaneSort() {
   const [sort, setSort] = useState(() => {
@@ -27,28 +32,15 @@ export default function useLaneSort() {
     }
   });
 
-  const [sortBy, setSortBy] = useState(() => {
-    try {
-      return localStorage.getItem(BY_KEY) === 'period' ? 'period' : 'name';
-    } catch {
-      return 'name';
-    }
-  });
-
   useEffect(() => {
     try {
       localStorage.setItem(KEY, sort);
-      localStorage.setItem(BY_KEY, sortBy);
     } catch {
       /* private mode or quota. A lost preference is not worth surfacing. */
     }
-  }, [sort, sortBy]);
+  }, [sort]);
 
   const toggle = useCallback(() => setSort((s) => (s === 'az' ? 'za' : 'az')), []);
-  const toggleSortBy = useCallback(
-    () => setSortBy((b) => (b === 'period' ? 'name' : 'period')),
-    []
-  );
 
-  return { sort, toggle, sortBy, toggleSortBy };
+  return { sort, toggle };
 }

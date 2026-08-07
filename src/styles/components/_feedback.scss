@@ -317,10 +317,53 @@
   flex-direction: column;
   gap: var(--acc-space-3);
 
+  /**
+   * Centred, for the confirm that offers a way out rather than an explanation.
+   *
+   * The one about students with no accommodations used to spend three lines
+   * saying what an empty lane is and a fourth saying nothing was lost. A
+   * teacher who has just been told somebody is missing something does not want
+   * it described - they want to go and fix it, so the description is one
+   * centred link and the rest of the words are gone.
+   */
+  &--center {
+    text-align: center;
+
+    .acc-confirm__actions {
+      justify-content: center;
+    }
+
+    // The extra block's children too. `text-align` centres the label and the
+    // hint, but the date field is a flex child and sat on the left edge of a
+    // dialog whose every other line was centred.
+    .acc-confirm__extra {
+      align-items: center;
+    }
+  }
+
   &__title {
     font-size: var(--acc-fs-heading);
     font-weight: var(--acc-fw-semibold);
     line-height: var(--acc-lh-tight);
+  }
+
+  /** The gate's secondary action, held to its own width in a stretching pane. */
+  &__go {
+    align-self: center;
+  }
+
+  /** The way to the accommodations picker, in place of a paragraph about it. */
+  &__link {
+    @include motion.interactive(color);
+    align-self: center;
+    padding: 0;
+    font-size: var(--acc-fs-body);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-accent);
+
+    &:hover {
+      color: var(--acc-accent-hover);
+    }
   }
 
   &__body {

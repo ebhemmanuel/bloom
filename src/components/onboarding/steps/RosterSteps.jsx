@@ -1,22 +1,22 @@
 import { useCallback, useRef, useState } from 'react';
-import { PLAN_TYPES } from '../../../domain/constants.js';
-import { itemsForSet } from '../../../domain/starterSets.js';
-import { formatDateMedium } from '../../../domain/dates.js';
+import { planClassOf } from '../../../domain/constants.js';
+import { itemsForSet, resolveStarterItem } from '../../../domain/starterSets.js';
+import { formatDateMedium, sinceTermLabel } from '../../../domain/dates.js';
 import {
   splitStudentNames,
   readPastedNames,
   resolveAccommodationList,
 } from '../../../domain/importStudent.js';
-import Caret from '../../shared/Caret.jsx';
-import { usePopoverDismiss } from '../../shell/AppHeader.jsx';
-import AccommodationChooser from '../../manage/AccommodationChooser.jsx';
+import AccommodationChooser, { routeOf } from '../../manage/AccommodationChooser.jsx';
+import PlanChooser from '../../manage/PlanChooser.jsx';
 import RosterList from '../../manage/RosterList.jsx';
 import StudentDetour, {
   DETOUR_STEPS,
   detourTip,
   detourLabel,
+  commitDetourPaste,
 } from '../../manage/StudentDetour.jsx';
-import ConfirmDialog from '../../shared/ConfirmDialog.jsx';
+import DateField from '../../shared/DateField.jsx';
 
 /**
  * The optional half of setup: who you support, and what they get.
@@ -32,13 +32,7 @@ import ConfirmDialog from '../../shared/ConfirmDialog.jsx';
  * the exit behind a small link.
  */
 
-// The same map the board and the sheets use, so a plan reads identically here.
-const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
-
-/** Everything these students already carry, from Choose supports. */
-const ownAccomsOf = (list) => [...new Set(list.flatMap((s) => s.accoms || []))];
-
-/** And which classes they are already in, from the chips on their row. */
+/** Which classes they are already in, from the chips on their row. */
 const ownPeriodsOf = (list) => [...new Set(list.flatMap((s) => s.periods || []))];
 
 /** A fresh pass through the flow: nobody named, nothing shared chosen yet. */
@@ -47,22 +41,29 @@ export const EMPTY_ROSTER_DRAFT = {
   name: '',
   plan: 'IEP',
   sharedPeriods: [],
-  enrolledFrom: '',
-  mode: null,
+  mode: 'paste',
   paste: '',
   picked: [],
   openSet: null,
   pendingIds: [],
+  /*
+    Which of the pending students the middle of the flow is about. One index for
+    both of its screens, because they are one visit: a student's classes and
+    their plan are answered together, then the next student.
+  */
+  studentIndex: 0,
 };
 
 export function RosterStep({
   students,
   periods,
   periodNames,
+  termStart,
   draft,
   onDraft,
   onAdd,
   onRemove,
+  onRename,
   onEdit,
   onTogglePeriod,
   onApplyToPending,
@@ -74,24 +75,18 @@ export function RosterStep({
     name,
     plan,
     sharedPeriods,
-    enrolledFrom,
     mode,
     paste,
     picked,
     openSet,
     pendingIds,
+    studentIndex,
   } = draft;
-
-  const [planOpen, setPlanOpen] = useState(false);
-  const closePlan = useCallback(() => setPlanOpen(false), []);
-  const planRef = usePopoverDismiss(planOpen, closePlan);
 
   // Who is still without accommodations when Done is pressed, or null. Held
   // rather than recomputed: the pass lands first, and `students` is a render
   // behind that. See `finish`.
   const [confirming, setConfirming] = useState(null);
-  // The enrolment date offered inside that confirm, for whoever has none.
-  const [confirmDate, setConfirmDate] = useState('');
   const [flagged, setFlagged] = useState([]);
 
   const seq = useRef(0);
@@ -146,18 +141,76 @@ export function RosterStep({
   const roster = students.length;
   const withoutSupports = students.filter((s) => s.accoms.length === 0);
 
-  /*
-    What the review has to say about classes: everything these students will
-    actually be in, not only what this pass answered.
+  /**
+   * Whose accommodations the step is asking about, and whether they are last.
+   *
+   * The step used to ask once and hand the answer to everybody the pass had
+   * named. On a pasted roster that is close to always wrong: five students
+   * arriving in one paste are five different plans, and giving all five the
+   * same supports writes a record nobody claimed. It walks the list instead,
+   * and the screen says whose plan it is on.
+   */
+  const studentFor = pending[studentIndex] || null;
+  const lastPending = studentIndex >= pending.length - 1;
+  const manyPending = pending.length > 1;
 
-    Set P3 on somebody's row, leave Class details blank, and the card used to
-    read "All your periods" - which is a different student from the one about
-    to be added, and reads as though the chips had been thrown away. They are
-    kept, so the card says so.
-  */
-  const reviewPeriods = [...new Set([...sharedPeriods, ...ownPeriodsOf(pending)])].sort(
-    (a, b) => a - b
-  );
+  /**
+   * The enrolment date, asked once at the end - and held by the STUDENTS.
+   *
+   * There is no separate "all of them" value to go stale. The field shows the
+   * date when they all carry the same one and nothing when they do not, and
+   * setting it writes to every one of them. So setting it for all sets it on
+   * each; giving one student their own makes the field blank, because "all of
+   * them" is no longer true of anybody; and everyone else keeps what they were
+   * given, since there is nothing held elsewhere to revert to.
+   */
+  const dates = [...new Set(pending.map((s) => s.enrolledFrom || ''))];
+  const sharedDate = dates.length === 1 ? dates[0] : '';
+  const datesDiffer = dates.length > 1;
+
+  // What blank means, said as the date it actually is. See sinceTermLabel.
+  const sinceLabel = sinceTermLabel(termStart);
+
+  const setDateForAll = (next) =>
+    onApplyToPending({ ids: pendingIds, periods: [], enrolledFrom: next || null, accoms: [] });
+
+  /** The gate's own primary: the teacher meant the empty lanes, so open up. */
+  const confirmSubmit = () => {
+    setConfirming(null);
+    onBoard();
+  };
+
+  /** Open one of the two per-student screens on a given student. */
+  const visit = (i, which, ids = pendingIds) => {
+    const idx = Math.max(0, Math.min(i, ids.length - 1));
+    if (which === 2) loadChooser(students.find((s) => s.id === ids[idx]));
+    onDraft({ step: which, studentIndex: idx });
+  };
+
+  /** Fill the chooser from one student's own list. */
+  const loadChooser = (student) => {
+    const own = (student?.accoms || []).map(resolveStarterItem);
+    // Always the fork, with their picks shown under it. See the chooser.
+    onDraft({ picked: own, paste: '', mode: 'paste', openSet: null });
+  };
+
+  /** Write what the chooser holds onto the student it was asking about. */
+  const commitChooser = (student) => {
+    if (!student) return;
+    onApplyToPending({
+      ids: [student.id],
+      periods: [],
+      // Left OUT rather than sent as null: null is an answer meaning "no date",
+      // and this call is about accommodations. Sending it would wipe a date the
+      // student already had.
+      accoms: staged.map((s) => s.label),
+      replaceAccoms: true,
+    });
+  };
+
+  // What the review says about classes: what these students actually carry,
+  // since that is now the only place a period is ever recorded.
+  const reviewPeriods = ownPeriodsOf(pending).sort((a, b) => a - b);
 
   // Setup holds periods as bare numbers, since no document exists to hold ids.
   const periodChoices = periods.map((n) => ({
@@ -177,12 +230,25 @@ export function RosterStep({
    */
   const applyPending = () => {
     if (pendingIds.length === 0) return;
-    onApplyToPending({
-      ids: pendingIds,
-      periods: sharedPeriods,
-      enrolledFrom: enrolledFrom || null,
-      accoms: staged.map((s) => s.label),
-    });
+    // Periods and the date both land on the students as they are set, so the
+    // chooser is the only thing still staged.
+    if (step === 2) commitChooser(studentFor);
+  };
+
+  /**
+   * Turn a period on or off for the student the step is asking about.
+   *
+   * Straight onto the student. There is no staging, no seed and no difference
+   * to work out, because the screen is about one of them: what it shows is what
+   * they have, and a click is the whole of the change.
+   */
+  const togglePeriodFor = (id, n) => {
+    // The screen answers once, for everyone this pass named. Read off the
+    // student on screen rather than flipping each one's own list, so all of
+    // them end up with exactly what this screen is showing.
+    const current = studentFor?.periods || [];
+    const next = current.includes(n) ? current.filter((x) => x !== n) : [...current, n];
+    onApplyToPending({ ids: pendingIds, periods: [], setPeriods: next, accoms: [] });
   };
 
   const clearPass = () =>
@@ -190,22 +256,22 @@ export function RosterStep({
       step: 0,
       name: '',
       sharedPeriods: [],
-      enrolledFrom: '',
-      mode: null,
+      mode: 'paste',
       paste: '',
       picked: [],
       openSet: null,
       pendingIds: [],
+      studentIndex: 0,
     });
 
   /*
     Who is still without accommodations once this pass has landed.
 
-    `students` is a render behind `applyPending`, so asking it directly would
-    name somebody who is about to be given three.
+    `students` is a render behind the write, so asking it directly would name
+    the student the chooser is open on, who is about to be given three.
   */
   const missing = students.filter(
-    (s) => s.accoms.length === 0 && !(staged.length > 0 && pendingIds.includes(s.id))
+    (s) => s.accoms.length === 0 && !(staged.length > 0 && s.id === studentFor?.id)
   );
 
   /**
@@ -219,16 +285,7 @@ export function RosterStep({
     applyPending();
     clearPass();
     if (missing.length > 0) {
-      setConfirming(
-        missing.map((s) => ({
-          id: s.id,
-          name: s.name,
-          // Undated as well as unsupported: the confirm asks for both at once
-          // rather than letting a half-described student through.
-          undated: !(s.enrolledFrom || (pendingIds.includes(s.id) && enrolledFrom)),
-        }))
-      );
-      setConfirmDate('');
+      setConfirming(missing.map((s) => ({ id: s.id, name: s.name })));
       return;
     }
     onBoard();
@@ -237,23 +294,42 @@ export function RosterStep({
   const next = () => {
     if (step === 0) {
       /*
-        An empty field means there is nobody left to name, so this is Done - and
-        Done always asks about anyone still without accommodations first, whether
-        or not a pass is part-finished. Carrying on into the shared screens with
-        nothing in the field walked the teacher through two questions about
-        nobody.
+        Done only when there is nothing left to do: no name in the field AND
+        nobody named who has not been described yet. A roster that arrived by
+        paste is sitting right there waiting to be asked about, and Continue
+        means continue - it walks them, one at a time, rather than offering to
+        open the board over the top of them.
       */
-      if (!ready) {
+      if (!ready && pendingIds.length === 0) {
         finish();
         return;
       }
-      add();
-      onDraft({ step: 1 });
+      // Into the first student's visit, including whoever the field just added.
+      visit(0, 1, ready ? [...pendingIds, ...add()] : pendingIds);
       return;
     }
 
-    if (step < 3) {
-      onDraft({ step: step + 1 });
+    // Periods, then the same student's accommodations. Nothing to commit on the
+    // way out: every click already landed on the student it was about.
+    if (step === 1) {
+      visit(studentIndex, 2);
+      return;
+    }
+
+    /*
+      The end of one student's visit. Their answers land, and then it is the
+      next student's turn - back to periods, not on to a second circuit of the
+      whole list. Only the last one goes through to the review.
+    */
+    if (step === 2) {
+      commitChooser(studentFor);
+      if (!lastPending) {
+        // Straight to the next student's accommodations: periods were answered
+        // for all of them on the one screen at the front.
+        visit(studentIndex + 1, 2);
+        return;
+      }
+      onDraft({ step: 3 });
       return;
     }
 
@@ -281,13 +357,46 @@ export function RosterStep({
     Staying inside the pass - review to accommodations, say - just moves.
   */
   const back = () => {
-    if (step > 1) {
-      onDraft({ step: step - 1 });
+    // From the review, back into the last student's visit.
+    if (step === 3) {
+      visit(pending.length - 1, 2);
       return;
     }
+
+    /*
+      The chooser is staged rather than live, so it commits on the way out:
+      stepping off somebody's screen is not a reason to throw away what was
+      chosen for them.
+    */
+    if (step === 2) {
+      commitChooser(studentFor);
+      // Periods are answered once, on the screen at the front, so back is the
+      // previous student's own screen - except for the first, who came from
+      // that shared one.
+      if (studentIndex > 0) visit(studentIndex - 1, 2);
+      else visit(0, 1);
+      return;
+    }
+
+    /*
+      Back off somebody's periods goes to the PREVIOUS student's last screen,
+      which is where they came from, or out to the list WITHOUT ending the pass.
+      It used to clear the whole pass here, so a teacher who stepped back to add
+      one more name found the students they had already described were no longer
+      the ones the next screens were about.
+    */
+    if (step === 1) {
+      if (studentIndex > 0) {
+        visit(studentIndex - 1, 2);
+        return;
+      }
+      onDraft({ step: 0 });
+      return;
+    }
+
     applyPending();
     clearPass();
-    if (step === 0) onBack();
+    onBack();
   };
 
   const tips = [
@@ -296,20 +405,31 @@ export function RosterStep({
       : roster > 0
         ? 'Add another, or open your board - everything here is editable later.'
         : 'Names or initials, whatever you would recognise on a report.',
-    'Answered once, for the students you just named. All of it is editable per student later.',
-    staged.length > 0
-      ? `${staged.length} accommodation${staged.length === 1 ? '' : 's'} ready`
-      : 'You can skip this and add accommodations any time from the board.',
+    // Whose classes these are, and how far through the list. On a pasted roster
+    // the position is the thing a teacher needs to know.
+    manyPending
+      ? `${studentFor?.name || 'This student'} - ${studentIndex + 1} of ${pending.length}`
+      : 'Skip it if you are not sure yet.',
+    manyPending
+      ? `${studentFor?.name || 'This student'} - ${studentIndex + 1} of ${pending.length}`
+      : staged.length > 0
+        ? `${staged.length} accommodation${staged.length === 1 ? '' : 's'} ready`
+        : 'You can skip this and add accommodations any time from the board.',
     'This adds them, then brings you back for the next one.',
   ];
 
-  // Done on an empty field, Continue the moment a name is in it.
+  // Done on an empty field, Continue the moment a name is in it. Inside the
+  // loop it says where it is going, so nobody wonders if they missed anyone.
   const nextLabel =
-    step < 3
-      ? ready || step > 0
-        ? 'Continue'
-        : 'Done'
-      : `Add ${pending.length || roster} student${(pending.length || roster) === 1 ? '' : 's'}`;
+    step === 3
+      ? `Add ${pending.length || roster} student${(pending.length || roster) === 1 ? '' : 's'}`
+      : // The end of somebody's visit says whose turn is next, so nobody
+        // wonders whether they missed a student.
+        step === 2 && manyPending && !lastPending
+        ? `Next: ${pending[studentIndex + 1]?.name || 'student'}`
+        : ready || step > 0 || pendingIds.length > 0
+          ? 'Continue'
+          : 'Done';
 
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
@@ -317,8 +437,42 @@ export function RosterStep({
         <div className="acc-sheet__body">
           {/* Keyed by step so the entrance replays on every move, as the sheet
               does. */}
-          <div className="acc-sheet__view" key={step}>
-            {step === 0 ? (
+          <div className="acc-sheet__view" key={confirming ? 'gate' : step}>
+            {confirming ? (
+              /*
+                The last gate, as a step of the flow rather than a small modal
+                over it. Every other question here is a full pane with the
+                footer carrying the way forward and back; the one deciding
+                whether the record is written should not be squeezed into a box.
+              */
+              <div className="acc-sheet__pane">
+                <div className="acc-sheet__intro acc-sheet__intro--center">
+                  <h1 className="acc-sheet__title">Missing accommodations</h1>
+                  {/* Why this is a question and not a wall: an empty lane is a
+                      fine thing to mean, because nothing here is a one-shot. */}
+                  <p className="acc-sheet__sub acc-sheet__sub--balance">
+                    You can add accommodations at any time later, from the board.
+                  </p>
+                </div>
+
+                {/* The action the gate exists to offer: go and add them now,
+                    landing on that student's own accommodations screen. */}
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--outline acc-confirm__go"
+                  onClick={() => {
+                    const first = pendingIds.indexOf(confirming[0].id);
+                    setConfirming(null);
+                    if (first >= 0) visit(first, 2);
+                    else onEdit(confirming[0].id);
+                  }}
+                >
+                  {confirming.length === 1
+                    ? `Add some for ${confirming[0].name}`
+                    : `Add some, starting with ${confirming[0].name}`}
+                </button>
+              </div>
+            ) : step === 0 ? (
               <div className="acc-sheet__pane">
                 <div className="acc-sheet__intro acc-sheet__intro--center">
                   <h1 className="acc-sheet__title">Who are you supporting?</h1>
@@ -376,44 +530,7 @@ export function RosterStep({
                       autoFocus
                     />
 
-                    <span
-                      className={`acc-wiz__planwrap acc-wiz__planwrap--${PLAN_CLASS[plan] || 'other'}`}
-                      ref={planRef}
-                    >
-                      <button
-                        type="button"
-                        className="acc-wiz__plan"
-                        onClick={() => setPlanOpen((o) => !o)}
-                        aria-haspopup="menu"
-                        aria-expanded={planOpen}
-                        aria-label={`Plan type: ${plan}`}
-                        title="Plan type"
-                      >
-                        {plan}
-                        <Caret up={planOpen} />
-                      </button>
-
-                      {planOpen && (
-                        <div className="acc-wiz__planmenu acc-enter" role="menu">
-                          {PLAN_TYPES.map((p) => (
-                            <button
-                              key={p}
-                              type="button"
-                              role="menuitemradio"
-                              aria-checked={p === plan}
-                              className={`acc-wiz__planrow${p === plan ? ' acc-wiz__planrow--on' : ''}`}
-                              onClick={() => {
-                                onDraft({ plan: p });
-                                setPlanOpen(false);
-                              }}
-                            >
-                              <span className="acc-wiz__plancheck">{p === plan ? '✓' : ''}</span>
-                              {p}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </span>
+                    <PlanChooser value={plan} onChange={(p) => onDraft({ plan: p })} />
                   </div>
 
                   <span className="acc-wiz__hint acc-wiz__hint--center">
@@ -428,90 +545,79 @@ export function RosterStep({
                   /* Ringed until they are answered for. Someone given supports
                      after the question was asked is no longer what it meant. */
                   flagged={flagged.filter((id) => withoutSupports.some((s) => s.id === id))}
+                  // Editable here as well as on the review: a name is most
+                  // often wrong the moment it is typed, and that is this
+                  // screen.
+                  onRename={onRename}
                   onTogglePeriod={onTogglePeriod}
                   onEdit={onEdit}
                   onRemove={onRemove}
                 />
               </div>
             ) : step === 1 ? (
-              <div className="acc-sheet__pane acc-sheet__pane--wide">
+              <div className="acc-sheet__pane">
+                {/* One student, named in the heading. Which class somebody sits
+                    in is not a group fact, and a screen that answered it for
+                    everyone at once could only be right about one of them. */}
                 <div className="acc-sheet__intro acc-sheet__intro--center">
-                  <h1 className="acc-sheet__title">Class details</h1>
+                  <h1 className="acc-sheet__title">
+                    {manyPending
+                      ? `Which periods are these ${pending.length} students in?`
+                      : 'Which periods are they in?'}
+                  </h1>
                   <p className="acc-sheet__sub acc-sheet__sub--balance">
-                    Set what you know and skip the rest - all of this is editable later.
+                    {manyPending
+                      ? 'They all get these. Correct anyone who differs from their own row afterwards.'
+                      : 'Pick as many as they sit in, or skip it - a student in none of them still appears on every board.'}
                   </p>
                 </div>
 
-                {/* The add-student sheet's own two halves, on the same two
-                    questions: which classes, and since when. */}
-                <div className="acc-wiz__split">
-                  <div className="acc-wiz__cell acc-wiz__cell--end">
-                    <span className="acc-wiz__label">Which periods?</span>
-                    <div className="acc-wiz__chips acc-wiz__chips--end">
-                      {periods.map((n) => {
-                        const on = sharedPeriods.includes(n);
-                        return (
-                          <button
-                            key={n}
-                            type="button"
-                            className={`acc-chip acc-chip--lg${on ? ' acc-chip--on' : ''}`}
-                            aria-pressed={on}
-                            title={periodNames[n] || `Period ${n}`}
-                            onClick={() =>
-                              onDraft({
-                                sharedPeriods: on
-                                  ? sharedPeriods.filter((x) => x !== n)
-                                  : [...sharedPeriods, n],
-                              })
-                            }
-                          >
-                            P{n}
-                          </button>
-                        );
-                      })}
-                      {periods.length === 0 && (
-                        <span className="acc-wiz__hint">
-                          You did not name any periods, so there is nothing to pick here.
-                        </span>
-                      )}
-                    </div>
-                    <span className="acc-wiz__hint">
-                      Added to the students you just named, on top of anything set per student.
-                    </span>
-                  </div>
-
-                  <span className="acc-wiz__rule" aria-hidden="true" />
-
-                  <div className="acc-wiz__cell">
-                    {/*
-                      Being typed in today is not a claim about when they
-                      joined. Setup is where a whole roster arrives at once, so
-                      this is exactly where a student who started in November
-                      needs to be able to say so.
-                    */}
-                    <span className="acc-wiz__label">Newly enrolled?</span>
-                    <input
-                      type="date"
-                      className="acc-wiz__date"
-                      value={enrolledFrom}
-                      onChange={(e) => onDraft({ enrolledFrom: e.target.value })}
-                      aria-label="First day in this class"
-                    />
-                    <span className="acc-wiz__hint">
-                      {enrolledFrom
-                        ? `Every day before ${formatDateMedium(enrolledFrom)} reads “not applicable - enrolled ${formatDateMedium(enrolledFrom)}”, so nothing is recorded against them for a class they were not in yet.`
-                        : 'Leave blank if they have been in this class since the start of the year.'}
-                    </span>
+                <div className="acc-wiz__field acc-wiz__field--center">
+                  <div className="acc-wiz__chips acc-wiz__chips--center">
+                    {periods.map((n) => {
+                      const on = Boolean(studentFor?.periods?.includes(n));
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          className={`acc-chip acc-chip--lg${on ? ' acc-chip--on' : ''}`}
+                          aria-pressed={on}
+                          title={periodNames[n] || `Period ${n}`}
+                          onClick={() => studentFor && togglePeriodFor(studentFor.id, n)}
+                        >
+                          P{n}
+                        </button>
+                      );
+                    })}
+                    {periods.length === 0 && (
+                      <span className="acc-wiz__hint">
+                        You did not name any periods, so there is nothing to pick here.
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             ) : step === 2 ? (
               <div className="acc-sheet__pane acc-sheet__pane--wide">
+                {/* Whose plan this is, in the heading. A pasted roster walks
+                    through here one at a time, and a screen that did not say
+                    the name was why one answer used to reach all of them. */}
                 <div className="acc-sheet__intro acc-sheet__intro--center">
-                  <h1 className="acc-sheet__title">How do you want to add their accommodations?</h1>
+                  <h1 className="acc-sheet__title">
+                    {manyPending ? (
+                      <>
+                        What does{' '}
+                        <span className="acc-sheet__who">{studentFor?.name || 'this student'}</span>{' '}
+                        receive?
+                      </>
+                    ) : (
+                      'What do they receive?'
+                    )}
+                  </h1>
                   <p className="acc-sheet__sub acc-sheet__sub--balance">
-                    The plan&rsquo;s wording is what counts - edit anything later to match what it
-                    actually says.
+                    {manyPending
+                      ? 'Answered for this student alone. Continue moves to the next one.'
+                      : 'The plan’s wording is what counts - edit anything later to match what it actually says.'}
                   </p>
                 </div>
 
@@ -519,7 +625,6 @@ export function RosterStep({
                     starter set. See AccommodationChooser. */}
                 <AccommodationChooser
                   mode={mode}
-                  onMode={(m) => onDraft({ mode: m })}
                   paste={paste}
                   onPaste={(p) => onDraft({ paste: p })}
                   parsed={parsedAccoms}
@@ -544,105 +649,47 @@ export function RosterStep({
                   </p>
                 </div>
 
-                <div className="acc-wiz__card">
-                  <div className="acc-wiz__cardhead">
-                    <span className="acc-wiz__disc" aria-hidden="true">
-                      {pending.length === 1 ? initialsOf(pending[0].name) : pending.length}
-                    </span>
-                    <div className="acc-wiz__identity">
-                      <div className="acc-wiz__nameline">
-                        <span className="acc-wiz__cardname">
-                          {pending.length === 1 ? pending[0].name : `${pending.length} students`}
-                        </span>
-                        {pending.length === 1 && (
-                          <span
-                            className={`acc-pill acc-pill--${PLAN_CLASS[pending[0].plan] || 'other'}`}
-                          >
-                            {pending[0].plan}
-                          </span>
-                        )}
-                      </div>
-                      <span className="acc-wiz__meta">
-                        {reviewPeriods.length
-                          ? reviewPeriods.map((n) => `P${n}`).join(', ')
-                          : 'All your periods'}
-                        {' · '}
-                        {enrolledFrom
-                          ? `Enrolled ${formatDateMedium(enrolledFrom)}`
-                          : 'Start of year'}
-                      </span>
-                    </div>
-                    <div className="acc-wiz__edit">
-                      <span className="acc-wiz__editlabel">Edit</span>
-                      <button
-                        type="button"
-                        className="acc-wiz__editlink"
-                        onClick={() => onDraft({ step: 0 })}
-                      >
-                        Names
-                      </button>
-                      <span className="acc-wiz__editdot" aria-hidden="true" />
-                      <button
-                        type="button"
-                        className="acc-wiz__editlink"
-                        onClick={() => onDraft({ step: 1 })}
-                      >
-                        Details
-                      </button>
-                    </div>
-                  </div>
+                {/*
+                  The same rows the first screen shows, with each student's
+                  supports under their own.
 
-                  {pending.length > 1 && (
-                    <div className="acc-wiz__chips acc-wiz__chips--card">
-                      {pending.map((s) => (
-                        <span key={s.id} className="acc-chip acc-chip--on">
-                          {s.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/*
-                    What each of them will actually have: their own picks from
-                    Choose supports, and anything this pass adds, marked apart.
-                  */}
-                  <div className="acc-wiz__accoms">
-                    <div className="acc-wiz__accomhead">
-                      <span className="acc-wiz__label">
-                        {staged.length
-                          ? `${staged.length} accommodation${staged.length === 1 ? '' : 's'} each`
-                          : 'Accommodations'}
-                      </span>
-                      <button
-                        type="button"
-                        className="acc-wiz__editlink acc-wiz__editlink--end"
-                        onClick={() => onDraft({ step: 2 })}
-                      >
-                        Edit
-                      </button>
-                    </div>
-
-                    {ownAccomsOf(pending).length > 0 || staged.length > 0 ? (
-                      <div className="acc-wiz__chips">
-                        {ownAccomsOf(pending).map((label) => (
-                          <span key={label} className="acc-wiz__accom">
-                            {label}
-                          </span>
-                        ))}
-                        {staged
-                          .filter((s) => !ownAccomsOf(pending).includes(s.label))
-                          .map((s) => (
-                            <span key={s.label} className="acc-wiz__accom acc-wiz__accom--new">
-                              {s.label}
-                            </span>
-                          ))}
-                      </div>
-                    ) : (
-                      <span className="acc-wiz__empty">
-                        None yet - add them any time from the board.
-                      </span>
-                    )}
-                  </div>
+                  It used to be a summary card - one header over a flat list of
+                  names - which looked like a different screen and, worse, was
+                  read-only: the last thing before writing a record was the one
+                  place nothing could be corrected. Every row here is live.
+                */}
+                <RosterList
+                  students={pending.map((s) => ({ ...s, periodKeys: s.periods || [] }))}
+                  periods={periodChoices}
+                  showAccoms
+                  onRename={onRename}
+                  onTogglePeriod={onTogglePeriod}
+                  onEdit={onEdit}
+                  onRemove={onRemove}
+                />
+                {/*
+                  The one question left, and the last screen is where it
+                  belongs. Unlike periods this genuinely is usually one answer
+                  for everyone arriving together, and a student who joined on
+                  their own date has their own field behind Choose supports.
+                */}
+                <div className="acc-wiz__field acc-wiz__field--center">
+                  <span className="acc-wiz__label">
+                    {pending.length > 1 ? 'Newly enrolled? (all of them)' : 'Newly enrolled?'}
+                  </span>
+                  <DateField
+                    value={sharedDate}
+                    onChange={setDateForAll}
+                    placeholder={datesDiffer ? 'Their own dates' : sinceLabel}
+                    label="First day in this class"
+                  />
+                  <span className="acc-wiz__hint acc-wiz__hint--center">
+                    {datesDiffer
+                      ? 'They do not all share a date. Setting one here gives it to every one of them.'
+                      : sharedDate
+                        ? `Every day before ${formatDateMedium(sharedDate)} reads “not applicable - enrolled ${formatDateMedium(sharedDate)}”, so nothing is recorded against them for a class they were not in yet.`
+                        : 'Leave it as it is if they have been in this class since your first day.'}
+                  </span>
                 </div>
               </div>
             )}
@@ -652,73 +699,59 @@ export function RosterStep({
         {/* The same row every other step wears: Back on the left, the one line
             of guidance centred, the primary on the right. */}
         <footer className="acc-sheet__foot">
+          {/* Back, and its twin: while a route into the accommodation list is
+              open, this leaves the route rather than the step. Same place, same
+              weight, accent to say it is a different kind of going back. */}
           <div className="acc-sheet__footside">
-            <button type="button" className="acc-btn acc-btn--quiet" onClick={back}>
-              Back
-            </button>
+            {confirming ? (
+              /* Off the gate and back to the list, with the students it was
+                 about ringed - the same "go and fix it later" exit the modal's
+                 Cancel offered, in the place Back always lives. */
+              <button
+                type="button"
+                className="acc-btn acc-btn--quiet"
+                onClick={() => {
+                  setFlagged(confirming.map((s) => s.id));
+                  setConfirming(null);
+                }}
+              >
+                Back
+              </button>
+            ) : (
+              <button type="button" className="acc-btn acc-btn--quiet" onClick={back}>
+                Back
+              </button>
+            )}
           </div>
-          <span className="acc-sheet__tip">{tips[step]}</span>
-          <button type="button" className="acc-btn acc-btn--primary" onClick={next}>
-            {nextLabel}
+          {/* The centre carries the other view of the list on the
+              accommodations question, and the guidance line everywhere else.
+              See the sheet's footer. */}
+          {step === 2 && !confirming ? (
+            <div className="acc-sheet__tip acc-sheet__tip--action">
+              <button
+                type="button"
+                className="acc-btn acc-btn--quiet acc-btn--accent"
+                onClick={() => onDraft({ mode: routeOf(mode) === 'starter' ? 'paste' : 'starter' })}
+              >
+                {routeOf(mode) === 'starter' ? 'Paste from the IEP' : 'Choose from preset'}
+              </button>
+            </div>
+          ) : (
+            <span className="acc-sheet__tip">
+              {confirming
+                ? 'Their lanes will open empty until accommodations are added.'
+                : tips[step]}
+            </span>
+          )}
+          <button
+            type="button"
+            className="acc-btn acc-btn--primary"
+            onClick={confirming ? confirmSubmit : next}
+          >
+            {confirming ? 'Open my board' : nextLabel}
           </button>
         </footer>
       </div>
-
-      {confirming && (
-        <ConfirmDialog
-          title={
-            confirming.length === 1
-              ? `${confirming[0].name} has no accommodations yet`
-              : `${confirming.length} students have no accommodations yet`
-          }
-          body="Their lanes will open empty. That is fine if it is what you meant - you can add accommodations from the board at any time."
-          reassurance="Nothing is lost either way. Cancelling brings you back to the list with them marked."
-          confirmLabel="Open my board"
-          onCancel={() => {
-            setFlagged(confirming.map((s) => s.id));
-            setConfirming(null);
-          }}
-          onConfirm={() => {
-            /*
-              The one fact this dialog can still fix on the way past. Applied
-              only to the students it named as undated, so confirming never
-              rewrites a date somebody already has.
-            */
-            const undated = confirming.filter((s) => s.undated).map((s) => s.id);
-            if (confirmDate && undated.length > 0) {
-              onApplyToPending({
-                ids: undated,
-                periods: [],
-                enrolledFrom: confirmDate,
-                accoms: [],
-              });
-            }
-            setConfirming(null);
-            onBoard();
-          }}
-        >
-          {confirming.some((s) => s.undated) && (
-            <>
-              <span className="acc-confirm__label">
-                {confirming.filter((s) => s.undated).length === 1
-                  ? `When did ${confirming.find((s) => s.undated).name} join?`
-                  : `When did these ${confirming.filter((s) => s.undated).length} join?`}
-              </span>
-              <input
-                type="date"
-                className="acc-wiz__date"
-                value={confirmDate}
-                onChange={(e) => setConfirmDate(e.target.value)}
-                aria-label="Enrolled date for the students without one"
-              />
-              <span className="acc-confirm__hint">
-                Leave it blank if they have been in your class since the start of the year. It only
-                touches the ones above that have no date of their own.
-              </span>
-            </>
-          )}
-        </ConfirmDialog>
-      )}
     </div>
   );
 }
@@ -735,13 +768,40 @@ export function SupportsStep({
   student,
   periods,
   periodNames,
+  termStart,
   onTogglePeriod,
   onEnrolledFrom,
   onToggle,
   onAddCustom,
+  onReplaceAccoms,
   onDone,
 }) {
   const [sub, setSub] = useState(0);
+  // Which route into the accommodation list is open, held HERE so the footer
+  // below can offer the way out of it. See StudentDetour.
+  const [mode, setMode] = useState('paste');
+  // And the paste box's text, for the same reason: Continue is what commits it.
+  const [paste, setPaste] = useState('');
+  // Whether the box is editing their list rather than adding to it. See the
+  // sheet's copy of this for why the two have to behave differently.
+  const [pasteReplaces, setPasteReplaces] = useState(false);
+
+  /** Keep whatever is still in the paste box, then move on. */
+  const advance = () => {
+    if (sub === 1 && (paste.trim() || pasteReplaces)) {
+      // No catalog exists yet during setup, so everything pasted is new.
+      if (pasteReplaces) {
+        onReplaceAccoms(resolveAccommodationList(paste, []).items.map((i) => i.label));
+      } else {
+        commitDetourPaste({ paste, catalog: [], onAddCustom });
+      }
+      setPaste('');
+      setPasteReplaces(false);
+      setMode('paste');
+    }
+    if (sub === DETOUR_STEPS - 1) onDone();
+    else setSub(sub + 1);
+  };
 
   const periodChoices = periods.map((n) => ({
     key: n,
@@ -765,15 +825,30 @@ export function SupportsStep({
               sub={sub}
               student={row}
               periods={periodChoices}
+              sinceLabel={sinceTermLabel(termStart)}
+              mode={mode}
+              paste={paste}
+              onPaste={setPaste}
+              pasteReplaces={pasteReplaces}
+              /* Edit lands ON the thing being edited - their own wordings in
+                 the box, one per line, so a phrase is corrected rather than
+                 removed and retyped. See the sheet's copy of this. */
+              onJump={(next) => {
+                const seed = next === 1 && row.accoms.length > 0;
+                setMode('paste');
+                setPaste(seed ? row.accoms.join('\n') : '');
+                setPasteReplaces(seed);
+                setSub(next);
+              }}
               onTogglePeriod={onTogglePeriod}
               onEnrolledFrom={onEnrolledFrom}
               onToggle={onToggle}
-              onAddCustom={onAddCustom}
             />
           </div>
         </div>
 
         <footer className="acc-sheet__foot">
+          {/* Back, and beside it the other view of the same list. */}
           <div className="acc-sheet__footside">
             <button
               type="button"
@@ -783,12 +858,20 @@ export function SupportsStep({
               Back
             </button>
           </div>
-          <span className="acc-sheet__tip">{detourTip(sub, row)}</span>
-          <button
-            type="button"
-            className="acc-btn acc-btn--primary"
-            onClick={() => (sub === DETOUR_STEPS - 1 ? onDone() : setSub(sub + 1))}
-          >
+          {sub === 1 ? (
+            <div className="acc-sheet__tip acc-sheet__tip--action">
+              <button
+                type="button"
+                className="acc-btn acc-btn--quiet acc-btn--accent"
+                onClick={() => setMode(routeOf(mode) === 'starter' ? 'paste' : 'starter')}
+              >
+                {routeOf(mode) === 'starter' ? 'Paste from the IEP' : 'Choose from preset'}
+              </button>
+            </div>
+          ) : (
+            <span className="acc-sheet__tip">{detourTip(sub, row)}</span>
+          )}
+          <button type="button" className="acc-btn acc-btn--primary" onClick={advance}>
             {detourLabel(sub)}
           </button>
         </footer>

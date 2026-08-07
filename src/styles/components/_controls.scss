@@ -152,6 +152,40 @@
     }
   }
 
+  /**
+   * A quiet button that is nonetheless the way out of somewhere.
+   *
+   * "Choose a different way" is Back's twin - same place, same weight - but it
+   * leaves a route rather than a step, and the accent is what says so without a
+   * second control appearing above the content to say it.
+   */
+  &--accent {
+    color: var(--acc-accent);
+
+    &:hover:not(:disabled) {
+      color: var(--acc-accent-hover);
+    }
+  }
+
+  /**
+   * The secondary action on a gate: outlined, transparent, purple on hover.
+   *
+   * A step up from a text link - it is a real thing to do, not a footnote - but
+   * still clearly not the primary, which keeps "go and add them" from competing
+   * with the button that writes the record.
+   */
+  &--outline {
+    border-color: var(--acc-border-strong);
+    background: transparent;
+    color: var(--acc-accent);
+
+    &:hover:not(:disabled) {
+      background: var(--acc-accent);
+      border-color: var(--acc-accent);
+      color: #ffffff;
+    }
+  }
+
   &--small {
     height: 26px;
     padding: 0 var(--acc-space-3);

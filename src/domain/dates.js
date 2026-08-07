@@ -69,6 +69,17 @@ export function weekdayCode(key) {
   return WEEKDAYS[parseDateKey(key).getDay()];
 }
 
+/**
+ * What "no enrolment date of their own" actually means, in words.
+ *
+ * "Start of year" was a phrase standing in for a date nobody had chosen. Once
+ * the first day of class is a real answer, the fields can say it - and where it
+ * is still unset, they say so rather than implying a date exists.
+ */
+export function sinceTermLabel(termStart) {
+  return termStart ? `Since ${formatDateMedium(termStart)}` : 'Start of year';
+}
+
 export function isWeekend(key) {
   const code = weekdayCode(key);
   return code === 'SA' || code === 'SU';

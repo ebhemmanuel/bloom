@@ -1137,10 +1137,23 @@
   gap: 8px;
 }
 
-.acc-ob__student {
+/**
+ * A student's row, and on the review the same row with their supports under it.
+ *
+ * `__main` is the row proper. The wrapper only becomes a column when there is
+ * something to put beneath, which is why `--stacked` exists rather than the
+ * layout always being two rows deep.
+ */
+.acc-ob__student-main {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.acc-ob__student {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid var(--acc-ob-line);
@@ -1159,6 +1172,71 @@
   &--flagged {
     border-color: var(--acc-warning);
     box-shadow: 0 0 0 3px var(--acc-warning-soft);
+  }
+}
+
+/**
+ * The supports, hanging off the row rather than sitting in a list of their own.
+ *
+ * Indented past the avatar so the eye reads them as belonging to the name above
+ * rather than as a second column, and divided from it by a rule so a row of six
+ * does not run into the next student.
+ */
+.acc-ob__student-supports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-inline-start: 46px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--acc-ob-line);
+}
+
+/**
+ * The name, editable in place on the review.
+ *
+ * Styled as the text it replaces until it is touched: a row of input boxes
+ * would read as a form, and this is a list a teacher is checking.
+ */
+.acc-ob__student-nameinput {
+  /**
+   * Sized to the NAME, not to the row.
+   *
+   * A full-width input pushed the plan pill away from the name it belongs to
+   * and left it floating beside the period chips, so the same row read
+   * differently depending on whether the name was editable. `field-sizing`
+   * makes the field as wide as its text, which is what keeps the pill where it
+   * sits everywhere else. The fixed width below is the fallback, and the
+   * min/max keep a one-letter name clickable and a long one from eating the
+   * row.
+   */
+  inline-size: 150px;
+  min-inline-size: 48px;
+  max-inline-size: 220px;
+  padding: 2px 6px;
+  margin-inline-start: -6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--acc-ob-ink);
+
+  &:hover {
+    border-color: var(--acc-ob-line);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--acc-ob-edge);
+    background: #ffffff;
+  }
+}
+
+@supports (field-sizing: content) {
+  .acc-ob__student-nameinput {
+    field-sizing: content;
+    inline-size: auto;
   }
 }
 
@@ -1383,6 +1461,26 @@
 .acc-ob__location-advisory {
   font-size: 12px;
   color: var(--acc-warning);
+}
+
+// The path as the subject rather than a caption under a label - what the
+// collision screen is asking about IS the folder.
+.acc-ob__location-path--alone {
+  display: block;
+  text-align: center;
+  font-size: 12.5px;
+}
+
+// The folder the records are in right now. Not a choice, so it does not offer
+// itself as one - it is here to be recognised, which is what makes the other
+// rows legible as a change.
+.acc-ob__location--current {
+  border-color: var(--acc-ob-edge);
+  background: var(--acc-ob-ring);
+
+  &:disabled {
+    opacity: 1;
+  }
 }
 
 .acc-ob__location-found {

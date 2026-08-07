@@ -103,9 +103,15 @@ Not next to the `.exe` - ever. Two reasons:
 1. The portable build unpacks to a random `%TEMP%` directory and runs from there, so `process.execPath` points at the temp dir, not the folder the teacher sees.
 2. The USB stick is a delivery vehicle for the _app_. The record is born on the teacher's machine and stays there, so copying the app folder never carries student data with it.
 
-Instead, onboarding asks for a folder and writes a **pointer** to `%APPDATA%\Accommodations Tracker\location.json`. That is on the local machine and scoped per Windows account, so it's inherently per-teacher on a shared computer and cannot travel on the stick.
+Instead, onboarding asks for a folder - suggested as `…\Bloom`, named for the app the teacher sees - and writes a **pointer** to `%APPDATA%\Accommodations Tracker\location.json`. That is on the local machine and scoped per Windows account, so it's inherently per-teacher on a shared computer and cannot travel on the stick.
 
-> **The OneDrive problem.** On a school Microsoft 365 tenant, Known Folder Redirection points Documents at OneDrive **by default**. Defaulting there would sync student names, plan types, and disability accommodations to the cloud. `data-paths.js` detects this - including the tenant-branded `OneDrive - Northside ISD` shape - and offers a local-only alternative. This is the highest-value check in the app.
+The same question is answerable later, from **File > Configure records folder**. That screen shares the setup list, and it **copies** rather than moves: the record lands in the new folder, the app reads from there onward, and the old file stays where it is until the teacher deletes it. A record already in the target is never silently overwritten - the choice is put to the teacher, and the displaced file is set aside under a dated name.
+
+> **The OneDrive question.** On a school Microsoft 365 tenant, Known Folder Redirection points Documents at OneDrive **by default**. `data-paths.js` detects this, including the tenant-branded `OneDrive - Northside ISD` shape.
+>
+> What we do with that detection changed. It used to lead with a local-only folder and warn about the synced one. It now offers the cloud folder **first**, named for what it is rather than hidden behind "Documents", because the failure districts actually hit is a slow laptop being reimaged - which takes `%LOCALAPPDATA%` with it. Losing the year's record is worse for the teacher, and for the student it documents, than that record sitting in the district's own tenant, where the IEP itself already lives. Local-only is the second option, one click away, for anywhere the district says no.
+>
+> The app still makes no network call of its own; Windows syncs a folder, we write a file. The synced-folder banner now fires only when a folder has been redirected into the cloud **since** it was chosen, which is the case nobody agreed to.
 
 ### How "not used" is decided
 

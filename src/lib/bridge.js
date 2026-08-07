@@ -57,11 +57,43 @@ const browserFallback = {
     },
     flush: async () => ({ ok: true }),
     probeLocation: async (dirPath) => ({ dirPath, writable: true, synced: false }),
+    /*
+      Shaped like the real thing so the chooser can be built in a browser tab:
+      the cloud folder first, local second. See electron/data-paths.js.
+
+      The paths are a STAND-IN and are the one thing here that is not real: a
+      browser tab has no filesystem and no account to read. Off this fallback,
+      in Electron, they are built from os.homedir() and the OneDrive environment
+      variables, so the screen shows the folder under the teacher's own Windows
+      account. Written as an ordinary-looking path rather than a `<you>` token,
+      because a bracketed placeholder in a screenshot reads as the app having
+      failed to find the real one.
+    */
     suggestLocations: async () => [
-      { id: 'documents', label: 'Documents', dirPath: 'C:\\Users\\you\\Documents', synced: false },
+      {
+        id: 'cloud',
+        kind: 'cloud',
+        label: 'OneDrive',
+        hint: 'Backed up automatically. If this computer is replaced or reimaged, your records come back with your account.',
+        recommended: true,
+        dirPath: 'C:\\Users\\teacher\\OneDrive\\Bloom',
+        synced: true,
+        provider: 'OneDrive',
+        writable: true,
+      },
+      {
+        id: 'local',
+        kind: 'local',
+        label: 'This computer only',
+        hint: 'Nothing ever leaves this machine. Back it up yourself, because a reimage would take it with it.',
+        dirPath: 'C:\\Users\\teacher\\AppData\\Local\\Bloom',
+        synced: false,
+        writable: true,
+      },
     ],
     pickFolder: async () => ({ canceled: true }),
     chooseLocation: async (dirPath) => ({ ok: true, dirPath }),
+    relocate: async (dirPath) => ({ ok: true, dirPath }),
     revealFolder: async () => ({ ok: false, reason: 'browser' }),
     listBackups: async () => [],
     restoreBackup: async () => ({ ok: false, reason: 'browser' }),

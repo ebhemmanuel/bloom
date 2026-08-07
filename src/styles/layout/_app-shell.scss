@@ -115,13 +115,32 @@ $surface-lead: 160ms;
   min-height: 0;
 }
 
+/**
+ * The toolbar's own strip, held still above the lanes.
+ *
+ * It used to be the first child of the scroller, which meant the date, the
+ * period filter and the search left the screen as soon as the roster was long
+ * enough to scroll - and a long roster is exactly why you reach for them. It
+ * keeps the container's padding so nothing sits flush against the top edge.
+ */
+.acc-board__top {
+  flex: none;
+  // Room under it as well as over it: the first lane used to sit hard against
+  // the toolbar's bottom edge, so the two read as one block rather than as
+  // controls above a list.
+  padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-3);
+  // Over the lanes, so the period filter and the day-actions menu open in front
+  // of the board rather than behind the row below.
+  position: relative;
+  z-index: 5;
+  border-radius: var(--acc-radius-container) var(--acc-radius-container) 0 0;
+}
+
 .acc-board__scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  // The toolbar scrolls with the lanes inside this padding, so nothing ever sits
-  // flush against the top edge of the container.
   padding: var(--acc-space-4) var(--acc-space-4) var(--acc-space-8);
   display: flex;
   flex-direction: column;
@@ -194,6 +213,7 @@ $surface-lead: 160ms;
   // The cascade itself is `data-board-cascade='in'`, same as About - see App.jsx.
   &--held {
     .acc-header,
+    .acc-board__top,
     .acc-board__scroll > *,
     .acc-board__lanes > * {
       opacity: 0;
@@ -203,6 +223,7 @@ $surface-lead: 160ms;
   // Reduced motion: one fade, no transforms, no stagger.
   &--fade {
     .acc-header,
+    .acc-board__top,
     .acc-board__scroll > *,
     .acc-board__lanes > * {
       animation: acc-fade-in 200ms linear both;
@@ -224,6 +245,7 @@ $surface-lead: 160ms;
 @media (prefers-reduced-motion: reduce) {
   .acc-firstrun--fade {
     .acc-header,
+    .acc-board__top,
     .acc-board__scroll > *,
     .acc-board__lanes > * {
       animation: acc-fade-in 200ms linear both;

@@ -201,12 +201,52 @@
   border-radius: var(--acc-radius-lg);
   box-shadow: var(--acc-shadow-overlay);
 
+  /**
+   * The same calendar on a form field rather than the toolbar pill.
+   *
+   * Anchored by its LEFT edge, because a field sits in a sheet and reads
+   * left-to-right from its label; the toolbar's control is at the end of the
+   * nav, which is why that one hangs off its right.
+   */
+  &--field {
+    inset-inline-end: auto;
+    inset-inline-start: var(--acc-cal-left);
+
+    /**
+     * ABOVE the sheet, not merely portalled out of it.
+     *
+     * The toolbar's calendar sits at 80 because the only thing it has to clear
+     * is the board. This one opens from inside a full-screen sheet, which is
+     * `position: fixed` at 100 - so the calendar rendered underneath it and the
+     * clicks meant for a date landed on the footer. Portalling to the body
+     * escapes the CLIPPING; it does nothing about the stacking.
+     */
+    z-index: 140;
+  }
+
   &__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--acc-space-2);
     margin-block-end: var(--acc-space-2);
+  }
+
+  /** Back to no date at all, which is a real answer on an enrolment field. */
+  &__clear {
+    @include motion.interactive(background-color, color);
+    inline-size: 100%;
+    margin-block-start: var(--acc-space-2);
+    padding: var(--acc-space-2);
+    border-block-start: 1px solid var(--acc-border);
+    border-radius: 0 0 var(--acc-radius-sm) var(--acc-radius-sm);
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+
+    &:hover {
+      background: var(--acc-surface-sunken);
+      color: var(--acc-fg);
+    }
   }
 
   &__nav {

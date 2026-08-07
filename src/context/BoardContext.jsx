@@ -33,7 +33,7 @@ export function BoardProvider({ children }) {
    * filtering the one that is already there.
    */
   const [range, setRange] = useState(null);
-  const { sort, toggle: toggleSort, sortBy, toggleSortBy } = useLaneSort();
+  const { sort, toggle: toggleSort } = useLaneSort();
 
   /**
    * Midnight, on a running app: lay out the new day and move onto it.
@@ -80,8 +80,10 @@ export function BoardProvider({ children }) {
   useDayRollover(onRollover);
 
   const model = useMemo(
-    () => buildBoardModel(doc, { dateKey, periodIds, search, sort, sortBy }),
-    [doc, dateKey, periodIds, search, sort, sortBy]
+    // Always grouped by period: the board is read class by class, so that is
+    // the order it opens in rather than a toggle nobody should turn off.
+    () => buildBoardModel(doc, { dateKey, periodIds, search, sort, sortBy: 'period' }),
+    [doc, dateKey, periodIds, search, sort]
   );
 
   /**
@@ -116,27 +118,13 @@ export function BoardProvider({ children }) {
       setSearch,
       sort,
       toggleSort,
-      sortBy,
-      toggleSortBy,
       range,
       setRange,
       rangeModel,
       model,
       periods,
     }),
-    [
-      dateKey,
-      periodIds,
-      search,
-      sort,
-      toggleSort,
-      sortBy,
-      toggleSortBy,
-      range,
-      rangeModel,
-      model,
-      periods,
-    ]
+    [dateKey, periodIds, search, sort, toggleSort, range, rangeModel, model, periods]
   );
 
   return <BoardContext.Provider value={value}>{children}</BoardContext.Provider>;

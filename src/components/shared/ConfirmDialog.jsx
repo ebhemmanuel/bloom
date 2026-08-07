@@ -16,6 +16,8 @@ export default function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   tone = 'default',
+  align = 'start',
+  lead = null,
   onConfirm,
   onCancel,
   children,
@@ -37,14 +39,19 @@ export default function ConfirmDialog({
   return (
     <Scrim leaving={leaving} onDismiss={dismiss}>
       <div
-        className={`acc-confirm ${leaving ? 'acc-leave' : 'acc-enter'}`}
+        className={`acc-confirm${align === 'center' ? ' acc-confirm--center' : ''} ${
+          leaving ? 'acc-leave' : 'acc-enter'
+        }`}
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 className="acc-confirm__title">{title}</h2>
-        <p className="acc-confirm__body">{body}</p>
+        {body && <p className="acc-confirm__body">{body}</p>}
+        {/* Directly under the title, OUTSIDE any bordered block: the action the
+            dialog exists to offer, not one of the fields it is asking about. */}
+        {lead}
         {/*
           Something to answer, not only something to agree to. The confirm that
           holds a half-described student back is the right place to finish

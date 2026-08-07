@@ -166,6 +166,22 @@
     inline-size: 100%;
     margin: auto;
     animation: acc-sheet-step var(--acc-dur-normal) var(--acc-ease-entrance) both;
+
+    /**
+     * For a view that scrolls SOMETHING INSIDE ITSELF rather than being
+     * scrolled by the body.
+     *
+     * The auto margin above is what centres a short screen in the frame, and it
+     * is also what stops a pane inside from having a height to be the leftover
+     * of: the view grows to its content, `block-size: 100%` on the pane
+     * resolves against that, and the whole thing scrolls in the body as one
+     * piece with its heading disappearing off the top. Filling the body instead
+     * gives the pinned layouts a definite height to divide up.
+     */
+    &--fill {
+      block-size: 100%;
+      margin: 0;
+    }
   }
 
   // Each screen sets its own measure through `--acc-sheet-pane`.
@@ -200,6 +216,18 @@
     font-weight: var(--acc-fw-semibold);
     line-height: 1.25;
     text-wrap: pretty;
+  }
+
+  /**
+   * The student a per-student screen is about, picked out of its own heading.
+   *
+   * On a pasted roster these screens differ by one word, and that word is the
+   * only thing telling a teacher whose plan they are looking at. The accent is
+   * doing real work here rather than decorating: it is what stops six students'
+   * answers being typed into the seventh.
+   */
+  &__who {
+    color: var(--acc-accent);
   }
 
   &__sub {
@@ -248,6 +276,14 @@
     color: var(--acc-fg-muted);
     opacity: 0.65;
     white-space: nowrap;
+
+    // The same slot holding a control rather than a sentence. Full opacity,
+    // because a button reading at 65% would look disabled.
+    &--action {
+      opacity: 1;
+      display: flex;
+      align-items: center;
+    }
   }
 }
 

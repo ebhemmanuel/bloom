@@ -9,6 +9,7 @@ import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
 import ProfileModal from './components/shell/ProfileModal.jsx';
 import NotificationsPanel from './components/shell/NotificationsPanel.jsx';
 import DayNotesPanel from './components/shell/DayNotesPanel.jsx';
+import RecordsFolderModal from './components/shell/RecordsFolderModal.jsx';
 import AddStudentWizard from './components/manage/AddStudentWizard.jsx';
 import EditStudentWizard from './components/manage/EditStudentWizard.jsx';
 import CatalogModal from './components/manage/CatalogModal.jsx';
@@ -18,9 +19,9 @@ import CommandPalette, { useCommandPalette } from './components/shell/CommandPal
 import { BoardProvider, useBoard } from './context/BoardContext.jsx';
 import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
-import { DEFAULT_BACKGROUND_STYLE } from './domain/constants.js';
+import { DEFAULT_BACKGROUND_STYLE, DEFAULT_LOW_PERFORMANCE } from './domain/constants.js';
 import { dayHasWork } from './domain/seed.js';
-import { dataBridge, appBridge, isDesktop } from './lib/bridge.js';
+import { dataBridge, appBridge, isDesktop, isNativeMobile } from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
 /** Startup loader. Real staged progress, then a crossfade into what comes next. */
@@ -167,6 +168,15 @@ function AppShell() {
           { label: 'Print report', onSelect: () => openScene('print') },
           { separator: true },
           { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
+          // Directly under it, because "where is my folder" and "which folder
+          // is it" are the same thought a beat apart. Hidden on the iPad, and
+          // only there: the app container is the only place that build may
+          // write, so there is nothing to configure.
+          {
+            label: 'Configure records folder',
+            hidden: isNativeMobile,
+            onSelect: () => openScene('recordsFolder'),
+          },
           { label: 'Save a copy', onSelect: () => dataBridge.exportBackup() },
           { separator: true },
           // Where a desktop app puts it. This replaces the avatar button, which
@@ -316,6 +326,12 @@ function AppShell() {
           <ProfileModal background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
+        {/* The same list setup asks on, asked again with a year of record in
+            hand - so this one copies rather than just points. */}
+        {modal === 'recordsFolder' && (
+          <RecordsFolderModal background={background} leaving={sceneLeaving} onClose={closeScene} />
+        )}
+
         {/* The same four screens adding a student uses, with a find step in
             front of them when nobody has been named. */}
         {modal === 'editStudent' && (
@@ -350,10 +366,30 @@ function AppShell() {
           </div>
         )}
 
-        {meta.synced && (
+        {/*
+          Only when the syncing was NOT the choice. Keeping records in OneDrive
+          is now the recommended answer - a district laptop gets reimaged and a
+          local-only folder goes with it - so warning about a folder the teacher
+          deliberately picked for that reason would be the app arguing with its
+          own advice. What still deserves a banner is a folder that has been
+          redirected into the cloud since it was chosen, because that one nobody
+          agreed to.
+        */}
+        {meta.synced && !meta.syncChosen && (
           <div className="acc-banner acc-banner--warn">
-            Your records are in a folder that syncs to {meta.syncProvider}. Student information is
-            being copied off this computer.
+            <span>
+              Your records folder now syncs to {meta.syncProvider}, which was not the case when you
+              chose it. Student information is being copied off this computer.
+            </span>
+            <span className="acc-banner__actions">
+              <button
+                type="button"
+                className="acc-btn acc-btn--small acc-btn--quiet"
+                onClick={() => openScene('recordsFolder')}
+              >
+                Change folder
+              </button>
+            </span>
           </div>
         )}
 
@@ -397,6 +433,24 @@ function AppShell() {
 
 function AppRoutes() {
   const { doc, loadState } = useData();
+
+  /**
+   * Low performance mode, on the document element rather than on the app root.
+   *
+   * Everything has to be inside it: scrims, confirms and the command palette
+   * render through portals outside the shell, and a mode that stopped the board
+   * animating but left a dialog easing in would be a worse experience than
+   * either state on its own.
+   *
+   * The attribute is removed rather than set to a second value, so the CSS is
+   * one selector that either matches or does not.
+   */
+  const lowPerformance = doc?.settings?.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (lowPerformance) root.setAttribute('data-motion', 'off');
+    else root.removeAttribute('data-motion');
+  }, [lowPerformance]);
 
   if (loadState.status === 'loading') return <Loader loadState={loadState} />;
 

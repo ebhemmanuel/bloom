@@ -1,11 +1,87 @@
+import { useState } from 'react';
 import { formatDateMedium } from '../../domain/dates.js';
+import { planClassOf } from '../../domain/constants.js';
 import { initialsOf } from '../../domain/initials.js';
-import SupportsPicker from './SupportsPicker.jsx';
-
-// The same map the board and the sheets use, so a plan reads identically here.
-const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
+import { itemsForSet, resolveStarterItem } from '../../domain/starterSets.js';
+import { resolveAccommodationList } from '../../domain/importStudent.js';
+import AccommodationChooser from './AccommodationChooser.jsx';
+import DateField from '../shared/DateField.jsx';
 
 export const DETOUR_STEPS = 3;
+
+/**
+ * The supports pane, offering the same two routes every other one does.
+ *
+ * It used to drop straight into the starter sets, so the only way into a
+ * student's list from their own row was to tick wordings - the paste route,
+ * which is the one a teacher with the IEP open in front of them actually wants,
+ * was not on the screen at all.
+ *
+ * Writes THROUGH rather than staging. This pane is reached from a row and left
+ * by a button that means "done with this student", so there is nothing to hold:
+ * a tick is a change to them, immediately, and the caller owns the list.
+ *
+ * Which route is open belongs to the CALLER, though. The way out of a route is
+ * the footer's left-hand button, the footer belongs to the caller, and a button
+ * cannot say "choose a different way" about a state it cannot see.
+ */
+function DetourSupports({ student, catalog, mode, paste, onPaste, pasteReplaces, onToggle }) {
+  const [openSet, setOpenSet] = useState(null);
+
+  const picked = student.accoms.map(resolveStarterItem);
+  const parsed = resolveAccommodationList(paste, catalog);
+
+  /** Select all / Clear all, flipping only the ones that need it. */
+  const toggleSet = (setId) => {
+    const items = itemsForSet(setId);
+    const allPicked = items.every((i) => student.accoms.includes(i.label));
+    items.forEach((i) => {
+      const has = student.accoms.includes(i.label);
+      if (allPicked ? has : !has) onToggle(i.label);
+    });
+  };
+
+  return (
+    <>
+      {/*
+        No "Add these to Rex" button underneath. This pane used to need one,
+        because it writes through where everywhere else stages - but the footer
+        already has a button that means "I am done with this list", and asking
+        the teacher to press Add and then press Continue made the first one look
+        like the only one that counted. Continue commits the parse now; see
+        `commitDetourPaste`.
+      */}
+      <AccommodationChooser
+        mode={mode}
+        paste={paste}
+        onPaste={onPaste}
+        parsed={parsed}
+        picked={picked}
+        hidePicked={pasteReplaces}
+        onTogglePick={(item) => onToggle(item.label)}
+        onToggleSet={toggleSet}
+        openSet={openSet}
+        onOpenSet={setOpenSet}
+      />
+    </>
+  );
+}
+
+/**
+ * What Continue does with a list still sitting in the paste box.
+ *
+ * Called by the CALLER's footer, because the footer is the caller's. A teacher
+ * who has pasted an IEP into the box and moves on plainly means to keep it -
+ * dropping it silently would be the app deciding they had not finished typing.
+ *
+ * Returns how many it added, so a caller can tell "there was a parse to commit"
+ * from "there was nothing there".
+ */
+export function commitDetourPaste({ paste, catalog = [], onAddCustom }) {
+  const items = resolveAccommodationList(paste, catalog).items;
+  items.forEach((i) => onAddCustom(i.label));
+  return items.length;
+}
 
 /**
  * One student, described on their own: class details, supports, confirm.
@@ -29,16 +105,29 @@ export default function StudentDetour({
   sub,
   student,
   periods = [],
+  catalog = [],
+  // What "no date of their own" means, said as the date it is.
+  sinceLabel = 'Start of year',
+  mode = 'paste',
+  // The paste box's text, held by the caller so its Continue can commit it,
+  // and whether it is holding their own list for editing rather than additions.
+  paste = '',
+  onPaste,
+  pasteReplaces = false,
+  // Jump straight to one of the panes behind the confirm, so the summary is a
+  // way back into what it summarises.
+  onJump,
   onTogglePeriod,
   onEnrolledFrom,
   onToggle,
-  onAddCustom,
 }) {
   if (sub === 0) {
     return (
       <div className="acc-sheet__pane acc-sheet__pane--wide">
         <div className="acc-sheet__intro acc-sheet__intro--center">
-          <h1 className="acc-sheet__title">Class details for {student.name}</h1>
+          <h1 className="acc-sheet__title">
+            Class details for <span className="acc-sheet__who">{student.name}</span>
+          </h1>
           <p className="acc-sheet__sub acc-sheet__sub--balance">
             Set what you know and skip the rest - all of this is editable later.
           </p>
@@ -76,17 +165,16 @@ export default function StudentDetour({
 
           <div className="acc-wiz__cell">
             <span className="acc-wiz__label">Newly enrolled?</span>
-            <input
-              type="date"
-              className="acc-wiz__date"
+            <DateField
               value={student.enrolledFrom || ''}
-              onChange={(e) => onEnrolledFrom(student.id, e.target.value)}
-              aria-label={`First day in this class for ${student.name}`}
+              onChange={(next) => onEnrolledFrom(student.id, next)}
+              placeholder={sinceLabel}
+              label={`First day in this class for ${student.name}`}
             />
             <span className="acc-wiz__hint">
               {student.enrolledFrom
                 ? `Every day before ${formatDateMedium(student.enrolledFrom)} reads “not applicable - enrolled ${formatDateMedium(student.enrolledFrom)}”, so nothing is recorded against them for a class they were not in yet.`
-                : 'Leave blank if they have been in this class since the start of the year.'}
+                : 'Leave it as it is if they have been in this class since your first day.'}
             </span>
           </div>
         </div>
@@ -98,14 +186,24 @@ export default function StudentDetour({
     return (
       <div className="acc-sheet__pane acc-sheet__pane--wide">
         <div className="acc-sheet__intro">
-          <h1 className="acc-sheet__title">What does {student.name} receive?</h1>
+          <h1 className="acc-sheet__title">
+            What does <span className="acc-sheet__who">{student.name}</span> receive?
+          </h1>
           <p className="acc-sheet__sub">
             Start from the common wordings below. The plan&rsquo;s exact language wins, edit
             anything later to match it.
           </p>
         </div>
 
-        <SupportsPicker chosen={student.accoms} onToggle={onToggle} onAddCustom={onAddCustom} />
+        <DetourSupports
+          student={student}
+          catalog={catalog}
+          mode={mode}
+          paste={paste}
+          onPaste={onPaste}
+          pasteReplaces={pasteReplaces}
+          onToggle={onToggle}
+        />
       </div>
     );
   }
@@ -115,13 +213,24 @@ export default function StudentDetour({
   return (
     <div className="acc-sheet__pane">
       <div className="acc-sheet__intro acc-sheet__intro--center">
-        <h1 className="acc-sheet__title">{student.name}, as you have described them</h1>
+        <h1 className="acc-sheet__title">
+          <span className="acc-sheet__who">{student.name}</span>, as you have described them
+        </h1>
         <p className="acc-sheet__sub acc-sheet__sub--balance">
           Confirm these and you are back at the list. Nothing here is final - every part of it stays
           editable from the board.
         </p>
       </div>
 
+      {/*
+        Both halves of the card go back to the screen that set them.
+
+        This pane used to be a read-only summary with Back and Confirm under it,
+        and Back meant "the screen before" rather than "the thing I am looking
+        at" - so noticing a wrong period here meant guessing how many steps
+        backwards it lived. What is on the screen is now what you click to
+        change it.
+      */}
       <div className="acc-wiz__card">
         <div className="acc-wiz__cardhead">
           <span className="acc-wiz__disc" aria-hidden="true">
@@ -130,7 +239,7 @@ export default function StudentDetour({
           <div className="acc-wiz__identity">
             <div className="acc-wiz__nameline">
               <span className="acc-wiz__cardname">{student.name}</span>
-              <span className={`acc-pill acc-pill--${PLAN_CLASS[student.plan] || 'other'}`}>
+              <span className={`acc-pill acc-pill--${planClassOf(student.plan)}`}>
                 {student.plan}
               </span>
             </div>
@@ -142,6 +251,11 @@ export default function StudentDetour({
                 : 'Start of year'}
             </span>
           </div>
+          {onJump && (
+            <button type="button" className="acc-wiz__cardedit" onClick={() => onJump(0)}>
+              Edit
+            </button>
+          )}
         </div>
 
         <div className="acc-wiz__accoms">
@@ -151,6 +265,11 @@ export default function StudentDetour({
                 ? `${student.accoms.length} accommodation${student.accoms.length === 1 ? '' : 's'}`
                 : 'Accommodations'}
             </span>
+            {onJump && (
+              <button type="button" className="acc-wiz__cardedit" onClick={() => onJump(1)}>
+                {student.accoms.length ? 'Edit' : 'Add some'}
+              </button>
+            )}
           </div>
 
           {student.accoms.length > 0 ? (
@@ -178,9 +297,16 @@ export function detourTip(sub, student) {
       ? 'Nothing chosen yet, that is fine'
       : `${student.accoms.length} support${student.accoms.length === 1 ? '' : 's'} chosen`;
   }
-  return 'This confirms them and takes you back to the list.';
+  return 'Edit either part above, or go back to the list.';
 }
 
+/**
+ * The primary's label, said as the place it goes.
+ *
+ * The last pane's used to say "Confirm", which named a decision rather than a
+ * destination - and on a screen that changes nothing, being asked to confirm
+ * reads as being asked to commit. It goes back to the list, so it says so.
+ */
 export function detourLabel(sub) {
-  return sub === DETOUR_STEPS - 1 ? 'Confirm' : 'Continue';
+  return sub === DETOUR_STEPS - 1 ? 'Back to the list' : 'Continue';
 }

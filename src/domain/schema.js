@@ -2,13 +2,14 @@ import {
   STATUS,
   SEED_MODE,
   RESOLVED_BY,
-  PLAN_TYPES,
+  normalizePlanType,
   DEFAULTABLE_STATUSES,
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_IDLE_LOCK_MINUTES,
   DEFAULT_REMINDERS,
   BACKGROUND_STYLES,
   DEFAULT_BACKGROUND_STYLE,
+  DEFAULT_LOW_PERFORMANCE,
 } from './constants.js';
 import { isoTimestamp, isValidDateKey, todayKey } from './dates.js';
 
@@ -56,6 +57,7 @@ export function createEmptyDoc(now = new Date()) {
       lastKnownDate: todayKey(now),
       theme: 'light',
       backgroundStyle: DEFAULT_BACKGROUND_STYLE,
+      lowPerformance: DEFAULT_LOW_PERFORMANCE,
       reminders: { ...DEFAULT_REMINDERS },
     },
     schoolCalendar: {
@@ -146,6 +148,15 @@ export function normalizeDoc(raw, now = new Date()) {
       : s.backgroundStyle === 'cycling'
         ? 'aurora'
         : DEFAULT_BACKGROUND_STYLE,
+    /**
+     * Absent means ON, unlike every other opt-in here.
+     *
+     * A file written before this setting existed came from a machine we know
+     * nothing about, and the safe assumption about an unknown machine is that
+     * it is the slow one. Turning it off is one click on a screen that says so;
+     * a board that stutters on first open explains itself to nobody.
+     */
+    lowPerformance: asBool(s.lowPerformance, DEFAULT_LOW_PERFORMANCE),
     /**
      * Which of the derived advisories the teacher opted into.
      *
@@ -250,7 +261,16 @@ export function normalizeDoc(raw, now = new Date()) {
         lastName: last,
         displayName: asString(st.displayName, [first, last].filter(Boolean).join(' ')),
         periodIds: [...new Set(kept)],
-        planType: PLAN_TYPES.includes(st.planType) ? st.planType : 'IEP',
+        /*
+          Any wording the teacher gave it, not one of three.
+
+          This used to coerce anything unrecognised to "IEP", which on a
+          compliance record is the worst possible repair: it does not drop a
+          label it cannot read, it silently asserts a different plan than the
+          one the student is on. Blank still falls back, because a student with
+          no plan type at all has to say something.
+        */
+        planType: normalizePlanType(st.planType),
         /** State-Assigned Student ID, as it appears in the district's system. */
         sasid: asString(st.sasid),
         planRef: asString(st.planRef),

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { setStudentPeriods, setStudentPlan, setStudentEnrolledFrom } from './mutations.js';
+import {
+  setStudentPeriods,
+  setStudentPlan,
+  setStudentEnrolledFrom,
+  setTermStart,
+} from './mutations.js';
 import { buildOnboardedDoc } from './onboarding.js';
 import { makeDoc, deepFreeze, T } from './test-helpers.js';
 
@@ -32,6 +37,31 @@ describe('setStudentEnrolledFrom', () => {
   });
 });
 
+/**
+ * The first day of class, which is what "start of the year" means.
+ *
+ * It was never asked for - setup stamped whatever day it ran on - so every
+ * screen saying "start of the year" meant a date nobody had chosen.
+ */
+describe('setTermStart', () => {
+  it('records the day the teacher named', () => {
+    const doc = setTermStart(deepFreeze(makeDoc()), '2026-09-08');
+    expect(doc.schoolCalendar.termStart).toBe('2026-09-08');
+  });
+
+  it('takes blank as an answer, so the record starts at its earliest day', () => {
+    const doc = setTermStart(deepFreeze(makeDoc()), '');
+    expect(doc.schoolCalendar.termStart).toBeNull();
+  });
+
+  it('leaves everything else alone, including the days already recorded', () => {
+    const base = makeDoc();
+    const doc = setTermStart(base, '2026-09-08');
+    expect(doc.days).toBe(base.days);
+    expect(doc.students).toBe(base.students);
+  });
+});
+
 describe('setStudentPlan', () => {
   const planOf = (doc, id) => doc.students.find((s) => s.id === id).planType;
 
@@ -40,12 +70,32 @@ describe('setStudentPlan', () => {
     expect(planOf(doc, T.jordan)).toBe('504');
   });
 
-  /** It prints on a compliance header, so an unknown value is refused. */
-  it('refuses a plan type that is not one of ours', () => {
+  /**
+   * A plan the app has no word for is still a real plan.
+   *
+   * "IEP" and "504" are not the only true things a compliance header can say -
+   * a behaviour plan, a health plan and a district's own scheme are all
+   * records a teacher has to keep - so any wording is accepted and printed as
+   * written.
+   */
+  it('takes a wording of the teacher’s own', () => {
+    const doc = setStudentPlan(deepFreeze(makeDoc()), T.jordan, 'Behaviour plan');
+    expect(planOf(doc, T.jordan)).toBe('Behaviour plan');
+  });
+
+  it('tidies the spacing rather than the words', () => {
+    const doc = setStudentPlan(deepFreeze(makeDoc()), T.jordan, '  Health   plan  ');
+    expect(planOf(doc, T.jordan)).toBe('Health plan');
+  });
+
+  /** Blank is the one refusal: a header with nothing in it says nothing. */
+  it('refuses an empty plan type', () => {
     const base = makeDoc();
-    const doc = setStudentPlan(base, T.jordan, 'IEEP');
-    expect(planOf(doc, T.jordan)).toBe(planOf(base, T.jordan));
-    expect(doc).toBe(base);
+    for (const bad of ['', '   ', null, undefined]) {
+      const doc = setStudentPlan(base, T.jordan, bad);
+      expect(planOf(doc, T.jordan)).toBe(planOf(base, T.jordan));
+      expect(doc).toBe(base);
+    }
   });
 
   /** Undated: no entry snapshots a plan, so nothing recorded may move. */

@@ -4,7 +4,12 @@ import { addStudentWithAccommodations } from './importStudent.js';
 import { resolveStarterItem } from './starterSets.js';
 import { newTeacherId } from './ids.js';
 import { isoTimestamp, todayKey } from './dates.js';
-import { DEFAULT_CYCLE_END_TIME, DEFAULT_REMINDERS, PLAN_TYPES } from './constants.js';
+import {
+  DEFAULT_CYCLE_END_TIME,
+  DEFAULT_LOW_PERFORMANCE,
+  DEFAULT_REMINDERS,
+  normalizePlanType,
+} from './constants.js';
 
 /**
  * Turn everything onboarding collected into a document, in one pure step.
@@ -66,6 +71,15 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
     onboardingCompletedAt: stamp,
     lastKnownDate: todayKey(now),
     cycleEndTime: endTime || DEFAULT_CYCLE_END_TIME,
+    /*
+      Setup hands the board over with the motion already off.
+
+      Nothing about this machine is known at this point except that a district
+      chose it, and the safe assumption about an unknown machine is the slow
+      one. A first board that stutters reads as a broken app; a first board that
+      is merely instant reads as a fast one. Appearance turns it back on.
+    */
+    lowPerformance: DEFAULT_LOW_PERFORMANCE,
     reminders: { ...DEFAULT_REMINDERS, ...reminders },
   };
 
@@ -113,7 +127,7 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
       doc,
       {
         displayName: label,
-        planType: PLAN_TYPES.includes(student.plan) ? student.plan : 'IEP',
+        planType: normalizePlanType(student.plan),
         /**
          * Which classes they are in, if the teacher said.
          *

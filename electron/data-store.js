@@ -528,10 +528,55 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     return result.ok ? { ok: true, text } : result;
   }
 
+  /**
+   * Copy the record into another folder, leaving this one exactly where it is.
+   *
+   * Moving would be tidier and is the wrong call. A teacher changing where their
+   * records live is doing something they can get wrong - the wrong folder, a
+   * drive that turns out to be read-only, a district policy nobody mentioned -
+   * and a copy means the worst case is a stale duplicate rather than a year of
+   * compliance history in a place they cannot find. The old file stays until
+   * they delete it themselves.
+   *
+   * A record already in the target is never silently overwritten. Without
+   * `replace` this refuses and says so, and with it the displaced file is set
+   * aside under its own name first, because that file is somebody's record too.
+   */
+  function copyRecordTo(targetDir, { replace = false } = {}) {
+    const target = path.join(targetDir, path.basename(filePath));
+    if (path.resolve(target) === path.resolve(filePath)) {
+      return { ok: true, unchanged: true, path: target };
+    }
+
+    // Whatever is queued belongs in the copy: the teacher's most recent edit is
+    // the one they would look for first in the new folder.
+    if (pendingText !== null) flush();
+
+    const text = safeRead(filePath);
+    if (text === null) return { ok: false, reason: 'NOTHING_TO_COPY' };
+
+    try {
+      fs.mkdirSync(targetDir, { recursive: true });
+
+      if (fs.existsSync(target)) {
+        if (!replace) return { ok: false, reason: 'EXISTING_RECORD', path: target };
+        const aside = path.join(targetDir, `data-replaced-${backupStamp()}.json`);
+        fs.copyFileSync(target, aside);
+      }
+
+      fs.writeFileSync(target, text, 'utf8');
+      return { ok: true, path: target };
+    } catch (err) {
+      log.error?.(`[data-store] copy to ${targetDir} failed: ${err.code || ''} ${err.message}`);
+      return { ok: false, reason: err.code || 'copy-failed' };
+    }
+  }
+
   return {
     filePath,
     dirPath,
     backupDir,
+    copyRecordTo,
     load,
     save,
     flush,

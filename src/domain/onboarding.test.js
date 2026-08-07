@@ -37,6 +37,13 @@ describe('buildOnboardedDoc', () => {
     expect(doc.settings.reminders).toEqual({ morning: true, details: false, weekly: false });
   });
 
+  it('hands the board over with low performance mode already on', () => {
+    // The one setting that defaults ON. Nothing is known about the machine at
+    // this point except that a district chose it.
+    const doc = buildOnboardedDoc(answers, now);
+    expect(doc.settings.lowPerformance).toBe(true);
+  });
+
   it('leaves every reminder off when none were chosen', () => {
     // Onboarding promises "these stay off unless you turn them on", and a
     // default that drifted on would make that copy a lie.

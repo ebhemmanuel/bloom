@@ -12,9 +12,17 @@ import { itemsForSet, STARTER_SETS } from '../../domain/starterSets.js';
  * ticked all belong to the flow around this, which is what decides when to
  * commit them.
  */
+/**
+ * Which of the two views is showing. There is no third state any more: the
+ * screen opens on the paste box, because a teacher reaching this step has the
+ * plan in front of them and the starter sets are the fallback for when they do
+ * not. The fork that used to stand in front of both was a screen spent choosing
+ * how to answer rather than answering.
+ */
+export const routeOf = (mode) => (mode === 'starter' ? 'starter' : 'paste');
+
 export default function AccommodationChooser({
   mode,
-  onMode,
   paste,
   onPaste,
   parsed,
@@ -23,37 +31,57 @@ export default function AccommodationChooser({
   onToggleSet,
   openSet,
   onOpenSet,
+  // Suppressed while the paste box is holding their own list for editing - the
+  // box IS the list there, and showing it twice invites editing the wrong one.
+  hidePicked = false,
 }) {
+  const route = routeOf(mode);
+
   return (
     <>
-      {mode === null && (
-        <div className="acc-wiz__chooser">
-          <button type="button" className="acc-wiz__choice" onClick={() => onMode('paste')}>
-            <span className="acc-wiz__choice-name">Paste from the IEP</span>
-            <span className="acc-wiz__choice-body">
-              Copy the accommodation cells straight out of the spreadsheet - one per line, or
-              separated by commas.
-            </span>
-          </button>
-          <button type="button" className="acc-wiz__choice" onClick={() => onMode('starter')}>
-            <span className="acc-wiz__choice-name">Pick from a starter set</span>
-            <span className="acc-wiz__choice-body">
-              Common wordings in six categories, ready to tick. A quick start when the plan is not
-              in front of you.
-            </span>
-          </button>
+      {/*
+        What this student already has, under whichever view is open.
+
+        It used to sit at the fork, so taking a route hid it - and a screen that
+        opened on the starter sets looked like nothing had been chosen at all.
+        Both views now carry it, where it can be read and removed.
+      */}
+      {!hidePicked && picked.length > 0 && (
+        <div className="acc-wiz__field">
+          <span className="acc-wiz__label">
+            {picked.length} chosen so far - click one to take it off
+          </span>
+          <div className="acc-wiz__chips">
+            {picked.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                className="acc-chip acc-chip--wrap acc-chip--on"
+                onClick={() => onTogglePick(item)}
+                aria-label={`Remove ${item.label}`}
+              >
+                {item.label}
+                <span className="acc-chip__count" aria-hidden="true">
+                  ×
+                </span>
+              </button>
+            ))}
+          </div>
+          <span className="acc-wiz__hint">
+            Pasting and the presets both add to this list. Nothing is written until the review.
+          </span>
         </div>
       )}
 
-      {mode !== null && (
-        <div className="acc-wiz__back">
-          <button type="button" className="acc-wiz__backlink" onClick={() => onMode(null)}>
-            &lsaquo; Choose a different way
-          </button>
-        </div>
-      )}
+      {/*
+        No back-link up here. Getting out of a route is the same kind of move as
+        Back, so it IS Back: the footer's left-hand button says "Choose a
+        different way" while a route is open. A second, differently-styled way
+        backwards floating above the content was one control too many, and the
+        one place a teacher already looks for it is the bottom left.
+      */}
 
-      {mode === 'paste' && (
+      {route === 'paste' && (
         <>
           <div className="acc-wiz__field">
             <span className="acc-wiz__label">Paste their accommodations</span>
@@ -97,7 +125,7 @@ export default function AccommodationChooser({
         </>
       )}
 
-      {mode === 'starter' && (
+      {route === 'starter' && (
         <div className="acc-starters">
           {STARTER_SETS.map((set) => {
             const items = itemsForSet(set.id);

@@ -249,6 +249,7 @@ const data = {
   suggestLocations: async () => [],
   pickFolder: async () => ({ canceled: true, reason: 'sandboxed' }),
   chooseLocation: async () => ({ ok: true, dirPath: FILE }),
+  relocate: async () => ({ ok: false, reason: 'sandboxed' }),
   revealFolder: async () => ({ ok: false, reason: 'sandboxed' }),
 
   listBackups: async () => {

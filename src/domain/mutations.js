@@ -1,4 +1,4 @@
-import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES, PLAN_TYPES } from './constants.js';
+import { STATUS, RESOLVED_BY, COUNTABLE_STATUSES, normalizePlanType } from './constants.js';
 import { isoTimestamp } from './dates.js';
 import { newCatalogId, newPeriodId } from './ids.js';
 import { ensureDay } from './seed.js';
@@ -578,14 +578,18 @@ export function setStudentEnrolledFrom(doc, studentId, enrolledFrom) {
  * carries it - entries snapshot their label and nothing else - so nothing
  * already recorded moves or is re-interpreted.
  *
- * An unknown value is refused rather than written. This lands on a printed
- * compliance header, and "IEP" there has a legal meaning.
+ * A BLANK value is refused rather than written; any wording is accepted. This
+ * lands on a printed compliance header, so it must never be empty and must
+ * never be quietly changed into something else - but "IEP" and "504" are not
+ * the only true things a header can say, and a student on a behaviour plan was
+ * being recorded as neither.
  */
 export function setStudentPlan(doc, studentId, planType) {
-  if (!PLAN_TYPES.includes(planType)) return doc;
+  const label = normalizePlanType(planType, '');
+  if (!label) return doc;
   return {
     ...doc,
-    students: doc.students.map((s) => (s.id === studentId ? { ...s, planType } : s)),
+    students: doc.students.map((s) => (s.id === studentId ? { ...s, planType: label } : s)),
   };
 }
 
@@ -715,6 +719,25 @@ export function addCatalogEntry(
 
 export function updateSettings(doc, changes) {
   return { ...doc, settings: { ...doc.settings, ...changes } };
+}
+
+/**
+ * The first day of class - what "start of the year" actually means.
+ *
+ * It was never asked for. Onboarding stamped the day setup happened and every
+ * screen that said "start of year" meant that, which is a date the teacher
+ * never chose and could not see. It is a real answer now, and everything that
+ * leans on it leans on the same one: the backfill measures the year from here,
+ * the report's default range opens here, and a student with no enrolment date
+ * of their own is recorded as having been here since this date.
+ *
+ * Blank is allowed and means the record starts at its earliest day instead.
+ */
+export function setTermStart(doc, termStart) {
+  return {
+    ...doc,
+    schoolCalendar: { ...doc.schoolCalendar, termStart: termStart || null },
+  };
 }
 
 /**

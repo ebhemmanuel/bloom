@@ -75,6 +75,99 @@
     }
   }
 
+  // --- The name step: pinned head, scrolling list ----------------------------
+  //
+  // Built the way the preset list is (`.acc-cat`): the question and the field
+  // hold still, and only the rows underneath move. A roster of thirty used to
+  // push the field you type into off the top of the screen, which is precisely
+  // when you need it - to find somebody, or to add the next one.
+
+  /**
+   * Fills the frame rather than centring in it, so there is a height for the
+   * list to be the leftover of. Full WIDTH too, with the measure moved onto the
+   * pieces inside: the scrollbar hangs off this element, and a pane capped at
+   * 620 in a 900 frame would park it in the middle of the dialog.
+   */
+  &__pane--pinned {
+    block-size: 100%;
+    margin: 0;
+    max-inline-size: none;
+    inline-size: 100%;
+    padding: 0;
+    padding-block: var(--acc-space-7) var(--acc-space-4);
+    box-sizing: border-box;
+  }
+
+  /**
+   * The space above the question, which only exists while there is nothing
+   * below it.
+   *
+   * `flex-grow` is animatable, so this is what lets the heading RISE as the
+   * first student arrives rather than jump from centred to top-aligned. It
+   * grows to 1 alongside the list area's own 1, which halves the leftover space
+   * and centres the question; at 0 the list takes all of it.
+   */
+  &__pinlead {
+    flex: 0 0 0;
+    min-block-size: 0;
+    transition: flex-grow var(--acc-dur-normal) var(--acc-ease-standard);
+
+    &--open {
+      flex-grow: 0.85;
+    }
+  }
+
+  // The heading and the field, pinned, holding the column's measure.
+  &__pinhead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-5);
+    inline-size: 100%;
+    max-inline-size: 620px;
+    margin-inline: auto;
+    padding-inline: var(--acc-space-7);
+    padding-block-end: var(--acc-space-5);
+    box-sizing: border-box;
+  }
+
+  // Holds the floating scrollbar, which cannot live inside the list it
+  // measures - it would scroll away with the rows.
+  &__pinscroll {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-block-size: 0;
+    inline-size: 100%;
+  }
+
+  &__pinlist {
+    flex: 1;
+    overflow-y: auto;
+    inline-size: 100%;
+    max-inline-size: 620px;
+    margin-inline: auto;
+    padding-inline: var(--acc-space-7);
+    box-sizing: border-box;
+
+    // Native bar hidden; `.acc-scrollbar--inset` draws the one you see.
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      inline-size: 0;
+      block-size: 0;
+    }
+  }
+
+  // Said where the rows would be, so an empty list is never just empty.
+  &__nomatch {
+    padding-block: var(--acc-space-5);
+    text-align: center;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg-muted);
+  }
+
   &__label {
     font-size: var(--acc-fs-sub);
     font-weight: var(--acc-fw-medium);
@@ -256,6 +349,17 @@
     border-radius: var(--acc-radius-md);
     box-shadow: var(--acc-shadow-overlay);
     text-align: start;
+
+    /**
+     * Naming a plan needs room the three rows do not.
+     *
+     * The PANEL widens, not its contents. A wider child inside the 148px menu
+     * simply overflowed it and was clipped by the sheet, which is what the
+     * first attempt at this did.
+     */
+    &--naming {
+      inline-size: 248px;
+    }
   }
 
   &__planrow {
@@ -283,6 +387,111 @@
     inline-size: 12px;
     flex: none;
     color: var(--acc-accent);
+  }
+
+  /**
+   * Naming a plan the app has no word for.
+   *
+   * It takes over the menu rather than opening a second popover on top of one:
+   * two stacked layers over a text field is where a dismiss-on-outside-click
+   * starts closing the wrong thing. Wider than the rows, because a plan name is
+   * words rather than an abbreviation.
+   */
+  /**
+   * "Same for all N students", under the period chips.
+   *
+   * Borrows Settings' switch rather than inventing one - it is the same kind of
+   * control and a second dialect of toggle would be one more thing to learn.
+   * The ON state has to be restated here because Settings scopes it to its own
+   * `--on` block.
+   */
+  &__applyall {
+    @include motion.interactive(border-color, background-color);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
+    max-inline-size: 340px;
+    margin-block-start: var(--acc-space-4);
+    margin-inline: auto;
+    padding: var(--acc-space-3) var(--acc-space-4);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--acc-border-strong);
+    }
+
+    &--on {
+      border-color: var(--acc-accent);
+      background: var(--acc-accent-wash, var(--acc-surface-sunken));
+    }
+
+    .acc-set__track {
+      background: var(--acc-border-strong);
+    }
+
+    &--on .acc-set__track {
+      background: var(--acc-accent);
+    }
+
+    &--on .acc-set__knob {
+      transform: translateX(16px);
+    }
+  }
+
+  &__applyall-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-fg);
+  }
+
+  &__applyall-hint {
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-regular);
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
+  }
+
+  &__planname {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    padding: var(--acc-space-1);
+  }
+
+  &__planname-label {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-fg);
+  }
+
+  &__planname-input {
+    @include motion.interactive(border-color);
+    inline-size: 100%;
+    padding: 7px var(--acc-space-3);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-sm);
+    background: var(--acc-surface);
+    font-family: inherit;
+    font-size: var(--acc-fs-sub);
+    color: var(--acc-fg);
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--acc-accent);
+    }
+  }
+
+  &__planname-hint {
+    font-size: var(--acc-fs-caption, var(--acc-fs-sub));
+    line-height: var(--acc-lh-normal);
+    color: var(--acc-fg-muted);
   }
 
   &__preview {
@@ -355,6 +564,54 @@
     }
   }
 
+  /**
+   * The trigger for the app's own calendar, where a native date input was.
+   *
+   * Same box as `__date` so nothing about the form moved; what changed is what
+   * opens. Blank shows what blank MEANS - "Start of year" - rather than an empty
+   * field, because on this form having no date is an answer rather than a gap.
+   */
+  &__datefield {
+    display: inline-flex;
+    max-inline-size: 220px;
+  }
+
+  &__datetrigger {
+    @include motion.interactive(border-color, box-shadow);
+    inline-size: 100%;
+    block-size: 40px;
+    padding: 0 var(--acc-space-3);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-family: inherit;
+    font-size: var(--acc-fs-body);
+    color: var(--acc-fg);
+    text-align: start;
+
+    &:hover:not(:disabled) {
+      border-color: var(--acc-border-strong);
+    }
+
+    &--on,
+    &:focus-visible {
+      outline: none;
+      border-color: var(--acc-accent);
+      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+    }
+
+    // Blank is an answer, so it is stated rather than left as a gap - but it is
+    // still the quieter of the two states.
+    &--empty {
+      color: var(--acc-fg-muted);
+    }
+
+    &:disabled {
+      color: var(--acc-fg-faint);
+      cursor: default;
+    }
+  }
+
   &__newperiod {
     block-size: 40px;
     inline-size: 120px;
@@ -394,32 +651,23 @@
     }
   }
 
+  /**
+   * The two routes are actions, and the accent is what says so.
+   *
+   * They read as two paragraphs of explanation with a bold first line
+   * otherwise - and on a screen whose whole job is "pick one of these", the
+   * thing to pick should look like the thing to pick.
+   */
   &__choice-name {
     font-size: var(--acc-fs-subhead);
     font-weight: var(--acc-fw-semibold);
+    color: var(--acc-accent);
   }
 
   &__choice-body {
     font-size: var(--acc-fs-sub);
     line-height: var(--acc-lh-normal);
     color: var(--acc-fg-muted);
-  }
-
-  &__back {
-    display: flex;
-    margin-block-end: var(--acc-space-1);
-  }
-
-  &__backlink {
-    @include motion.interactive(color);
-    padding: 0;
-    font-size: var(--acc-fs-sub);
-    color: var(--acc-fg-muted);
-    white-space: nowrap;
-
-    &:hover {
-      color: var(--acc-fg);
-    }
   }
 
   &__paste {
@@ -552,6 +800,52 @@
     gap: var(--acc-space-2);
   }
 
+  /**
+   * The way back into the screen that set this half of the card.
+   *
+   * At the far end of its row, and quiet: the card is here to be read, and this
+   * is what you reach for only once something on it is wrong. Accent rather
+   * than grey, because it is the only thing on the pane that does anything.
+   */
+  &__cardedit {
+    @include motion.interactive(background-color, color);
+    margin-inline-start: auto;
+    flex: none;
+    padding: var(--acc-space-1) var(--acc-space-3);
+    border-radius: var(--acc-radius-pill);
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-accent);
+
+    &:hover {
+      background: var(--acc-accent-soft);
+    }
+  }
+
+  /**
+   * One student's list, in a review that now holds several.
+   *
+   * Names sit above their chips rather than beside them: an accommodation is a
+   * sentence, so a label column would either squeeze the wording or leave a
+   * ragged gutter down the middle of the card.
+   */
+  &__accomrow {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-1);
+
+    & + & {
+      padding-block-start: 10px;
+      border-block-start: 1px solid var(--acc-border-subtle, var(--acc-border));
+    }
+  }
+
+  &__accomwho {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-fg-muted);
+  }
+
   // Wrap-safe: real accommodation wording is a sentence, and a row of them has
   // to fold rather than scroll.
   &__accom {
@@ -673,20 +967,15 @@
   }
 
   /**
-   * Four columns: IEP on the left in two, 504 on the right in two.
+   * The roster, in the same rows the add flow draws.
    *
-   * A roster is read by plan first - "which of my IEP students is this" - and a
-   * single column of forty names answered that question by making you read all
-   * forty. Two groups side by side, each two names wide, puts most rosters on
-   * one screen with no scrolling at all.
+   * This was a three-column grid - IEP, a gradient rule, 504 - built to read a
+   * roster by plan. It now holds one list, and the leftover grid was quietly
+   * squeezing that list into the first column, so the rows ran ~130px short of
+   * the search field above them.
    */
   &__find {
-    display: grid;
-    // The rule is a column of its own, so both halves are exactly equal - the
-    // same shape the class-details step uses.
-    grid-template-columns: 1fr 1px 1fr;
-    gap: var(--acc-space-5);
-    align-items: stretch;
+    display: block;
     // Inside the sheet's own fixed height, so a roster of forty scrolls here
     // rather than pushing the footer off the frame.
     max-block-size: 300px;

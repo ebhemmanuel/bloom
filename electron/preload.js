@@ -44,6 +44,12 @@ contextBridge.exposeInMainWorld('accommodations', {
     /** Commit a chosen folder and write the pointer file. */
     chooseLocation: (dirPath) => ipcRenderer.invoke('data:chooseLocation', dirPath),
 
+    /**
+     * Change folders after the fact: copies the record across, then points here.
+     * `{ replace: true }` is the answer to a `EXISTING_RECORD` refusal.
+     */
+    relocate: (dirPath, options) => ipcRenderer.invoke('data:relocate', dirPath, options),
+
     /** Open the data folder in Explorer. */
     revealFolder: () => ipcRenderer.invoke('data:revealFolder'),
 

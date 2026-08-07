@@ -5,6 +5,7 @@ import {
   CYCLE_END_OPTIONS,
   REMINDER_OPTIONS,
 } from '../../../domain/constants.js';
+import DateField from '../../shared/DateField.jsx';
 
 /**
  * The four questions that build the teacher's own profile, plus the summary.
@@ -240,7 +241,9 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
                   className="acc-ob__rename-input"
                   value={periodNames[n] || ''}
                   onChange={(e) => onRename(n, e.target.value)}
-                  placeholder={n === 3 ? 'e.g. "3rd Block"' : 'Optional name'}
+                  // The same prompt on every row. Singling out period 3 with an
+                  // example made it read as the one that needed answering.
+                  placeholder="Optional name"
                   aria-label={`Name for period ${n}`}
                 />
               </div>
@@ -251,7 +254,16 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
   );
 }
 
-export function DayStep({ endTime, reminders, onPickTime, onToggleReminder, onBack, onNext }) {
+export function DayStep({
+  endTime,
+  termStart,
+  reminders,
+  onPickTime,
+  onTermStart,
+  onToggleReminder,
+  onBack,
+  onNext,
+}) {
   return (
     <Card
       title="When does your day usually end?"
@@ -270,6 +282,29 @@ export function DayStep({ endTime, reminders, onPickTime, onToggleReminder, onBa
             {t.label}
           </Chip>
         ))}
+      </div>
+
+      {/*
+        The first day of class, asked rather than assumed.
+
+        Setup used to stamp whatever day it ran on, and every screen that said
+        "start of the year" meant that - a date the teacher never chose and
+        could not see. It is what the year is laid out from, what the report
+        opens on, and what a student with no enrolment date of their own is
+        recorded as having been here since.
+      */}
+      <div className="acc-ob__group acc-ob__group--tight">
+        <p className="acc-ob__label">The first day of class</p>
+        <DateField
+          value={termStart}
+          onChange={onTermStart}
+          placeholder="Pick a day"
+          label="First day of class"
+        />
+        <p className="acc-ob__hint">
+          Your year is laid out from here, and a student with no date of their own counts from it.
+          Change it any time in Settings.
+        </p>
       </div>
 
       <div className="acc-ob__group">

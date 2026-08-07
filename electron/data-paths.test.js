@@ -13,6 +13,7 @@ import {
   parseDataDirArg,
   resolveDataDir,
   dataFilePath,
+  suggestLocations,
 } from './data-paths.js';
 
 /** Minimal stand-in for Electron's `app`. */
@@ -40,9 +41,80 @@ afterEach(() => {
   delete process.env.ACCOMMODATIONS_DATA_DIR;
 });
 
+describe('suggestLocations - cloud first, and named for itself', () => {
+  /*
+    The ordering is a decision, not an accident, so it is asserted. District
+    laptops get reimaged when they slow down and a reimage takes %LOCALAPPDATA%
+    with it, which is a worse loss than the file living in the district's own
+    Microsoft tenant - where the IEP it documents already lives.
+  */
+  it('offers the cloud folder before the local one', () => {
+    const list = suggestLocations(app, {
+      LOCALAPPDATA: path.join(tmp, 'Local'),
+      OneDriveCommercial: path.join(tmp, 'OneDrive - Northside ISD'),
+    });
+
+    expect(list[0].id).toBe('cloud');
+    expect(list[0].recommended).toBe(true);
+    expect(list[1].id).toBe('local');
+  });
+
+  /*
+    The path on the screen is the REAL one. It is built from the account signed
+    in to the machine, never from a sample or a placeholder, because it is what
+    a teacher would type into Explorer to go and find their own file.
+  */
+  it('builds every path from the real home folder, not a placeholder', () => {
+    const home = path.join(tmp, 'Users', 'jrivera');
+    const real = fakeApp(path.join(tmp, 'userData'));
+    real.getPath = (name) => {
+      if (name === 'userData') return path.join(tmp, 'userData');
+      if (name === 'documents') return path.join(home, 'Documents');
+      throw new Error(name);
+    };
+
+    const list = suggestLocations(real, {
+      LOCALAPPDATA: path.join(home, 'AppData', 'Local'),
+      OneDrive: path.join(home, 'OneDrive'),
+    });
+
+    expect(list.map((o) => o.dirPath)).toEqual([
+      path.join(home, 'OneDrive', 'Bloom'),
+      path.join(home, 'AppData', 'Local', 'Bloom'),
+      path.join(home, 'Documents', 'Bloom'),
+    ]);
+  });
+
+  it('names the option OneDrive rather than warning about Documents', () => {
+    // Documents already redirected, which is the default on a school tenant.
+    const redirected = fakeApp(path.join(tmp, 'userData'));
+    redirected.getPath = (name) => {
+      if (name === 'userData') return path.join(tmp, 'userData');
+      if (name === 'documents') return path.join(tmp, 'OneDrive - Northside ISD', 'Documents');
+      throw new Error(name);
+    };
+
+    const list = suggestLocations(redirected, { LOCALAPPDATA: path.join(tmp, 'Local') });
+
+    expect(list[0].label).toBe('OneDrive');
+    expect(list[0].kind).toBe('cloud');
+    // and it is not also offered a second time under its other name
+    expect(list.some((o) => o.id === 'documents')).toBe(false);
+  });
+
+  it('falls back to local when there is no cloud folder at all', () => {
+    const list = suggestLocations(app, { LOCALAPPDATA: path.join(tmp, 'Local') });
+
+    expect(list[0].id).toBe('local');
+    expect(list[0].recommended).toBe(true);
+    // Documents survives as the findable third choice when it is not redirected.
+    expect(list.some((o) => o.id === 'documents')).toBe(true);
+  });
+});
+
 describe('detectSync - the OneDrive guard', () => {
   it('flags a plain OneDrive folder', () => {
-    const r = detectSync('C:\\Users\\jrivera\\OneDrive\\Documents\\Accommodations Tracker');
+    const r = detectSync('C:\\Users\\jrivera\\OneDrive\\Documents\\Bloom');
     expect(r.synced).toBe(true);
     expect(r.provider).toBe('OneDrive');
   });
@@ -70,8 +142,8 @@ describe('detectSync - the OneDrive guard', () => {
 
   it('does not flag ordinary local paths', () => {
     for (const p of [
-      'C:\\Users\\jrivera\\AppData\\Local\\Accommodations Tracker',
-      'C:\\Users\\jrivera\\Documents\\Accommodations Tracker',
+      'C:\\Users\\jrivera\\AppData\\Local\\Bloom',
+      'C:\\Users\\jrivera\\Documents\\Bloom',
       'D:\\records',
     ]) {
       expect(detectSync(p).synced).toBe(false);

@@ -34,6 +34,13 @@
     color: var(--acc-fg-muted);
     font-size: var(--acc-fs-sub);
     font-weight: var(--acc-fw-medium);
+    /*
+      A two-word tab is one word wide, not two lines tall. "Your day" wrapped
+      the moment a fifth tab joined the row and the pills stopped having space
+      to spare, which pushed that one to twice the height of its neighbours.
+    */
+    white-space: nowrap;
+    flex: none;
 
     &:hover:not(&--on) {
       color: var(--acc-fg);

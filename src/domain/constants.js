@@ -106,7 +106,47 @@ export const STATUS_LABEL = {
   [DERIVED_STATUS.NO_RECORD]: 'No record',
 };
 
+/**
+ * The three the chooser offers. NOT the three a student may carry.
+ *
+ * "Other" is a door, not an answer. A student on a health plan, a behaviour
+ * plan, an RTI tier or a district's own scheme was previously recorded as
+ * "Other" and printed as "Other", which tells an auditor nothing and tells the
+ * teacher less. Choosing it now asks what to call it, and whatever comes back
+ * is what the record says.
+ */
 export const PLAN_TYPES = ['IEP', '504', 'Other'];
+
+/** Long enough for "Behaviour plan", short enough for a lane header pill. */
+export const PLAN_LABEL_MAX = 24;
+
+/**
+ * Any non-empty wording, tidied. Blank falls back rather than being stored.
+ *
+ * Deliberately permissive: this is a label a teacher chose for a student in
+ * their own class, not a code from a controlled vocabulary, and rejecting one
+ * would leave them recording something they know to be wrong.
+ */
+export function normalizePlanType(value, fallback = 'IEP') {
+  const text = String(value ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
+  if (!text) return fallback;
+  return text.slice(0, PLAN_LABEL_MAX);
+}
+
+/**
+ * Which of the three pill colours a plan wears.
+ *
+ * Custom wordings all take the neutral one. The two the palette has a colour
+ * for are the two an auditor reads for, and inventing a colour per tag would
+ * turn a legend into a guessing game.
+ */
+export function planClassOf(value) {
+  if (value === 'IEP') return 'iep';
+  if (value === '504') return '504';
+  return 'other';
+}
 
 export const ABSENCE_REASONS = [
   { id: 'excused', label: 'Excused' },
@@ -201,16 +241,19 @@ export const GRADE_OPTIONS = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
  * The day-end times offered during onboarding.
  *
  * A short list of the times a school day actually ends, rather than a time
- * picker: choosing from six is one tap, and typing 15:30 into a field is a
+ * picker: choosing from four is one tap, and typing 15:30 into a field is a
  * decision about formatting rather than about your day.
+ *
+ * It stops at 4:00. The two later ones were there for symmetry rather than for
+ * anybody - a school day that ends at five is after-school care, not the day
+ * this setting closes out - and four fits beside the first-day field without
+ * either wrapping.
  */
 export const CYCLE_END_OPTIONS = [
   { value: '14:30', label: '2:30' },
   { value: '15:00', label: '3:00' },
   { value: '15:30', label: '3:30' },
   { value: '16:00', label: '4:00' },
-  { value: '16:30', label: '4:30' },
-  { value: '17:00', label: '5:00' },
 ];
 
 /**
@@ -267,3 +310,20 @@ export const BACKGROUND_STYLES = [
 ];
 
 export const DEFAULT_BACKGROUND_STYLE = 'aurora';
+
+/**
+ * Low performance mode: everything instant, nothing animated.
+ *
+ * ON by default, and that is a deliberate reversal of the usual advice about
+ * defaults. This ships to whatever machine a district happens to hand a
+ * teacher, which is routinely a six-year-old laptop with 4GB of RAM shared with
+ * a browser full of tabs. The board's cascades and the ambient scene are the
+ * first things to stutter there, and a stuttering board reads as a broken app,
+ * not as a pretty one under strain. A teacher on hardware that can afford the
+ * motion can turn it off in one click; a teacher on hardware that cannot should
+ * never have had to work out why the app felt slow.
+ *
+ * It is not the same setting as `prefers-reduced-motion`, which is an
+ * accessibility request from the OS and is always honoured on top of this.
+ */
+export const DEFAULT_LOW_PERFORMANCE = true;

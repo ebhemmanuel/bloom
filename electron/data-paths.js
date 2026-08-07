@@ -23,7 +23,14 @@ const path = require('node:path');
 
 const DATA_FILENAME = 'data.json';
 const POINTER_FILENAME = 'location.json';
-const FOLDER_NAME = 'Accommodations Tracker';
+/**
+ * The folder the record is kept in, named for the app the teacher sees.
+ *
+ * Only ever used to BUILD a suggestion. Anyone already set up is found through
+ * the pointer, which holds an absolute path, so renaming this leaves existing
+ * folders exactly where they are rather than losing them.
+ */
+const FOLDER_NAME = 'Bloom';
 const PROBE_FILENAME = '.acc-write-test';
 
 /**
@@ -118,29 +125,92 @@ function probeLocation(dirPath) {
 }
 
 /**
- * Candidate folders to offer at onboarding, best first.
+ * Where OneDrive actually is on this machine, if it is here at all.
  *
- * `documents` is the familiar, discoverable choice a teacher can back up
- * themselves - but it is offered SECOND and carries its probe result, because on
- * a district machine it is very often redirected into OneDrive.
+ * The installer sets these, and reading them is the only reliable way to find
+ * the business folder - it is named for the tenant ("OneDrive - Northside ISD"),
+ * so there is no fixed path to guess at.
  */
-function suggestLocations(app) {
-  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+function oneDriveDir(env = process.env) {
+  return env.OneDriveCommercial || env.OneDrive || env.OneDriveConsumer || null;
+}
 
-  const candidates = [
-    {
-      id: 'local',
-      label: 'This computer only',
-      hint: 'Never syncs anywhere. Recommended.',
-      dirPath: path.join(localAppData, FOLDER_NAME),
-    },
-    {
+/**
+ * Candidate folders to offer, best first.
+ *
+ * The CLOUD folder is offered first, and that is a deliberate reversal.
+ *
+ * It used to lead with a local-only folder, because a synced folder copies
+ * student information off the machine and that runs against the offline promise
+ * the rest of the app is built on. What changed is the failure we actually see:
+ * district laptops get reimaged when they slow down, and a reimage takes
+ * %LOCALAPPDATA% with it. Losing the year's record is a worse outcome for the
+ * teacher, and for the student it documents, than that record sitting in the
+ * district's own Microsoft tenant - which is where the IEP itself already lives.
+ *
+ * The app still never touches the network. Windows syncs the folder; we write a
+ * file. The advisory on the option says plainly what that means, and the
+ * local-only choice is right underneath for anyone whose district says no.
+ *
+ * Naming matters as much as ordering. This used to say "Documents" with a
+ * warning underneath, which reads as a scolding for picking the obvious thing.
+ * When the folder is redirected, the option is NAMED OneDrive, because that is
+ * what it is and a teacher who recognises the name is not being surprised by it.
+ *
+ * The path shown on each option is the REAL one, built here from `os.homedir()`
+ * and the OneDrive environment variables, so it carries the account actually
+ * signed in to this machine. Nothing about it is a placeholder or a sample.
+ */
+function suggestLocations(app, env = process.env) {
+  const localAppData = env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const documents = safeGetPath(app, 'documents') || os.homedir();
+  const documentsProbe = detectSync(documents);
+
+  /*
+    Two ways to end up with a cloud folder, in order of how sure we are:
+    Documents is already redirected into one, or OneDrive is installed and
+    Documents is not. Both land on the same option.
+  */
+  const oneDrive = oneDriveDir(env);
+  const cloudBase = documentsProbe.synced ? documents : oneDrive;
+  const cloudProvider = documentsProbe.synced ? documentsProbe.provider : 'OneDrive';
+
+  const candidates = [];
+
+  if (cloudBase) {
+    candidates.push({
+      id: 'cloud',
+      kind: 'cloud',
+      label: cloudProvider,
+      hint: 'Backed up automatically. If this computer is replaced or reimaged, your records come back with your account.',
+      recommended: true,
+      dirPath: path.join(cloudBase, FOLDER_NAME),
+    });
+  }
+
+  candidates.push({
+    id: 'local',
+    kind: 'local',
+    label: 'This computer only',
+    hint: 'Nothing ever leaves this machine. Back it up yourself, because a reimage would take it with it.',
+    recommended: candidates.length === 0,
+    dirPath: path.join(localAppData, FOLDER_NAME),
+  });
+
+  /*
+    Documents still gets a place when it is NOT redirected, because it is the
+    folder a teacher can find without being told where to look. Dropped when it
+    is redirected, since it would be the cloud option again under a second name.
+  */
+  if (!documentsProbe.synced) {
+    candidates.push({
       id: 'documents',
+      kind: 'local',
       label: 'Documents',
       hint: 'Easy to find and back up yourself.',
-      dirPath: path.join(safeGetPath(app, 'documents') || os.homedir(), FOLDER_NAME),
-    },
-  ];
+      dirPath: path.join(documents, FOLDER_NAME),
+    });
+  }
 
   return candidates.map((c) => ({ ...c, ...probeLocation(c.dirPath) }));
 }
@@ -243,6 +313,7 @@ module.exports = {
   detectSync,
   probeWritable,
   probeLocation,
+  oneDriveDir,
   suggestLocations,
   pointerPath,
   readPointer,

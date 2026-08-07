@@ -262,3 +262,63 @@
     animation-delay: 0ms !important;
   }
 }
+
+// --- Low performance mode --------------------------------------------------
+//
+// A different question from reduced motion, answered more bluntly.
+//
+// Reduced motion is an accessibility request: keep the meaning, drop the
+// travel, so opacity crossfades survive above. This is a machine that cannot
+// afford to composite them at all - a district laptop where the cascade
+// stutters and the ambient scene costs a frame it does not have. Nothing
+// survives here. Everything is instant.
+//
+// One flat sweep rather than a per-component opt-out, because the alternative
+// is a mode that is only as complete as the last component someone remembered,
+// and the one component that kept animating would be the one that made the
+// machine stutter. `*` is expensive to author against and cheap to match: the
+// browser evaluates it once per element, and every declaration in it is
+// removing work rather than adding it.
+//
+// Delays are zeroed as well as durations. An animation with `both` fill and a
+// 300ms delay holds its `from` state for 300ms whether or not it then animates,
+// so leaving the delays in would leave rows invisible and then snap them in,
+// which is precisely the flicker this mode exists to remove.
+//
+// 1ms, NOT 0 and NOT `animation: none`. Several screens hand over on their own
+// `animationend` - the sheets unmount on it, setup gives the board the room on
+// it, `useDismissAnimation` holds a dialog for it. An animation that never runs
+// never ends, so killing them outright would strand exactly those screens
+// half-open. 1ms is instant to a person and still fires the event.
+//
+// `scroll-behavior: auto` because a smooth scroll is animation too, and it is
+// the one the board triggers most often.
+// THE ONE EXCEPTION IS THE FLOWER.
+//
+// `.acc-mark__petals` is the petal group of the Bloom mark, and it is the only
+// thing in the app that keeps turning here: the 30s pinwheel behind About and
+// setup's intro, and the 2800ms turn the mark takes when you point at it in the
+// nav. It is excluded from the sweep rather than overridden by it, so the
+// durations stay declared once, where the components declare them.
+//
+// It is affordable in a way the rest is not. One small element rotating is a
+// single composited transform on its own layer; the cascades and the ambient
+// field are dozens of elements moving, blurring and repainting at once, which
+// is what actually costs a weak machine its frames.
+//
+// Only the GROUP is exempt. Its children still flatten, so the petals' own
+// entrance still arrives instantly - what survives is the turn, not the bloom.
+:root[data-motion='off'] {
+  scroll-behavior: auto;
+
+  *:not(.acc-mark__petals),
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

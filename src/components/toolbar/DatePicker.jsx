@@ -2,24 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import Caret from '../shared/Caret.jsx';
-import {
-  addDays,
-  toDateKey,
-  parseDateKey,
-  formatDateMedium,
-  isWeekend,
-  todayKey,
-} from '../../domain/dates.js';
-
-const WEEK_HEADS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-/** Calendar grid for a month, Monday-first, padded to whole weeks. */
-function monthGrid(anchor) {
-  const first = parseDateKey(`${anchor.slice(0, 7)}-01`);
-  const offset = (first.getDay() + 6) % 7; // Monday = 0
-  const start = addDays(toDateKey(first), -offset);
-  return Array.from({ length: 42 }, (_, i) => addDays(start, i));
-}
+import CalendarPanel from '../shared/CalendarPanel.jsx';
+import { formatDateMedium, isWeekend } from '../../domain/dates.js';
 
 /**
  * Date control: a pill button that opens a calendar popover.
@@ -78,7 +62,6 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   }, [open]);
 
   const skip = useMemo(() => new Set(nonInstructionalDates), [nonInstructionalDates]);
-  const today = todayKey();
 
   const isPickable = (key) => !isWeekend(key) && !skip.has(key);
 
@@ -87,12 +70,6 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
     onChange(key);
     setOpen(false);
   };
-
-  const grid = monthGrid(anchor);
-  const monthLabel = parseDateKey(anchor).toLocaleDateString(undefined, {
-    month: 'long',
-    year: 'numeric',
-  });
 
   return (
     <div className="acc-datepicker">
@@ -132,58 +109,15 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
               aria-label="Choose a date"
               style={{ '--acc-cal-top': `${at.top}px`, '--acc-cal-right': `${at.right}px` }}
             >
-              <div className="acc-cal__head">
-                <button
-                  type="button"
-                  className="acc-cal__nav"
-                  onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-01`, -1))}
-                  aria-label="Previous month"
-                >
-                  ‹
-                </button>
-                <span className="acc-cal__month">{monthLabel}</span>
-                <button
-                  type="button"
-                  className="acc-cal__nav"
-                  onClick={() => setAnchor(addDays(`${anchor.slice(0, 7)}-28`, 7))}
-                  aria-label="Next month"
-                >
-                  ›
-                </button>
-              </div>
-
-              <div className="acc-cal__grid" role="grid">
-                {WEEK_HEADS.map((h, i) => (
-                  <span key={`${h}${i}`} className="acc-cal__weekhead" aria-hidden="true">
-                    {h}
-                  </span>
-                ))}
-
-                {grid.map((key) => {
-                  const outside = key.slice(0, 7) !== anchor.slice(0, 7);
-                  const disabled = !isPickable(key);
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => pick(key)}
-                      aria-label={formatDateMedium(key)}
-                      className={[
-                        'acc-cal__day',
-                        outside && 'acc-cal__day--outside',
-                        disabled && 'acc-cal__day--off',
-                        key === today && 'acc-cal__day--today',
-                        key === dateKey && 'acc-cal__day--current',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                    >
-                      {Number(key.slice(8))}
-                    </button>
-                  );
-                })}
-              </div>
+              <CalendarPanel
+                anchor={anchor}
+                value={dateKey}
+                onAnchor={setAnchor}
+                onPick={pick}
+                // The board cannot record on a weekend or a date the teacher
+                // marked non-instructional, so neither can be chosen here.
+                isDisabled={(key) => !isPickable(key)}
+              />
             </div>,
             document.body
           )}

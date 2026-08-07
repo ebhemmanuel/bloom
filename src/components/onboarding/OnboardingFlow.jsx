@@ -101,6 +101,12 @@ export default function OnboardingFlow({ needsLocation }) {
     periods: [],
     periodNames: {},
     endTime: DEFAULT_CYCLE_END_TIME,
+    /*
+      The first day of class. Seeded with today so a teacher who walks past the
+      question still gets a working year, but it is theirs to set - "start of
+      the year" has to mean a date somebody chose.
+    */
+    termStart: todayKey(),
     reminders: { ...DEFAULT_REMINDERS },
     students: [],
   });
@@ -172,7 +178,7 @@ export default function OnboardingFlow({ needsLocation }) {
   const handOver = () => {
     if (handedOver.current) return;
     handedOver.current = true;
-    setDoc(buildOnboardedDoc({ ...answers, termStart: todayKey() }, new Date()), {
+    setDoc(buildOnboardedDoc(answers, new Date()), {
       firstRun: true,
     });
   };
@@ -294,8 +300,10 @@ export default function OnboardingFlow({ needsLocation }) {
         return (
           <DayStep
             endTime={answers.endTime}
+            termStart={answers.termStart}
             reminders={answers.reminders}
             onPickTime={(endTime) => patch({ endTime })}
+            onTermStart={(termStart) => patch({ termStart })}
             onToggleReminder={(id) =>
               setAnswers((a) => ({
                 ...a,
@@ -316,6 +324,9 @@ export default function OnboardingFlow({ needsLocation }) {
             students={answers.students}
             periods={answers.periods}
             periodNames={answers.periodNames}
+            // So "no date of their own" can be shown as the date it is, rather
+            // than as the words "start of year".
+            termStart={answers.termStart}
             onTogglePeriod={(id, n) =>
               updateStudent(id, (s) => ({
                 ...s,
@@ -333,13 +344,30 @@ export default function OnboardingFlow({ needsLocation }) {
                 ...a,
                 students: [
                   ...a.students,
-                  { id, name, plan, accoms: [], periods: [], enrolledFrom: null },
+                  {
+                    id,
+                    name,
+                    plan,
+                    accoms: [],
+                    periods: [],
+                    /*
+                      Mid-year, a student being typed in today most likely
+                      joined today, so that is the default rather than the
+                      start of the year - which would manufacture days of "not
+                      used" nobody owed them. Clear it from their row if they
+                      have been here all along.
+                    */
+                    enrolledFrom: a.termStart && todayKey() > a.termStart ? todayKey() : null,
+                  },
                 ],
               }))
             }
             onRemove={(id) =>
               setAnswers((a) => ({ ...a, students: a.students.filter((s) => s.id !== id) }))
             }
+            // Renaming in place on the review, so a typo is fixed where it is
+            // noticed rather than by starting the pass again.
+            onRename={(id, value) => updateStudent(id, (s) => ({ ...s, name: value }))}
             onEdit={(id) => {
               setEditingId(id);
               go('accom');
@@ -356,23 +384,52 @@ export default function OnboardingFlow({ needsLocation }) {
               from the list survives, and an earlier pass keeps its own answers
               rather than collecting this one's.
             */
-            onApplyToPending={({ ids, periods: chosen, enrolledFrom, accoms }) =>
+            onApplyToPending={({
+              ids,
+              periods: chosen,
+              removePeriods = [],
+              setPeriods,
+              enrolledFrom,
+              accoms,
+              replaceAccoms,
+            }) =>
               setAnswers((a) => ({
                 ...a,
                 students: a.students.map((s) =>
                   ids.includes(s.id)
                     ? {
                         ...s,
-                        periods: [...new Set([...(s.periods || []), ...chosen])].sort(
-                          (x, y) => x - y
-                        ),
                         /*
-                          Blank leaves what they had. Unlike the two lists this
-                          is a single answer, so an unanswered pass must not
-                          overwrite a date that came from somewhere else.
+                          `setPeriods` REPLACES, and is what "same for all"
+                          sends: the teacher has said these students sit in the
+                          same class, so they end up with that list rather than
+                          each keeping their own. Otherwise added and removed,
+                          so unticking can actually take one off.
                         */
-                        enrolledFrom: enrolledFrom || s.enrolledFrom || null,
-                        accoms: [...new Set([...(s.accoms || []), ...accoms])],
+                        periods: setPeriods
+                          ? [...setPeriods].sort((x, y) => x - y)
+                          : [...new Set([...(s.periods || []), ...chosen])]
+                              .filter((n) => !removePeriods.includes(n))
+                              .sort((x, y) => x - y),
+                        /*
+                          `undefined` leaves what they had; a real value, blank
+                          included, is an answer. Unlike the periods this is a
+                          single field, so an untouched pass must not overwrite
+                          a date that came from somewhere else.
+                        */
+                        enrolledFrom:
+                          enrolledFrom === undefined
+                            ? s.enrolledFrom || null
+                            : enrolledFrom || null,
+                        /*
+                          Union when a pass hands the same answer to everyone it
+                          named; REPLACE when the accommodations step is asking
+                          about this student alone, because there the chooser is
+                          their list and unticking has to be able to remove.
+                        */
+                        accoms: replaceAccoms
+                          ? [...new Set(accoms)]
+                          : [...new Set([...(s.accoms || []), ...accoms])],
                       }
                     : s
                 ),
@@ -389,6 +446,7 @@ export default function OnboardingFlow({ needsLocation }) {
             student={editing}
             periods={answers.periods}
             periodNames={answers.periodNames}
+            termStart={answers.termStart}
             onTogglePeriod={(id, n) =>
               updateStudent(id, (s) => ({
                 ...s,
@@ -412,6 +470,11 @@ export default function OnboardingFlow({ needsLocation }) {
               updateStudent(editing.id, (s) =>
                 s.accoms.includes(label) ? s : { ...s, accoms: [...s.accoms, label] }
               )
+            }
+            /* The paste box editing their own list rather than adding to it:
+               what comes out of it IS the list, deletions included. */
+            onReplaceAccoms={(labels) =>
+              updateStudent(editing.id, (s) => ({ ...s, accoms: [...new Set(labels)] }))
             }
             onDone={() => go('roster')}
           />

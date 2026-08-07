@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
-import { updateTeacher, updateSettings } from '../../domain/mutations.js';
+import { updateTeacher, updateSettings, setTermStart } from '../../domain/mutations.js';
+import DateField from '../shared/DateField.jsx';
 import {
   BACKGROUND_STYLES,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_REMINDERS,
+  DEFAULT_LOW_PERFORMANCE,
   CYCLE_END_OPTIONS,
   REMINDER_OPTIONS,
   SUBJECT_OPTIONS,
@@ -40,6 +42,7 @@ const SECTIONS = [
   { id: 'you', label: 'You' },
   { id: 'classes', label: 'Classes' },
   { id: 'day', label: 'Your day' },
+  { id: 'notify', label: 'Reminders' },
   { id: 'look', label: 'Appearance' },
 ];
 
@@ -47,6 +50,7 @@ const TIPS = {
   you: 'Everything here saves as it changes - close whenever.',
   classes: 'Used on the report header, and to suggest catalogs. Nothing else.',
   day: 'Applies from today. Sealed days never change.',
+  notify: 'All off unless you turn them on.',
   look: 'Changes the scene immediately.',
 };
 
@@ -70,6 +74,8 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
   const scene = settings.backgroundStyle || DEFAULT_BACKGROUND_STYLE;
   const cycleEndTime = settings.cycleEndTime || DEFAULT_CYCLE_END_TIME;
   const reminders = settings.reminders || DEFAULT_REMINDERS;
+  const lowPerformance = settings.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
+  const termStart = doc.schoolCalendar?.termStart || '';
 
   const commit = (changes) => {
     const next = { ...draft, ...changes };
@@ -320,45 +326,99 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
 
         {section === 'day' && (
           <div className="acc-sheet__pane acc-sheet__pane--wide acc-set__pane">
-            <div className="acc-sheet__intro">
+            {/* Centred, because what is under it is two halves either side of a
+                rule: a left-aligned heading over a symmetrical pair reads as
+                belonging to the left one. */}
+            <div className="acc-sheet__intro acc-sheet__intro--center">
               <h1 className="acc-sheet__title">Your day</h1>
               <p className="acc-sheet__sub">
-                When the day closes out, and what Bloom says to you along the way.
+                When the day closes out, and the day your year starts from.
+              </p>
+            </div>
+
+            {/*
+              Two halves of one question - when a day ends, when the year began.
+              They are the same size of answer and belong side by side; stacked,
+              the date field sat a long way under the times for no reason.
+            */}
+            <div className="acc-wiz__split">
+              <div className="acc-wiz__cell acc-wiz__cell--end">
+                <span className="acc-set__label">End of school day</span>
+                {/*
+                  Taps rather than the time field this used to be. Typing 15:30
+                  into a picker is a decision about formatting; choosing from
+                  the times a school day actually ends is a decision about your
+                  day.
+                */}
+                <div className="acc-set__chips acc-wiz__chips--end">
+                  {CYCLE_END_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      className={`acc-chip acc-chip--lg${
+                        cycleEndTime === o.value ? ' acc-chip--on' : ''
+                      }`}
+                      onClick={() => setSetting({ cycleEndTime: o.value })}
+                      aria-pressed={cycleEndTime === o.value}
+                      disabled={readOnly}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <span className="acc-set__hint">
+                  After this, anything still unassigned shows as Not Used. Today stays editable
+                  until the date rolls over.
+                </span>
+              </div>
+
+              <span className="acc-wiz__rule" aria-hidden="true" />
+
+              {/*
+                What "start of the year" actually means.
+
+                It was never asked for: setup stamped the day it ran on, and
+                every screen that said "start of the year" meant that - a date
+                the teacher never chose and could not see. The year is laid out
+                from here, the report opens here, and a student with no
+                enrolment date of their own counts from here.
+              */}
+              <div className="acc-wiz__cell">
+                <span className="acc-set__label">First day of class</span>
+                <DateField
+                  value={termStart}
+                  onChange={(next) => !readOnly && mutate((d) => setTermStart(d, next))}
+                  placeholder="Not set yet"
+                  label="First day of class"
+                  disabled={readOnly}
+                />
+                <span className="acc-set__hint">
+                  Moving this re-lays the year behind you. Nothing already recorded is changed or
+                  removed - days outside the term simply stop being asked about.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/*
+          Reminders, on their own.
+
+          They were the tail of "Your day", which put a question about when the
+          day ends next to a list of things the app might say to you - two
+          different kinds of decision under one heading, and the one with six
+          toggles always won the screen.
+        */}
+        {section === 'notify' && (
+          <div className="acc-sheet__pane acc-sheet__pane--wide acc-set__pane">
+            <div className="acc-sheet__intro">
+              <h1 className="acc-sheet__title">Reminders</h1>
+              <p className="acc-sheet__sub">
+                You get enough pings already. These stay off unless you turn them on.
               </p>
             </div>
 
             <div className="acc-set__field">
-              <span className="acc-set__label">End of school day</span>
-              {/*
-                The same six taps setup offers, rather than the time field this
-                used to be. Typing 15:30 into a picker is a decision about
-                formatting; choosing from the times a school day actually ends
-                is a decision about your day.
-              */}
-              <div className="acc-set__chips">
-                {CYCLE_END_OPTIONS.map((o) => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    className={`acc-chip acc-chip--lg${
-                      cycleEndTime === o.value ? ' acc-chip--on' : ''
-                    }`}
-                    onClick={() => setSetting({ cycleEndTime: o.value })}
-                    aria-pressed={cycleEndTime === o.value}
-                    disabled={readOnly}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-              <span className="acc-set__hint">
-                After this, anything still unassigned shows as Not Used. Today stays editable until
-                the date rolls over.
-              </span>
-            </div>
-
-            <div className="acc-set__field">
-              <span className="acc-set__label">Reminders</span>
               <div className="acc-set__toggles">
                 {REMINDER_OPTIONS.map((r) => {
                   const on = Boolean(reminders[r.id]);
@@ -383,7 +443,7 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                 })}
               </div>
               <span className="acc-set__hint">
-                All off unless you turn them on. Nothing here is ever urgent.
+                Nothing here is ever urgent, and none of it leaves this computer.
               </span>
             </div>
           </div>
@@ -435,6 +495,40 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
               Calm is the scene setup opens in, so the board arrives in the room you started in
               rather than changing it as it appears.
             </span>
+
+            {/*
+              On by default, and the copy has to earn turning it off rather than
+              sell it. A teacher on a machine that can afford the motion gets
+              something nicer; a teacher on one that cannot should not have to
+              work out why the board felt slow.
+            */}
+            <div className="acc-set__field">
+              <span className="acc-set__label">Performance</span>
+              <div className="acc-set__toggles">
+                <button
+                  type="button"
+                  className={`acc-set__toggle${lowPerformance ? ' acc-set__toggle--on' : ''}`}
+                  aria-pressed={lowPerformance}
+                  disabled={readOnly}
+                  onClick={() => setSetting({ lowPerformance: !lowPerformance })}
+                >
+                  <span className="acc-set__toggle-text">
+                    <span className="acc-set__toggle-title">Low performance mode</span>
+                    <span className="acc-set__toggle-body">
+                      Everything happens instantly. No fades, no cascades, no drifting scene. Leave
+                      it on if this computer is older or feels slow.
+                    </span>
+                  </span>
+                  <span className="acc-set__track" aria-hidden="true">
+                    <span className="acc-set__knob" />
+                  </span>
+                </button>
+              </div>
+              <span className="acc-set__hint">
+                It is on to begin with, because a board that stutters is worse than one that does
+                not move. Turning it off brings the motion back straight away.
+              </span>
+            </div>
           </div>
         )}
       </div>

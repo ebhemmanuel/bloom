@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
+import { planClassOf } from '../../domain/constants.js';
 
 function Chevron({ open }) {
   return (
@@ -35,9 +35,6 @@ function SwimlaneHeader({
   onToggleAbsent,
   onContextMenu,
 }) {
-  const { summary } = lane;
-  const recorded = summary.counts.used + summary.counts.used_with_detail;
-
   return (
     <header
       className="acc-lane__header"
@@ -60,33 +57,27 @@ function SwimlaneHeader({
         <span className="acc-lane__name">{lane.displayName}</span>
       </button>
 
-      <span className={`acc-pill acc-pill--${PLAN_CLASS[lane.planType] || 'other'}`}>
-        {lane.planType}
-      </span>
+      <span className={`acc-pill acc-pill--${planClassOf(lane.planType)}`}>{lane.planType}</span>
 
       {/*
-        Right-aligned group, immediately left of Mark absent: which period,
-        how much is recorded, and any warning.
+        Right-aligned group, immediately left of Mark absent: which periods, and
+        any warning.
 
-        These trailed the name before, which put four different things in a row
-        against the left edge and left the student's own name competing with a
-        progress count for the eye. Everything that reports on the lane now
-        gathers at the far end, so the left is the name and nothing else.
+        These trailed the name before, which put several things in a row against
+        the left edge and left the student's own name competing for the eye.
+        Everything that reports on the lane now gathers at the far end, so the
+        left is the name and nothing else.
+
+        The "N of M recorded" readout that used to sit here is gone. The columns
+        underneath already say it, card by card, and a running count next to a
+        student's name reads as a score they are being kept at.
       */}
       <span className="acc-lane__right">
-        {lane.periodNames.length > 0 && (
-          <span className="acc-lane__periods">{lane.periodNames.join(' · ')}</span>
-        )}
-
-        <span className="acc-lane__progress acc-numeric">
-          {lane.absent ? (
-            <span className="acc-lane__progress-absent">Absent</span>
-          ) : (
-            <>
-              {recorded} of {summary.counted || lane.assignmentCount} recorded
-            </>
-          )}
-        </span>
+        {lane.periodNames.map((p) => (
+          <span key={p} className="acc-lane__pchip">
+            {p}
+          </span>
+        ))}
 
         {lane.detailsMissing > 0 && !lane.absent && (
           <span className="acc-lane__warn">

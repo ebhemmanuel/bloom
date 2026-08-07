@@ -1,4 +1,4 @@
-import { STATUS_LABEL, STATUS_GLYPH } from '../../domain/constants.js';
+import { STATUS_LABEL, STATUS_GLYPH, planClassOf } from '../../domain/constants.js';
 import { formatDateColumn, formatDateMedium } from '../../domain/dates.js';
 import { formatRate } from '../../domain/report.js';
 
@@ -37,9 +37,7 @@ export default function RangeView({ report, onPickDate }) {
         <section className="acc-range__student" key={s.student.id}>
           <header className="acc-range__head">
             <h3 className="acc-range__name">{s.displayName}</h3>
-            <span className={`acc-pill acc-pill--${String(s.planType).toLowerCase()}`}>
-              {s.planType}
-            </span>
+            <span className={`acc-pill acc-pill--${planClassOf(s.planType)}`}>{s.planType}</span>
             {s.periodNames.length > 0 && (
               <span className="acc-range__periods">{s.periodNames.join(' · ')}</span>
             )}

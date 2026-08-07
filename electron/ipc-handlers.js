@@ -8,6 +8,7 @@
  * checked anyway. No raw path from the renderer is ever used without resolution.
  */
 
+const path = require('node:path');
 const { app, ipcMain, dialog, shell } = require('electron');
 const pdf = require('./pdf-export');
 
@@ -88,6 +89,35 @@ function registerIpcHandlers({ getMainWindow } = {}) {
     return { ok: true, dirPath: probe.dirPath, probe };
   });
 
+  /**
+   * Move house: copy the record into a new folder and read from there onward.
+   *
+   * The pointer is written LAST, and only if the copy landed. If the order were
+   * reversed, a failed copy would leave the app pointing at an empty folder -
+   * which looks exactly like every record the teacher ever kept having vanished.
+   */
+  ipcMain.handle('data:relocate', (_e, dirPath, options = {}) => {
+    if (!isNonEmptyString(dirPath)) return { ok: false, reason: 'EMPTY' };
+
+    const probe = paths.probeLocation(dirPath);
+    if (!probe.writable) return { ok: false, reason: probe.reason || 'NOT_WRITABLE', probe };
+
+    const current = requireStore();
+    if (!current) return { ok: false, reason: 'NO_LOCATION' };
+    if (path.resolve(current.dirPath) === probe.dirPath) {
+      return { ok: true, unchanged: true, dirPath: probe.dirPath, probe };
+    }
+
+    const copied = current.copyRecordTo(probe.dirPath, { replace: Boolean(options.replace) });
+    if (!copied.ok) return { ...copied, probe };
+
+    paths.writePointer(app, probe.dirPath, { synced: probe.synced, provider: probe.provider });
+    const from = current.dirPath;
+    openStore(probe.dirPath);
+    log.info('records folder changed');
+    return { ok: true, dirPath: probe.dirPath, from, probe };
+  });
+
   // --- read / write -------------------------------------------------------
   ipcMain.handle('data:load', () => {
     const resolved = paths.resolveDataDir(app);
@@ -120,6 +150,14 @@ function registerIpcHandlers({ getMainWindow } = {}) {
         ...result.meta,
         synced: sync.synced,
         syncProvider: sync.provider,
+        /*
+          Whether the syncing was the teacher's decision or something that
+          happened to them. The pointer records what the folder was at the
+          moment it was chosen, so a folder that has since been redirected into
+          OneDrive by district policy is distinguishable from one deliberately
+          picked BECAUSE it syncs - and only the first is worth a banner.
+        */
+        syncChosen: Boolean(resolved.pointer?.synced),
       },
     };
   });

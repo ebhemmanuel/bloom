@@ -4,12 +4,10 @@ import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
+import { planClassOf } from '../../domain/constants.js';
 import useDismissAnimation from '../../hooks/useDismissAnimation.js';
 import useAutoHeight from '../../hooks/useAutoHeight.js';
-
-// The same map the board and the student profile use, so a plan reads
-// identically wherever it appears.
-const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
+import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 
 /**
  * Ctrl+Space: jump to a student.
@@ -42,6 +40,10 @@ export default function CommandPalette({ onClose }) {
    * reads as a glitch, where fading it back reads as putting something down.
    */
   const { leaving, dismiss } = useDismissAnimation(onClose);
+
+  // The app's own scrollbar over the results, the same one every other
+  // scrolling surface here draws.
+  const scroll = useCustomScrollbar();
 
   useEffect(() => {
     // Focus after paint so the sheet is up before the caret lands in it.
@@ -177,39 +179,74 @@ export default function CommandPalette({ onClose }) {
           </div>
 
           {results.length > 0 ? (
-            // Cascade on the opening list only. Re-staggering on every keystroke
-            // is the re-cascade-on-search the motion budget rules out, and next to
-            // a sheet that is already resizing it reads as the list flinching.
-            <ul className={`acc-palette__results${query ? '' : ' acc-cascade'}`} role="listbox">
-              {results.map((item, i) => (
-                <li key={`${item.kind}:${item.id}`}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={i === cursor}
-                    className={`acc-palette__result${i === cursor ? ' acc-palette__result--on' : ''}`}
-                    onMouseEnter={() => setCursor(i)}
-                    onClick={() => choose(item)}
-                  >
-                    <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
-                      {item.kind === 'period' ? 'Period' : 'Student'}
-                    </span>
-                    <span className="acc-palette__name">{item.label}</span>
-                    {/* Pushed to the far end: the name is what you are reading
+            <div className="acc-palette__scroll">
+              {/* Cascade on the opening list only. Re-staggering on every keystroke
+                is the re-cascade-on-search the motion budget rules out, and next
+                to a sheet that is already resizing it reads as the list
+                flinching. */}
+              <ul
+                className={`acc-palette__results${query ? '' : ' acc-cascade'}`}
+                role="listbox"
+                ref={scroll.scrollRef}
+                onScroll={scroll.onScroll}
+              >
+                {results.map((item, i) => (
+                  <li key={`${item.kind}:${item.id}`}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={i === cursor}
+                      className={`acc-palette__result${i === cursor ? ' acc-palette__result--on' : ''}`}
+                      onMouseEnter={() => setCursor(i)}
+                      onClick={() => choose(item)}
+                    >
+                      <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
+                        {item.kind === 'period' ? 'Period' : 'Student'}
+                      </span>
+                      <span className="acc-palette__name">{item.label}</span>
+                      {/* Pushed to the far end: the name is what you are reading
                         down, and a count or a plan sitting hard against it
                         lands in a different place on every row. */}
-                    {item.plan && (
-                      <span
-                        className={`acc-pill acc-pill--${PLAN_CLASS[item.plan] || 'other'} acc-palette__plan`}
-                      >
-                        {item.plan}
-                      </span>
-                    )}
-                    {item.meta && <span className="acc-palette__meta">{item.meta}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      {item.plan && (
+                        <span
+                          className={`acc-pill acc-pill--${planClassOf(item.plan)} acc-palette__plan`}
+                        >
+                          {item.plan}
+                        </span>
+                      )}
+                      {item.meta && <span className="acc-palette__meta">{item.meta}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              {/*
+              The app's own bar, not the platform's. Everything else that
+              scrolls here draws this one - short, lavender, only present while
+              you are moving - and the palette was the last place a full-height
+              grey rule was still cutting down the inside edge. It sits in this
+              wrapper rather than in the list, or it would scroll away with the
+              content it measures.
+            */}
+              {scroll.bar.height > 0 && (
+                <div
+                  className={`acc-scrollbar acc-scrollbar--inset${
+                    scroll.bar.visible ? ' acc-scrollbar--visible' : ''
+                  }`}
+                  style={{
+                    top: `${scroll.bar.trackTop}px`,
+                    height: `${scroll.bar.trackHeight}px`,
+                  }}
+                  aria-hidden="true"
+                >
+                  <div
+                    className="acc-scrollbar__thumb"
+                    style={{ top: `${scroll.bar.top}px`, height: `${scroll.bar.height}px` }}
+                    onPointerDown={scroll.onThumbPointerDown}
+                  />
+                </div>
+              )}
+            </div>
           ) : (
             <p className="acc-palette__none">
               {doc.students.length === 0 ? 'No students yet.' : 'Nothing matches.'}

@@ -83,16 +83,30 @@
     text-overflow: ellipsis;
   }
 
-  &__periods,
-  &__progress {
+  /**
+   * Which periods, one disc each.
+   *
+   * These used to be grey text joined by middots, which put them in the same
+   * register as the progress count beside them and made a fact about the
+   * student's timetable read as a footnote. A white disc against the lane's
+   * tinted header is the same shape the toolbar's period chips use, so the two
+   * places periods appear now look like the same thing.
+   */
+  &__pchip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 26px;
+    block-size: 26px;
+    padding-inline: 6px;
+    box-sizing: border-box;
+    border-radius: var(--acc-radius-pill);
+    background: #ffffff;
+    border: 1px solid var(--acc-border);
     font-size: var(--acc-fs-tiny);
-    color: var(--acc-fg-muted);
-    white-space: nowrap;
-  }
-
-  &__progress-absent {
-    color: var(--acc-status-absent);
     font-weight: var(--acc-fw-semibold);
+    color: var(--acc-accent);
+    white-space: nowrap;
   }
 
   // Right-aligned group, immediately left of Mark absent.

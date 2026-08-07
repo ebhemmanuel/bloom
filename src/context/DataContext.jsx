@@ -198,6 +198,12 @@ export function DataProvider({ children }) {
       clearFirstRun,
       dismissRepairs: () => setRepairs([]),
       readOnly: Boolean(meta.readOnly),
+      /*
+        Where the file lives, changed after the fact. Only the location moves -
+        the document is the same one, already in hand, so re-reading it would be
+        a load screen for a file we just copied. See RecordsFolderModal.
+      */
+      patchMeta: (changes) => setMeta((m) => ({ ...m, ...changes })),
     }),
     [doc, meta, loadState, repairs, saveStatus, mutate, firstRun, clearFirstRun]
   );

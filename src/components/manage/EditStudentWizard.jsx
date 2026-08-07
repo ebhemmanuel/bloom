@@ -3,6 +3,7 @@ import SceneFrame from '../shared/SceneFrame.jsx';
 import Caret from '../shared/Caret.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AccommodationChooser from './AccommodationChooser.jsx';
+import RosterList from './RosterList.jsx';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 import { useData } from '../../context/DataContext.jsx';
@@ -22,7 +23,9 @@ import {
   reinstateAssignment,
 } from '../../domain/mutations.js';
 import { itemsForSet } from '../../domain/starterSets.js';
-import { PLAN_TYPES } from '../../domain/constants.js';
+import { planClassOf } from '../../domain/constants.js';
+import PlanChooser from './PlanChooser.jsx';
+import DateField from '../shared/DateField.jsx';
 import {
   periodOptions,
   normalizeSearch,
@@ -31,7 +34,7 @@ import {
 } from '../../domain/selectors.js';
 import { assignmentConfig } from '../../domain/schema.js';
 import { ensureDay } from '../../domain/seed.js';
-import { formatDateMedium, todayKey, addDays } from '../../domain/dates.js';
+import { formatDateMedium, todayKey, addDays, sinceTermLabel } from '../../domain/dates.js';
 
 /**
  * Edit a student, on the sheet the add-student wizard already taught.
@@ -57,7 +60,6 @@ import { formatDateMedium, todayKey, addDays } from '../../domain/dates.js';
  *     possible to back out of it.
  */
 
-const PLAN_CLASS = { IEP: 'iep', 504: '504', Other: 'other' };
 const STEP_NAMES = ['Student', 'Who', 'Class details', 'Accommodations', 'Review'];
 
 function initialsFor(name) {
@@ -99,16 +101,17 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   // rather than the native one.
   const listScroll = useCustomScrollbar();
 
-  const [planOpen, setPlanOpen] = useState(false);
-  const closePlan = useCallback(() => setPlanOpen(false), []);
-  const planRef = usePopoverDismiss(planOpen, closePlan);
+  // Escape shuts the plan menu before it shuts the sheet. See the same ref in
+  // AddStudentWizard.
   const planOpenRef = useRef(false);
-  planOpenRef.current = planOpen;
+  const notePlanOpen = useCallback((open) => {
+    planOpenRef.current = open;
+  }, []);
   const sheetCanClose = useCallback(() => !planOpenRef.current, []);
 
   const student = doc.students.find((s) => s.id === selectedId) || null;
   const plan = student?.planType || 'IEP';
-  const planClass = PLAN_CLASS[plan] || 'other';
+  const planClass = planClassOf(plan);
   const periodIds = student?.periodIds || [];
 
   /**
@@ -251,68 +254,35 @@ export default function EditStudentWizard({ onClose, background, leaving = false
     'This writes the changes and seeds today’s board.',
   ];
 
-  // The two-up half of the roster, and the group that runs underneath it.
-  const sideGroups = groups.filter((g) => g.plan !== 'Other');
-  const otherGroup = groups.find((g) => g.plan === 'Other');
-
   /**
-   * One plan's column.
+   * The roster as the shared rows draw it, filtered by the search.
    *
-   * `end` right-aligns the heading against the rule, with the count inside the
-   * pill rather than trailing it - the two headings then face each other across
-   * the middle instead of both running away from it.
-   *
-   * A group alone on its row takes the full width and lays out four across.
+   * Dimming non-matches the way the old columns did would leave a screen of
+   * greyed rows with editable fields in them; a search that filters is what the
+   * add screen does, and this is meant to be that screen.
    */
-  const renderGroup = (g, end) => {
-    const plan = PLAN_CLASS[g.plan] || 'other';
-    const wide = g.plan === 'Other' || sideGroups.length === 1;
-    return (
-      <section
-        key={g.plan}
-        className={`acc-wiz__group acc-wiz__group--${plan}${wide ? ' acc-wiz__group--wide' : ''}${
-          end ? ' acc-wiz__group--end' : ''
-        }`}
-        aria-label={`${g.plan} students`}
-      >
-        <p className="acc-wiz__group-head">
-          <span className={`acc-pill acc-pill--${plan}`}>{g.plan}</span>
-          <span className="acc-wiz__group-count acc-numeric">{g.students.length}</span>
-        </p>
+  const found = useMemo(
+    () =>
+      doc.students
+        .filter((s) => !hits || hits.has(s.id))
+        .slice()
+        .sort((a, b) => a.displayName.localeCompare(b.displayName))
+        .map((s) => ({
+          id: s.id,
+          name: s.displayName,
+          plan: s.planType,
+          periodKeys: s.periodIds || [],
+          accoms: doc.assignments
+            .filter((a) => a.studentId === s.id && !a.activeTo)
+            .map((a) => assignmentConfig(a, catalogById).label),
+        })),
+    [doc.students, doc.assignments, hits, catalogById]
+  );
 
-        <ul className="acc-wiz__group-list">
-          {g.students.map((s) => (
-            <li key={s.id}>
-              <button
-                type="button"
-                className={`acc-wiz__found${s.id === selectedId ? ' acc-wiz__found--on' : ''}${
-                  hits && !hits.has(s.id) ? ' acc-wiz__found--dim' : ''
-                }`}
-                onClick={() => {
-                  setSelectedId(s.id);
-                  setStep(1);
-                }}
-              >
-                {/* No plan pill on the row: the heading above the column
-                    already says it, and repeating it on every line spends a
-                    third of a narrow column saying the same word twenty
-                    times. The row's own hover carries the plan's colour
-                    instead, so the heading reads as the key to the column. */}
-                <span className="acc-wiz__found-name">{s.displayName}</span>
-                {s.unenrolledFrom && <span className="acc-wiz__found-meta">disenrolled</span>}
-                <span className="acc-wiz__found-periods">
-                  {(s.periodIds || [])
-                    .map((id) => periodById.get(id)?.shortName)
-                    .filter(Boolean)
-                    .join(' ')}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-    );
-  };
+  const periodChoices = useMemo(
+    () => periods.map((p) => ({ key: p.id, label: p.shortName, title: p.name })),
+    [periods]
+  );
 
   const dots = (
     <div className="acc-wiz__dots">
@@ -339,15 +309,28 @@ export default function EditStudentWizard({ onClose, background, leaving = false
 
   const footer = done ? null : (
     <>
+      {/* Back, and its twin: while a route into the accommodation list is open,
+          this leaves the route rather than the step. Same place, same weight,
+          accent to say it is a different kind of going back. */}
       <div className="acc-sheet__footside">
-        {step > 0 && (
+        {step === 3 && mode !== null ? (
           <button
             type="button"
-            className="acc-btn acc-btn--quiet"
-            onClick={() => setStep(Math.max(0, step - 1))}
+            className="acc-btn acc-btn--quiet acc-btn--accent"
+            onClick={() => setMode(null)}
           >
-            Back
+            &lsaquo; Choose a different way
           </button>
+        ) : (
+          step > 0 && (
+            <button
+              type="button"
+              className="acc-btn acc-btn--quiet"
+              onClick={() => setStep(Math.max(0, step - 1))}
+            >
+              Back
+            </button>
+          )
         )}
       </div>
 
@@ -435,10 +418,14 @@ export default function EditStudentWizard({ onClose, background, leaving = false
             </div>
 
             {/*
-              The board's floating scrollbar, on the roster. The native bar cut
-              a full-height grey rule down the inside edge of the list, over the
-              period column it was measuring; this one is the app's own - short,
-              lavender, outside the list, and only there while you are moving.
+              The SAME rows the add flow shows, not a two-column directory.
+
+              This used to be its own shape - names split into plan columns with
+              a period code beside each - which meant the screen a teacher uses
+              to change a student looked nothing like the one they used to
+              create them, and nothing on it could be changed in place. It is
+              the roster list now: rename on the row, toggle a period on the
+              row, and Choose supports to open their accommodations.
             */}
             <div className="acc-wiz__findwrap">
               <div
@@ -452,17 +439,33 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   <p className="acc-wiz__found-none">Nothing matches “{query.trim()}”.</p>
                 )}
 
-                {sideGroups[0] && renderGroup(sideGroups[0], sideGroups.length === 2)}
-                {/*
-                  The same gradient rule the class-details step puts between its
-                  two halves, so a split down the middle looks the same wherever
-                  the app makes one.
-                */}
-                {sideGroups.length === 2 && <span className="acc-wiz__rule" aria-hidden="true" />}
-                {sideGroups[1] && renderGroup(sideGroups[1], false)}
-                {otherGroup && renderGroup(otherGroup, false)}
+                <RosterList
+                  students={found}
+                  periods={periodChoices}
+                  onTogglePeriod={(id, key) => {
+                    setSelectedId(id);
+                    const s = doc.students.find((x) => x.id === id);
+                    const current = s?.periodIds || [];
+                    write((d) =>
+                      setStudentPeriods(
+                        d,
+                        id,
+                        current.includes(key) ? current.filter((x) => x !== key) : [...current, key]
+                      )
+                    );
+                  }}
+                  onRename={(id, value) => {
+                    setSelectedId(id);
+                    write((d) => renameStudent(d, id, value));
+                  }}
+                  onEdit={(id) => {
+                    setSelectedId(id);
+                    // The button says supports, so it opens supports.
+                    setStep(3);
+                  }}
+                />
 
-                {groups.length === 0 && (
+                {doc.students.length === 0 && (
                   <p className="acc-wiz__found-none">Nobody on the roster yet.</p>
                 )}
               </div>
@@ -513,42 +516,12 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   disabled={readOnly}
                   autoFocus
                 />
-                <span className={`acc-wiz__planwrap acc-wiz__planwrap--${planClass}`} ref={planRef}>
-                  <button
-                    type="button"
-                    className="acc-wiz__plan"
-                    onClick={() => setPlanOpen((o) => !o)}
-                    aria-haspopup="menu"
-                    aria-expanded={planOpen}
-                    aria-label={`Plan type: ${plan}`}
-                    title="Plan type"
-                    disabled={readOnly}
-                  >
-                    {plan}
-                    <Caret up={planOpen} />
-                  </button>
-
-                  {planOpen && (
-                    <div className="acc-wiz__planmenu acc-enter" role="menu">
-                      {PLAN_TYPES.map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          role="menuitemradio"
-                          aria-checked={p === plan}
-                          className={`acc-wiz__planrow${p === plan ? ' acc-wiz__planrow--on' : ''}`}
-                          onClick={() => {
-                            write((d) => setStudentPlan(d, student.id, p));
-                            setPlanOpen(false);
-                          }}
-                        >
-                          <span className="acc-wiz__plancheck">{p === plan ? '✓' : ''}</span>
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </span>
+                <PlanChooser
+                  value={plan}
+                  disabled={readOnly}
+                  onChange={(next) => write((d) => setStudentPlan(d, student.id, next))}
+                  onOpenChange={notePlanOpen}
+                />
               </div>
               <span className="acc-wiz__hint">
                 Saved as you type. The plan type prints on the report header, so it is worth being
@@ -666,14 +639,11 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                   set up this morning, and "the record began today" is a fact
                   about the file rather than about the student.
                 */}
-                <input
-                  type="date"
-                  className="acc-wiz__date"
+                <DateField
                   value={student.enrolledFrom || recordStart}
-                  onChange={(e) =>
-                    write((d) => setStudentEnrolledFrom(d, student.id, e.target.value))
-                  }
-                  aria-label="First day in this class"
+                  onChange={(next) => write((d) => setStudentEnrolledFrom(d, student.id, next))}
+                  placeholder={sinceTermLabel(doc.schoolCalendar?.termStart)}
+                  label="First day in this class"
                   disabled={readOnly}
                 />
                 <span className="acc-wiz__hint">

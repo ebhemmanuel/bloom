@@ -260,10 +260,27 @@
     padding: 2px 6px;
   }
 
+  /**
+   * Holds the list and the floating scrollbar over it.
+   *
+   * The bar lives here rather than inside the list, or it would scroll away
+   * with the content it measures.
+   */
+  &__scroll {
+    position: relative;
+  }
+
   &__results {
     max-block-size: 320px;
     overflow-y: auto;
     padding: var(--acc-space-2);
+
+    // Hidden, because the app draws its own. See useCustomScrollbar.
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     // Only on the opening list - the component drops `acc-cascade` as soon as
     // anything is typed, so results never re-stagger while the sheet resizes.

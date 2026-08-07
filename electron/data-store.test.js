@@ -37,6 +37,71 @@ describe('load', () => {
   });
 });
 
+describe('copyRecordTo - changing folders never loses a record', () => {
+  it('copies the file across and leaves the original alone', () => {
+    fs.writeFileSync(store.filePath, doc(5));
+    const target = path.join(tmp, 'elsewhere');
+
+    const r = store.copyRecordTo(target);
+
+    expect(r.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(r.path, 'utf8')).n).toBe(5);
+    // The whole reason this copies rather than moves.
+    expect(fs.existsSync(store.filePath)).toBe(true);
+  });
+
+  it('carries a queued edit with it rather than the last written version', () => {
+    fs.writeFileSync(store.filePath, doc(1));
+    store.save(doc(2)); // debounced, not on disk yet
+    const target = path.join(tmp, 'elsewhere');
+
+    store.copyRecordTo(target);
+
+    expect(JSON.parse(fs.readFileSync(path.join(target, 'data.json'), 'utf8')).n).toBe(2);
+  });
+
+  it('refuses to overwrite a record already in the target', () => {
+    fs.writeFileSync(store.filePath, doc(1));
+    const target = path.join(tmp, 'occupied');
+    fs.mkdirSync(target);
+    fs.writeFileSync(path.join(target, 'data.json'), doc(99));
+
+    const r = store.copyRecordTo(target);
+
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('EXISTING_RECORD');
+    expect(JSON.parse(fs.readFileSync(path.join(target, 'data.json'), 'utf8')).n).toBe(99);
+  });
+
+  it('sets the displaced record aside when told to replace it', () => {
+    fs.writeFileSync(store.filePath, doc(1));
+    const target = path.join(tmp, 'occupied');
+    fs.mkdirSync(target);
+    fs.writeFileSync(path.join(target, 'data.json'), doc(99));
+
+    const r = store.copyRecordTo(target, { replace: true });
+
+    expect(r.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(path.join(target, 'data.json'), 'utf8')).n).toBe(1);
+    // That file was somebody's record too - it is renamed, never deleted.
+    const aside = fs.readdirSync(target).find((n) => n.startsWith('data-replaced-'));
+    expect(aside).toBeTruthy();
+    expect(JSON.parse(fs.readFileSync(path.join(target, aside), 'utf8')).n).toBe(99);
+  });
+
+  it('says so rather than writing an empty file when there is nothing yet', () => {
+    const r = store.copyRecordTo(path.join(tmp, 'elsewhere'));
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('NOTHING_TO_COPY');
+  });
+
+  it('is a no-op onto its own folder', () => {
+    fs.writeFileSync(store.filePath, doc(3));
+    const r = store.copyRecordTo(tmp);
+    expect(r).toMatchObject({ ok: true, unchanged: true });
+  });
+});
+
 describe('writeNow - atomicity', () => {
   it('writes and leaves no .tmp behind', () => {
     expect(store.writeNow(doc(1)).ok).toBe(true);

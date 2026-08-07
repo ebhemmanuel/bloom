@@ -1,7 +1,7 @@
 import { labelKey } from './importCatalog.js';
 import { newStudentId, newCatalogId, newAssignmentId } from './ids.js';
 import { isoTimestamp } from './dates.js';
-import { CATEGORIES, PLAN_TYPES } from './constants.js';
+import { CATEGORIES, normalizePlanType } from './constants.js';
 
 /**
  * Adding one student and their accommodations in a single step.
@@ -245,7 +245,7 @@ export function addStudentWithAccommodations(
     lastName: displayName || '',
     displayName: displayName || 'Unnamed student',
     periodIds: [...new Set(periodIds)],
-    planType: PLAN_TYPES.includes(planType) ? planType : 'IEP',
+    planType: normalizePlanType(planType),
     sasid: String(sasid || '').trim(),
     planRef: '',
     caseManager,

@@ -57,8 +57,6 @@ export default function Board({ onAddStudent, onEditStudent }) {
     setSearch,
     sort,
     toggleSort,
-    sortBy,
-    toggleSortBy,
     range,
     setRange,
     rangeModel,
@@ -455,8 +453,6 @@ export default function Board({ onAddStudent, onEditStudent }) {
       activeFilters={activeFilters}
       sort={sort}
       onToggleSort={toggleSort}
-      sortBy={sortBy}
-      onToggleSortBy={toggleSortBy}
       allFolded={model.lanes.length > 0 && model.lanes.every((l) => collapsed.has(l.studentId))}
       onToggleFoldAll={() =>
         model.lanes.every((l) => collapsed.has(l.studentId))
@@ -477,8 +473,6 @@ export default function Board({ onAddStudent, onEditStudent }) {
         </div>
       )}
 
-      {/* The toolbar lives INSIDE the scroll area, so the container's padding
-          applies to it and nothing sits flush against the top edge. */}
       <DragDropContext
         onDragStart={() => setDragging(true)}
         onDragEnd={(result) => {
@@ -486,9 +480,17 @@ export default function Board({ onAddStudent, onEditStudent }) {
           handleDragEnd(result);
         }}
       >
-        <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
-          {toolbar}
+        {/*
+          Pinned above the scroller rather than inside it.
 
+          The toolbar used to be the first child of the scroll area, so the day,
+          the period filter and the search scrolled away the moment a teacher
+          moved down a roster of thirty - and those are the controls you reach
+          for BECAUSE you are looking at a long list. Only the lanes move now.
+        */}
+        <div className="acc-board__top">{toolbar}</div>
+
+        <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
           {/*
             A range replaces the day board rather than filtering it. The kanban
             holds the day fixed by construction, so there is no arrangement of
