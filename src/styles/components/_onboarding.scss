@@ -1173,6 +1173,26 @@
     border-color: var(--acc-warning);
     box-shadow: 0 0 0 3px var(--acc-warning-soft);
   }
+
+  /**
+   * Disenrolled: still on the list, still editable, visibly not current.
+   *
+   * Their record has to stay reachable - September's days name them, and
+   * disenrolling is never a delete - but they are not who you came here to
+   * find. Dimmed and sorted to the bottom, with the date said on the row so the
+   * grey is explained rather than left to be guessed at.
+   *
+   * The controls come back to full strength on hover, because a dimmed row you
+   * cannot read while using it is a row you cannot fix.
+   */
+  &--muted {
+    opacity: 0.55;
+
+    &:hover,
+    &:focus-within {
+      opacity: 1;
+    }
+  }
 }
 
 /**

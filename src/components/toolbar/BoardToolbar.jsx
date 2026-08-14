@@ -35,7 +35,16 @@ function Chevron({ down }) {
  * the always-visible row means neither is a stray click away while a teacher is
  * moving cards.
  */
-function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
+function OverflowMenu({
+  disabled,
+  readOnly,
+  hasRecord,
+  sealed,
+  onCopyPrevious,
+  onCloseOutDay,
+  onNotes,
+  notesPip,
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -98,19 +107,58 @@ function OverflowMenu({ disabled, hasRecord, onCopyPrevious, onCloseOutDay }) {
             </span>
           </button>
 
+          {/*
+            One item, both directions.
+
+            A closed day used to offer "Close out day", greyed - which says the
+            thing you want is unavailable rather than that it is already done.
+            The teacher who realises on Wednesday that Tuesday was wrong needs a
+            way back in, and it is the same switch.
+          */}
           <button
             type="button"
             role="menuitem"
             className="acc-overflow__item"
-            disabled={disabled || !hasRecord}
+            // Reopening is never blocked by the day being read-only: being read
+            // only is the thing it undoes.
+            disabled={sealed ? readOnly : disabled || !hasRecord}
             onClick={() => {
               setOpen(false);
               onCloseOutDay();
             }}
           >
-            <span>Close out day</span>
+            <span>{sealed ? 'Re-open day' : 'Close out day'}</span>
             <span className="acc-overflow__hint">
-              Seals it read-only; anything unassigned records as Not Used
+              {sealed
+                ? 'Makes it editable again. Anything the close-out marked Not Used goes back to unassigned'
+                : 'Seals it read-only; anything unassigned records as Not Used'}
+            </span>
+          </button>
+
+          {/*
+            The day's notes, with the other things you do to a day.
+
+            They had a word of their own in the menu bar, beside File and Edit,
+            which put a per-day action among the app's chrome - and the menu bar
+            is where you go for the app, not for Tuesday. Copying yesterday,
+            closing out and writing the day's note are the same kind of thing,
+            so they sit together on the board that holds that day.
+          */}
+          <button
+            type="button"
+            role="menuitem"
+            className="acc-overflow__item"
+            onClick={() => {
+              setOpen(false);
+              onNotes();
+            }}
+          >
+            <span>
+              Day notes
+              {notesPip && <span className="acc-overflow__pip" aria-hidden="true" />}
+            </span>
+            <span className="acc-overflow__hint">
+              What happened today, and whether you were out
             </span>
           </button>
         </div>
@@ -137,6 +185,9 @@ export default function BoardToolbar({
   readOnly,
   onCopyPrevious,
   onCloseOutDay,
+  sealed,
+  onDayNotes,
+  notesPip,
   onAddStudent,
   allFolded,
   onToggleFoldAll,
@@ -311,9 +362,13 @@ export default function BoardToolbar({
 
         <OverflowMenu
           disabled={disabled}
+          readOnly={readOnly}
+          sealed={sealed}
           hasRecord={model.hasRecord}
           onCopyPrevious={askThenCopy}
           onCloseOutDay={onCloseOutDay}
+          onNotes={onDayNotes}
+          notesPip={notesPip}
         />
       </div>
 

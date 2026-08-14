@@ -1,3 +1,5 @@
+@use '../abstracts/motion' as motion;
+
 // Custom right-click menu. Replaces the browser's native menu on a card.
 
 // Catcher sits under the menu and over everything else.
@@ -26,7 +28,17 @@
     transform-origin: top left;
   }
 
+  /**
+   * The student's own row: their name, and the two ways out of this menu.
+   *
+   * A row rather than a caption, because the name is editable here and the
+   * icons belong beside it. The card menu still passes a plain string, which
+   * lays out the same way.
+   */
   &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-1);
     font-size: var(--acc-fs-tiny);
     font-weight: var(--acc-fw-semibold);
     color: var(--acc-fg-muted);
@@ -35,6 +47,54 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /**
+   * Renaming, in the place the name already is.
+   *
+   * Borderless until it is pointed at, the same as the name on a roster row: a
+   * boxed field at the top of a menu reads as a search, and this is the student
+   * you already right-clicked. It commits on blur and on Enter, so there is no
+   * Save button occupying a line of its own.
+   */
+  &__name {
+    flex: 1;
+    min-inline-size: 0;
+    padding: var(--acc-space-1) var(--acc-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--acc-radius-sm);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-semibold);
+    color: var(--acc-fg);
+    @include motion.interactive(border-color, background-color);
+
+    &:hover:not(:focus) {
+      border-color: var(--acc-border);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--acc-accent);
+      background: var(--acc-surface);
+    }
+  }
+
+  // The two things that leave this menu, as glyphs at the end of the name.
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 26px;
+    block-size: 26px;
+    border-radius: var(--acc-radius-sm);
+    color: var(--acc-accent);
+    @include motion.interactive(background-color, color);
+
+    &:hover {
+      background: var(--acc-accent-soft);
+    }
   }
 
   &__group {
@@ -54,6 +114,18 @@
     padding: 0 var(--acc-space-2) var(--acc-space-1);
   }
 
+  /**
+   * The actions themselves, in the accent.
+   *
+   * Everything in this menu is a thing you can do, and in plain ink they read
+   * as the same weight as the headings naming them and the notes explaining
+   * them - a wall of text with no way to tell what is clickable. The accent is
+   * what the app uses everywhere else to mean "this does something".
+   *
+   * The headings stay grey on purpose: they label the actions, so making both
+   * accent would put the group's name in competition with the actions inside
+   * it and leave nothing quiet enough to be read past.
+   */
   &__item {
     display: flex;
     align-items: center;
@@ -62,23 +134,35 @@
     padding: var(--acc-space-2);
     border-radius: var(--acc-radius-sm);
     font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
     text-align: start;
-    color: var(--acc-fg);
-    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+    color: var(--acc-accent);
+    transition: color var(--acc-dur-instant) var(--acc-ease-standard);
 
+    /*
+      A link's hover, not a button's.
+
+      These read as text now they carry the accent, so a filled block sliding in
+      behind one made it look like a menu of buttons - and the row of real
+      buttons underneath Mark absent then had nothing to distinguish it. Only
+      the colour deepens.
+    */
     &:hover {
-      background: var(--acc-surface-hover);
+      color: var(--acc-accent-hover);
     }
 
     &--current {
       font-weight: var(--acc-fw-semibold);
     }
 
+    // Removing something keeps its own colour: an action that cannot be undone
+    // has no business wearing the same one as Rename.
     &--danger {
       color: var(--acc-danger);
 
       &:hover {
-        background: var(--acc-danger-soft);
+        color: var(--acc-danger);
+        opacity: 0.78;
       }
     }
   }

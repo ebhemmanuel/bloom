@@ -1,4 +1,7 @@
-// Top navigation: wordmark left, menus centred, alerts and the clock right.
+@use '../abstracts/motion' as motion;
+
+// Top navigation: wordmark and menus left, search centred, alerts / date / clock
+// right.
 
 // Detached floating pill nav, sitting on the aurora backdrop above the board.
 .acc-header {
@@ -21,9 +24,104 @@
   box-shadow: var(--acc-shadow-raised);
   flex-shrink: 0;
 
-  // File / Edit / Notes / About, then Find and the bell. Both are things you
-  // reach for, the same as opening a menu; the far end is only what the app
-  // reports back. 2px is the menubar's own rhythm, so they read as more items
+  /**
+   * The brand and the menus, as one cluster at the left end.
+   *
+   * They used to be two: the brand absolutely positioned at the start, the
+   * menus centred on the bar. File and Edit belong to the app, so they belong
+   * beside the app's name - top left, where every other program on the machine
+   * puts them - and pairing them frees the middle for the search.
+   */
+  &__left {
+    position: absolute;
+    inset-inline-start: var(--acc-space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-5);
+  }
+
+  /**
+   * Find a student, centred on the bar.
+   *
+   * A field rather than a glyph. It opens the same overlay Ctrl+Space does -
+   * one search, one behaviour, reached two ways - but an icon is only a search
+   * to someone who already knew there was one, and this has to be findable by a
+   * teacher who has never been told.
+   */
+  &__search {
+    display: flex;
+    align-items: center;
+    inline-size: 260px;
+    // The same surface, border, height and radius `.acc-btn` wears, because it
+    // is the same kind of thing as All periods and the day menu beside it. It
+    // was half-transparent white on the frost border, which read as a piece of
+    // the bar rather than as a control sitting on it.
+    block-size: 32px;
+    padding-inline: var(--acc-space-3) var(--acc-space-1);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface);
+    color: var(--acc-fg-faint);
+    @include motion.interactive(border-color);
+
+    // The edge lights, the fill holds. Same as `.acc-btn` beside it. Driven by
+    // focus-within as well, since the pill holds two real controls now.
+    &:hover,
+    &:focus-within {
+      border-color: var(--acc-accent);
+    }
+  }
+
+  // The field half: everything except the bell, and the whole of it opens the
+  // palette.
+  &__searchmain {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-2);
+    flex: 1;
+    min-inline-size: 0;
+    block-size: 100%;
+    color: inherit;
+    @include motion.interactive(color);
+
+    &:hover {
+      color: var(--acc-fg-muted);
+    }
+  }
+
+  &__search-label {
+    flex: 1;
+    text-align: start;
+    font-size: var(--acc-fs-sub);
+  }
+
+  /**
+   * The bell, at the end of the search pill.
+   *
+   * Deliberately the magnifier's colour and size rather than the icon buttons'
+   * out on the right: inside one control, two glyphs at different weights read
+   * as one of them being the point and the other an afterthought. The unread
+   * count is what makes it loud, and only when there is one.
+   */
+  &__bell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 24px;
+    block-size: 24px;
+    border-radius: var(--acc-radius-pill);
+    color: inherit;
+    @include motion.interactive(background-color, color);
+
+    &:hover,
+    &--on {
+      background: var(--acc-accent-soft);
+      color: var(--acc-accent);
+    }
+  }
+
+  // The menus themselves. 2px is the menubar's own rhythm, so they read as items
   // in that row rather than a separate group.
   &__menus {
     display: flex;
@@ -112,16 +210,21 @@
    * another to each end. Left in the flow it rode along with the menus and
    * shoved them off centre by half its own width.
    */
+  // Inside `__left` now rather than positioned itself. Only as wide as the
+  // lockup, so the mark turns when it is pointed at rather than whenever the
+  // pointer enters the left of the bar.
+  // A button now - it opens About - but it must not look like one. No fill, no
+  // border, no chrome: only the pointer and the mark's own turn say it is
+  // pressable, which is as much as a wordmark should say.
   &__brand {
-    position: absolute;
-    inset-inline-start: var(--acc-space-5);
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
     min-width: 0;
-    // Only as wide as the lockup, so the mark turns when it is pointed at
-    // rather than whenever the pointer enters the left of the bar.
     inline-size: fit-content;
+    padding: 0;
+    border: 0;
+    background: none;
   }
 
   // The mark is the Bloom flower now, drawn by BloomMark, so there is nothing
@@ -189,10 +292,12 @@
    * white type on a filled circle is the loudest thing the bar could carry for
    * something that only means "have a look when you can".
    */
+  // Sized for a 32px icon button and now also worn by the 24px bell inside the
+  // search, so it hangs slightly outside that one rather than sitting in it.
   &__dot {
     position: absolute;
-    inset-block-start: 1px;
-    inset-inline-end: 1px;
+    inset-block-start: -3px;
+    inset-inline-end: -3px;
     min-inline-size: 15px;
     block-size: 15px;
     padding: 0 3px;

@@ -266,12 +266,28 @@ export default function EditStudentWizard({ onClose, background, leaving = false
       doc.students
         .filter((s) => !hits || hits.has(s.id))
         .slice()
-        .sort((a, b) => a.displayName.localeCompare(b.displayName))
+        /*
+          Disenrolled students last, and dimmed.
+
+          They are still on this screen because their record has to stay
+          reachable - September's days still name them, and disenrolling is
+          never a delete. But they are not who you are looking for: sorted in
+          among the class alphabetically, a student who left in November sat
+          between two you teach on Tuesday, and the only thing marking them was
+          a word at the end of the row.
+        */
+        .sort(
+          (a, b) =>
+            Number(Boolean(a.unenrolledFrom)) - Number(Boolean(b.unenrolledFrom)) ||
+            a.displayName.localeCompare(b.displayName)
+        )
         .map((s) => ({
           id: s.id,
           name: s.displayName,
           plan: s.planType,
           periodKeys: s.periodIds || [],
+          muted: Boolean(s.unenrolledFrom),
+          note: s.unenrolledFrom ? `Disenrolled ${formatDateMedium(s.unenrolledFrom)}` : '',
           accoms: doc.assignments
             .filter((a) => a.studentId === s.id && !a.activeTo)
             .map((a) => assignmentConfig(a, catalogById).label),

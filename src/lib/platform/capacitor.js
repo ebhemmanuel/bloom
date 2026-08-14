@@ -329,4 +329,15 @@ const app = {
   onBeforeQuit: () => () => {},
 };
 
-export default { data, pdf, app };
+/**
+ * No self-checking on iPad. The App Store is the update mechanism there, and a
+ * second one inside the app would be both redundant and grounds for rejection.
+ */
+const updates = {
+  check: async () => ({ ok: false, reason: 'ios' }),
+  setPrefs: async () => ({ ok: true }),
+  open: async () => ({ ok: false, reason: 'ios' }),
+  onAvailable: () => () => {},
+};
+
+export default { data, pdf, app, updates };

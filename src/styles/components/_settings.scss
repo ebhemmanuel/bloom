@@ -93,6 +93,15 @@
     text-wrap: balance;
   }
 
+  // A control and what it just said, on one line: the manual update check and
+  // its answer, which is only there once it has one.
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--acc-space-3);
+    flex-wrap: wrap;
+  }
+
   &__chips {
     display: flex;
     flex-wrap: wrap;

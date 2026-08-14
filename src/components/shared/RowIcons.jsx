@@ -46,6 +46,35 @@ export function ArchiveIcon() {
   );
 }
 
+/** A sheet going into a printer, drawn in the same box as the rest. */
+export function PrintIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+      <path
+        d="M4.5 6V2.5h7V6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3 6h10a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1h-1.5V9h-7v2.5H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.5 9h7v4.5h-7V9Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** The same box, with the arrow coming back out of it. */
 export function RestoreIcon() {
   return (

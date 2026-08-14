@@ -112,6 +112,15 @@ const browserFallback = {
     },
     reveal: async () => ({ ok: false, reason: 'browser' }),
   },
+  // Nothing to check in a browser tab: there is no exe to replace, and the
+  // answer is always "you are running the dev server".
+  updates: {
+    check: async () => ({ ok: false, reason: 'browser' }),
+    setPrefs: async () => ({ ok: true }),
+    open: async () => ({ ok: false, reason: 'browser' }),
+    onAvailable: () => () => {},
+  },
+
   app: {
     getInfo: async () => ({ version: 'dev', packaged: false, platform: 'browser' }),
     // A browser tab cannot close itself unless it opened itself, so this is a
@@ -126,5 +135,7 @@ const api = native || (isNativeShell ? capacitorApi : browserFallback);
 export const dataBridge = api.data;
 export const pdfBridge = api.pdf;
 export const appBridge = api.app;
+/** The one outbound surface. Receive-only: see electron/updates.js. */
+export const updateBridge = api.updates;
 
 export default api;

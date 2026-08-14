@@ -1,17 +1,29 @@
 'use strict';
 
 /**
- * Network kill switch.
+ * Network kill switch, on the surface that holds student data.
  *
  * This file is the demonstrable enforcement of the product's central promise:
  * student PII never leaves the machine. If someone from district IT asks how you
- * know the app cannot phone home, point them here.
+ * know the app cannot send a child's information anywhere, point them here.
  *
- * Four independent layers, each sufficient on its own:
+ * Four independent layers on the RENDERER, each sufficient on its own:
  *   1. CSP with `connect-src 'none'` - no fetch/XHR/WebSocket/EventSource, at all.
  *   2. A request filter that cancels every scheme except file:/devtools:/blob:.
  *   3. Permission handlers that deny everything (geolocation, media, notifications…).
  *   4. Navigation + window-open handlers that refuse any non-file: destination.
+ *
+ * Be precise about the scope, because the honest claim is narrower than "this
+ * app makes no network calls" and stronger than it sounds: these layers cover
+ * the renderer, which is where the record is read, written and displayed. The
+ * renderer cannot open a socket by any means.
+ *
+ * The main process CAN, and does exactly once: `electron/updates.js` asks a
+ * public GitHub endpoint whether a newer version exists. Main has no access to
+ * the record's contents - it reads and writes the file as opaque text - so
+ * there is nothing for that request to leak even in principle. The separation
+ * is the design: the surface that holds the data cannot reach the network, and
+ * the surface that reaches the network cannot read the data.
  */
 
 const { session, shell } = require('electron');

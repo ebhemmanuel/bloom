@@ -73,9 +73,17 @@
   font-weight: var(--acc-fw-medium);
   white-space: nowrap;
 
+  /*
+    Hover lights the EDGE, not the fill.
+
+    It used to darken the surface and grey the border, which on a bar of white
+    pills read as the control dimming rather than waking up - the thing under
+    the pointer became the murkiest thing in the row. The border goes accent
+    instead and the fill stays white, so pointing at something says "this is
+    live" in the colour the app already uses for that.
+  */
   &:hover:not(:disabled) {
-    background: var(--acc-surface-hover);
-    border-color: var(--acc-fg-faint);
+    border-color: var(--acc-accent);
   }
 
   &:disabled {

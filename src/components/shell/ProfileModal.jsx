@@ -7,13 +7,16 @@ import {
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_REMINDERS,
+  DEFAULT_UPDATES,
   DEFAULT_LOW_PERFORMANCE,
   CYCLE_END_OPTIONS,
+  UPDATE_CHECK_TIMES,
   REMINDER_OPTIONS,
   SUBJECT_OPTIONS,
   GRADE_OPTIONS,
 } from '../../domain/constants.js';
 import SceneFrame from '../shared/SceneFrame.jsx';
+import { updateBridge, isDesktop } from '../../lib/bridge.js';
 
 /**
  * Settings, on the same sheet the add-student wizard lands on. Built to
@@ -74,6 +77,10 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
   const scene = settings.backgroundStyle || DEFAULT_BACKGROUND_STYLE;
   const cycleEndTime = settings.cycleEndTime || DEFAULT_CYCLE_END_TIME;
   const reminders = settings.reminders || DEFAULT_REMINDERS;
+  const updates = settings.updates || DEFAULT_UPDATES;
+  // The manual check's own state: in flight, and what it found.
+  const [checking, setChecking] = useState(false);
+  const [checked, setChecked] = useState(null);
   const lowPerformance = settings.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
   const termStart = doc.schoolCalendar?.termStart || '';
 
@@ -446,6 +453,84 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                 Nothing here is ever urgent, and none of it leaves this computer.
               </span>
             </div>
+
+            {/*
+              The one thing in this app that reaches the network, said plainly
+              and in the section about what the app tells you.
+
+              It is a receive-only check: a request for the latest version
+              number, carrying no body and nothing about a student, answered
+              with a version and a link. Nothing downloads or installs itself.
+              A district that forbids even that turns it off here and the app
+              works exactly as before.
+            */}
+            {isDesktop && (
+              <div className="acc-set__field">
+                <span className="acc-wiz__label">New versions</span>
+
+                <button
+                  type="button"
+                  className={`acc-set__toggle${updates.enabled ? ' acc-set__toggle--on' : ''}`}
+                  aria-pressed={updates.enabled}
+                  disabled={readOnly}
+                  onClick={() => setSetting({ updates: { ...updates, enabled: !updates.enabled } })}
+                >
+                  <span className="acc-set__toggle-text">
+                    <span className="acc-set__toggle-title">Check once a day</span>
+                    <span className="acc-set__toggle-body">
+                      Asks GitHub whether a newer version exists. It sends nothing about you or your
+                      students, and never installs anything by itself.
+                    </span>
+                  </span>
+                  <span className="acc-set__track" aria-hidden="true">
+                    <span className="acc-set__knob" />
+                  </span>
+                </button>
+
+                {updates.enabled && (
+                  <div className="acc-set__chips">
+                    {UPDATE_CHECK_TIMES.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`acc-chip acc-chip--lg${updates.checkAt === t ? ' acc-chip--on' : ''}`}
+                        aria-pressed={updates.checkAt === t}
+                        disabled={readOnly}
+                        onClick={() => setSetting({ updates: { ...updates, checkAt: t } })}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* The manual check, which never uses the cached answer. */}
+                <div className="acc-set__row">
+                  <button
+                    type="button"
+                    className="acc-btn acc-btn--small"
+                    disabled={checking}
+                    onClick={async () => {
+                      setChecking(true);
+                      setChecked(await updateBridge.check());
+                      setChecking(false);
+                    }}
+                  >
+                    {checking ? 'Checking…' : 'Check now'}
+                  </button>
+
+                  {checked && (
+                    <span className="acc-set__hint">
+                      {!checked.ok
+                        ? `Could not reach GitHub (${checked.reason}). Nothing is wrong with your records.`
+                        : checked.available
+                          ? `Version ${String(checked.latest).replace(/^v/i, '')} is out. You are on ${checked.current}.`
+                          : `You are on the latest version (${checked.current}).`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

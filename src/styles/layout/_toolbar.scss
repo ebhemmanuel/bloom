@@ -149,10 +149,17 @@
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
-    // Fixed measure so stepping through the week never reflows the row. The
-    // slack sits on the LEFT: the caret and the date stay together at the right
-    // edge, hard against the clock's divider, instead of the caret being flung
-    // to the far end with a corridor of nothing between them.
+    /*
+      Fixed measure so stepping through the week never reflows the row, with the
+      slack on the LEFT: the caret and the date stay together at the right edge,
+      hard against the clock's divider, instead of the caret being flung to the
+      far end with a corridor of nothing between them.
+
+      This went start-aligned for a while, when the bell sat immediately before
+      it and the left slack became 84px of empty button between the two. The
+      bell lives inside the search now, so the slack falls against nothing again
+      and the date can go back to where it reads best.
+    */
     inline-size: 170px;
     justify-content: flex-end;
     padding-inline: var(--acc-space-2);
@@ -367,6 +374,31 @@
     flex-shrink: 0;
   }
 
+  /**
+   * The period's code, in the tick's own gutter.
+   *
+   * Same width as `__check`, so a renamed period's label starts exactly where
+   * "All periods" starts. Given a column of its own it indented every name past
+   * it, and a list whose rows begin at two different x is harder to read than
+   * the codes are worth.
+   *
+   * It also IS the tick: grey when the period is off, accent when it is on.
+   * Tabular, so P1 and P12 occupy the same space rather than nudging the names.
+   */
+  &__code {
+    inline-size: 12px;
+    flex-shrink: 0;
+    font-size: var(--acc-fs-tiny);
+    font-weight: var(--acc-fw-medium);
+    font-variant-numeric: tabular-nums;
+    color: var(--acc-fg-faint);
+    transition: color var(--acc-dur-instant) var(--acc-ease-standard);
+
+    &--on {
+      color: var(--acc-accent);
+    }
+  }
+
   &__label {
     min-inline-size: 0;
     overflow: hidden;
@@ -401,20 +433,48 @@
 }
 
 // --- Toasts ----------------------------------------------------------------
-// Anchored just outside the 1200px container and expanding upward, so a notice
-// never pushes the lanes you are reading down the page.
+// Fixed under the nav, centred on the window, so a notice lands where the eye
+// already is and never pushes the lanes you are reading down the page.
 
 .acc-toast {
   position: fixed;
-  z-index: 65;
-  inset-inline-start: min(calc(50vw + 612px), calc(100vw - 236px));
-  inset-block-end: var(--acc-space-6);
-  inline-size: 220px;
+  // Above the nav's own 70, because it covers the search rather than sitting
+  // clear of it. Still under the context menus and the calendar popover, which
+  // are things you opened and are waiting on.
+  z-index: 72;
+
+  /**
+   * OVER the search, centred on the window.
+   *
+   * It used to be pinned to `50vw + 612px` - just outside the 1200px container
+   * - which put it in the far right margin of the screen, a place the eye never
+   * goes while working the board. A notice nobody sees is a notice that did not
+   * happen.
+   *
+   * It sits ON the nav rather than under it, covering the search for the few
+   * seconds it is up. Below the bar it was a second row of chrome pushing the
+   * board's own toolbar down the page; on top of it, it borrows a place that is
+   * already the middle of the screen and gives it straight back. The search is
+   * the one control there that nobody needs in the moment they have just copied
+   * a day.
+   *
+   * Centred by AUTO MARGINS, not `translateX(-50%)`. `.acc-enter` runs with
+   * `fill-mode: both` and finishes on `transform: translateY(0) scale(1)`, so
+   * its end state would permanently overwrite a translate declared here and the
+   * toast would snap to the left edge as the entrance landed. Same trap the
+   * opacity note in _motion.scss describes.
+   */
+  inset-inline: 0;
+  margin-inline: auto;
+  // The app shell's own top padding, so the toast lands on the nav's band.
+  inset-block-start: var(--acc-space-4);
+  min-block-size: 52px;
+  inline-size: fit-content;
+  max-inline-size: min(520px, calc(100vw - var(--acc-space-8)));
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--acc-space-3);
+  align-items: center;
+  gap: var(--acc-space-4);
   padding: var(--acc-space-3) var(--acc-space-4);
   border-radius: 14px;
   box-shadow: var(--acc-shadow-overlay);
@@ -422,12 +482,20 @@
   line-height: var(--acc-lh-normal);
   overflow-wrap: break-word;
 
+  /*
+    The tone is held as a custom property as well as applied, so the buttons
+    inside can reach it. `currentColor` cannot do this job: the hover state
+    swaps ink and fill, so a rule written against `currentColor` would resolve
+    both to the same value and paint white on white.
+  */
   &--ok {
+    --acc-toast-ink: var(--acc-success);
     background: var(--acc-success-soft);
     color: var(--acc-success);
   }
 
   &--warn {
+    --acc-toast-ink: var(--acc-warning);
     background: var(--acc-warning-soft);
     color: var(--acc-warning);
   }
@@ -436,5 +504,30 @@
     display: flex;
     gap: var(--acc-space-2);
     flex-shrink: 0;
+  }
+
+  /**
+   * The toast's own buttons, in the toast's own colour.
+   *
+   * The shared `.acc-btn` is drawn for a white surface: on a tinted one its
+   * grey border and body ink read as a control that has been disabled, and the
+   * quiet variant nearly vanished into the fill.
+   *
+   * So: nothing at rest but the label, in the tone - the toast is a strip of
+   * one colour and a white pill inside it made the button the loudest thing in
+   * a notice that is only there for a few seconds. Hover draws the edge in the
+   * same tone, which is the app's own hover language everywhere else.
+   */
+  .acc-btn {
+    background: transparent;
+    border-color: transparent;
+    color: var(--acc-toast-ink);
+    font-weight: var(--acc-fw-medium);
+
+    &:hover:not(:disabled) {
+      background: transparent;
+      border-color: var(--acc-toast-ink);
+      color: var(--acc-toast-ink);
+    }
   }
 }

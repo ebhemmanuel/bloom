@@ -14,11 +14,23 @@ const pdf = require('./pdf-export');
 
 const paths = require('./data-paths');
 const { createDataStore } = require('./data-store');
+const { checkForUpdate, startUpdateSchedule, RELEASES_PAGE } = require('./updates');
 const log = require('./app-log');
 
 /** The active store, created once a data location is known. */
 let store = null;
 let getWindow = () => null;
+
+/**
+ * The renderer's copy of `settings.updates`, pushed up when the document loads
+ * or changes.
+ *
+ * Main needs to know whether checking is switched on and at what time, and it
+ * has no business parsing the record to find out - that file is the renderer's
+ * to read and this process only ever moves its bytes. So the renderer tells it.
+ */
+let updatePrefs = { enabled: true, checkAt: '08:00' };
+let updates = null;
 
 function broadcast(channel, payload) {
   const win = getWindow();
@@ -58,6 +70,44 @@ function registerIpcHandlers({ getMainWindow } = {}) {
     packaged: app.isPackaged,
     userData: app.getPath('userData'),
   }));
+
+  // --- updates -----------------------------------------------------------
+  //
+  // The only outbound request in the app. See electron/updates.js for what it
+  // does and does not carry.
+
+  updates = startUpdateSchedule(app, {
+    getSettings: () => ({ updates: updatePrefs }),
+    onResult: (result) => broadcast('updates:available', result),
+  });
+
+  /** The renderer handing over the preference it just read from the record. */
+  ipcMain.handle('updates:prefs', (_e, prefs) => {
+    if (prefs && typeof prefs === 'object') {
+      updatePrefs = {
+        enabled: prefs.enabled !== false,
+        checkAt: typeof prefs.checkAt === 'string' ? prefs.checkAt : '08:00',
+      };
+    }
+    return { ok: true };
+  });
+
+  /** The manual check. Always goes out, never uses the cached answer. */
+  ipcMain.handle('updates:check', () => checkForUpdate(app, { force: true }));
+
+  /**
+   * Open the release page in the teacher's own browser.
+   *
+   * Never in-app: a page opened here would run in a window that has the preload
+   * bridge attached, and no web page should ever be one mistake away from the
+   * record. `shell.openExternal` hands it to the OS and forgets it.
+   */
+  ipcMain.handle('updates:open', (_e, url) => {
+    const target =
+      typeof url === 'string' && url.startsWith('https://github.com/') ? url : RELEASES_PAGE;
+    shell.openExternal(target);
+    return { ok: true };
+  });
 
   // --- location ----------------------------------------------------------
   ipcMain.handle('data:suggestLocations', () => paths.suggestLocations(app));

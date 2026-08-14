@@ -33,9 +33,25 @@ const TIPS = {
   review: 'Nothing is uploaded - the file is written on this computer.',
 };
 
-export default function PrintReportModal({ onClose, background, leaving = false }) {
+export default function PrintReportModal({
+  onClose,
+  background,
+  leaving = false,
+  studentId = null,
+}) {
   const { doc } = useData();
   const { periodIds, periods } = useBoard();
+
+  /**
+   * One student's own record, reached by right-clicking their lane.
+   *
+   * Their periods are not a question here. A student's file is the whole of
+   * their file, across every class they sit in, so the periods step is skipped
+   * and the report is scoped by student instead - see `studentIds` in
+   * buildReport. What is left to answer is how far back it goes, which is the
+   * step this opens on anyway.
+   */
+  const student = studentId ? doc.students.find((s) => s.id === studentId) || null : null;
 
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState('todate');
@@ -52,8 +68,9 @@ export default function PrintReportModal({ onClose, background, leaving = false 
   const [error, setError] = useState(null);
 
   const STEPS = useMemo(
-    () => (periods.length > 0 ? ['coverage', 'periods', 'review'] : ['coverage', 'review']),
-    [periods.length]
+    () =>
+      periods.length > 0 && !student ? ['coverage', 'periods', 'review'] : ['coverage', 'review'],
+    [periods.length, student]
   );
   const current = STEPS[step];
   const last = step === STEPS.length - 1;
@@ -65,8 +82,13 @@ export default function PrintReportModal({ onClose, background, leaving = false 
     [doc, resolved.from, resolved.to]
   );
   const report = useMemo(
-    () => buildReport(doc, { scope, periodIds: scopePeriods }),
-    [doc, kind, from, to, scopePeriods]
+    () =>
+      buildReport(doc, {
+        scope,
+        periodIds: scopePeriods,
+        studentIds: studentId ? [studentId] : [],
+      }),
+    [doc, kind, from, to, scopePeriods, studentId]
   );
 
   const invalid = kind === 'range' && (!from || !to || from > to);
@@ -182,7 +204,7 @@ export default function PrintReportModal({ onClose, background, leaving = false 
   return (
     <>
       <SceneFrame
-        label="Print report"
+        label={student ? `Print ${student.displayName}'s record` : 'Print report'}
         background={background}
         leaving={leaving}
         onClose={onClose}
@@ -217,10 +239,21 @@ export default function PrintReportModal({ onClose, background, leaving = false 
           ) : current === 'coverage' ? (
             <div className="acc-sheet__pane acc-print__pane">
               <div className="acc-sheet__intro acc-sheet__intro--center">
-                <h1 className="acc-sheet__title">What should this report cover?</h1>
+                <h1 className="acc-sheet__title">
+                  {student ? (
+                    <>
+                      How far back should{' '}
+                      <span className="acc-sheet__who">{student.displayName}</span>&rsquo;s record
+                      go?
+                    </>
+                  ) : (
+                    'What should this report cover?'
+                  )}
+                </h1>
                 <p className="acc-sheet__sub">
-                  The report is the printable compliance record: one page per student, dates down
-                  the page, a column for each accommodation.
+                  {student
+                    ? 'Their whole file, across every class they sit in: dates down the page, a column for each accommodation.'
+                    : 'The report is the printable compliance record: one page per student, dates down the page, a column for each accommodation.'}
                 </p>
               </div>
 
@@ -393,16 +426,22 @@ export default function PrintReportModal({ onClose, background, leaving = false 
                 </div>
               </div>
 
-              {/* Amber, never danger red. An empty range is a fact about the
-                  dates, not a failure by the teacher. */}
+              {/*
+                `__notice`, not `__empty`: the printed sheet is also `.acc-print`
+                and owns `__empty` for its own "no students" line. See the note
+                in _print-report.scss.
+
+                Amber, never danger red. An empty range is a fact about the
+                dates, not a failure by the teacher.
+              */}
               {days.length === 0 && (
-                <p className="acc-print__empty">
+                <p className="acc-print__notice">
                   There are no school days in this range, so there is nothing to print yet.
                 </p>
               )}
 
               {error && (
-                <p className="acc-print__error" role="status">
+                <p className="acc-print__failure" role="status">
                   That didn&rsquo;t work ({error}). Your records are untouched - try again, or use
                   Print.
                 </p>

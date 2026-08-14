@@ -333,38 +333,49 @@
    * `row-reverse`, so the label grows leftward out of the mark and the circle
    * itself never moves.
    */
-  &__feedback {
-    position: absolute;
-    inset-inline-end: 32px;
-    inset-block-end: 32px;
-    z-index: 6;
-    display: inline-flex;
-    flex-direction: row-reverse;
-    align-items: center;
-    justify-content: center;
-    block-size: 40px;
-    padding-inline: 11px;
-    border-radius: var(--acc-radius-pill);
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    color: var(--acc-accent);
-    box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
-    // It is a link, and links in this app are underlined. This one is a button
-    // wearing a pill; a rule under the label breaks the shape.
-    text-decoration: none;
-    transition:
-      background-color var(--acc-dur-instant) var(--acc-ease-standard),
-      color var(--acc-dur-instant) var(--acc-ease-standard);
-    animation: acc-enter 600ms var(--acc-ease-entrance) 1450ms both;
+}
 
-    &:hover {
-      background: #ffffff;
-      color: #4a3ac0;
-      text-decoration: none;
-    }
+/**
+ * Send feedback, in the corner of every screen.
+ *
+ * It used to be `.acc-about__feedback`, absolutely positioned inside the About
+ * scene. It is fixed to the viewport now and rendered once by the app shell, so
+ * it is reachable from the board and from inside a sheet - which is where a
+ * teacher actually is when something goes wrong.
+ */
+.acc-feedback {
+  position: fixed;
+  inset-inline-end: 32px;
+  inset-block-end: 24px;
+  // Over the board and the sheets, under the menus and context menus that have
+  // to be dismissible by clicking anywhere.
+  z-index: 55;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: center;
+  block-size: 40px;
+  padding-inline: 11px;
+  border-radius: var(--acc-radius-pill);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: var(--acc-accent);
+  box-shadow: 0 4px 14px -6px rgba(42, 36, 56, 0.2);
+  backdrop-filter: blur(6px);
+  // It is a link, and links in this app are underlined. This one is a button
+  // wearing a pill; a rule under the label breaks the shape.
+  text-decoration: none;
+  transition:
+    background-color var(--acc-dur-instant) var(--acc-ease-standard),
+    color var(--acc-dur-instant) var(--acc-ease-standard);
+
+  &:hover {
+    background: #ffffff;
+    color: #4a3ac0;
+    text-decoration: none;
   }
 
-  &__feedback-mark {
+  &__mark {
     display: inline-block;
     inline-size: 16px;
     text-align: center;
@@ -382,7 +393,7 @@
    * logical properties; this pair cannot, because the transition has to name
    * exactly what changes.
    */
-  &__feedback-label {
+  &__label {
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
@@ -397,8 +408,9 @@
       margin-right 260ms var(--acc-ease-entrance);
   }
 
-  &__feedback--open &__feedback-label {
-    max-width: 140px;
+  // Wide enough for the address, which is the second thing this opens to.
+  &--open &__label {
+    max-width: 220px;
     opacity: 1;
     margin-right: 7px;
   }

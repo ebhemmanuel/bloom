@@ -27,7 +27,7 @@ import StudentContextMenu from './StudentContextMenu.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay, copyStudentFromPreviousDay } from '../../domain/seed.js';
-import { sealDay } from '../../domain/resolve.js';
+import { sealDay, reopenDay } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
 import {
   todayKey,
@@ -43,7 +43,7 @@ function parseDroppable(id) {
   return { studentId, status };
 }
 
-export default function Board({ onAddStudent, onEditStudent }) {
+export default function Board({ onAddStudent, onEditStudent, onPrintStudent, onDayNotes }) {
   const { doc, mutate, readOnly } = useData();
 
   // Date, period filter and search live in BoardContext because the Bloom shell
@@ -279,8 +279,19 @@ export default function Board({ onAddStudent, onEditStudent }) {
     [doc, dateKey, mutate]
   );
 
-  const closeOutDay = useCallback(() => {
-    mutate((d) => sealDay(d, dateKey, new Date(), 'user'));
+  /**
+   * Close the day, or open it again.
+   *
+   * One control rather than two, because a day is either open or closed and the
+   * menu should say which. Reopening reverts only what the seal itself wrote -
+   * see `reopenDay` - and logs that it happened.
+   */
+  const toggleDayClosed = useCallback(() => {
+    mutate((d) =>
+      d.days?.[dateKey]?.sealed
+        ? reopenDay(d, dateKey, new Date())
+        : sealDay(d, dateKey, new Date(), 'user')
+    );
   }, [dateKey, mutate]);
 
   // --- context menu -------------------------------------------------------
@@ -448,7 +459,10 @@ export default function Board({ onAddStudent, onEditStudent }) {
       model={model}
       readOnly={readOnly}
       onCopyPrevious={copyPrevious}
-      onCloseOutDay={closeOutDay}
+      onCloseOutDay={toggleDayClosed}
+      sealed={Boolean(doc.days?.[dateKey]?.sealed)}
+      onDayNotes={onDayNotes}
+      notesPip={Boolean(model.dayNotes || model.teacherAbsence)}
       onAddStudent={onAddStudent}
       activeFilters={activeFilters}
       sort={sort}
@@ -468,8 +482,31 @@ export default function Board({ onAddStudent, onEditStudent }) {
           describes rather than a fade ahead of it. */}
       {view.model.sealed && (
         <div className="acc-banner acc-banner--sealed acc-fade-enter">
-          This day is closed out and read-only. Use <strong>Amend</strong> on a card to correct it;
-          the change is logged.
+          {/*
+            Six words and a button.
+
+            This was a two-clause sentence explaining that Amend corrects one
+            entry and re-opening corrects the day - which stretched across the
+            whole 1200px bar with the button flung to the far right, so the word
+            Amend sat alone in the middle of the screen reading like a heading
+            for the lanes below it. Worse, it pointed at something that does not
+            exist: nothing in the card menu offers Amend, and `amendEntry` has
+            never had a caller.
+
+            So the banner says the state, and offers the one thing a teacher can
+            actually do about it.
+          */}
+          <span>This day is closed out and read-only.</span>
+          <span className="acc-banner__actions">
+            <button
+              type="button"
+              className="acc-btn acc-btn--small acc-btn--quiet"
+              onClick={toggleDayClosed}
+              disabled={readOnly}
+            >
+              Re-open day
+            </button>
+          </span>
         </div>
       )}
 
@@ -602,6 +639,7 @@ export default function Board({ onAddStudent, onEditStudent }) {
       {laneMenu && (
         <StudentContextMenu
           onEditProfile={() => onEditStudent?.(laneMenu.lane.studentId)}
+          onPrint={() => onPrintStudent?.(laneMenu.lane.studentId)}
           lane={laneMenu.lane}
           dateKey={dateKey}
           unenrolledFrom={
@@ -611,7 +649,6 @@ export default function Board({ onAddStudent, onEditStudent }) {
           y={laneMenu.y}
           onClose={() => setLaneMenu(null)}
           onRename={(name) => mutate((d) => renameStudent(d, laneMenu.lane.studentId, name))}
-          onToggleAbsent={(reason) => handleToggleAbsent(laneMenu.lane.studentId, reason)}
           onUnenrol={(from) => {
             // Re-enrolling is harmless and immediately visible, so it goes
             // straight through. Disenrolling changes every future day, so it asks.

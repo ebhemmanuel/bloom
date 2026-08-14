@@ -40,14 +40,26 @@ export function resolveScope(doc, scope, now = new Date()) {
   return { from, to: today };
 }
 
-export function buildReport(doc, { scope, periodIds = [], search = '', now = new Date() } = {}) {
+/**
+ * @param {object} options
+ * @param {string[]} [options.studentIds]  Only these students, in which case
+ *   the period filter is not consulted: one student's record is the whole of
+ *   their record, across every class they sit in. Asking for a named student
+ *   and then dropping them because the board happened to be filtered to P2
+ *   would print an empty page and call it their file.
+ */
+export function buildReport(
+  doc,
+  { scope, periodIds = [], studentIds = [], search = '', now = new Date() } = {}
+) {
   const { from, to } = resolveScope(doc, scope, now);
   const dates = schoolDaysIn(doc, from, to);
 
   const ctx = buildResolveContext(doc);
   const catalogById = new Map(doc.catalog.map((c) => [c.id, c]));
   const searchIndex = buildSearchIndex(doc);
-  const periodFilter = new Set(periodIds);
+  const only = new Set(studentIds);
+  const periodFilter = new Set(only.size > 0 ? [] : periodIds);
 
   const teacher =
     doc.teachers.find((t) => t.id === doc.settings?.activeTeacherId) || doc.teachers[0] || null;
@@ -55,6 +67,7 @@ export function buildReport(doc, { scope, periodIds = [], search = '', now = new
   const students = [];
 
   for (const student of activeStudentsFor(doc, to)) {
+    if (only.size > 0 && !only.has(student.id)) continue;
     if (periodFilter.size > 0 && !(student.periodIds || []).some((p) => periodFilter.has(p))) {
       continue;
     }

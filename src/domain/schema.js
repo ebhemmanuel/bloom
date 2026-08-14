@@ -7,6 +7,7 @@ import {
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_IDLE_LOCK_MINUTES,
   DEFAULT_REMINDERS,
+  DEFAULT_UPDATES,
   BACKGROUND_STYLES,
   DEFAULT_BACKGROUND_STYLE,
   DEFAULT_LOW_PERFORMANCE,
@@ -59,6 +60,7 @@ export function createEmptyDoc(now = new Date()) {
       backgroundStyle: DEFAULT_BACKGROUND_STYLE,
       lowPerformance: DEFAULT_LOW_PERFORMANCE,
       reminders: { ...DEFAULT_REMINDERS },
+      updates: { ...DEFAULT_UPDATES },
     },
     schoolCalendar: {
       termStart: null,
@@ -170,6 +172,22 @@ export function normalizeDoc(raw, now = new Date()) {
         asBool(isObj(s.reminders) ? s.reminders[k] : false, false),
       ])
     ),
+
+    /**
+     * Whether to look for a newer version, and when.
+     *
+     * The one setting that permits an outbound request - a GET to a public
+     * releases endpoint, carrying nothing. `enabled` defaults TRUE, unlike the
+     * reminders above, because the thing it protects against is a teacher
+     * running a build with a bug that was fixed months ago and never knowing.
+     * See electron/updates.js for what the request contains.
+     */
+    updates: {
+      enabled: asBool(isObj(s.updates) ? s.updates.enabled : true, DEFAULT_UPDATES.enabled),
+      checkAt: /^\d{2}:\d{2}$/.test(isObj(s.updates) ? s.updates.checkAt : '')
+        ? s.updates.checkAt
+        : DEFAULT_UPDATES.checkAt,
+    },
   };
 
   // --- school calendar -----------------------------------------------------
@@ -501,6 +519,15 @@ export function normalizeDoc(raw, now = new Date()) {
           : null,
       amended: asBool(rawDay.amended, false),
       amendments: asArray(rawDay.amendments).filter(isObj),
+      /*
+        Deliberately reopened after being closed out, and therefore held open
+        against the automatic seal until the teacher closes it again. See
+        `reopenDay`. A day carrying this without `sealed: false` is impossible
+        by construction, but normalising both independently costs nothing and
+        keeps a hand-edited file from becoming unopenable.
+      */
+      reopened: asBool(rawDay.reopened, false),
+      reopenedAt: asNullableString(rawDay.reopenedAt),
     };
     days[dateKey].students = students;
   }

@@ -31,15 +31,11 @@ import { ABOUT_SLIDES } from './aboutSlides.js';
 const SLIDES = ABOUT_SLIDES;
 
 const AUTO_ADVANCE_MS = 9000;
-const FEEDBACK_COLLAPSE_MS = 6000;
-const FEEDBACK_EMAIL = 'm.solothis@proton.me';
 
 export default function AboutBloom({ onClose, stats, background, leaving = false }) {
   const [index, setIndex] = useState(0);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { turning, spinProps } = useSpinOnHover();
   const idle = useRef(null);
-  const feedbackTimer = useRef(null);
 
   /**
    * Auto-advance, restarted by any manual move.
@@ -65,8 +61,6 @@ export default function AboutBloom({ onClose, stats, background, leaving = false
     return () => clearInterval(idle.current);
   }, [armIdle]);
 
-  useEffect(() => () => clearTimeout(feedbackTimer.current), []);
-
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'ArrowRight') go(index + 1);
@@ -76,21 +70,6 @@ export default function AboutBloom({ onClose, stats, background, leaving = false
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [go, index, onClose]);
-
-  /**
-   * Feedback opens before it sends, deliberately.
-   *
-   * The first click only reveals the label; the second follows the mailto. On a
-   * school machine launching Outlook can take a quarter of a minute, and doing
-   * that to someone who brushed a corner button is a poor trade for one click.
-   */
-  const onFeedback = (e) => {
-    if (feedbackOpen) return; // second click: let the mailto through
-    e.preventDefault();
-    setFeedbackOpen(true);
-    clearTimeout(feedbackTimer.current);
-    feedbackTimer.current = setTimeout(() => setFeedbackOpen(false), FEEDBACK_COLLAPSE_MS);
-  };
 
   const showStats = Boolean(
     stats && (stats.students || stats.accommodations || stats.daysRecorded)
@@ -195,22 +174,8 @@ export default function AboutBloom({ onClose, stats, background, leaving = false
         ))}
       </div>
 
-      <a
-        className={`acc-about__feedback${feedbackOpen ? ' acc-about__feedback--open' : ''}`}
-        href={`mailto:${FEEDBACK_EMAIL}?subject=Bloom%20feedback`}
-        onClick={onFeedback}
-        aria-label="Send feedback to the developer"
-      >
-        {/*
-          The mark first in the DOM, the label after it, with `row-reverse` in
-          the stylesheet: that puts the label to the LEFT of the ? and grows it
-          leftward, so the circle itself never moves as it opens.
-        */}
-        <span className="acc-about__feedback-mark" aria-hidden="true">
-          ?
-        </span>
-        <span className="acc-about__feedback-label">Send feedback</span>
-      </a>
+      {/* Send feedback is not drawn here any more. It is fixed to the corner of
+          every screen - see FeedbackButton, rendered once by the app shell. */}
     </div>
   );
 }

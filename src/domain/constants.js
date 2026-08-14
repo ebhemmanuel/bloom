@@ -283,6 +283,23 @@ export const REMINDER_OPTIONS = [
 
 export const DEFAULT_REMINDERS = Object.fromEntries(REMINDER_OPTIONS.map((r) => [r.id, false]));
 
+/**
+ * Checking for a newer version: on, once a day, in the morning.
+ *
+ * On by default, which is the one default in this app that lets something
+ * leave the machine - and what leaves is a GET with no body. Nothing about a
+ * student is expressible in it, and the answer is a version number. A district
+ * that forbids even that can turn it off in Settings, and the app is fully
+ * usable with it off forever.
+ *
+ * 08:00 because the check is worth having before the day starts rather than
+ * during it, and a teacher who is mid-lesson should never be told anything.
+ */
+export const DEFAULT_UPDATES = { enabled: true, checkAt: '08:00' };
+
+/** The times offered for the daily check. Before school, or side of it. */
+export const UPDATE_CHECK_TIMES = ['07:00', '07:30', '08:00', '15:30', '16:30'];
+
 export const DEFAULT_CYCLE_END_TIME = '16:00';
 export const DEFAULT_IDLE_LOCK_MINUTES = 10;
 

@@ -180,26 +180,41 @@
 
   // Amber, never danger red: an empty range is a fact about the dates, not a
   // failure by the teacher.
-  &__empty {
+  /**
+   * Nothing to print, and the same shape as anything else the app says aloud.
+   *
+   * `__notice`, NOT `__empty`. The printed sheet's own stylesheet is also
+   * `.acc-print` - two components, one block name - and it defines
+   * `&__empty { padding: 24px 0 }` for the "no students" line on paper. It is
+   * loaded after this file, so it won every time: the alert in this dialog was
+   * being given the paper's padding and lost its sides entirely.
+   *
+   * Padded wider across than down, like `.acc-banner` and every other notice
+   * here, with a hairline so the tint has an edge rather than fading into the
+   * pane.
+   */
+  &__notice,
+  &__failure {
     margin: 0;
-    padding: var(--acc-space-3);
+    padding: var(--acc-space-3) var(--acc-space-5);
     border-radius: var(--acc-radius-md);
-    background: var(--acc-warning-soft);
-    color: var(--acc-warning);
     font-size: var(--acc-fs-sub);
     line-height: var(--acc-lh-normal);
     text-align: start;
   }
 
-  &__error {
-    margin: 0;
-    padding: var(--acc-space-3);
-    border-radius: var(--acc-radius-md);
+  // Amber, never danger red. An empty range is a fact about the dates, not a
+  // failure by the teacher.
+  &__notice {
+    background: var(--acc-warning-soft);
+    border: 1px solid #e8d9bd;
+    color: var(--acc-warning);
+  }
+
+  &__failure {
     background: var(--acc-surface-sunken);
+    border: 1px solid var(--acc-border);
     color: var(--acc-danger);
-    font-size: var(--acc-fs-sub);
-    line-height: var(--acc-lh-normal);
-    text-align: start;
   }
 
   // Save and Print, as one group at the end of the footer row.

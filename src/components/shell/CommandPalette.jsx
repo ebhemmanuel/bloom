@@ -74,6 +74,10 @@ export default function CommandPalette({ onClose }) {
         kind: 'period',
         id: p.id,
         label: p.name,
+        // The code in front of a renamed period, as in the period filter: a row
+        // reading only "1st grade" leaves the teacher to work out which of the
+        // P1 chips on the board it is.
+        code: p.name === p.shortName ? '' : p.shortName,
         meta: `${counts.get(p.id) || 0} student${(counts.get(p.id) || 0) === 1 ? '' : 's'}`,
       }));
 
@@ -203,6 +207,11 @@ export default function CommandPalette({ onClose }) {
                       <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
                         {item.kind === 'period' ? 'Period' : 'Student'}
                       </span>
+                      {item.code && (
+                        <span className="acc-palette__code" aria-hidden="true">
+                          {item.code}
+                        </span>
+                      )}
                       <span className="acc-palette__name">{item.label}</span>
                       {/* Pushed to the far end: the name is what you are reading
                         down, and a count or a plan sitting hard against it

@@ -48,7 +48,10 @@ export default function RosterList({
           key={s.id}
           className={`acc-ob__student acc-fade-enter${
             flagged.includes(s.id) ? ' acc-ob__student--flagged' : ''
-          }${showAccoms ? ' acc-ob__student--stacked' : ''}`}
+          }${showAccoms ? ' acc-ob__student--stacked' : ''}${
+            // Still here, still editable, but not who you are looking for.
+            s.muted ? ' acc-ob__student--muted' : ''
+          }`}
         >
           <div className="acc-ob__student-main">
             {/*
@@ -83,9 +86,12 @@ export default function RosterList({
                 </span>
               </span>
               <span className="acc-ob__student-meta">
-                {s.accoms.length === 0
-                  ? 'No supports chosen yet'
-                  : `${s.accoms.length} support${s.accoms.length === 1 ? '' : 's'}`}
+                {/* Why they are greyed, said rather than left to be guessed at
+                    from the colour. */}
+                {s.note ||
+                  (s.accoms.length === 0
+                    ? 'No supports chosen yet'
+                    : `${s.accoms.length} support${s.accoms.length === 1 ? '' : 's'}`)}
               </span>
             </span>
 

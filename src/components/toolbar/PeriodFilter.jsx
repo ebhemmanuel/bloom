@@ -145,7 +145,29 @@ export default function PeriodFilter({ periods, selected, onChange }) {
                 }}
                 title="Right-click to rename"
               >
-                <span className="acc-periods__check">{selected.includes(p.id) ? '✓' : ''}</span>
+                {/*
+                  The code IS the tick.
+
+                  A renamed period loses the only thing tying it to the rest of
+                  the app: chips on a lane say P1, the print header says P1, and
+                  a row reading only "1st grade" leaves the teacher to work out
+                  which of those it is. So the code sits in front - but in the
+                  tick's own gutter, not a column of its own, or every name is
+                  indented past it and the labels stop starting where "All
+                  periods" starts.
+
+                  One mark rather than two in the same space: the code turns
+                  accent when the period is on. A tick beside it would be a
+                  second thing saying the same thing, and the gutter is 22px.
+                */}
+                <span
+                  className={`acc-periods__code${
+                    selected.includes(p.id) ? ' acc-periods__code--on' : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  {p.shortName}
+                </span>
                 <span className="acc-periods__label">{p.name}</span>
                 <span className="acc-periods__count acc-numeric">{p.studentCount}</span>
               </button>

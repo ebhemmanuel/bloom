@@ -82,18 +82,34 @@ export function matchesSearch(index, studentId, query) {
  * That distinction is the whole point - see resolve.js.
  */
 /**
- * What a lane files under: surname, then forename to break the ties.
+ * What a lane files under: SURNAME, then forename to break the ties.
  *
- * Falls back to the forename, then to whatever the lane is called, because a
- * roster pasted as bare single names has no surname to file under and dropping
- * those to the top of the list would be worse than filing them under what the
- * teacher actually typed.
+ * The surname has to be found rather than read off a field. A student is stored
+ * as one display label on purpose - a teacher may type initials or a code, and
+ * the file need not hold a legal name - so `addStudentWithAccommodations` puts
+ * the whole typed string in `lastName` and leaves `firstName` empty. That made
+ * this function compare the string entire, so "Axel Nava" filed under A and
+ * came out above "Caedyn Clement", which is a first-name sort wearing a
+ * surname's name. Every register, IEP folder and district export files by
+ * surname, and a class list in a different order than the one in the teacher's
+ * hand is worse than no ordering at all.
+ *
+ * So: the LAST word is the surname, and the rest is the forename that breaks
+ * ties between two of them. A bare single name is its own key - dropping those
+ * to the top would be worse than filing them under what was actually typed -
+ * and a genuinely split record still uses its own two fields.
  */
 function laneSortKey(lane) {
   const last = (lane.student?.lastName || '').trim();
   const first = (lane.student?.firstName || '').trim();
-  if (last) return `${last} ${first}`.trim();
-  return first || lane.displayName || '';
+
+  // A record with both halves filled in: believe it.
+  if (last && first) return `${last} ${first}`;
+
+  const whole = last || first || lane.displayName || '';
+  const words = whole.split(/\s+/).filter(Boolean);
+  if (words.length < 2) return whole;
+  return `${words[words.length - 1]} ${words.slice(0, -1).join(' ')}`;
 }
 
 /**
@@ -299,19 +315,25 @@ export function buildBoardModel(
    * expects it instead of after Z.
    *
    * `sortBy: 'period'` puts the period first and keeps the name as the tiebreak,
-   * so each class is still alphabetical inside itself. The direction applies to
-   * both halves: Z-A by period runs the last class first AND reverses the names
-   * within it, which is what "reversed" means when someone asks for it.
+   * so each class is still alphabetical inside itself.
+   *
+   * The direction applies to the NAMES ONLY, never to the classes. A-Z is P1
+   * alphabetical then P2 alphabetical; Z-A is P1 reversed then P2 reversed.
+   * Reversing the class order too - which is what a single `direction *` on the
+   * whole comparison does - reads as the sort having broken: a teacher presses
+   * a button labelled Z-A and their last class, plus everyone in no class at
+   * all, jumps to the top of the board. The periods are the shape of the day
+   * and they run forwards; A-Z is about names.
    */
   const direction = sort === 'za' ? -1 : 1;
-  const byName = (a, b) => laneSortKey(a).localeCompare(laneSortKey(b));
+  const byName = (a, b) => direction * laneSortKey(a).localeCompare(laneSortKey(b));
   const compare =
     sortBy === 'period'
       ? (a, b) =>
           lanePeriodRank(a, ctx.periodsById) - lanePeriodRank(b, ctx.periodsById) || byName(a, b)
       : byName;
 
-  lanes.sort((a, b) => direction * compare(a, b));
+  lanes.sort(compare);
 
   const allStatuses = lanes.flatMap((l) =>
     Object.values(l.columns).flatMap((cards) => cards.map((c) => c.resolved))

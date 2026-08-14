@@ -229,6 +229,14 @@
   @include fade-in;
 }
 
+/// The mirror of `.acc-fade-enter`: opacity only, no travel. For anything that
+/// arrived by fading and must leave the same way - see the toast, which sits on
+/// top of the search and would look like it was falling out of the nav if it
+/// left downward. Pair it with `useDismissAnimation`.
+.acc-fade-leave {
+  animation: acc-fade-out var(--acc-dur-fast) var(--acc-ease-exit) both;
+}
+
 .acc-screen-enter {
   @include screen-enter;
 }
@@ -254,6 +262,7 @@
   }
 
   .acc-leave,
+  .acc-fade-leave,
   .acc-screen-exit {
     animation: acc-fade-out 120ms linear both;
   }

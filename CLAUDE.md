@@ -12,7 +12,9 @@ Electron 43 · Vite 7 · React 19 · SCSS/BEM · Vitest 3 · npm · packaged wit
 
 These are not style preferences. Each one, if broken, either violates the product's core promise or falsifies a legal record.
 
-1. **Never add a network call, CDN reference, remote font, telemetry, or crash reporter.** The CSP in `electron/security.js` sets `connect-src 'none'` and a request filter cancels every non-`file:` scheme. This app documents disabled children; the offline guarantee is the product.
+1. **Never let anything leave the machine.** No telemetry, no crash reporter, no CDN, no remote font, no analytics, and nothing that carries a byte of student data anywhere. The CSP in `electron/security.js` sets `connect-src 'none'` and a request filter cancels every non-`file:` scheme, so **the renderer - the only surface that holds student data - cannot reach the network at all.** This app documents disabled children; that guarantee is the product.
+
+   The single exception is `electron/updates.js`, added deliberately: a GET from the MAIN process to a public GitHub releases endpoint, asking whether a newer version exists. It has no body, no identifiers, and no access to the record - main never parses `data.json`, it only moves its bytes. It is off with one switch in Settings, and the app is fully usable with it off forever. **Do not widen it.** Anything that sends rather than receives, or that reaches the network from the renderer, belongs under the rule above, not under this exception.
 
 2. **Never use `toISOString().slice(0, 10)` to produce a date key.** That converts to UTC first, so any entry made after ~7pm in the Americas lands on the following day. On a compliance record that is a falsified date. Use `toDateKey()` from `src/domain/dates.js`. `dates.test.js` guards this.
 

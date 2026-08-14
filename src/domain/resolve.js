@@ -219,6 +219,18 @@ export function sealDay(doc, dateKey, now = new Date(), sealedBy = RESOLVED_BY.A
   if (day.sealed) return doc;
   if (!isCycleComplete(dateKey, doc.settings?.cycleEndTime, now)) return doc;
 
+  /*
+    A day the teacher deliberately reopened is theirs until they close it.
+
+    Automatic sealing runs at startup and on every rollover tick, so without
+    this a teacher who reopened Tuesday to fix an entry would find it sealed
+    again a minute later, or the next time they opened the app - which reads as
+    the reopen button not working. `reopenDay` sets the flag and closing out
+    clears it, so the only thing that can seal a reopened day is the person who
+    opened it.
+  */
+  if (day.reopened && sealedBy === RESOLVED_BY.AUTO) return doc;
+
   const ctx = buildResolveContext(doc);
   const stamp = isoTimestamp(now);
   const nextStudents = {};
@@ -262,6 +274,76 @@ export function sealDay(doc, dateKey, now = new Date(), sealedBy = RESOLVED_BY.A
         sealed: true,
         sealedAt: stamp,
         sealedBy,
+        // Closing out ends the reopening. The next automatic pass may seal this
+        // day again if it is ever unsealed by something else.
+        reopened: false,
+      },
+    },
+  };
+}
+
+/**
+ * Unseal a day so it can be worked on again, then closed out a second time.
+ *
+ * The record's own history is what makes this safe rather than alarming. A
+ * teacher who closed out on Tuesday and remembers on Wednesday that Priya did
+ * get her extra time had exactly two options before this: leave the record
+ * wrong, or amend one entry at a time through a dialog built for a single
+ * correction. Neither is what "I closed it too early" needs.
+ *
+ * What it undoes is precisely what sealing did. Entries the SEAL stamped -
+ * `not_used` with `resolvedBy: 'auto'` - go back to unassigned, because that
+ * claim was made by the clock rather than by the teacher and it is the claim
+ * they are reopening the day to revisit. Anything a person set stays exactly as
+ * they left it, including a `not_used` they chose deliberately.
+ *
+ * The reopening is logged. A sealed day that quietly becomes unsealed is what
+ * an auditor is looking for; a day that says when it was reopened, and by whom,
+ * is a record of ordinary work.
+ */
+export function reopenDay(doc, dateKey, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || !day.sealed) return doc;
+
+  const stamp = isoTimestamp(now);
+  const nextStudents = {};
+
+  for (const [studentId, studentDay] of Object.entries(day.students || {})) {
+    const nextEntries = {};
+
+    for (const [assignmentId, entry] of Object.entries(studentDay.entries || {})) {
+      const autoNotUsed = entry.status === STATUS.NOT_USED && entry.resolvedBy === RESOLVED_BY.AUTO;
+      if (!autoNotUsed) {
+        nextEntries[assignmentId] = entry;
+        continue;
+      }
+
+      // Back to the state the seal found it in. `resolvedAt` goes with it: the
+      // timestamp described a resolution that no longer stands.
+      const { resolvedAt, ...rest } = entry;
+      nextEntries[assignmentId] = { ...rest, status: STATUS.UNASSIGNED, resolvedBy: null };
+    }
+
+    nextStudents[studentId] = { ...studentDay, entries: nextEntries };
+  }
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: {
+        ...day,
+        students: nextStudents,
+        sealed: false,
+        sealedAt: null,
+        sealedBy: null,
+        // Held open against the automatic pass until it is closed out again.
+        reopened: true,
+        reopenedAt: stamp,
+        amendments: [
+          ...(day.amendments || []),
+          { at: stamp, action: 'reopened', by: doc.settings?.activeTeacherId || null },
+        ],
       },
     },
   };

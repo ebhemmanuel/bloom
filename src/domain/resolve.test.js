@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   effectiveStatus,
   sealDay,
+  reopenDay,
   sealCompletedDays,
   summarise,
   clockMovedBackwards,
@@ -261,6 +262,79 @@ describe('sealDay', () => {
   it('returns the same reference when there is nothing to do', () => {
     const doc = makeDoc();
     expect(sealDay(doc, '2026-09-01', nextMorning)).toBe(doc);
+  });
+});
+
+describe('reopenDay', () => {
+  /*
+    Reopening undoes the SEAL, not the teacher.
+
+    Everything the close-out stamped was a claim made by the clock, and that is
+    the claim being revisited. Everything a person set is theirs and survives -
+    including a Not Used they chose on purpose, which is the case that would be
+    silently destroyed by a naive "set every not_used back to unassigned".
+  */
+  it('puts auto-sealed entries back to unassigned and leaves the teacher’s alone', () => {
+    const doc = withDay(makeDoc(), TUE, {
+      [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.USED } },
+    });
+    const sealed = sealDay(doc, TUE, nextMorning);
+    const open = reopenDay(sealed, TUE, nextMorning);
+    const entries = open.days[TUE].students[T.jordan].entries;
+
+    expect(open.days[TUE].sealed).toBe(false);
+    // The seal wrote this one, so the reopen takes it back.
+    expect(entries[T.asgJordanReadAloud].status).toBe(STATUS.UNASSIGNED);
+    expect(entries[T.asgJordanReadAloud].resolvedBy).toBe(null);
+    expect(entries[T.asgJordanReadAloud].resolvedAt).toBeUndefined();
+    // The teacher wrote this one, so it stands.
+    expect(entries[T.asgJordanExtTime].status).toBe(STATUS.USED);
+  });
+
+  it('keeps a Not Used the teacher set deliberately', () => {
+    const doc = withDay(makeDoc(), TUE, {
+      [T.jordan]: { entries: { [T.asgJordanExtTime]: STATUS.NOT_USED } },
+    });
+    const sealed = sealDay(doc, TUE, nextMorning);
+    const open = reopenDay(sealed, TUE, nextMorning);
+    const entry = open.days[TUE].students[T.jordan].entries[T.asgJordanExtTime];
+
+    expect(entry.status).toBe(STATUS.NOT_USED);
+    expect(entry.resolvedBy).not.toBe('auto');
+  });
+
+  it('logs the reopening rather than unsealing quietly', () => {
+    const doc = sealDay(withDay(makeDoc(), TUE, {}), TUE, nextMorning);
+    const open = reopenDay(doc, TUE, nextMorning);
+    const last = open.days[TUE].amendments.at(-1);
+
+    expect(last.action).toBe('reopened');
+    expect(last.at).toBeTruthy();
+    expect(open.days[TUE].reopenedAt).toBeTruthy();
+  });
+
+  /*
+    The one that makes the feature work at all. Automatic sealing runs at
+    startup and on every rollover tick, so a reopened day that stayed eligible
+    would be closed again within a minute and the button would look broken.
+  */
+  it('holds the day open against the automatic pass, until it is closed by hand', () => {
+    const doc = sealDay(withDay(makeDoc(), TUE, {}), TUE, nextMorning);
+    const open = reopenDay(doc, TUE, nextMorning);
+
+    expect(sealDay(open, TUE, nextMorning)).toBe(open);
+    expect(sealCompletedDays(open, nextMorning).days[TUE].sealed).toBe(false);
+
+    // Closing out by hand still works, and ends the reopening.
+    const closed = sealDay(open, TUE, nextMorning, 'user');
+    expect(closed.days[TUE].sealed).toBe(true);
+    expect(closed.days[TUE].reopened).toBe(false);
+  });
+
+  it('is a no-op on a day that is not sealed, and never mutates its input', () => {
+    const doc = deepFreeze(withDay(makeDoc(), TUE, {}));
+    expect(reopenDay(doc, TUE, nextMorning)).toBe(doc);
+    expect(reopenDay(doc, '2026-09-01', nextMorning)).toBe(doc);
   });
 });
 

@@ -161,6 +161,17 @@
     color: var(--acc-fg-faint);
     line-height: var(--acc-lh-normal);
   }
+
+  // Something written on this day, said the same way the menu bar said it.
+  &__pip {
+    display: inline-block;
+    inline-size: 5px;
+    block-size: 5px;
+    margin-inline-start: 5px;
+    vertical-align: 0.15em;
+    border-radius: 50%;
+    background: var(--acc-accent);
+  }
 }
 
 // --- Command palette (Ctrl+Space) -------------------------------------------
@@ -302,6 +313,14 @@
     &--on {
       background: var(--acc-accent-soft);
     }
+  }
+
+  // A renamed period's code, in front of the name it was renamed to. Grey,
+  // because it is the label's address rather than part of its name.
+  &__code {
+    font-size: var(--acc-fs-tiny);
+    font-variant-numeric: tabular-nums;
+    color: var(--acc-fg-faint);
   }
 
   &__name {

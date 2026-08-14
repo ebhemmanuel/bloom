@@ -63,6 +63,7 @@ export default function AppHeader({
   openPanel,
   onOpenNotifications,
   onOpenSearch,
+  onOpenAbout,
 }) {
   const { doc } = useData();
   const { dateKey, setDateKey } = useBoard();
@@ -76,44 +77,81 @@ export default function AppHeader({
 
   return (
     <header className="acc-header">
-      <div className={`acc-header__brand${turning ? ' acc-spin' : ''}`} {...spinProps}>
-        {/* The same mark onboarding ends on, so the logo the teacher just
-            watched bloom is the one that stays with them. */}
-        <BloomMark size={22} />
-        <span className="acc-header__name">{PRODUCT_NAME}</span>
-      </div>
-
       {/*
-        Centred on the bar itself rather than between the two clusters, so the
-        menus stay put as the brand and the icon row change width. Both of those
-        are pinned to their ends, which is what leaves the middle free.
-      */}
-      <div className="acc-header__menus">
-        <MenuBar menus={menus} />
+        The brand and the menus, together at the left end.
 
+        File and Edit used to be centred on the bar. They are the app's own
+        menus, so they belong with the app's own name: a teacher looking for
+        them looks top left, the way they do in everything else on the machine,
+        and the middle of the bar is left to the search.
+      */}
+      <div className="acc-header__left">
         {/*
-          Find and the alert bell sit with the menus. Both are things you reach
-          for; the right-hand end is now purely what day you are on and what time
-          it is, which is state rather than anything to press.
+          The lockup opens About, the way a product's own name usually does.
+
+          A button rather than a div: it was inert, and an inert logo beside two
+          live menus is the one thing in the bar a teacher might try to click
+          and get nothing from. The bar only exists on the board, so there is no
+          state where this leads somewhere it already is.
         */}
         <button
           type="button"
-          className="acc-header__icon"
+          className={`acc-header__brand${turning ? ' acc-spin' : ''}`}
+          onClick={onOpenAbout}
+          aria-label={`About ${PRODUCT_NAME}`}
+          title={`About ${PRODUCT_NAME}`}
+          {...spinProps}
+        >
+          {/* The same mark onboarding ends on, so the logo the teacher just
+              watched bloom is the one that stays with them. */}
+          <BloomMark size={22} />
+          <span className="acc-header__name">{PRODUCT_NAME}</span>
+        </button>
+
+        <MenuBar menus={menus} />
+      </div>
+
+      {/*
+        Find a student, as a field rather than a glyph.
+
+        It was an icon that opened the palette, which is the fast way for anyone
+        who already knows the palette exists - and nobody does. A box that says
+        "Find a student" is the only version of this a teacher discovers without
+        being told. Clicking it still opens the same overlay, so there is one
+        search with one behaviour, reached two ways.
+      */}
+      {/*
+        A div, not a button, because the bell lives inside it and a button
+        cannot contain another one. The field itself is the button; the bell is
+        its neighbour, sharing the same pill.
+      */}
+      <div className="acc-header__search">
+        <button
+          type="button"
+          className="acc-header__searchmain"
           onClick={onOpenSearch}
           aria-label="Find a student or period"
           title="Find a student or period  ·  Ctrl+Space"
         >
-          <Icon path={SEARCH_ICON} size={17} />
+          <Icon path={SEARCH_ICON} size={15} />
+          <span className="acc-header__search-label">Find a student…</span>
         </button>
 
+        {/*
+          The bell, at the far end of the search rather than out beside the
+          date. Both are ways of asking the app what is going on, and one pill
+          holding the pair keeps the middle of the bar to a single object
+          instead of a field and a floating glyph. Drawn at the magnifier's
+          weight and colour so neither reads as louder than the other.
+        */}
         <button
           type="button"
-          className={`acc-header__icon${openPanel === 'notifications' ? ' acc-header__icon--on' : ''}`}
+          className={`acc-header__bell${openPanel === 'notifications' ? ' acc-header__bell--on' : ''}`}
           onClick={onOpenNotifications}
           aria-label={unread ? `Notifications, ${unread} to review` : 'Notifications'}
           aria-expanded={openPanel === 'notifications'}
         >
-          <Icon path={BELL_ICON} size={17} />
+          <Icon path={BELL_ICON} size={15} />
           {unread > 0 && (
             <span className="acc-header__dot acc-numeric">{unread > 9 ? '9+' : unread}</span>
           )}

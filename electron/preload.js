@@ -78,6 +78,21 @@ contextBridge.exposeInMainWorld('accommodations', {
     reveal: (filePath) => ipcRenderer.invoke('pdf:reveal', filePath),
   },
 
+  /**
+   * The one part of this bridge that reaches the network, and it only ever
+   * receives. See electron/updates.js.
+   */
+  updates: {
+    /** Ask now. Returns { ok, current, latest, available, url }. */
+    check: () => ipcRenderer.invoke('updates:check'),
+    /** Tell main whether the daily check is on, and when. */
+    setPrefs: (prefs) => ipcRenderer.invoke('updates:prefs', prefs),
+    /** Hand the release page to the system browser. Never opened in-app. */
+    open: (url) => ipcRenderer.invoke('updates:open', url),
+    /** Fires when the scheduled check finds a newer version. */
+    onAvailable: (cb) => subscribe('updates:available', cb),
+  },
+
   app: {
     getInfo: () => ipcRenderer.invoke('app:getInfo'),
     /** Save-and-exit. Main flushes any pending write before quitting. */

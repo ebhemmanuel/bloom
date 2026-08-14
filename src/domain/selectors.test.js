@@ -331,13 +331,32 @@ describe('lane order by period', () => {
     expect(roster(doc)).toEqual(['Ann B.', 'Bea Y.', 'Zoe A.']);
   });
 
-  it('reverses both halves for Z-A', () => {
+  /*
+    Z-A reverses the NAMES, never the classes.
+
+    Reversing the class order too puts the last period, and everyone in no
+    period at all, at the top of the board - which reads as the sort having
+    broken rather than as a direction being flipped. The periods are the shape
+    of the day and they run forwards; A-Z is a question about names.
+  */
+  it('reverses the names inside each period, and leaves the periods in order', () => {
     const doc = docWithPeriods([
       ['Ann', 'Baker', [P1]],
       ['Bea', 'Young', [P1]],
-      ['Zoe', 'Adams', [P3]],
+      ['Cy', 'Adams', [P3]],
+      ['Dee', 'Zephyr', [P3]],
     ]);
-    expect(roster(doc, 'za')).toEqual(['Zoe A.', 'Bea Y.', 'Ann B.']);
+    // P1 first either way; Young before Baker, Zephyr before Adams.
+    expect(roster(doc, 'za')).toEqual(['Bea Y.', 'Ann B.', 'Dee Z.', 'Cy A.']);
+  });
+
+  it('keeps a student with no period at the bottom in both directions', () => {
+    const doc = docWithPeriods([
+      ['Ann', 'Baker', [P1]],
+      ['Zoe', 'Nobody', []],
+    ]);
+    expect(roster(doc, 'az')).toEqual(['Ann B.', 'Zoe N.']);
+    expect(roster(doc, 'za')).toEqual(['Ann B.', 'Zoe N.']);
   });
 
   /** A student in two of this teacher's classes belongs with the earlier one. */
@@ -356,6 +375,38 @@ describe('lane order by period', () => {
       ['Ann', 'Baker', [P3]],
     ]);
     expect(roster(doc)).toEqual(['Ann B.', 'Zoe A.']);
+  });
+
+  /*
+    The surname is the last word of the name, wherever the name came from.
+
+    Students are stored as one display label, so `lastName` holds the whole
+    typed string and there is no separate surname field to read. Comparing that
+    string entire filed "Axel Nava" under A, above "Caedyn Clement" - a
+    first-name sort calling itself a surname sort.
+  */
+  it('files a one-field name under its last word', () => {
+    const base = makeDoc();
+    const one = (displayName, i) => ({
+      ...base.students[0],
+      id: `stu_${i}`,
+      firstName: '',
+      lastName: displayName,
+      displayName,
+      sortOrder: i,
+      periodIds: [],
+    });
+    const doc = {
+      ...base,
+      students: ['Axel Nava', 'Caedyn Clement', 'Bea'].map(one),
+      assignments: [],
+    };
+
+    const names = buildBoardModel(doc, { dateKey: WED, sort: 'az', now }).lanes.map(
+      (l) => l.displayName
+    );
+    // Bea (no surname, files under Bea), Clement, then Nava.
+    expect(names).toEqual(['Bea', 'Caedyn Clement', 'Axel Nava']);
   });
 
   it('leaves the plain name order alone when it is not asked for', () => {

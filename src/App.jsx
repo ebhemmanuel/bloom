@@ -3,6 +3,7 @@ import { DataProvider, useData, LOAD_STAGES } from './context/DataContext.jsx';
 import Board from './components/board/Board.jsx';
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx';
 import AmbientScene from './components/shared/AmbientScene.jsx';
+import FeedbackButton from './components/shared/FeedbackButton.jsx';
 import AboutBloom from './components/about/AboutBloom.jsx';
 import { setupStage } from './domain/onboarding.js';
 import AppHeader, { useHeaderPanel } from './components/shell/AppHeader.jsx';
@@ -21,7 +22,7 @@ import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
 import { DEFAULT_BACKGROUND_STYLE, DEFAULT_LOW_PERFORMANCE } from './domain/constants.js';
 import { dayHasWork } from './domain/seed.js';
-import { dataBridge, appBridge, isDesktop, isNativeMobile } from './lib/bridge.js';
+import { dataBridge, appBridge, updateBridge, isDesktop, isNativeMobile } from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
 /** Startup loader. Real staged progress, then a crossfade into what comes next. */
@@ -66,6 +67,9 @@ function AppShell() {
   const [modal, setModal] = useState(null);
   // Which student the profile modal opens on, when it was reached from a lane.
   const [editingStudentId, setEditingStudentId] = useState(null);
+  // And which student the print sheet is about, when it was reached the same
+  // way. Null is the whole class, which is what the File menu asks for.
+  const [printingStudentId, setPrintingStudentId] = useState(null);
 
   /**
    * The board's half of opening and closing a full-screen scene.
@@ -154,9 +158,28 @@ function AppShell() {
     [doc]
   );
 
+  /**
+   * A newer version exists, or nothing.
+   *
+   * Held here rather than derived, because it is the one fact in this app that
+   * does not come from the record: it arrives from the main process, which is
+   * the only thing that talks to the network. See electron/updates.js.
+   */
+  const [update, setUpdate] = useState(null);
+
+  // Main cannot read the record - that file is the renderer's - so it is told
+  // whether checking is on and when. Re-sent whenever the setting changes, so
+  // switching it off takes effect without a restart.
+  const updatePrefs = doc.settings?.updates;
+  useEffect(() => {
+    updateBridge?.setPrefs?.(updatePrefs);
+  }, [updatePrefs?.enabled, updatePrefs?.checkAt]);
+
+  useEffect(() => updateBridge?.onAvailable?.(setUpdate), []);
+
   const notifications = useMemo(
-    () => deriveNotifications(doc, { meta, boardModel: model }),
-    [doc, meta, model]
+    () => deriveNotifications(doc, { meta, boardModel: model, update }),
+    [doc, meta, model, update]
   );
 
   const menus = useMemo(
@@ -165,7 +188,16 @@ function AppShell() {
         id: 'file',
         label: 'File',
         items: [
-          { label: 'Print report', onSelect: () => openScene('print') },
+          {
+            label: 'Print report',
+            // The whole class. Right-clicking a lane prints one student, and
+            // this slot has to clear that or the menu would reopen on whoever
+            // was printed last.
+            onSelect: () => {
+              setPrintingStudentId(null);
+              openScene('print');
+            },
+          },
           { separator: true },
           { label: 'Show my records folder', onSelect: () => dataBridge.revealFolder() },
           // Directly under it, because "where is my folder" and "which folder
@@ -182,6 +214,10 @@ function AppShell() {
           // Where a desktop app puts it. This replaces the avatar button, which
           // spent a permanent slot in the bar on something opened once a term.
           { label: 'Settings', onSelect: () => openScene('settings') },
+          // Directly under it, for the same reason: a screen opened once. It
+          // had a word of its own in the bar, which is a permanent slot spent
+          // on something read one time.
+          { label: 'About', onSelect: () => openScene('about') },
           { separator: true },
           {
             label: 'Save and exit',
@@ -233,20 +269,16 @@ function AppShell() {
           { label: 'Copy', hidden: true, onSelect: () => setModal('copy') },
         ],
       },
-      // A word in the bar rather than an icon in the corner. Day notes are
-      // written most days and are the one thing here a teacher composes rather
-      // than checks, so they get a name instead of a glyph to interpret.
-      {
-        id: 'notes',
-        label: 'Notes',
-        onSelect: () => openScene('daynotes'),
-        pip: Boolean(model.dayNotes || model.teacherAbsence),
-      },
-      // A direct action, like Notes. A dropdown holding one item is a click
-      // spent on nothing, and the item repeated the word above it.
-      { id: 'about', label: 'About', onSelect: () => openScene('about') },
+      /*
+        Notes and About used to be words of their own out here.
+
+        Day notes belong to a DAY, so they moved to the board's own three-dot
+        menu beside Copy yesterday and Close out day - the menu bar is where you
+        go for the app, not for Tuesday. About is opened once and moved under
+        Settings, which is the other thing in this menu you open once.
+      */
     ],
-    [toggle, openScene, model.dayNotes, model.teacherAbsence]
+    [toggle, openScene]
   );
 
   return (
@@ -288,6 +320,12 @@ function AppShell() {
             close();
             palette.setOpen(true);
           }}
+          // The lockup opens About, which is also under File. Two ways in for
+          // the one screen that is about the app rather than the record.
+          onOpenAbout={() => {
+            close();
+            openScene('about');
+          }}
         />
 
         {palette.open && <CommandPalette onClose={palette.close} />}
@@ -303,6 +341,9 @@ function AppShell() {
                 openScene('daynotes');
               }
               if (n.act === 'goToDate' && n.payload) setDateKey(n.payload);
+              // The release page, in the teacher's own browser. Never in-app:
+              // see the handler in ipc-handlers.js.
+              if (n.act === 'openRelease') updateBridge?.open?.(n.payload);
             }}
           />
         )}
@@ -347,7 +388,12 @@ function AppShell() {
         )}
         {modal === 'copy' && <CopyAccommodationsModal onClose={() => setModal(null)} />}
         {modal === 'print' && (
-          <PrintReportModal background={background} leaving={sceneLeaving} onClose={closeScene} />
+          <PrintReportModal
+            studentId={printingStudentId}
+            background={background}
+            leaving={sceneLeaving}
+            onClose={closeScene}
+          />
         )}
 
         {modal === 'about' && (
@@ -424,9 +470,20 @@ function AppShell() {
               setEditingStudentId(id);
               openScene('editStudent');
             }}
+            // The print sheet, scoped to one student. Same scene the File menu
+            // opens; the id is what makes it their record rather than the class.
+            onPrintStudent={(id) => {
+              setPrintingStudentId(id);
+              openScene('print');
+            }}
+            onDayNotes={() => openScene('daynotes')}
           />
         </main>
       </div>
+
+      {/* Outside the frame, fixed to the viewport: the corner of every screen,
+          including the full-screen sheets that replace the board. */}
+      <FeedbackButton />
     </div>
   );
 }
