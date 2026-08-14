@@ -32,7 +32,12 @@ win:
   signExecutable: false
 
 portable:
-  artifactName: 'Accommodations-Tracker.exe'
+  # The file a teacher downloads and double-clicks, so it carries the name they
+  # were told. This is the output filename only: productName below is what
+  # decides app.getPath('userData'), and moving THAT orphans the location.json
+  # pointer of everyone already installed. The two are deliberately not renamed
+  # together.
+  artifactName: 'Bloom.exe'
   # unpackDirName is deliberately NOT set. The default derives a stable directory
   # name from productName + version, so a relaunch reuses the existing unpack
   # instead of re-extracting ~86 MB — a real difference from a USB stick.

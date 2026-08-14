@@ -56,7 +56,7 @@ The domain suite. Should stay green at all times.
 npm run electron:build
 ```
 
-Produces `dist-electron/Accommodations-Tracker.exe` - a single portable file, no installer.
+Produces `dist-electron/Bloom.exe` - a single portable file, no installer.
 
 On Windows, if the repo is under Documents and OneDrive sync is on, `electron:build` may fail with `EPERM` while renaming `win-unpacked.tmp`. Use this instead:
 
