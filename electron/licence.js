@@ -60,7 +60,7 @@ MCowBQYDK2VwAyEApH+A0Mu9HSHCCdnbwosLROuc+rWaP6NosL7zyePJWio=
  * The link must collect NAME and EMAIL: they are the two arguments
  * scripts/make-licence.js takes, and the key is signed over them.
  */
-const BUY_URL = null;
+const BUY_URL = 'https://buy.stripe.com/aFa6oH1m62NQei14xcgbm00';
 
 const LICENCE_FILE = 'licence.json';
 

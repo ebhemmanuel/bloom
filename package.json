@@ -1,7 +1,7 @@
 {
   "name": "accommodations-tracker",
   "productName": "Bloom",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Offline daily IEP/504 accommodation tracking for teachers. Local JSON only, never touches the network.",
   "main": "electron/main.js",

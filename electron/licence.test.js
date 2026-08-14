@@ -56,6 +56,33 @@ describe('the compiled-in public key', () => {
   });
 });
 
+describe('the buy link', () => {
+  const { BUY_URL } = require('./licence.js');
+
+  /*
+    Same failure shape as a missing public key, and the reason both are tested
+    here rather than trusted. licence:buy answers `configured: false` and the
+    gate quietly renders "I have a key" instead of a buy button, so a build that
+    shipped with this null or mistyped would take no money at all and look
+    entirely healthy doing it.
+  */
+  it('is set, so the gate can actually sell something', () => {
+    expect(BUY_URL).toBeTruthy();
+  });
+
+  it('points at Stripe over https', () => {
+    expect(BUY_URL).toMatch(/^https:\/\/buy\.stripe\.com\//);
+  });
+
+  /*
+    A test-mode link takes no real money and is indistinguishable from a working
+    one until someone tells you their payment did nothing.
+  */
+  it('is not a test-mode link', () => {
+    expect(BUY_URL).not.toMatch(/\/test_/);
+  });
+});
+
 describe('verifyKey', () => {
   /*
     None of these may throw. A crash here happens on startup, before the board
