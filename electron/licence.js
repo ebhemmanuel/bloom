@@ -30,10 +30,18 @@ const path = require('node:path');
  * The public half of the signing key. The private half never leaves the
  * developer's machine - see scripts/make-licence.js.
  *
- * Replaced by the real key before the first paid build. Left null on purpose
- * rather than filled with a placeholder that would silently verify nothing.
+ * Safe to publish, and it has to be: this file ships inside every copy of the
+ * app and the repository is public. It can only CHECK a signature, never make
+ * one, so reading it buys an attacker nothing.
+ *
+ * The BEGIN and END lines are part of the key rather than decoration. Node's
+ * createPublicKey reads PEM and throws on a bare base64 body, and because
+ * verifyKey swallows that throw, a headerless key here would not fail loudly -
+ * it would quietly reject every licence ever issued. Hence the test.
  */
-const PUBLIC_KEY_PEM = null;
+const PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEApH+A0Mu9HSHCCdnbwosLROuc+rWaP6NosL7zyePJWio=
+-----END PUBLIC KEY-----`;
 
 const LICENCE_FILE = 'licence.json';
 
