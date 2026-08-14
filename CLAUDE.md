@@ -1,4 +1,4 @@
-# CLAUDE.md - Accommodations Tracker
+# CLAUDE.md - Bloom
 
 Offline desktop app for teachers to track daily IEP/504 accommodation delivery. Read [`README.md`](README.md) for architecture and [`docs/DESIGN_REQUIREMENTS.md`](docs/DESIGN_REQUIREMENTS.md) before touching UI.
 

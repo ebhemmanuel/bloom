@@ -1,4 +1,4 @@
-# Accommodations Tracker
+# Bloom
 
 A standalone, fully offline Windows desktop app for teachers to record daily IEP/504 accommodation delivery, structured as a Jira-style kanban board with one collapsible swimlane per student. Exports to printable PDF for compliance submission.
 
@@ -56,7 +56,7 @@ The domain suite. Should stay green at all times.
 npm run electron:build
 ```
 
-Produces `dist-electron/Bloom.exe` - a single portable file, no installer.
+Produces `dist-electron/bloom.exe` - a single portable file, no installer.
 
 On Windows, if the repo is under Documents and OneDrive sync is on, `electron:build` may fail with `EPERM` while renaming `win-unpacked.tmp`. Use this instead:
 
@@ -103,7 +103,7 @@ Not next to the `.exe` - ever. Two reasons:
 1. The portable build unpacks to a random `%TEMP%` directory and runs from there, so `process.execPath` points at the temp dir, not the folder the teacher sees.
 2. The USB stick is a delivery vehicle for the _app_. The record is born on the teacher's machine and stays there, so copying the app folder never carries student data with it.
 
-Instead, onboarding asks for a folder - suggested as `…\Bloom`, named for the app the teacher sees - and writes a **pointer** to `%APPDATA%\Accommodations Tracker\location.json`. That is on the local machine and scoped per Windows account, so it's inherently per-teacher on a shared computer and cannot travel on the stick.
+Instead, onboarding asks for a folder - suggested as `…\Bloom`, named for the app the teacher sees - and writes a **pointer** to `%APPDATA%\Bloom\location.json`. That is on the local machine and scoped per Windows account, so it's inherently per-teacher on a shared computer and cannot travel on the stick.
 
 The same question is answerable later, from **File > Configure records folder**. That screen shares the setup list, and it **copies** rather than moves: the record lands in the new folder, the app reads from there onward, and the old file stays where it is until the teacher deletes it. A record already in the target is never silently overwritten - the choice is put to the teacher, and the displaced file is set aside under a dated name.
 

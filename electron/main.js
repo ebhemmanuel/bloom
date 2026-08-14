@@ -69,7 +69,7 @@ function createWindow() {
     if (!fs.existsSync(indexPath)) {
       log.error(`renderer bundle missing at ${indexPath}`);
       dialog.showErrorBox(
-        'Accommodations Tracker',
+        'Bloom',
         `The application files are incomplete.\n\nExpected to find:\n${indexPath}\n\n` +
           'Please reinstall from the original USB drive.'
       );

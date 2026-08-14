@@ -19,7 +19,7 @@ const ROOT = path.join(__dirname, '..');
 const TEMP_OUT = 'C:/Temp/accom-electron-build';
 // Must match `portable.artifactName` in electron-builder.yml, or the copy back
 // into dist-electron finds nothing and the build fails at the last step.
-const EXE_NAME = 'Bloom.exe';
+const EXE_NAME = 'bloom.exe';
 const DEST_DIR = path.join(ROOT, 'dist-electron');
 const DEST_EXE = path.join(DEST_DIR, EXE_NAME);
 const BUILT_EXE = path.join(TEMP_OUT, EXE_NAME);

@@ -1,6 +1,6 @@
 appId: com.classroom.accommodations
-productName: Accommodations Tracker
-copyright: Accommodations Tracker
+productName: Bloom
+copyright: Bloom
 
 directories:
   output: dist-electron
@@ -32,12 +32,17 @@ win:
   signExecutable: false
 
 portable:
-  # The file a teacher downloads and double-clicks, so it carries the name they
-  # were told. This is the output filename only: productName below is what
-  # decides app.getPath('userData'), and moving THAT orphans the location.json
-  # pointer of everyone already installed. The two are deliberately not renamed
-  # together.
-  artifactName: 'Bloom.exe'
+  # Lower case, matching every build handed out so far, so the download keeps
+  # the name people have already seen.
+  #
+  # Note this is the OUTPUT FILENAME only. What moves userData is productName in
+  # package.json, which Electron reads for app.getName(): the one in this file
+  # stamps the exe metadata and nothing else. Both were renamed together on day
+  # zero, while every copy in the wild was a beta and no licence or records
+  # pointer existed to be stranded in the old %APPDATA% folder. After a single
+  # sale that stops being true, and a rename would need to carry location.json
+  # and licence.json across.
+  artifactName: 'bloom.exe'
   # unpackDirName is deliberately NOT set. The default derives a stable directory
   # name from productName + version, so a relaunch reuses the existing unpack
   # instead of re-extracting ~86 MB — a real difference from a USB stick.
