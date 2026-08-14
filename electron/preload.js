@@ -100,6 +100,12 @@ contextBridge.exposeInMainWorld('accommodations', {
   licence: {
     get: () => ipcRenderer.invoke('licence:get'),
     set: (key) => ipcRenderer.invoke('licence:set', key),
+    /**
+     * Opens Stripe in the teacher's own browser. Takes no URL on purpose: the
+     * address lives in main, so this side cannot aim it anywhere.
+     */
+    buy: () => ipcRenderer.invoke('licence:buy'),
+    canBuy: () => ipcRenderer.invoke('licence:canBuy'),
   },
 
   app: {

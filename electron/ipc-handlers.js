@@ -15,7 +15,7 @@ const pdf = require('./pdf-export');
 const paths = require('./data-paths');
 const { createDataStore } = require('./data-store');
 const { checkForUpdate, startUpdateSchedule, RELEASES_PAGE } = require('./updates');
-const { readLicence, saveLicence } = require('./licence');
+const { readLicence, saveLicence, BUY_URL } = require('./licence');
 const log = require('./app-log');
 
 /** The active store, created once a data location is known. */
@@ -106,6 +106,27 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
   /** Accept a pasted key. Returns why it failed, so the field can say. */
   ipcMain.handle('licence:set', (_e, key) => saveLicence(app, key, store?.dirPath || null));
+
+  /**
+   * Send the teacher to Stripe, in their own browser.
+   *
+   * The renderer passes no URL and cannot: the address lives here, so a bug or
+   * an injected string in the window that holds student data can never choose
+   * where this goes. `updates:open` takes a URL and has to filter it; this one
+   * has nothing to filter.
+   *
+   * `configured: false` is a real answer rather than a failure. A build with no
+   * Payment Link set simply has no buy button, and the teacher is asked for a
+   * key instead.
+   */
+  ipcMain.handle('licence:buy', () => {
+    if (!BUY_URL) return { ok: false, configured: false };
+    shell.openExternal(BUY_URL);
+    return { ok: true, configured: true };
+  });
+
+  /** So the renderer knows whether to offer the button at all. */
+  ipcMain.handle('licence:canBuy', () => Boolean(BUY_URL));
 
   /**
    * Open the release page in the teacher's own browser.

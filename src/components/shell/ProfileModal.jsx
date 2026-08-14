@@ -50,6 +50,19 @@ const SECTIONS = [
   { id: 'look', label: 'Appearance' },
 ];
 
+/**
+ * What went wrong, in the teacher's words rather than the verifier's.
+ *
+ * `unsigned-build` is deliberately not surfaced. It means the copy was built
+ * with no public key compiled in, which is my mistake and nothing a teacher can
+ * act on, so it reads as the generic case and sends them to a reply instead.
+ */
+function keyErrorText(reason) {
+  if (reason === 'malformed')
+    return 'That does not look like a full key, check nothing was cut off when you copied it.';
+  return 'That key was not recognised. Reply to the email it came in and I will sort it out.';
+}
+
 const TIPS = {
   you: 'Everything here saves as it changes - close whenever.',
   classes: 'Used on the report header, and to suggest catalogs. Nothing else.',
@@ -95,12 +108,49 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
   const [keyError, setKeyError] = useState(null);
   // The year they tried to start without a licence, held while we explain.
   const [wantsYear, setWantsYear] = useState(null);
+  /*
+    Which half of the ask they are on: the offer, or the key.
+
+    Two screens rather than one because they are separated by a trip to a
+    browser and an email. A single screen would have to show a price and an
+    empty key field at the same time, which reads as "pay, and also paste the
+    thing you do not have yet".
+  */
+  const [gateStep, setGateStep] = useState('offer');
+  /*
+    Whether a Payment Link is configured in this build. Null until main answers,
+    which in practice is long before the gate can appear: reaching it takes a
+    date change, and this resolves on mount.
+  */
+  const [canBuy, setCanBuy] = useState(null);
 
   useEffect(() => {
     licenceBridge?.get?.().then((l) => setLicence(l || null));
+    licenceBridge?.canBuy?.().then((v) => setCanBuy(Boolean(v)));
   }, []);
   const lowPerformance = settings.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
   const termStart = doc.schoolCalendar?.termStart || '';
+
+  /**
+   * Take a key, from either place it can be pasted.
+   *
+   * One function because a key that works in the gate must work under Reminders
+   * and vice versa, and because clearing `wantsYear` on success is what turns
+   * the ask back into the year they were trying to start in the first place.
+   */
+  const activateKey = async (raw) => {
+    const result = await licenceBridge.set(raw.trim());
+    if (!result?.ok) {
+      setKeyError(result?.reason || 'invalid');
+      return false;
+    }
+    setLicence(result.licence);
+    setKeyDraft('');
+    setKeyError(null);
+    setWantsYear(null);
+    setGateStep('offer');
+    return true;
+  };
 
   const commit = (changes) => {
     const next = { ...draft, ...changes };
@@ -185,6 +235,9 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
     is begin a second one.
   */
   if (wantsYear) {
+    const year = schoolYearOf(wantsYear);
+    const offering = gateStep === 'offer';
+
     return (
       <SceneFrame
         label="A second school year"
@@ -192,52 +245,140 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
         leaving={leaving}
         onClose={onClose}
         footer={
-          <>
-            <div className="acc-sheet__footside">
+          offering ? (
+            <>
+              <div className="acc-sheet__footside">
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--quiet"
+                  onClick={() => setWantsYear(null)}
+                >
+                  Not now
+                </button>
+                {/* Only worth offering separately when the other button buys. */}
+                {canBuy && (
+                  <button
+                    type="button"
+                    className="acc-btn acc-btn--quiet"
+                    onClick={() => setGateStep('key')}
+                  >
+                    I have a key
+                  </button>
+                )}
+              </div>
+              <span className="acc-sheet__tip">
+                {year}-{year + 1} would be your second year.
+              </span>
+              {canBuy ? (
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--primary"
+                  onClick={async () => {
+                    await licenceBridge?.buy?.();
+                    setGateStep('key');
+                  }}
+                >
+                  Continue to payment
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--primary"
+                  onClick={() => setGateStep('key')}
+                >
+                  I have a key
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="acc-sheet__footside">
+                <button
+                  type="button"
+                  className="acc-btn acc-btn--quiet"
+                  onClick={() => {
+                    setGateStep('offer');
+                    setKeyError(null);
+                  }}
+                >
+                  Back
+                </button>
+              </div>
+              <span className="acc-sheet__tip">
+                Checked on this computer. Nothing is sent anywhere to verify it.
+              </span>
               <button
                 type="button"
-                className="acc-btn acc-btn--quiet"
-                onClick={() => setWantsYear(null)}
+                className="acc-btn acc-btn--primary"
+                disabled={!keyDraft.trim()}
+                onClick={() => activateKey(keyDraft)}
               >
-                Not now
+                Activate
               </button>
-            </div>
-            <span className="acc-sheet__tip">
-              {schoolYearOf(wantsYear)}-{schoolYearOf(wantsYear) + 1} would be your second year.
-            </span>
-            <button
-              type="button"
-              className="acc-btn acc-btn--primary"
-              onClick={() => {
-                setWantsYear(null);
-                setSection('notify');
-              }}
-            >
-              I have a key
-            </button>
-          </>
+            </>
+          )
         }
       >
-        <div className="acc-sheet__view">
-          <div className="acc-sheet__pane">
-            <div className="acc-sheet__intro acc-sheet__intro--center">
-              <h1 className="acc-sheet__title">Ready for another year?</h1>
-              <p className="acc-sheet__sub acc-sheet__sub--balance">
-                Your first school year is free, and it stays that way. Everything you have recorded
-                is yours to open, edit and print for as long as you keep the file, whatever you
-                decide here.
+        {/* Keyed so the entrance replays across the two halves of the ask. */}
+        <div className="acc-sheet__view" key={gateStep}>
+          {offering ? (
+            <div className="acc-sheet__pane">
+              <div className="acc-sheet__intro acc-sheet__intro--center">
+                <h1 className="acc-sheet__title">Ready for another year?</h1>
+                <p className="acc-sheet__sub acc-sheet__sub--balance">
+                  Your first school year is free, and it stays that way. Everything you have
+                  recorded is yours to open, edit and print for as long as you keep the file,
+                  whatever you decide here.
+                </p>
+              </div>
+
+              <p className="acc-set__pitch">
+                Starting {year}-{year + 1} is a one-time $29. No subscription, no expiry, and it
+                works on a computer that never touches the internet.
               </p>
+
+              <span className="acc-set__hint acc-set__hint--center">
+                {canBuy
+                  ? 'Payment opens in your own browser, on Stripe. Bloom itself stays offline, and never sees your card.'
+                  : 'Nothing is taken away if you close this. You can come back in November.'}
+              </span>
             </div>
+          ) : (
+            <div className="acc-sheet__pane">
+              <div className="acc-sheet__intro acc-sheet__intro--center">
+                <h1 className="acc-sheet__title">Paste your key</h1>
+                <p className="acc-sheet__sub acc-sheet__sub--balance">
+                  {canBuy
+                    ? 'Your browser is open on the payment page. The key arrives by email straight after, and it is yours for good: keep that email and the same key works on any computer you move to.'
+                    : 'It came by email when you bought Bloom. Keep that email, because pasting the same key again is all a new computer needs.'}
+                </p>
+              </div>
 
-            <p className="acc-set__pitch">
-              Starting {schoolYearOf(wantsYear)}-{schoolYearOf(wantsYear) + 1} is a one-time $29. No
-              subscription, no expiry, and it works on a computer that never touches the internet.
-            </p>
-
-            <span className="acc-set__hint acc-set__hint--center">
-              Nothing is taken away if you close this. You can come back in November.
-            </span>
-          </div>
+              <div className="acc-set__field">
+                {/* The row is what makes flex:1 on the key input mean "fill the
+                    width" rather than "stretch downwards". */}
+                <div className="acc-set__row">
+                  <input
+                    className="acc-set__input acc-set__input--key"
+                    value={keyDraft}
+                    onChange={(e) => {
+                      setKeyDraft(e.target.value);
+                      setKeyError(null);
+                    }}
+                    placeholder="BLOOM-…"
+                    aria-label="Licence key"
+                    spellCheck={false}
+                    autoFocus
+                  />
+                </div>
+                <span className="acc-set__hint acc-set__hint--center">
+                  {keyError
+                    ? keyErrorText(keyError)
+                    : 'One long line starting with BLOOM-. A line break from your email is fine.'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </SceneFrame>
     );
@@ -677,26 +818,14 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                         type="button"
                         className="acc-btn acc-btn--small"
                         disabled={readOnly || !keyDraft.trim()}
-                        onClick={async () => {
-                          const result = await licenceBridge.set(keyDraft.trim());
-                          if (result?.ok) {
-                            setLicence(result.licence);
-                            setKeyDraft('');
-                            setKeyError(null);
-                            setWantsYear(null);
-                          } else {
-                            setKeyError(result?.reason || 'invalid');
-                          }
-                        }}
+                        onClick={() => activateKey(keyDraft)}
                       >
                         Activate
                       </button>
                     </div>
                     <span className="acc-set__hint">
                       {keyError
-                        ? keyError === 'malformed'
-                          ? 'That does not look like a full key - check nothing was cut off when you copied it.'
-                          : 'That key was not recognised. Reply to the email it came in and I will sort it out.'
+                        ? keyErrorText(keyError)
                         : 'Your first school year is free, with every student. A licence is only needed to start a second year, and it never expires.'}
                     </span>
                   </>

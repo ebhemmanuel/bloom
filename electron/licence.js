@@ -43,6 +43,25 @@ const PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEApH+A0Mu9HSHCCdnbwosLROuc+rWaP6NosL7zyePJWio=
 -----END PUBLIC KEY-----`;
 
+/**
+ * Where a teacher goes to buy one. A Stripe Payment Link, opened in THEIR
+ * browser by the main process, never in a window of ours.
+ *
+ * That is not squeamishness about webviews. Any page opened in-app runs in a
+ * window with the preload bridge attached, one mistake away from the record,
+ * and the renderer could not load Stripe anyway: connect-src is 'none' and the
+ * request filter in security.js cancels every non-file: scheme. Card entry
+ * belongs in a browser, in a window that has never seen a student's name.
+ *
+ * Null until the Payment Link exists. The buy button hides itself rather than
+ * opening nothing, so an unconfigured build simply asks for a key instead of
+ * offering a dead end.
+ *
+ * The link must collect NAME and EMAIL: they are the two arguments
+ * scripts/make-licence.js takes, and the key is signed over them.
+ */
+const BUY_URL = null;
+
 const LICENCE_FILE = 'licence.json';
 
 /**
@@ -192,4 +211,4 @@ function saveLicence(app, raw, recordsDir = null) {
   return { ok: true, licence: result.licence };
 }
 
-module.exports = { verifyKey, readLicence, saveLicence, parseKey, licencePath };
+module.exports = { verifyKey, readLicence, saveLicence, parseKey, licencePath, BUY_URL };
