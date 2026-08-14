@@ -121,6 +121,13 @@ const browserFallback = {
     onAvailable: () => () => {},
   },
 
+  // Unlicensed in a browser tab, which is the honest answer: the gate belongs
+  // to the desktop build, and pretending otherwise would hide it while building.
+  licence: {
+    get: async () => null,
+    set: async () => ({ ok: false, reason: 'browser' }),
+  },
+
   app: {
     getInfo: async () => ({ version: 'dev', packaged: false, platform: 'browser' }),
     // A browser tab cannot close itself unless it opened itself, so this is a
@@ -137,5 +144,7 @@ export const pdfBridge = api.pdf;
 export const appBridge = api.app;
 /** The one outbound surface. Receive-only: see electron/updates.js. */
 export const updateBridge = api.updates;
+/** Verified locally against a compiled-in public key. Never leaves the machine. */
+export const licenceBridge = api.licence;
 
 export default api;

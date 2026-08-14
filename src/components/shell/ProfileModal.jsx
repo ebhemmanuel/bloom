@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { updateTeacher, updateSettings, setTermStart } from '../../domain/mutations.js';
+import { needsLicenceFor, schoolYearOf } from '../../domain/licensing.js';
 import DateField from '../shared/DateField.jsx';
 import {
   BACKGROUND_STYLES,
@@ -16,7 +17,7 @@ import {
   GRADE_OPTIONS,
 } from '../../domain/constants.js';
 import SceneFrame from '../shared/SceneFrame.jsx';
-import { updateBridge, isDesktop } from '../../lib/bridge.js';
+import { updateBridge, licenceBridge, isDesktop } from '../../lib/bridge.js';
 
 /**
  * Settings, on the same sheet the add-student wizard lands on. Built to
@@ -81,6 +82,23 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
   // The manual check's own state: in flight, and what it found.
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(null);
+
+  /*
+    The licence, read once from the main process.
+
+    Held here rather than in the record: who paid for the software has no place
+    in a compliance document, and it is verified against a key compiled into the
+    binary rather than against anything in the file.
+  */
+  const [licence, setLicence] = useState(null);
+  const [keyDraft, setKeyDraft] = useState('');
+  const [keyError, setKeyError] = useState(null);
+  // The year they tried to start without a licence, held while we explain.
+  const [wantsYear, setWantsYear] = useState(null);
+
+  useEffect(() => {
+    licenceBridge?.get?.().then((l) => setLicence(l || null));
+  }, []);
   const lowPerformance = settings.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
   const termStart = doc.schoolCalendar?.termStart || '';
 
@@ -156,6 +174,74 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
       </button>
     </>
   );
+
+  /*
+    The ask, and the only one in the app.
+
+    It replaces the whole screen rather than sitting on it, because it is a
+    decision rather than an error - and it says what is NOT happening as
+    plainly as what is. A teacher who closes this keeps everything: the year
+    they recorded stays open, editable and printable forever. All they cannot do
+    is begin a second one.
+  */
+  if (wantsYear) {
+    return (
+      <SceneFrame
+        label="A second school year"
+        background={background}
+        leaving={leaving}
+        onClose={onClose}
+        footer={
+          <>
+            <div className="acc-sheet__footside">
+              <button
+                type="button"
+                className="acc-btn acc-btn--quiet"
+                onClick={() => setWantsYear(null)}
+              >
+                Not now
+              </button>
+            </div>
+            <span className="acc-sheet__tip">
+              {schoolYearOf(wantsYear)}-{schoolYearOf(wantsYear) + 1} would be your second year.
+            </span>
+            <button
+              type="button"
+              className="acc-btn acc-btn--primary"
+              onClick={() => {
+                setWantsYear(null);
+                setSection('notify');
+              }}
+            >
+              I have a key
+            </button>
+          </>
+        }
+      >
+        <div className="acc-sheet__view">
+          <div className="acc-sheet__pane">
+            <div className="acc-sheet__intro acc-sheet__intro--center">
+              <h1 className="acc-sheet__title">Ready for another year?</h1>
+              <p className="acc-sheet__sub acc-sheet__sub--balance">
+                Your first school year is free, and it stays that way. Everything you have recorded
+                is yours to open, edit and print for as long as you keep the file, whatever you
+                decide here.
+              </p>
+            </div>
+
+            <p className="acc-set__pitch">
+              Starting {schoolYearOf(wantsYear)}-{schoolYearOf(wantsYear) + 1} is a one-time $29. No
+              subscription, no expiry, and it works on a computer that never touches the internet.
+            </p>
+
+            <span className="acc-set__hint acc-set__hint--center">
+              Nothing is taken away if you close this. You can come back in November.
+            </span>
+          </div>
+        </div>
+      </SceneFrame>
+    );
+  }
 
   return (
     <SceneFrame
@@ -394,7 +480,24 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                 <span className="acc-set__label">First day of class</span>
                 <DateField
                   value={termStart}
-                  onChange={(next) => !readOnly && mutate((d) => setTermStart(d, next))}
+                  /*
+                    The only gated action in the app.
+
+                    Moving this within the year already recorded is a correction
+                    and always free. Moving it into a year the record has never
+                    seen is starting a second school year, which is the one
+                    thing a licence buys. See domain/licensing.js - and note
+                    that refusing here changes nothing: every day already in the
+                    file stays editable, printable and exportable regardless.
+                  */
+                  onChange={(next) => {
+                    if (readOnly) return;
+                    if (needsLicenceFor(doc, next, Boolean(licence))) {
+                      setWantsYear(next);
+                      return;
+                    }
+                    mutate((d) => setTermStart(d, next));
+                  }}
                   placeholder="Not set yet"
                   label="First day of class"
                   disabled={readOnly}
@@ -529,6 +632,75 @@ export default function ProfileModal({ onClose, background, leaving = false }) {
                     </span>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/*
+              The licence.
+
+              Under Reminders because this is the other place the app talks to
+              the teacher about itself rather than about their students, and it
+              is not worth a tab of its own: most people will look at it twice
+              ever - once when they buy, once if they change computers.
+
+              Checked here on this machine against a key built into the app. No
+              request goes anywhere, and it does not expire.
+            */}
+            {isDesktop && (
+              <div className="acc-set__field">
+                <span className="acc-wiz__label">Licence</span>
+
+                {licence ? (
+                  <>
+                    <span className="acc-set__licensed">Licensed to {licence.name}</span>
+                    <span className="acc-set__hint">
+                      {licence.email} · issued {licence.issued}. Keep the email it came in: pasting
+                      the same key again is all a new computer needs.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="acc-set__row">
+                      <input
+                        className="acc-set__input acc-set__input--key"
+                        value={keyDraft}
+                        onChange={(e) => {
+                          setKeyDraft(e.target.value);
+                          setKeyError(null);
+                        }}
+                        placeholder="BLOOM-…"
+                        aria-label="Licence key"
+                        spellCheck={false}
+                        disabled={readOnly}
+                      />
+                      <button
+                        type="button"
+                        className="acc-btn acc-btn--small"
+                        disabled={readOnly || !keyDraft.trim()}
+                        onClick={async () => {
+                          const result = await licenceBridge.set(keyDraft.trim());
+                          if (result?.ok) {
+                            setLicence(result.licence);
+                            setKeyDraft('');
+                            setKeyError(null);
+                            setWantsYear(null);
+                          } else {
+                            setKeyError(result?.reason || 'invalid');
+                          }
+                        }}
+                      >
+                        Activate
+                      </button>
+                    </div>
+                    <span className="acc-set__hint">
+                      {keyError
+                        ? keyError === 'malformed'
+                          ? 'That does not look like a full key - check nothing was cut off when you copied it.'
+                          : 'That key was not recognised. Reply to the email it came in and I will sort it out.'
+                        : 'Your first school year is free, with every student. A licence is only needed to start a second year, and it never expires.'}
+                    </span>
+                  </>
+                )}
               </div>
             )}
           </div>

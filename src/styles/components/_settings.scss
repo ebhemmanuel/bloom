@@ -102,6 +102,41 @@
     flex-wrap: wrap;
   }
 
+  // A licence key is 200-odd characters of base64, so it gets the mono face and
+  // the room to show that something long and correct is in there.
+  &__input--key {
+    flex: 1;
+    min-inline-size: 220px;
+    font-family: var(--acc-font-mono);
+    font-size: var(--acc-fs-tiny);
+  }
+
+  // Who this copy belongs to. The whole anti-sharing measure, and deliberately
+  // a quiet one - see electron/licence.js.
+  &__licensed {
+    font-size: var(--acc-fs-sub);
+    font-weight: var(--acc-fw-medium);
+    color: var(--acc-accent);
+  }
+
+  // The one sentence in the app that asks for money. Larger than a hint and
+  // quieter than a heading: it is information, not a pitch.
+  &__pitch {
+    margin: 0;
+    padding: var(--acc-space-4) var(--acc-space-5);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-lg);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-body);
+    line-height: var(--acc-lh-normal);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  &__hint--center {
+    text-align: center;
+  }
+
   &__chips {
     display: flex;
     flex-wrap: wrap;

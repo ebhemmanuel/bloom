@@ -22,7 +22,14 @@ import { deriveNotifications } from './domain/notifications.js';
 import { PRODUCT_NAME } from './domain/schema.js';
 import { DEFAULT_BACKGROUND_STYLE, DEFAULT_LOW_PERFORMANCE } from './domain/constants.js';
 import { dayHasWork } from './domain/seed.js';
-import { dataBridge, appBridge, updateBridge, isDesktop, isNativeMobile } from './lib/bridge.js';
+import {
+  dataBridge,
+  appBridge,
+  updateBridge,
+  licenceBridge,
+  isDesktop,
+  isNativeMobile,
+} from './lib/bridge.js';
 import useFirstRunCascade from './hooks/useFirstRunCascade.js';
 
 /** Startup loader. Real staged progress, then a crossfade into what comes next. */
@@ -177,9 +184,21 @@ function AppShell() {
 
   useEffect(() => updateBridge?.onAvailable?.(setUpdate), []);
 
+  /*
+    Whether this copy is licensed - read once, from the main process.
+
+    Only two things in the app read it: the new-school-year notice, which drops
+    the price when there is nothing to sell, and the gate on the term start.
+    Nothing else in the record or the board is ever conditional on it.
+  */
+  const [licensed, setLicensed] = useState(false);
+  useEffect(() => {
+    licenceBridge?.get?.().then((l) => setLicensed(Boolean(l)));
+  }, []);
+
   const notifications = useMemo(
-    () => deriveNotifications(doc, { meta, boardModel: model, update }),
-    [doc, meta, model, update]
+    () => deriveNotifications(doc, { meta, boardModel: model, update, licensed }),
+    [doc, meta, model, update, licensed]
   );
 
   const menus = useMemo(
@@ -344,6 +363,12 @@ function AppShell() {
               // The release page, in the teacher's own browser. Never in-app:
               // see the handler in ipc-handlers.js.
               if (n.act === 'openRelease') updateBridge?.open?.(n.payload);
+              // Where the first day of class lives, which is the only place a
+              // new school year can be started.
+              if (n.act === 'openSettings') {
+                close();
+                openScene('settings');
+              }
             }}
           />
         )}

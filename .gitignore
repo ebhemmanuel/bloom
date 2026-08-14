@@ -10,6 +10,18 @@ data.json
 data.corrupt-*.json
 backups/
 
+# Licence signing material. NEVER commit — this repository is public, and a
+# leaked private key lets anyone mint valid licences forever. Offline
+# verification means there is no revocation: the only remedy would be shipping a
+# new binary with a new public key, invalidating every legitimate key too.
+#
+# make-licence.js writes to ~/.bloom-signing/ precisely so none of this is ever
+# inside the repo. These patterns are the second line of defence.
+*.pem
+.bloom-signing/
+issued.log
+licence.json
+
 .DS_Store
 Thumbs.db
 *.log

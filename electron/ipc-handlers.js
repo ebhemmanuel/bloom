@@ -15,6 +15,7 @@ const pdf = require('./pdf-export');
 const paths = require('./data-paths');
 const { createDataStore } = require('./data-store');
 const { checkForUpdate, startUpdateSchedule, RELEASES_PAGE } = require('./updates');
+const { readLicence, saveLicence } = require('./licence');
 const log = require('./app-log');
 
 /** The active store, created once a data location is known. */
@@ -94,6 +95,17 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
   /** The manual check. Always goes out, never uses the cached answer. */
   ipcMain.handle('updates:check', () => checkForUpdate(app, { force: true }));
+
+  // --- licence -----------------------------------------------------------
+  //
+  // Verified locally against a public key compiled into the binary. Nothing
+  // here reaches the network, now or ever. See electron/licence.js.
+
+  /** Who this copy is licensed to, or null. */
+  ipcMain.handle('licence:get', () => readLicence(app, store?.dirPath || null));
+
+  /** Accept a pasted key. Returns why it failed, so the field can say. */
+  ipcMain.handle('licence:set', (_e, key) => saveLicence(app, key, store?.dirPath || null));
 
   /**
    * Open the release page in the teacher's own browser.

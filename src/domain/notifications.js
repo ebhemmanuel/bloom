@@ -5,6 +5,7 @@ import {
   isCycleComplete,
   isWeekend,
 } from './dates.js';
+import { recordedYears, schoolYearOf } from './licensing.js';
 
 /**
  * Derive the notification list from the document. Pure.
@@ -28,7 +29,7 @@ import {
  */
 export function deriveNotifications(
   doc,
-  { meta = {}, boardModel = null, update = null, now = new Date() } = {}
+  { meta = {}, boardModel = null, update = null, licensed = false, now = new Date() } = {}
 ) {
   const items = [];
   if (!doc) return items;
@@ -268,6 +269,34 @@ export function deriveNotifications(
         }. A good moment to print the week for your files.`,
       });
     }
+  }
+
+  /*
+    A new school year has started, and this record is still in the old one.
+
+    Not a sales notice - a practical one. A teacher who comes back in August and
+    starts recording without moving the term start files September under last
+    year, and the report they print in October covers the wrong range. The gate
+    happens to live on the same action, and that is said plainly rather than
+    hidden behind "set up your year".
+
+    Only from August, only once the record's own year is genuinely behind us,
+    and it names the licence only when one is actually needed. A licensed
+    teacher gets the same reminder without the price.
+  */
+  const years = recordedYears(doc);
+  const thisYear = schoolYearOf(today);
+  if (years.length > 0 && thisYear > years[years.length - 1]) {
+    items.push({
+      id: 'new-school-year',
+      tone: 'info',
+      title: `${thisYear}-${thisYear + 1} has started`,
+      body: licensed
+        ? 'Set your first day of class to begin the new year. Everything from last year stays exactly as it is.'
+        : `Your free year covered ${years[0]}-${years[0] + 1}, and all of it stays yours to open and print. Starting this one is a one-time $29.`,
+      action: 'Set the first day',
+      act: 'openSettings',
+    });
   }
 
   // 5 - setup is incomplete, so the board cannot be useful.

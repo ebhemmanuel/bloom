@@ -93,6 +93,15 @@ contextBridge.exposeInMainWorld('accommodations', {
     onAvailable: (cb) => subscribe('updates:available', cb),
   },
 
+  /**
+   * Who this copy is licensed to. Verified locally against a key compiled into
+   * the binary - this surface never reaches the network.
+   */
+  licence: {
+    get: () => ipcRenderer.invoke('licence:get'),
+    set: (key) => ipcRenderer.invoke('licence:set', key),
+  },
+
   app: {
     getInfo: () => ipcRenderer.invoke('app:getInfo'),
     /** Save-and-exit. Main flushes any pending write before quitting. */

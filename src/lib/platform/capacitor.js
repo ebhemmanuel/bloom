@@ -340,4 +340,10 @@ const updates = {
   onAvailable: () => () => {},
 };
 
-export default { data, pdf, app, updates };
+/** The iPad build is sold through the App Store, which owns entitlement. */
+const licence = {
+  get: async () => null,
+  set: async () => ({ ok: false, reason: 'ios' }),
+};
+
+export default { data, pdf, app, updates, licence };
