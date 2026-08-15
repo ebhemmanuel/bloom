@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.jsx';
 import { dataBridge } from '../../lib/bridge.js';
+import { slotWords } from '../../domain/vocabulary.js';
 import { buildOnboardedDoc } from '../../domain/onboarding.js';
 import { todayKey } from '../../domain/dates.js';
 import {
@@ -94,6 +95,15 @@ export default function OnboardingFlow({ needsLocation }) {
   // The last beat of setup: the outro clearing before the board takes over.
   const [outroLeaving, setOutroLeaving] = useState(false);
 
+  /*
+    The teacher's own word for a slot, derived here rather than through the
+    usual hook.
+
+    `useSlotWords` reads the document, and onboarding is the one place there
+    isn't one yet - it is building the thing the hook would read. The grades
+    were answered two screens earlier and live in `answers`, so the words follow
+    from those directly.
+  */
   const [answers, setAnswers] = useState({
     name: '',
     subjects: [],
@@ -111,6 +121,11 @@ export default function OnboardingFlow({ needsLocation }) {
     students: [],
   });
   const [editingId, setEditingId] = useState(null);
+
+  // The teacher's own word for a slot, from the grades answered two screens
+  // back. Derived here rather than via useSlotWords because that hook reads the
+  // document, and onboarding is the one place there is not one yet.
+  const words = slotWords({ gradeLevels: answers.grades });
 
   /**
    * The roster flow's own place in itself, held HERE rather than inside the
@@ -219,7 +234,9 @@ export default function OnboardingFlow({ needsLocation }) {
     if (answers.subjects.length) parts.push(answers.subjects.slice(0, 3).join(', '));
     if (answers.grades.length) parts.push(`Grades ${summariseGrades(answers.grades)}`);
     if (answers.periods.length) {
-      parts.push(`${answers.periods.length} period${answers.periods.length === 1 ? '' : 's'}`);
+      parts.push(
+        `${answers.periods.length} ${answers.periods.length === 1 ? words.one : words.many}`
+      );
     }
     parts.push(`Day ends ${timeLabel}`);
     return parts.join(' · ');
@@ -279,6 +296,7 @@ export default function OnboardingFlow({ needsLocation }) {
       case 'periods':
         return (
           <PeriodsStep
+            words={words}
             periods={answers.periods}
             periodNames={answers.periodNames}
             onToggle={(n) =>
@@ -321,6 +339,7 @@ export default function OnboardingFlow({ needsLocation }) {
       case 'roster':
         return (
           <RosterStep
+            words={words}
             students={answers.students}
             periods={answers.periods}
             periodNames={answers.periodNames}
@@ -482,6 +501,7 @@ export default function OnboardingFlow({ needsLocation }) {
       case 'outro':
         return (
           <OutroStep
+            words={words}
             name={firstName}
             studentCount={answers.students.length}
             leaving={leaving === 'outro'}

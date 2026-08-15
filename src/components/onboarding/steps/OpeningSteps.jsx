@@ -145,12 +145,12 @@ export function IntroStep({ onNext }) {
  * being built behind this. The pacing exists so the work is visible, not to
  * manufacture a wait.
  */
-export function OutroStep({ name, studentCount, leaving }) {
+export function OutroStep({ name, studentCount, leaving, words }) {
   const lines = [
     'Saving your details',
     studentCount > 0
       ? `Seating ${studentCount} student${studentCount === 1 ? '' : 's'}`
-      : 'Arranging your periods',
+      : `Arranging your ${words.many}`,
     'Warming up your board',
   ];
 

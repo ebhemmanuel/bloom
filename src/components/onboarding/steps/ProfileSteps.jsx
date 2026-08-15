@@ -208,11 +208,21 @@ export function TeachStep({ name, subjects, grades, onToggle, onAddSubject, onBa
 
 const PERIOD_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, onNext }) {
+export function PeriodsStep({
+  // The teacher's own word for a slot, passed in: onboarding has no document
+  // for useSlotWords to read. See OnboardingFlow.
+  words,
+  periods,
+  periodNames,
+  onToggle,
+  onRename,
+  onBack,
+  onNext,
+}) {
   return (
     <Card
       centerIntro
-      title="Which periods do you see students?"
+      title={`Which ${words.many} do you see students?`}
       note="Just the ones where you deliver accommodations."
       footer={
         <Foot
@@ -236,7 +246,9 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
             .sort((a, b) => a - b)
             .map((n) => (
               <div key={n} className="acc-ob__rename">
-                <span className="acc-ob__rename-label">Period {n}</span>
+                <span className="acc-ob__rename-label">
+                  {words.One} {n}
+                </span>
                 <input
                   className="acc-ob__rename-input"
                   value={periodNames[n] || ''}
@@ -244,7 +256,7 @@ export function PeriodsStep({ periods, periodNames, onToggle, onRename, onBack, 
                   // The same prompt on every row. Singling out period 3 with an
                   // example made it read as the one that needed answering.
                   placeholder="Optional name"
-                  aria-label={`Name for period ${n}`}
+                  aria-label={`Name for ${words.one} ${n}`}
                 />
               </div>
             ))}

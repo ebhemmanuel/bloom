@@ -6,6 +6,7 @@ import { itemsForSet, resolveStarterItem } from '../../domain/starterSets.js';
 import { resolveAccommodationList } from '../../domain/importStudent.js';
 import AccommodationChooser from './AccommodationChooser.jsx';
 import DateField from '../shared/DateField.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 
 export const DETOUR_STEPS = 3;
 
@@ -121,6 +122,9 @@ export default function StudentDetour({
   onEnrolledFrom,
   onToggle,
 }) {
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
+
   if (sub === 0) {
     return (
       <div className="acc-sheet__pane acc-sheet__pane--wide">
@@ -244,7 +248,7 @@ export default function StudentDetour({
               </span>
             </div>
             <span className="acc-wiz__meta">
-              {chosen.length ? chosen.map((p) => p.label).join(', ') : 'All your periods'}
+              {chosen.length ? chosen.map((p) => p.label).join(', ') : `All your ${words.many}`}
               {' · '}
               {student.enrolledFrom
                 ? `Enrolled ${formatDateMedium(student.enrolledFrom)}`

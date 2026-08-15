@@ -3,6 +3,7 @@ import SceneFrame from '../shared/SceneFrame.jsx';
 import PlanChooser from './PlanChooser.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 import {
   resolveAccommodationList,
   addStudentWithAccommodations,
@@ -61,7 +62,9 @@ import { formatDateMedium, sinceTermLabel, todayKey } from '../../domain/dates.j
  * The enrolment date is the one answer that genuinely is usually shared, so it
  * moved to the end where it is asked once.
  */
-const STEP_NAMES = ['Who', 'Periods', 'Accommodations', 'Review'];
+/* The dots' tooltips. Built from the teacher's own word for a slot, so the
+   second step is named the same thing the screen under it asks about. */
+const stepNames = (words) => ['Who', words.Many, 'Accommodations', 'Review'];
 
 /** First letters of up to two words, which is what a disc has room for. */
 function initialsFor(name) {
@@ -76,6 +79,9 @@ function initialsFor(name) {
 
 export default function AddStudentWizard({ onClose, background, leaving = false }) {
   const { doc, mutate } = useData();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
+  const STEP_NAMES = stepNames(words);
   const { dateKey } = useBoard();
   const periods = useMemo(() => periodOptions(doc), [doc]);
 
@@ -1097,8 +1103,8 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
             <div className="acc-sheet__intro acc-sheet__intro--center">
               <h1 className="acc-sheet__title">
                 {isMulti
-                  ? `Which periods are these ${roster.length} students in?`
-                  : 'Which periods are they in?'}
+                  ? `Which ${words.many} are these ${roster.length} students in?`
+                  : `Which ${words.many} are they in?`}
               </h1>
               <p className="acc-sheet__sub acc-sheet__sub--balance">
                 {isMulti
@@ -1146,8 +1152,8 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
                         createPeriod();
                       }
                     }}
-                    placeholder="Period 4"
-                    aria-label="Name the new period"
+                    placeholder={`${words.One} 4`}
+                    aria-label={`Name the new ${words.one}`}
                     autoFocus
                   />
                 ) : (
@@ -1155,8 +1161,8 @@ export default function AddStudentWizard({ onClose, background, leaving = false 
                     type="button"
                     className="acc-chip acc-chip--lg acc-chip--add"
                     onClick={() => setAddingPeriod(true)}
-                    title="Add a period you have not set up yet"
-                    aria-label="Add a period"
+                    title={`Add a ${words.one} you have not set up yet`}
+                    aria-label={`Add a ${words.one}`}
                   >
                     +
                   </button>

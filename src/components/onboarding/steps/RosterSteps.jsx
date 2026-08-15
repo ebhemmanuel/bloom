@@ -55,6 +55,9 @@ export const EMPTY_ROSTER_DRAFT = {
 };
 
 export function RosterStep({
+  // The teacher's own word for a slot, passed in: onboarding has no document
+  // for useSlotWords to read. See OnboardingFlow.
+  words,
   students,
   periods,
   periodNames,
@@ -216,7 +219,7 @@ export function RosterStep({
   const periodChoices = periods.map((n) => ({
     key: n,
     label: String(n),
-    title: periodNames[n] || `Period ${n}`,
+    title: periodNames[n] || `${words.One} ${n}`,
   }));
 
   /**
@@ -562,8 +565,8 @@ export function RosterStep({
                 <div className="acc-sheet__intro acc-sheet__intro--center">
                   <h1 className="acc-sheet__title">
                     {manyPending
-                      ? `Which periods are these ${pending.length} students in?`
-                      : 'Which periods are they in?'}
+                      ? `Which ${words.many} are these ${pending.length} students in?`
+                      : `Which ${words.many} are they in?`}
                   </h1>
                   <p className="acc-sheet__sub acc-sheet__sub--balance">
                     {manyPending
@@ -582,7 +585,7 @@ export function RosterStep({
                           type="button"
                           className={`acc-chip acc-chip--lg${on ? ' acc-chip--on' : ''}`}
                           aria-pressed={on}
-                          title={periodNames[n] || `Period ${n}`}
+                          title={periodNames[n] || `${words.One} ${n}`}
                           onClick={() => studentFor && togglePeriodFor(studentFor.id, n)}
                         >
                           P{n}
@@ -806,7 +809,7 @@ export function SupportsStep({
   const periodChoices = periods.map((n) => ({
     key: n,
     label: `P${n}`,
-    title: periodNames[n] || `Period ${n}`,
+    title: periodNames[n] || `${words.One} ${n}`,
   }));
 
   const row = {

@@ -8,6 +8,7 @@ import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 import {
   resolveAccommodationList,
   addAccommodationsToStudent,
@@ -75,6 +76,8 @@ function initialsFor(name) {
 export default function EditStudentWizard({ onClose, background, leaving = false, studentId }) {
   const { doc, mutate, readOnly } = useData();
   const { dateKey } = useBoard();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
   const periods = useMemo(() => periodOptions(doc), [doc]);
   const today = todayKey();
 
@@ -247,7 +250,7 @@ export default function EditStudentWizard({ onClose, background, leaving = false
   const tips = [
     'Find them by name, or pick from the list.',
     'Saves as you change it.',
-    'Saves as you change it. Periods are not dated - fixing one leaves every day alone.',
+    `Saves as you change it. ${words.Many} are not dated - fixing one leaves every day alone.`,
     staged.length > 0
       ? `${staged.length} to add, from ${formatDateMedium(dateKey)}`
       : 'Anything you add starts from today, so earlier days are untouched.',
@@ -556,7 +559,7 @@ export default function EditStudentWizard({ onClose, background, leaving = false
 
             <div className="acc-wiz__split">
               <div className="acc-wiz__cell acc-wiz__cell--end">
-                <span className="acc-wiz__label">Which periods?</span>
+                <span className="acc-wiz__label">Which {words.many}?</span>
                 <div className="acc-wiz__chips acc-wiz__chips--end">
                   {periods.map((p) => {
                     const on = periodIds.includes(p.id);
@@ -599,8 +602,8 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                           createPeriod();
                         }
                       }}
-                      placeholder="Period 4"
-                      aria-label="Name the new period"
+                      placeholder={`${words.One} 4`}
+                      aria-label={`Name the new ${words.one}`}
                       autoFocus
                     />
                   ) : (
@@ -608,8 +611,8 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                       type="button"
                       className="acc-chip acc-chip--lg acc-chip--add"
                       onClick={() => setAddingPeriod(true)}
-                      title="Add a period you have not set up yet"
-                      aria-label="Add a period"
+                      title={`Add a ${words.one} you have not set up yet`}
+                      aria-label={`Add a ${words.one}`}
                       disabled={readOnly}
                     >
                       +
@@ -806,7 +809,7 @@ export default function EditStudentWizard({ onClose, background, leaving = false
                           .map((id) => periodById.get(id)?.shortName)
                           .filter(Boolean)
                           .join(', ')
-                      : 'No periods yet'}
+                      : `No ${words.many} yet`}
                     {' · '}
                     {student.unenrolledFrom
                       ? `Disenrolled ${formatDateMedium(student.unenrolledFrom)}`
