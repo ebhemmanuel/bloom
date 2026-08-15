@@ -18,6 +18,15 @@ import { formatDateMedium, isWeekend } from '../../domain/dates.js';
  * of date you meant - for a control whose whole job is "show me this day".
  * Reports over a span are asked for where they are produced, in Print report.
  */
+/**
+ * The panel's own width, from `.acc-cal` in _toolbar.scss.
+ *
+ * Duplicated here because centring cannot be expressed without it, and reading
+ * it back off the DOM would mean measuring after a paint the popover has not
+ * had yet. Change one and change the other.
+ */
+const CAL_WIDTH = 308;
+
 export default function DatePicker({ dateKey, onChange, nonInstructionalDates = [] }) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState(dateKey);
@@ -33,18 +42,26 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
    * relatively, because the calendar is portalled out of the toolbar to escape
    * the board's clipping.
    *
-   * Anchored by its RIGHT edge, published as a distance from the viewport's
-   * right so the width of the calendar never enters into it. The trigger now
-   * lives at the end of the nav, and hanging it off the left meant a 308px panel
-   * running past the window; clamping that back left it not lined up with
-   * anything at all.
+   * CENTRED on the trigger, still published as a distance from the viewport's
+   * right because that is the edge the panel is anchored by in CSS.
+   *
+   * It used to pin the panel's right edge to the trigger's, which lined up while
+   * the trigger was 170px wide. The trigger is 108px now, so a 308px panel hung
+   * 200px off to the left and read as belonging to whatever it happened to be
+   * over. Centring keeps it under the control it came from at any trigger width.
+   *
+   * Both clamps earn their place: the first stops it running off the right on a
+   * narrow window, the second stops the correction pushing it off the left.
    */
   const place = () => {
     const box = triggerRef.current?.getBoundingClientRect();
     if (!box) return;
+
+    const centred = window.innerWidth - (box.left + box.width / 2 + CAL_WIDTH / 2);
+
     setAt({
       top: Math.min(box.bottom + 6, window.innerHeight - 380),
-      right: Math.max(8, window.innerWidth - box.right),
+      right: Math.min(Math.max(8, centred), window.innerWidth - CAL_WIDTH - 8),
     });
   };
 
@@ -96,8 +113,10 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
             as you step through the week, which shoves every control to its right
             around - the row must not move while you are clicking through it.
           */}
-          <Caret up={open} />
           <span className="acc-datepicker__label">{formatDateMedium(dateKey)}</span>
+          {/* After the date, the way a select's chevron follows its value. It
+              led the label for a while, which read as a back arrow. */}
+          <Caret up={open} />
         </button>
 
         {open &&

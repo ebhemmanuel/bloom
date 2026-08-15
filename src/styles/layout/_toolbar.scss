@@ -137,37 +137,48 @@
   }
 
   /**
-   * A label with a caret, not a button.
+   * A pill with a caret, like the controls beside it.
    *
-   * It sits at the end of the pill nav beside the clock, and a bordered, filled
-   * control there made the date the heaviest thing in the bar - louder than the
-   * menus, louder than the board it governs. No chrome, no calendar glyph, and
-   * the clock's own weight and colour, so the two readouts at that end of the
-   * bar look like one pair rather than a button next to a time.
+   * It spent a while as bare text on the reasoning that a bordered control there
+   * would be the heaviest thing in the bar. That was true when it sat alone next
+   * to the clock, and stopped being true once a labelled button moved in beside
+   * it: an unbordered date next to a bordered action read as a caption rather
+   * than as the control that decides what the whole app is showing.
    */
   &__trigger {
     display: flex;
     align-items: center;
     gap: var(--acc-space-2);
     /*
-      Fixed measure so stepping through the week never reflows the row, with the
-      slack on the LEFT: the caret and the date stay together at the right edge,
-      hard against the clock's divider, instead of the caret being flung to the
-      far end with a corridor of nothing between them.
+      A MINIMUM, not a fixed measure.
 
-      Sized to the content rather than generously. It was 170px against roughly
-      86px of caret, label and padding, which was invisible while the slack fell
-      against nothing - and became 84px of dead air the moment the close-out
-      button moved in on its left. The same thing happened when the bell sat
-      there, which is why the measure is now the label's own width plus room for
-      a longer day and month, and not a round number.
+      A fixed width was slack by definition: sized for the longest label, every
+      shorter one left the difference as empty button, and that emptiness read
+      as a gap between this and whatever sat beside it. A minimum wide enough
+      for the longest label gets the same thing the fixed width was for - the
+      row never reflows as you step through the week - without the dead air,
+      because the content is centred in it rather than pinned to one end.
     */
-    inline-size: 108px;
-    justify-content: flex-end;
-    padding-inline: var(--acc-space-2);
-    background: none;
-    border: none;
-    color: var(--acc-fg-muted);
+    min-inline-size: 124px;
+    /*
+      Label and caret together, centred, with the slack split around them.
+
+      `space-between` pushed the caret to the far edge and left a hole in the
+      middle that grew as the date got shorter - a gap inside a control reads as
+      two controls. Centred, the pair stays a pair at any label width and the
+      minimum above still keeps the row from reflowing.
+    */
+    justify-content: center;
+    padding-inline: var(--acc-space-4);
+    /*
+      A pill like every other control in the bar. It was borderless and muted,
+      which made the one control that decides what the whole app is showing look
+      like a label someone had left in the nav.
+    */
+    background: var(--acc-surface);
+    border: 1px solid var(--acc-border-strong);
+    border-radius: var(--acc-radius-pill);
+    color: var(--acc-fg);
     font-size: var(--acc-fs-sub);
     transition: color var(--acc-dur-instant) var(--acc-ease-standard);
 

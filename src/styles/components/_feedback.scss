@@ -309,13 +309,54 @@
 .acc-confirm {
   inline-size: 100%;
   max-inline-size: 420px;
-  padding: var(--acc-space-6);
   background: var(--acc-surface);
   border-radius: var(--acc-radius-xl);
   box-shadow: var(--acc-shadow-overlay);
-  display: flex;
-  flex-direction: column;
-  gap: var(--acc-space-3);
+  /*
+    Eases between the heights of its steps rather than jumping.
+
+    The value is measured by `useAutoHeight`, because a box sized by its
+    contents is `auto` at both ends and there is nothing for a transition to
+    interpolate. `auto` is the fallback, so the dialog is correct before the
+    first measurement and if the script never runs.
+
+    `overflow: hidden` so the outgoing step is clipped by the shrinking box
+    instead of spilling past its rounded corners on the way out.
+  */
+  block-size: var(--acc-confirm-h, auto);
+  overflow: hidden;
+  transition: block-size var(--acc-dur-normal) var(--acc-ease-standard);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  /* The measured box. Padding lives here so the height it reports is the whole
+     thing, and the eased shell never clips its own edges. */
+  &__measure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-3);
+    padding: var(--acc-space-6);
+
+    /*
+      The outgoing step, on its way out.
+
+      Opacity and a hair of travel: the words should look like they are being
+      replaced, not like the dialog blinked. The box is already easing toward
+      the next height underneath this, so the two overlap and read as one
+      movement.
+    */
+    &--swapping {
+      animation: acc-confirm-swap 160ms var(--acc-ease-exit) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &--swapping {
+        animation: acc-fade-out 120ms linear both;
+      }
+    }
+  }
 
   /**
    * Centred, for the confirm that offers a way out rather than an explanation.
@@ -345,6 +386,43 @@
     font-size: var(--acc-fs-heading);
     font-weight: var(--acc-fw-semibold);
     line-height: var(--acc-lh-tight);
+  }
+
+  /*
+    The work happening, in place of the buttons.
+
+    It occupies the same row the actions did so the dialog does not resize
+    under the pointer between asking and working - a box that jumps a few
+    pixels at the moment you commit reads as a glitch, not as progress.
+  */
+  &__working {
+    display: flex;
+    align-items: center;
+    min-block-size: 32px;
+  }
+
+  /*
+    An indeterminate sweep rather than a percentage. Copying a day is a handful
+    of object spreads and finishes far faster than it can be shown; the bar is
+    honest about being a beat of reassurance, not a measurement.
+  */
+  &__bar {
+    position: relative;
+    inline-size: 100%;
+    block-size: 3px;
+    border-radius: var(--acc-radius-pill);
+    background: var(--acc-surface-sunken);
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inline-size: 40%;
+      border-radius: inherit;
+      background: var(--acc-accent);
+      animation: acc-confirm-sweep 900ms var(--acc-ease-standard) infinite;
+    }
   }
 
   /** The gate's secondary action, held to its own width in a stretching pane. */
@@ -507,5 +585,64 @@
     display: flex;
     justify-content: flex-end;
     gap: var(--acc-space-2);
+
+    /*
+      The acknowledgement's single button, spanning the dialog.
+
+      Two buttons are a choice and belong together at the end, where the eye
+      finishes. One button is not a choice, and left in that corner it reads as
+      a dialog still waiting to be answered.
+    */
+    &--single .acc-btn {
+      inline-size: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+/*
+  The confirm dialog's working sweep.
+
+  Travels the full width and back rather than looping in one direction, so it
+  reads as activity without ever implying a position on a scale that does not
+  exist.
+*/
+@keyframes acc-confirm-sweep {
+  0% {
+    inset-inline-start: -40%;
+  }
+  100% {
+    inset-inline-start: 100%;
+  }
+}
+
+/*
+  Reduced motion: no travel. The bar holds at a steady partial fill, which still
+  says "working" without anything sliding across the screen.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .acc-confirm__bar::after {
+    animation: none;
+    inset-inline-start: 0;
+    inline-size: 100%;
+    opacity: 0.5;
+  }
+}
+
+/*
+  The confirm dialog's step change: the outgoing contents clearing.
+
+  A little upward travel with the fade, so it reads as the step being replaced
+  rather than as the box blinking. Short, because the height ease underneath is
+  what carries the movement.
+*/
+@keyframes acc-confirm-swap {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
   }
 }

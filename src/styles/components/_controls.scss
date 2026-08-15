@@ -428,48 +428,14 @@
 
 // --- Date picker -----------------------------------------------------------
 
-.acc-datepicker {
-  display: flex;
-  align-items: center;
-  gap: var(--acc-space-1);
+/*
+  The old date stepper is gone, and so is its block.
 
-  &__step {
-    @include motion.interactive(background-color, color);
-    width: 28px;
-    height: 28px;
-    border-radius: var(--acc-radius-sm);
-    color: var(--acc-fg-muted);
-    font-size: 18px;
-    line-height: 1;
-
-    &:hover {
-      background: var(--acc-surface-sunken);
-      color: var(--acc-fg);
-    }
-  }
-
-  &__center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 132px;
-  }
-
-  &__input {
-    border: 1px solid transparent;
-    background: transparent;
-    border-radius: var(--acc-radius-sm);
-    padding: 2px var(--acc-space-1);
-    font-size: var(--acc-fs-sub);
-    color: var(--acc-fg-muted);
-
-    &:hover {
-      border-color: var(--acc-border);
-    }
-  }
-
-  &__label {
-    font-size: var(--acc-fs-tiny);
-    color: var(--acc-fg-muted);
-  }
-}
+  It was a three-part control - a day arrow either side of a centred date -
+  replaced by the single pill in _toolbar.scss. `__step`, `__center` and
+  `__input` had no markup left anywhere, and `__label` was quietly holding the
+  date at 11px muted while every other control in the bar sat at 12px: the one
+  readout that says which day the whole app is showing was the smallest, faintest
+  thing in the row, and the rule doing it was in a file about a control that no
+  longer exists.
+*/

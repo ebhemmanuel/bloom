@@ -87,10 +87,15 @@ export default function CloseOutDayButton() {
     <>
       <button
         type="button"
-        // The header class brings it back to 32px and the row's font size, which
-        // --primary alone (38px) and --primary --small (28px, 11px) both miss.
-        // See `.acc-header__closeout`.
-        className="acc-btn acc-btn--primary acc-header__closeout acc-fade-enter"
+        /*
+          A plain pill, like the date beside it and every other control in the
+          bar. It was --primary purple for a while, which put the loudest thing
+          on the screen in the corner of a nav that is otherwise all quiet
+          controls, and made an ordinary end-of-day action look like a warning.
+
+          Weight comes from being the only labelled verb up here, not from fill.
+        */
+        className="acc-btn acc-fade-enter"
         onClick={() => setAsking(true)}
         // Re-opening is never blocked by the day being read-only: being read
         // only is the thing it undoes.

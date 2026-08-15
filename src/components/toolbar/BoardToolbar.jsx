@@ -1,10 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PeriodFilter from './PeriodFilter.jsx';
-import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
-import { formatDateMedium, formatDateLong } from '../../domain/dates.js';
+import { formatDateLong } from '../../domain/dates.js';
+
+/*
+  How long the dialog holds each beat.
+
+  Both are for the person, not the machine: the write is synchronous and lands
+  inside a frame. WORK is long enough for the bar to be seen as a bar rather
+  than a flicker; SETTLE lets the board's own cascade get under way behind the
+  scrim before the dialog changes what it says, so the two do not fight for the
+  same instant.
+*/
+const COPY_WORK_MS = 620;
+const COPY_SETTLE_MS = 260;
 
 function Chevron({ down }) {
   return (
@@ -57,9 +68,15 @@ export default function BoardToolbar({
   sort,
   onToggleSort,
 }) {
-  const [notice, setNotice] = useState(null);
   const [confirm, setConfirm] = useState(null);
+  // null, or { step: 'working' } / { step: 'done', result }. See `copy`.
+  const [phase, setPhase] = useState(null);
+  const copyTimers = useRef([]);
   const disabled = readOnly || model.sealed;
+
+  // Unmounting mid-copy must not leave a timer holding a setState. The write
+  // itself is already committed by then; only the dialog's own steps are lost.
+  useEffect(() => () => copyTimers.current.forEach(clearTimeout), []);
 
   /**
    * Ask before writing, always.
@@ -83,19 +100,124 @@ export default function BoardToolbar({
     if (preview) setConfirm(preview);
   };
 
+  /**
+   * Ask, work, done: three states of one dialog rather than a dialog and a
+   * toast in the corner.
+   *
+   * The old flow tore the dialog away on the click and repainted a whole board
+   * of cards in the same frame, which is a lot of movement to explain with a
+   * message that appears somewhere else. Holding the box open through the write
+   * gives the change somewhere to happen behind, and gives the teacher one
+   * place to look for what happened.
+   *
+   * The pauses are real waiting for a person, not for the machine. Copying a
+   * day is a handful of object spreads and lands faster than a frame, so
+   * without them the working state would flash by unread and the done state
+   * would be indistinguishable from the jump this replaces.
+   */
   const copy = (force) => {
-    const result = onCopyPrevious(SEED_MODE.FULL, force);
-    if (!result?.applied) return;
-    setNotice({
-      tone: 'ok',
-      text: `Copied ${result.copied} entr${result.copied === 1 ? 'y' : 'ies'} from ${formatDateMedium(
-        result.sourceDate
-      )}.`,
-    });
+    setPhase({ step: 'working' });
+
+    copyTimers.current.push(
+      setTimeout(() => {
+        const result = onCopyPrevious(SEED_MODE.FULL, force);
+
+        if (!result?.applied) {
+          // Nothing was written, so there is nothing to celebrate. Close and
+          // leave the board as it was.
+          setPhase(null);
+          return;
+        }
+
+        // The board is repainting behind the dialog right now. Let that land
+        // before the box changes what it says, or both happen at once and the
+        // whole point of the pause is lost.
+        copyTimers.current.push(
+          setTimeout(() => setPhase({ step: 'done', result }), COPY_SETTLE_MS)
+        );
+      }, COPY_WORK_MS)
+    );
   };
 
   // Whether the dialog is asking a question or delivering bad news.
   const canProceed = Boolean(confirm?.applied || confirm?.reason === 'would-overwrite');
+
+  const closeCopy = () => {
+    copyTimers.current.forEach(clearTimeout);
+    copyTimers.current = [];
+    setConfirm(null);
+    setPhase(null);
+  };
+
+  /**
+   * What the one dialog says right now.
+   *
+   * Built as data so the three steps read as three states of the same thing
+   * rather than three components that happen to look alike, and so the element
+   * below stays a single mounted node across all of them.
+   */
+  const dialog = (() => {
+    if (phase?.step === 'working') {
+      return {
+        step: 'working',
+        title: 'Copying…',
+        body: 'Bringing your last recorded day forward.',
+        busy: true,
+        onCancel: closeCopy,
+      };
+    }
+
+    if (phase?.step === 'done') {
+      const { copied, sourceDate } = phase.result;
+      return {
+        step: 'done',
+        title: 'Copied',
+        body: `${copied} entr${copied === 1 ? 'y is' : 'ies are'} now on this day, brought forward from ${formatDateLong(sourceDate)}.`,
+        // No reassurance line. It belongs on the ask, where a teacher is
+        // deciding and wants to know what they are not risking. Once it is done
+        // there is nothing left to reassure about, and a tinted block under a
+        // one-line result is just something else to read.
+        // Nothing left to agree to, which turns the single remaining button
+        // primary. See ConfirmDialog.
+        confirmLabel: null,
+        cancelLabel: 'Done',
+        onCancel: closeCopy,
+      };
+    }
+
+    if (!confirm) return null;
+
+    return {
+      step: 'ask',
+      title: canProceed ? 'Copy your last recorded day?' : 'Nothing to copy',
+      body:
+        confirm.reason === 'no-source'
+          ? 'There is no earlier day with anything on it to bring forward.'
+          : confirm.reason === 'sealed'
+            ? 'This day is closed out, so it cannot be changed.'
+            : confirm.reason === 'would-overwrite'
+              ? 'You have already recorded something today. Copying will replace it.'
+              : `This brings ${confirm.copied} entr${confirm.copied === 1 ? 'y' : 'ies'} forward from ${formatDateLong(
+                  confirm.sourceDate
+                )} and records them as delivered today.`,
+      reassurance: canProceed
+        ? 'Notes and absences are not copied, and you can move any card afterwards.'
+        : undefined,
+      confirmLabel: !canProceed
+        ? null
+        : confirm.reason === 'would-overwrite'
+          ? 'Replace it'
+          : 'Copy them',
+      cancelLabel: canProceed ? 'Cancel' : 'Close',
+      tone: confirm.reason === 'would-overwrite' ? 'warn' : 'default',
+      onCancel: closeCopy,
+      onConfirm: () => {
+        // The ask is answered; from here the same box reports on itself.
+        setConfirm(null);
+        if (canProceed) copy(true);
+      },
+    };
+  })();
 
   return (
     <>
@@ -249,39 +371,38 @@ export default function BoardToolbar({
         */}
       </div>
 
-      {confirm && (
+      {/*
+        Ask, work, report: ONE dialog, mounted once, changing what it says.
+
+        Rendered from a single element rather than three conditional ones so
+        React keeps the same node across the steps. Three separate blocks would
+        each play their own entrance, and the box would appear to leave and come
+        back twice on the way through a single decision - which is the jarring
+        thing this is meant to fix.
+
+        There is no toast at the end for the same reason: a message in the
+        corner reporting a change that happened in the middle of the screen asks
+        the teacher to connect two things they cannot look at together.
+      */}
+      {dialog && (
         <ConfirmDialog
-          title={canProceed ? 'Copy your last recorded day?' : 'Nothing to copy'}
-          body={
-            confirm.reason === 'no-source'
-              ? 'There is no earlier day with anything on it to bring forward.'
-              : confirm.reason === 'sealed'
-                ? 'This day is closed out, so it cannot be changed.'
-                : confirm.reason === 'would-overwrite'
-                  ? 'You have already recorded something today. Copying will replace it.'
-                  : `This brings ${confirm.copied} entr${confirm.copied === 1 ? 'y' : 'ies'} forward from ${formatDateLong(
-                      confirm.sourceDate
-                    )} and records them as delivered today.`
-          }
-          reassurance={
-            canProceed
-              ? 'Notes and absences are not copied, and you can move any card afterwards.'
-              : undefined
-          }
-          confirmLabel={
-            !canProceed ? null : confirm.reason === 'would-overwrite' ? 'Replace it' : 'Copy them'
-          }
-          cancelLabel={canProceed ? 'Cancel' : 'Close'}
-          tone={confirm.reason === 'would-overwrite' ? 'warn' : 'default'}
-          onCancel={() => setConfirm(null)}
-          onConfirm={() => {
-            if (canProceed) copy(true);
-            setConfirm(null);
-          }}
+          title={dialog.title}
+          body={dialog.body}
+          reassurance={dialog.reassurance}
+          confirmLabel={dialog.confirmLabel}
+          cancelLabel={dialog.cancelLabel}
+          tone={dialog.tone}
+          busy={dialog.busy}
+          // Names which of the three states this is, so the dialog crossfades
+          // its contents and eases its height between them.
+          step={dialog.step}
+          // The ask hands over to the working step instead of closing, which is
+          // what keeps this one box rather than two.
+          dismissOnConfirm={false}
+          onCancel={dialog.onCancel}
+          onConfirm={dialog.onConfirm}
         />
       )}
-
-      {notice && <Toast {...notice} onDismiss={() => setNotice(null)} />}
     </>
   );
 }

@@ -277,10 +277,28 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
    * and returns the source date and the number of entries. That is what lets
    * the confirmation name them before anything is written.
    */
+  /**
+   * Copy the last recorded day forward, and let the board show it arriving.
+   *
+   * `copyPulse` keys the lanes container, which restarts the cascade the lanes
+   * already use when the date changes - so a copy fades its cards in rather
+   * than swapping a whole board of statuses between two frames while the
+   * teacher is looking at a dialog.
+   *
+   * This is the one non-date event that gets to re-cascade. The budget in §4.4
+   * of the design doc rules out replaying it for search and filter, and rightly:
+   * those change which lanes you can SEE. A copy changes what the record SAYS,
+   * on every lane at once, which is exactly the case the animation exists for.
+   */
+  const [copyPulse, setCopyPulse] = useState(0);
+
   const copyPrevious = useCallback(
     (mode = SEED_MODE.FULL, force = false, { apply = true } = {}) => {
       const result = copyFromPreviousDay(doc, dateKey, { mode, force });
-      if (apply && result.applied) mutate(() => result.doc);
+      if (apply && result.applied) {
+        mutate(() => result.doc);
+        setCopyPulse((n) => n + 1);
+      }
       return result;
     },
     [doc, dateKey, mutate]
@@ -609,7 +627,23 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
                   onAction={() => setSearch('')}
                 />
               ) : (
-                <div className="acc-board__lanes acc-cascade">
+                /*
+                  Keyed by the copy counter, so a copy remounts this container
+                  and its fade plays again. Unchanged on every other render, so
+                  ordinary edits never restart it.
+
+                  The fade is on the CONTAINER rather than the lanes. Lanes rest
+                  at `data-board-cascade='rest'`, which states `animation: none`
+                  outright - deliberately, see _app-shell.scss - so re-keying
+                  them animates nothing. The container is outside that reset.
+
+                  Opacity only, no travel: the cards are changing in place, and
+                  sliding the board would say something moved when nothing did.
+                */
+                <div
+                  className={`acc-board__lanes acc-cascade${copyPulse ? ' acc-fade-enter' : ''}`}
+                  key={`lanes-${copyPulse}`}
+                >
                   {view.model.lanes.map((lane) => (
                     <Swimlane
                       key={lane.studentId}
