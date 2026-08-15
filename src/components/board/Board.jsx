@@ -43,7 +43,7 @@ function parseDroppable(id) {
   return { studentId, status };
 }
 
-export default function Board({ onAddStudent, onEditStudent, onPrintStudent, onDayNotes }) {
+export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
   const { doc, mutate, readOnly } = useData();
 
   // Date, period filter and search live in BoardContext because the Bloom shell
@@ -478,8 +478,6 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent, onD
       onCopyPrevious={copyPrevious}
       onCloseOutDay={toggleDayClosed}
       sealed={Boolean(doc.days?.[dateKey]?.sealed)}
-      onDayNotes={onDayNotes}
-      notesPip={Boolean(model.dayNotes || model.teacherAbsence)}
       onAddStudent={onAddStudent}
       activeFilters={activeFilters}
       sort={sort}

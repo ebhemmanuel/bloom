@@ -1,10 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
+import useClock from '../../hooks/useClock.js';
+import { useBoard } from '../../context/BoardContext.jsx';
+import { useData } from '../../context/DataContext.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
-import { formatDateMedium, formatDateLong } from '../../domain/dates.js';
+import { formatDateMedium, formatDateLong, todayKey } from '../../domain/dates.js';
+
+/** 2:30pm, in minutes past midnight. See `showCloseOut`. */
+const CLOSE_OUT_FROM = 14 * 60 + 30;
+
+/** "16:00" to 960. Null for anything unparseable, so callers can fall back. */
+function minutesOf(hhmm) {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ''));
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
 
 function Chevron({ down }) {
   return (
@@ -28,151 +41,14 @@ function Chevron({ down }) {
 }
 
 /**
- * Day-level actions, tucked behind a three-dot menu.
- *
- * "Copy yesterday" and "Close out day" are consequential and infrequent - one
- * rewrites the whole board, the other seals it read-only. Keeping them out of
- * the always-visible row means neither is a stray click away while a teacher is
- * moving cards.
- */
-function OverflowMenu({
-  disabled,
-  readOnly,
-  hasRecord,
-  sealed,
-  onCopyPrevious,
-  onCloseOutDay,
-  onNotes,
-  notesPip,
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const onDown = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    const onKey = (e) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
-
-  return (
-    <div className="acc-overflow" ref={ref}>
-      <button
-        type="button"
-        className={`acc-btn acc-btn--round${open ? ' acc-btn--on' : ''}`}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        aria-label="Day actions"
-        title="Day actions"
-      >
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-          <circle cx="3.5" cy="8" r="1.35" fill="currentColor" />
-          <circle cx="8" cy="8" r="1.35" fill="currentColor" />
-          <circle cx="12.5" cy="8" r="1.35" fill="currentColor" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="acc-overflow__menu acc-enter" role="menu">
-          {/*
-            Copies the STATUSES, not just the cards.
-
-            Structure-only was the safe default when a day started empty, but
-            days are laid out from the start of the year now, so the cards are
-            already there and copying only those did nothing a teacher could
-            see. What is actually wanted is "yesterday again", and that is a
-            claim about delivery, so it is confirmed before it lands.
-          */}
-          <button
-            type="button"
-            role="menuitem"
-            className="acc-overflow__item"
-            disabled={disabled}
-            onClick={() => {
-              setOpen(false);
-              onCopyPrevious();
-            }}
-          >
-            <span>Copy yesterday</span>
-            <span className="acc-overflow__hint">
-              Brings across what you recorded on the last day you worked
-            </span>
-          </button>
-
-          {/*
-            One item, both directions.
-
-            A closed day used to offer "Close out day", greyed - which says the
-            thing you want is unavailable rather than that it is already done.
-            The teacher who realises on Wednesday that Tuesday was wrong needs a
-            way back in, and it is the same switch.
-          */}
-          <button
-            type="button"
-            role="menuitem"
-            className="acc-overflow__item"
-            // Reopening is never blocked by the day being read-only: being read
-            // only is the thing it undoes.
-            disabled={sealed ? readOnly : disabled || !hasRecord}
-            onClick={() => {
-              setOpen(false);
-              onCloseOutDay();
-            }}
-          >
-            <span>{sealed ? 'Re-open day' : 'Close out day'}</span>
-            <span className="acc-overflow__hint">
-              {sealed
-                ? 'Makes it editable again. Anything the close-out marked Not Used goes back to unassigned'
-                : 'Seals it read-only; anything unassigned records as Not Used'}
-            </span>
-          </button>
-
-          {/*
-            The day's notes, with the other things you do to a day.
-
-            They had a word of their own in the menu bar, beside File and Edit,
-            which put a per-day action among the app's chrome - and the menu bar
-            is where you go for the app, not for Tuesday. Copying yesterday,
-            closing out and writing the day's note are the same kind of thing,
-            so they sit together on the board that holds that day.
-          */}
-          <button
-            type="button"
-            role="menuitem"
-            className="acc-overflow__item"
-            onClick={() => {
-              setOpen(false);
-              onNotes();
-            }}
-          >
-            <span>
-              Day notes
-              {notesPip && <span className="acc-overflow__pip" aria-hidden="true" />}
-            </span>
-            <span className="acc-overflow__hint">
-              What happened today, and whether you were out
-            </span>
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
  * The board's tools, as a single floating row above the first lane.
  *
- * Left: what you are looking at and how much of it - roster count, add, fold.
- * Right: how it is arranged - the period filter, the sort - and the
- * consequential day actions behind a three-dot menu.
+ * Left: the roster and what you do to its day - fold, sort, add a student, copy
+ * yesterday forward. Right: how the board is arranged, and the close-out.
+ *
+ * The three-dot menu is gone. It held Copy yesterday, Close out day and the
+ * day's notes; the first two have their own buttons here and the notes went
+ * back to the menu bar, which left an unlabelled control guarding nothing.
  *
  * The date is deliberately not here. It sets which day the whole app is on, not
  * how this board is laid out, so it lives in the pill nav with the chrome.
@@ -186,8 +62,6 @@ export default function BoardToolbar({
   onCopyPrevious,
   onCloseOutDay,
   sealed,
-  onDayNotes,
-  notesPip,
   onAddStudent,
   allFolded,
   onToggleFoldAll,
@@ -197,7 +71,46 @@ export default function BoardToolbar({
 }) {
   const [notice, setNotice] = useState(null);
   const [confirm, setConfirm] = useState(null);
+  const [closeOut, setCloseOut] = useState(false);
   const disabled = readOnly || model.sealed;
+
+  const now = useClock();
+  const { dateKey } = useBoard();
+  // From the document, not the board model: the model does not carry it.
+  const { doc } = useData();
+  const cycleEndTime = doc.settings?.cycleEndTime;
+
+  /**
+   * When the close-out button is offered at all.
+   *
+   * Not greyed out all morning: a control that is present and refusing from
+   * 8am teaches a teacher to stop seeing it, and the one moment it matters is
+   * the end of the day. So it fades in when closing out is actually the next
+   * thing to do.
+   *
+   *   - A past day is finished by definition, so it is always offered.
+   *   - A sealed day always offers the way back, whatever the clock says.
+   *     Re-opening is how a mistake gets fixed and must never be unreachable.
+   *   - A future day has nothing to close.
+   *   - Today: from CLOSE_OUT_FROM.
+   */
+  const showCloseOut = useMemo(() => {
+    if (sealed) return true;
+    const today = todayKey(now);
+    if (dateKey < today) return true;
+    if (dateKey > today) return false;
+
+    /*
+      2:30pm, or `cycleEndTime` if a teacher set one earlier than that.
+
+      The clamp matters: the day auto-seals at cycleEndTime, so a teacher whose
+      day ends at 1pm would watch the board seal itself every afternoon without
+      the button ever having appeared, and would never find the control that
+      does it deliberately.
+    */
+    const cutoff = Math.min(CLOSE_OUT_FROM, minutesOf(cycleEndTime) ?? CLOSE_OUT_FROM);
+    return now.getHours() * 60 + now.getMinutes() >= cutoff;
+  }, [sealed, dateKey, now, cycleEndTime]);
 
   /**
    * Ask before writing, always.
@@ -288,6 +201,29 @@ export default function BoardToolbar({
           </svg>
         </button>
 
+        {/*
+          Copy yesterday, out of the three-dot menu and next to the sort.
+
+          It belongs on this side because it acts on the ROSTER's day rather
+          than on how the board is filtered, and because the menu that used to
+          hold it is gone: close-out has its own button now and the day's notes
+          went back to the menu bar, which left a three-dot control guarding
+          nothing.
+
+          Still confirmed before it writes. See `askThenCopy` - the dialog names
+          the day and the number of entries, because copying statuses forward
+          asserts delivery on a day nobody has observed.
+        */}
+        <button
+          type="button"
+          className="acc-btn acc-btn--quiet"
+          onClick={askThenCopy}
+          disabled={disabled}
+          title="Bring across what you recorded on the last day you worked"
+        >
+          Copy yesterday
+        </button>
+
         <span className="acc-toolbar__count acc-numeric">
           {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
         </span>
@@ -352,6 +288,33 @@ export default function BoardToolbar({
           the pill nav - it chooses which day the whole app is on, which is a
           bigger question than how this board is arranged.
         */}
+        {/*
+          Close out the day, to the left of the period filter.
+
+          Purple because it is the one thing on this row a teacher is meant to
+          do, and the last thing they do: everything else here changes what is
+          on screen, this one commits the day.
+
+          It appears rather than sitting there greyed. A button that is present
+          all morning and refuses all morning teaches people to ignore it, and
+          the moment it matters is the end of the day.
+        */}
+        {showCloseOut && (
+          <button
+            type="button"
+            className="acc-btn acc-btn--primary acc-fade-enter"
+            onClick={() => setCloseOut(true)}
+            disabled={sealed ? readOnly : readOnly || !model.hasRecord}
+            title={
+              sealed
+                ? 'Makes the day editable again'
+                : 'Seals the day; anything unassigned records as Not Used'
+            }
+          >
+            {sealed ? 'Re-open day' : 'Close out day'}
+          </button>
+        )}
+
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
 
         {/*
@@ -359,17 +322,6 @@ export default function BoardToolbar({
           that a teacher should leave on every day - the board is read class by
           class - so it is simply how the board is ordered now. See useLaneSort.
         */}
-
-        <OverflowMenu
-          disabled={disabled}
-          readOnly={readOnly}
-          sealed={sealed}
-          hasRecord={model.hasRecord}
-          onCopyPrevious={askThenCopy}
-          onCloseOutDay={onCloseOutDay}
-          onNotes={onDayNotes}
-          notesPip={notesPip}
-        />
       </div>
 
       {confirm && (
@@ -400,6 +352,44 @@ export default function BoardToolbar({
           onConfirm={() => {
             if (canProceed) copy(true);
             setConfirm(null);
+          }}
+        />
+      )}
+
+      {/*
+        Closing out is confirmed, in both directions.
+
+        It used to be one click on a menu item. Sealing writes Not Used across
+        every unassigned entry on the board, which is a claim about what was
+        delivered to a child, and re-opening reverts every one of those the
+        close-out wrote. Neither belongs one stray click away, and now that the
+        control sits in the always-visible row rather than two clicks inside a
+        menu, that goes double.
+
+        The body says what it will DO rather than what it is called, because
+        "close out day" does not tell a teacher that anything they have not
+        touched is about to be recorded as not delivered.
+      */}
+      {closeOut && (
+        <ConfirmDialog
+          title={sealed ? 'Re-open this day?' : 'Close out this day?'}
+          body={
+            sealed
+              ? 'Anything the close-out recorded as Not Used goes back to unassigned, so you can change it. What you marked yourself is left alone.'
+              : 'Everything still unassigned will be recorded as Not Used, and the day becomes read-only.'
+          }
+          reassurance={
+            sealed
+              ? undefined
+              : 'You can re-open it afterwards, and notes can still be added either way.'
+          }
+          confirmLabel={sealed ? 'Re-open it' : 'Close it out'}
+          cancelLabel="Cancel"
+          tone={sealed ? 'default' : 'warn'}
+          onCancel={() => setCloseOut(false)}
+          onConfirm={() => {
+            setCloseOut(false);
+            onCloseOutDay();
           }}
         />
       )}

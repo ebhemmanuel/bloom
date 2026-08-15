@@ -289,15 +289,30 @@ function AppShell() {
         ],
       },
       /*
-        Notes and About used to be words of their own out here.
+        Notes, back out here as a word of its own.
 
-        Day notes belong to a DAY, so they moved to the board's own three-dot
-        menu beside Copy yesterday and Close out day - the menu bar is where you
-        go for the app, not for Tuesday. About is opened once and moved under
-        Settings, which is the other thing in this menu you open once.
+        It spent a while inside the board's three-dot menu on the reasoning that
+        the menu bar is for the app and notes belong to a day. True, and it cost
+        more than it bought: writing the day's note is the most frequent thing
+        in that menu by far, and it sat two clicks deep behind an unlabelled
+        control. The other two items in that menu have their own buttons now, so
+        the menu it was hiding in does not exist any more either.
+
+        No `items`: MenuBar treats a menu with `onSelect` as a direct action, so
+        this opens the sheet rather than dropping a list of one.
+
+        About is still under Settings. That one really is opened once.
       */
+      {
+        id: 'notes',
+        label: 'Notes',
+        onSelect: () => openScene('daynotes'),
+        // Something is already written for this day. A dot rather than a count:
+        // it reports that the note exists, not how much of it.
+        pip: Boolean(model?.dayNotes || model?.teacherAbsence),
+      },
     ],
-    [toggle, openScene]
+    [openScene, model?.dayNotes, model?.teacherAbsence]
   );
 
   return (
@@ -501,7 +516,6 @@ function AppShell() {
               setPrintingStudentId(id);
               openScene('print');
             }}
-            onDayNotes={() => openScene('daynotes')}
           />
         </main>
       </div>
