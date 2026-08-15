@@ -86,6 +86,24 @@
     border-color: var(--acc-accent);
   }
 
+  /*
+    Square, for a control that is only a glyph.
+
+    32px wide as well as tall, so it is a circle in a row of pills rather than a
+    stubby capsule, and the icon sits dead centre with none of the text padding
+    the base rule carries.
+  */
+  &--icon {
+    justify-content: center;
+    inline-size: 32px;
+    padding: 0;
+    color: var(--acc-fg-muted);
+
+    &:hover:not(:disabled) {
+      color: var(--acc-accent);
+    }
+  }
+
   &:disabled {
     opacity: 0.45;
     cursor: default;

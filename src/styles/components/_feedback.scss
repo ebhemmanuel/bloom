@@ -22,10 +22,15 @@
 
   &__saved {
     font-size: var(--acc-fs-tiny);
-    // The petal green, not the ink one. This is a transient confirmation that
-    // appears for 1.4s next to a heading, and at full `--acc-status-used` it
-    // was darker than the word Notes beside it.
-    color: var(--acc-status-used-petal);
+    /*
+      Mostly petal, with enough ink in it to be read.
+
+      The full `--acc-status-used` was darker than the word Notes beside it,
+      which is a lot of weight for a confirmation that shows for a second and a
+      half. The petal alone sat at about 1.8:1 on this tint. Mixed, it stays a
+      pastel and comes off the page.
+    */
+    color: color-mix(in srgb, var(--acc-status-used-petal) 62%, var(--acc-status-used));
     opacity: 0;
     transition: opacity var(--acc-dur-fast) var(--acc-ease-standard);
 
@@ -45,7 +50,10 @@
   &__field {
     margin: 0 var(--acc-space-2) var(--acc-space-2);
     padding: var(--acc-space-2);
-    border: 1px solid transparent;
+    // A real edge, like the cards below it. Transparent until focus made the
+    // one thing you are meant to type into the only thing in the column with no
+    // shape of its own.
+    border: 1px solid var(--acc-border);
     // The card radius, not the smaller form one. This field turns into a card
     // and a card turns back into this field, so a tighter corner made editing a
     // note look like a different kind of object from reading one.

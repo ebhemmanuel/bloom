@@ -113,11 +113,23 @@ export default function SwimlaneNotesCell({ studentName, value, disabled, onComm
     <section className="acc-notes" aria-label={`Daily notes for ${studentName}`}>
       <header className="acc-notes__header">
         <span className="acc-subhead">Notes</span>
+        {/*
+          The word is ALWAYS rendered and only its opacity moves.
+
+          It used to be `{saved ? 'Saved' : ''}`, so the text left the document
+          the instant the timer fired and the fade out had nothing left to fade
+          - it arrived softly and vanished. Announcing is split off into its own
+          live region: this span never changes its text now, so a live region
+          here would have nothing to report.
+        */}
         <span
           className={`acc-notes__saved${saved ? ' acc-notes__saved--on' : ''}`}
-          aria-live="polite"
+          aria-hidden="true"
         >
-          {saved ? 'Saved' : ''}
+          Saved
+        </span>
+        <span className="acc-visually-hidden" aria-live="polite">
+          {saved ? 'Note saved' : ''}
         </span>
       </header>
 

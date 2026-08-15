@@ -3,6 +3,7 @@ import useClock from '../../hooks/useClock.js';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { sealDay, reopenDay } from '../../domain/resolve.js';
+import Lock from '../shared/Lock.jsx';
 import { todayKey } from '../../domain/dates.js';
 import { OUT_MS as DAY_SWAP_OUT_MS } from '../../hooks/useDaySwap.js';
 
@@ -200,7 +201,18 @@ export default function CloseOutDayButton() {
 
           Weight comes from being the only labelled verb up here, not from fill.
         */
-        className={`acc-btn${phase === 'in' ? ' acc-fade-enter' : ''}${
+        /*
+          A padlock beside the date, not a labelled pill.
+
+          It read "Close out Day" in words, which made the loudest-worded thing
+          in the bar out of a control that is either available or not depending
+          on the hour. A lock says the same thing in the space of an icon, and
+          it says the STATE as well: closed on an open day, open on a sealed one.
+
+          The label lives on `aria-label` and `title`, so nothing is lost to
+          anyone reading it with a screen reader or hovering it.
+        */
+        className={`acc-btn acc-btn--icon${phase === 'in' ? ' acc-fade-enter' : ''}${
           phase === 'out' ? ' acc-fade-leave' : ''
         }`}
         /*
@@ -230,11 +242,15 @@ export default function CloseOutDayButton() {
         disabled={readOnly || !landed || landed !== visible}
         title={
           saysSealed
-            ? 'Makes the day editable again'
-            : 'Seals the day; anything unassigned records as Not Used'
+            ? 'Re-open day: makes it editable again'
+            : 'Close out day: seals it, and anything unassigned records as Not Used'
         }
+        aria-label={saysSealed ? 'Re-open day' : 'Close out day'}
+        aria-pressed={saysSealed}
       >
-        {saysSealed ? 'Re-open Day' : 'Close out Day'}
+        {/* Open padlock on a sealed day - the state it is in, and the thing the
+            click undoes. */}
+        <Lock open={saysSealed} />
       </button>
     </>
   );
