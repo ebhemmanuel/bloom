@@ -194,78 +194,85 @@ $surface-lead: 160ms;
   gap: var(--acc-space-4);
 
   /*
-    The day leaves and arrives ROW BY ROW, not as one block.
+    A day change cascades, the way opening a full-screen scene does.
 
-    The fade sits on the children rather than on this wrapper, which is the
-    whole point: a wrapper can only carry one opacity, so fading it made a
-    twelve-lane board arrive as a single sheet. Staggering needs each row to own
-    its own animation, and `.acc-cascade`'s delays to space them.
+    Same keyframes and the same curve as `cascade-rows` - travel, a breath of
+    blur, rows spaced apart - because a teacher stepping to another day is
+    watching the same board be replaced, and it should read as the same kind of
+    event. The ramp is tighter than a scene's (60ms against 90ms, and no
+    surface lead) since nothing is being rebuilt around it: the header, the
+    toolbar and the card all stay put and only what they frame turns over.
 
-    Still inside the §4.4 budget. The steps are shorter than the board's arrival
-    cascade (30/45ms against 90ms) and there is no travel or blur - this is a
-    day changing under a fixed toolbar, not the board itself coming or going, so
-    it reads as the contents turning over rather than the room being rebuilt.
+    On the CHILDREN, not this wrapper. A wrapper carries one opacity, so fading
+    it brings a twelve-lane board in as a single sheet - the stagger needs each
+    row to own its animation, with `.acc-cascade` spacing them.
 
-    An empty state has no rows to stagger, so it keeps a single fade. It is the
-    one child that is the whole day by itself.
+    The empty state takes the first row's slot. It has no rows to stagger,
+    being the whole day by itself, and left out it was the one thing that cut:
+    stepping to a day with no record replaced the lanes with "No record for
+    this day" in a single frame.
+
+    `backwards` on the way IN and never `both`. acc-cascade-in blurs, and a
+    finished animation with `both` keeps its last frame - every lane would sit
+    on `filter: blur(0)` for ever, which makes it a stacking context and is the
+    documented bug the `rest` state below exists to undo.
   */
   &--out {
     // A board mid-goodbye must not take clicks meant for the incoming day.
     pointer-events: none;
 
-    .acc-board__lanes {
-      @include cascade(30ms);
+    /*
+      `&#{&}` doubles the class - `.acc-board__day--out.acc-board__day--out` -
+      purely for weight. `[data-board-cascade='rest']` further down sets
+      `animation: none` on every lane and carries the same single-class-plus-
+      attribute specificity as a plain `&--out .acc-lane`, so it won on source
+      order and the rows sat at `animation-name: none` with their staggered
+      delays applied to nothing at all.
+    */
+    &#{&} .acc-lane,
+    &#{&} .acc-empty {
+      animation: acc-cascade-out 220ms var(--acc-ease-standard) both;
     }
 
-    .acc-board__lanes > .acc-lane {
-      animation-name: acc-fade-out;
-      animation-duration: 160ms;
-      animation-timing-function: var(--acc-ease-exit);
-      animation-fill-mode: both;
-    }
-
-    .acc-empty {
-      animation: acc-fade-out 160ms var(--acc-ease-exit) both;
+    @for $i from 1 through 8 {
+      .acc-lane:nth-of-type(#{$i}) {
+        animation-delay: #{($i - 1) * 50}ms;
+      }
     }
   }
 
   &--in {
-    .acc-board__lanes {
-      @include cascade(45ms);
+    // Doubled for the same reason as `--out` above.
+    &#{&} .acc-lane,
+    &#{&} .acc-empty {
+      animation: acc-cascade-in 420ms var(--acc-ease-entrance) backwards;
     }
 
-    .acc-board__lanes > .acc-lane {
-      animation-name: acc-fade-in;
-      animation-duration: 200ms;
-      animation-timing-function: var(--acc-ease-entrance);
-      animation-fill-mode: both;
-    }
-
-    .acc-empty {
-      animation: acc-fade-in 200ms var(--acc-ease-entrance) both;
+    @for $i from 1 through 8 {
+      .acc-lane:nth-of-type(#{$i}) {
+        animation-delay: #{($i - 1) * 60}ms;
+      }
     }
   }
 
   /*
-    Reduced motion: one fade for the whole day, no stagger.
-
-    A crossfade carries meaning and causes no vestibular trouble, so it stays -
-    but the sequencing is the part that is motion for its own sake here.
+    Reduced motion: the crossfade survives, the travel, blur and stagger do not.
+    An opacity change carries the meaning and causes no vestibular trouble.
   */
   @media (prefers-reduced-motion: reduce) {
-    &--out {
-      animation: acc-fade-out 120ms linear both;
-    }
-
-    &--in {
-      animation: acc-fade-in 120ms linear both;
-    }
-
-    &--out .acc-board__lanes > .acc-lane,
-    &--in .acc-board__lanes > .acc-lane,
+    &--out .acc-lane,
     &--out .acc-empty,
+    &--in .acc-lane,
     &--in .acc-empty {
-      animation: none;
+      animation-name: acc-fade-in;
+      animation-duration: 120ms;
+      animation-timing-function: linear;
+      animation-delay: 0ms;
+    }
+
+    &--out .acc-lane,
+    &--out .acc-empty {
+      animation-name: acc-fade-out;
     }
   }
 }

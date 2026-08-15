@@ -7,8 +7,12 @@ import { useEffect, useRef, useState } from 'react';
  * Without this, a date change was the one screen change in the app that CUT:
  * the model swapped under the lanes in a single frame. This hook holds the
  * outgoing day on screen long enough to fade it, then hands the new one over
- * to fade in. No stagger in either direction - lanes hold their places and
- * only the contents change, per the §4.4 budget rule.
+ * to fade in.
+
+ * The rows cascade in both directions, on the same keyframes a full-screen
+ * scene uses - a teacher stepping to another day is watching the same board be
+ * replaced, and it reads as the same kind of event. The stagger and the curve
+ * live in _app-shell.scss; this hook only owns how long each phase lasts.
  *
  * Same-day changes (a status drop, a note, an added card) pass straight
  * through untouched: only the DATE moving is bridged.
@@ -20,9 +24,22 @@ import { useEffect, useRef, useState } from 'react';
  * instantly and lets the incoming fade carry the transition.
  */
 
-// Must match the .acc-board__day--out / --in durations in _app-shell.scss.
-const OUT_MS = 160;
-const IN_MS = 200;
+/*
+  Must cover the CASCADE in _app-shell.scss, not just one row's duration.
+
+  These were 160 and 200, sized for a flat crossfade of the whole wrapper. The
+  day now leaves and arrives row by row, so the phase has to outlast the last
+  row: its delay plus its own animation. Cut short, the class came off
+  mid-flight and the tail of the board snapped into place - which read as the
+  cascade not happening at all.
+
+    out: 7 steps x 50ms + 220ms  = 570
+    in:  7 steps x 60ms + 420ms  = 840
+
+  Rounded up a little so a slow frame cannot clip the last row.
+*/
+const OUT_MS = 300;
+const IN_MS = 620;
 
 export default function useDaySwap(dateKey, model, rangeActive) {
   // What the timer should hand over when it fires, however many times the
