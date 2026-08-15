@@ -27,7 +27,7 @@ import StudentContextMenu from './StudentContextMenu.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay, copyStudentFromPreviousDay } from '../../domain/seed.js';
-import { sealDay, reopenDay } from '../../domain/resolve.js';
+import { sealDay, reopenDay, amendStudentNotes } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
 import {
   todayKey,
@@ -188,10 +188,27 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent, onD
     [handleStatusChange, model.lanes, selection, mutate, dateKey, clearSelection]
   );
 
+  /**
+   * Notes stay writable after the day is closed.
+   *
+   * Gated on `readOnly` rather than `locked`: a closed day refuses status
+   * changes, which are the compliance claim, but a note is context around it and
+   * teachers were re-opening whole days just to add a sentence. `readOnly` is
+   * the document-level lock (a file written by a newer version) and that one
+   * still means no.
+   *
+   * Which function does the writing is decided from the doc inside `mutate`,
+   * not from a render-time flag, so a day that seals between the keystroke and
+   * the debounced commit still takes the right path.
+   */
   const commitNotes = useCallback(
     (studentId, text) => {
       if (readOnly) return;
-      mutate((d) => setStudentNotes(d, dateKey, studentId, text));
+      mutate((d) =>
+        d.days?.[dateKey]?.sealed
+          ? amendStudentNotes(d, dateKey, studentId, text)
+          : setStudentNotes(d, dateKey, studentId, text)
+      );
     },
     [dateKey, mutate, readOnly]
   );
@@ -603,6 +620,7 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent, onD
                       lane={lane}
                       collapsed={collapsed.has(lane.studentId)}
                       readOnly={locked}
+                      notesReadOnly={readOnly}
                       onToggleCollapse={() => toggle(lane.studentId)}
                       onToggleAbsent={() => handleToggleAbsent(lane.studentId)}
                       onOpenDetail={setDetailCard}

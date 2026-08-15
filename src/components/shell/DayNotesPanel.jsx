@@ -3,6 +3,7 @@ import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
 import SceneFrame from '../shared/SceneFrame.jsx';
 import { setDayNotes, reportTeacherAbsence, clearTeacherAbsence } from '../../domain/mutations.js';
+import { amendDayNotes } from '../../domain/resolve.js';
 import { TEACHER_ABSENCE_REASONS } from '../../domain/constants.js';
 import { formatDateMedium, relativeDayLabel } from '../../domain/dates.js';
 
@@ -47,16 +48,31 @@ export default function DayNotesPanel({ onClose, background, leaving = false }) 
 
   const absence = model.teacherAbsence;
 
-  /**
-   * A day sealed BY an absence is not locked to this panel.
-   *
-   * Reporting one seals the day, and the way back is the Undo in the box it
-   * produced - so treating that seal as a lock disabled the only control that
-   * could lift it, and one click closed the day for good. Reporting is refused
-   * on an already-sealed day, so a seal sitting next to an absence record is
-   * always the absence's own.
-   */
-  const locked = readOnly || (model.sealed && !absence);
+  /*
+    Notes are no longer part of what closing a day locks.
+
+    A sealed day refuses status changes, which are the compliance claim. A note
+    is context around it, and the only way to add one used to be re-opening the
+    day, which un-seals a record that was correct and reverts auto-resolved
+    entries on the way. Teachers were doing that to add a sentence.
+
+    `readOnly` is the document-level lock and still means no.
+  */
+  const locked = readOnly;
+
+  /*
+    Reporting an absence is NOT a note, and stays locked by the seal.
+
+    It writes statuses and seals the day, and `reportTeacherAbsence` refuses a
+    sealed day outright - so leaving the button visible past close-out would
+    offer a control that silently does nothing.
+
+    A day sealed BY an absence is a separate case: that seal is the absence's
+    own, and the way back is the Undo in the box it produced. The `!absence`
+    test already hides the button there, which is why this reads as a plain
+    seal check.
+  */
+  const absenceLocked = readOnly || model.sealed;
 
   const relative = relativeDayLabel(dateKey);
   const heading = `Day notes · ${relative ? `${relative}, ` : ''}${formatDateMedium(dateKey)}`;
@@ -77,7 +93,11 @@ export default function DayNotesPanel({ onClose, background, leaving = false }) 
     const text = pending.current;
     pending.current = null;
     latest.current = text;
-    mutate((d) => setDayNotes(d, dateKey, text));
+    // Decided from the doc rather than a render-time flag, so a day that seals
+    // between the last keystroke and this flush still takes the right path.
+    mutate((d) =>
+      d.days?.[dateKey]?.sealed ? amendDayNotes(d, dateKey, text) : setDayNotes(d, dateKey, text)
+    );
   };
 
   // Type a note, close the sheet inside the debounce window, lose the note.
@@ -165,7 +185,7 @@ export default function DayNotesPanel({ onClose, background, leaving = false }) 
           {/* Hidden once an absence is on record: Undo lives in the box it
               produced, and offering to report a second one would be offering
               to say the same thing twice. */}
-          {!absence && !locked && (
+          {!absence && !absenceLocked && (
             <button
               type="button"
               className="acc-btn acc-btn--quiet"

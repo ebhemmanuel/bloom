@@ -7,6 +7,8 @@ import {
   summarise,
   clockMovedBackwards,
   amendEntry,
+  amendStudentNotes,
+  amendDayNotes,
   buildResolveContext,
 } from './resolve.js';
 import { STATUS, DERIVED_STATUS } from './constants.js';
@@ -461,5 +463,76 @@ describe('buildResolveContext', () => {
     expect(ctx.studentsById.get(T.jordan).displayName).toBe('Jordan A.');
     expect(ctx.periodsById.get(T.p3).shortName).toBe('P3');
     expect(ctx.assignmentsById.get(T.asgJordanCustom).source).toBe('custom');
+  });
+});
+
+describe('notes on a sealed day', () => {
+  /*
+    Teachers were re-opening a whole day to add one sentence, which un-seals a
+    correct record and reverts auto-resolved entries on the way. These tests are
+    mostly about the line the feature must not cross: a note may be added, the
+    day must stay closed, and a late note must never look contemporaneous.
+  */
+  const sealed = () => withDay(makeDoc(), TUE, { __sealed: true });
+  const later = new Date(2026, 9, 3, 16, 0); // 3 October, weeks after
+
+  it('takes a student note without re-opening the day', () => {
+    const next = amendStudentNotes(sealed(), TUE, T.jordan, 'Quiz retake Thursday.', later);
+    expect(next.days[TUE].students[T.jordan].notes).toBe('Quiz retake Thursday.');
+    expect(next.days[TUE].sealed).toBe(true);
+  });
+
+  it('takes a whole-day note without re-opening the day', () => {
+    const next = amendDayNotes(sealed(), TUE, 'Fire drill ate third period.', later);
+    expect(next.days[TUE].notes).toBe('Fire drill ate third period.');
+    expect(next.days[TUE].sealed).toBe(true);
+  });
+
+  /*
+    The honesty requirement. Notes print under the DATE OF THE DAY, so without a
+    stamp a sentence added in October would appear on an audit document as
+    though it were written in September.
+  */
+  it('stamps when the note was actually written', () => {
+    const next = amendStudentNotes(sealed(), TUE, T.jordan, 'Added later.', later);
+    const day = next.days[TUE];
+    expect(day.students[T.jordan].notesUpdatedAt > day.sealedAt).toBe(true);
+  });
+
+  it('leaves an audit entry naming it a note', () => {
+    const next = amendDayNotes(sealed(), TUE, 'Context.', later);
+    const [entry] = next.days[TUE].amendments;
+    expect(entry.kind).toBe('note');
+    expect(entry.studentId).toBeNull();
+  });
+
+  /*
+    `amended` is what makes a printed day read as CORRECTED. A note is an
+    addition, and setting the flag for one would cry wolf on every report until
+    the flag stopped meaning anything.
+  */
+  it('does not mark the day amended', () => {
+    const next = amendStudentNotes(sealed(), TUE, T.jordan, 'Just context.', later);
+    expect(next.days[TUE].amended).toBe(false);
+  });
+
+  it('refuses a day that is still open, which has its own path', () => {
+    const open = withDay(makeDoc(), TUE, {});
+    expect(amendStudentNotes(open, TUE, T.jordan, 'x', later)).toBe(open);
+    expect(amendDayNotes(open, TUE, 'x', later)).toBe(open);
+  });
+
+  it('never mutates its input', () => {
+    const doc = deepFreeze(sealed());
+    expect(() => amendStudentNotes(doc, TUE, T.jordan, 'x', later)).not.toThrow();
+    expect(() => amendDayNotes(doc, TUE, 'y', later)).not.toThrow();
+    expect(doc.days[TUE].students[T.jordan].notes).toBe('');
+  });
+
+  it('is a no-op for an unknown day or student, and for an unchanged note', () => {
+    const doc = sealed();
+    expect(amendStudentNotes(doc, '2026-01-01', T.jordan, 'x', later)).toBe(doc);
+    expect(amendStudentNotes(doc, TUE, 'stu_nope', 'x', later)).toBe(doc);
+    expect(amendStudentNotes(doc, TUE, T.jordan, '', later)).toBe(doc);
   });
 });

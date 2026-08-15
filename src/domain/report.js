@@ -14,6 +14,22 @@ import { matchesSearch, buildSearchIndex } from './selectors.js';
  * screen can never disagree.
  */
 
+/**
+ * Was this note written after the day was closed?
+ *
+ * Notes print under the DATE OF THE DAY, not the date they were typed, which is
+ * right for a note written that afternoon and a quiet lie for one added three
+ * weeks later. Since `amendStudentNotes` lets a teacher annotate a sealed day
+ * without re-opening it, the report has to be able to tell the two apart.
+ *
+ * Returns the timestamp rather than a boolean so the sheet can print WHEN. "Added
+ * 3 October" is a fact an auditor can weigh; "added late" is a smell.
+ */
+function noteAddedAfterSealing(day, notesUpdatedAt) {
+  if (!day?.sealed || !day.sealedAt || !notesUpdatedAt) return null;
+  return notesUpdatedAt > day.sealedAt ? notesUpdatedAt : null;
+}
+
 /** School days in range: weekdays that are not marked non-instructional. */
 export function schoolDaysIn(doc, from, to) {
   const skip = new Set(doc.schoolCalendar?.nonInstructionalDates || []);
@@ -116,8 +132,16 @@ export function buildReport(
     }
 
     for (const date of dates) {
-      const text = doc.days?.[date]?.students?.[student.id]?.notes;
-      if (text?.trim()) notes.push({ date, text });
+      const day = doc.days?.[date];
+      const studentDay = day?.students?.[student.id];
+      const text = studentDay?.notes;
+      if (text?.trim()) {
+        notes.push({
+          date,
+          text,
+          addedAfter: noteAddedAfterSealing(day, studentDay?.notesUpdatedAt),
+        });
+      }
     }
 
     students.push({
@@ -152,7 +176,12 @@ export function buildReport(
       const day = doc.days?.[date];
       if (!day) return null;
       if (!day.notes?.trim() && !day.teacherAbsence) return null;
-      return { date, notes: day.notes || '', teacherAbsence: day.teacherAbsence || null };
+      return {
+        date,
+        notes: day.notes || '',
+        teacherAbsence: day.teacherAbsence || null,
+        addedAfter: noteAddedAfterSealing(day, day.notesUpdatedAt),
+      };
     })
     .filter(Boolean);
 

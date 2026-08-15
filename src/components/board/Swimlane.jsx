@@ -26,9 +26,18 @@ function Swimlane({
   isSelected,
   selectionCount,
   onNotesCommit,
+  notesReadOnly,
   renderColumnFooter,
 }) {
   const locked = readOnly || lane.absent || lane.preEnrolment;
+
+  /*
+    Notes outlive the close-out. `readOnly` here already carries the sealed day,
+    so the notes cell takes `notesReadOnly` instead: the document-level lock
+    only. Absent and pre-enrolment still apply, because a note about a day a
+    student was not there belongs on the day notes, not in their lane.
+  */
+  const notesLocked = notesReadOnly ?? readOnly;
 
   return (
     <article
@@ -86,7 +95,7 @@ function Swimlane({
           <SwimlaneNotesCell
             studentName={lane.displayName}
             value={lane.notes}
-            disabled={readOnly}
+            disabled={notesLocked || lane.absent || lane.preEnrolment}
             onCommit={(text) => onNotesCommit(lane.studentId, text)}
           />
         </div>

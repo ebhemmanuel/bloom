@@ -450,3 +450,87 @@ export function amendEntry(
     },
   };
 }
+
+/**
+ * Write a note on a day that is already closed, without re-opening it.
+ *
+ * Teachers asked for this, and the reason it is safe is a distinction the rest
+ * of this file already turns on: a STATUS is the compliance claim, a NOTE is
+ * context around it. Changing a claim after the fact goes through `amendEntry`,
+ * with a reason and a from/to, because that is a teacher saying something
+ * different happened. Adding a note is a teacher saying something MORE.
+ *
+ * Refusing it made the record worse rather than safer. The only way to add
+ * Monday's missing sentence was to re-open Monday, which un-seals a day that
+ * was correct, and `reopenDay` reverts auto-resolved entries on the way. So the
+ * teacher risked the record to annotate it, or gave up and wrote nothing. A
+ * compliance tool that quietly discourages writing things down has the wrong
+ * incentive.
+ *
+ * What it must never do is let a late note pass as a same-day one. Notes print
+ * under the DATE OF THE DAY (see report.js), so without the stamp below, a
+ * sentence added three weeks later would appear on an audit document as though
+ * it were written that afternoon. `notesUpdatedAt` plus the amendments entry is
+ * what keeps it honest, and the report marks it.
+ *
+ * The day stays sealed. That is the point: nothing is unlocked to get here.
+ */
+function noteAmendment(day, stamp, studentId, teacherId) {
+  return [
+    ...(day.amendments || []),
+    { at: stamp, kind: 'note', studentId: studentId || null, by: teacherId || null },
+  ];
+}
+
+/** A note about one student on a sealed day. */
+export function amendStudentNotes(doc, dateKey, studentId, notes, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || !day.sealed) return doc;
+
+  const studentDay = day.students?.[studentId];
+  if (!studentDay || studentDay.notes === notes) return doc;
+
+  const stamp = isoTimestamp(now);
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: {
+        ...day,
+        /*
+          Deliberately NOT `amended: true`. That flag means a claim was changed
+          and it is what makes a printed day read as corrected. A note is an
+          addition, and marking the day amended over one would cry wolf on every
+          report until an auditor stopped believing the flag.
+        */
+        amendments: noteAmendment(day, stamp, studentId, doc.settings?.activeTeacherId),
+        students: {
+          ...day.students,
+          [studentId]: { ...studentDay, notes, notesUpdatedAt: stamp },
+        },
+      },
+    },
+  };
+}
+
+/** A note about the whole day, on a sealed day. */
+export function amendDayNotes(doc, dateKey, notes, now = new Date()) {
+  const day = doc.days?.[dateKey];
+  if (!day || !day.sealed || day.notes === notes) return doc;
+
+  const stamp = isoTimestamp(now);
+
+  return {
+    ...doc,
+    days: {
+      ...doc.days,
+      [dateKey]: {
+        ...day,
+        notes,
+        notesUpdatedAt: stamp,
+        amendments: noteAmendment(day, stamp, null, doc.settings?.activeTeacherId),
+      },
+    },
+  };
+}

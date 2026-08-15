@@ -256,6 +256,17 @@
     padding-inline-start: 12px;
   }
 
+  /*
+    When a note was written, if that was after the day closed.
+
+    Italic and nothing else: this sheet gets photocopied in monochrome, so it
+    cannot lean on colour, and it should not shout either. The fact belongs on
+    the page for an auditor who asks; it is not an accusation.
+  */
+  &__late-note {
+    font-style: italic;
+  }
+
   &__foot {
     break-inside: avoid;
     display: flex;

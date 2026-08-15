@@ -158,9 +158,23 @@ export default function PrintReport({ report }) {
             <div className="acc-print__detail-block">
               <h3>Daily notes</h3>
               <ul>
+                {/*
+                  A note added after the day closed says so, with the date it
+                  was written. These print under the date of the DAY, so a
+                  sentence added three weeks later would otherwise read as
+                  contemporaneous on a document an auditor weighs. Naming the
+                  date is the point: "added 3 October" is a fact, "added late"
+                  is a smell.
+                */}
                 {s.notes.map((n) => (
                   <li key={n.date}>
                     <b>{formatDateMedium(n.date)}</b> - {n.text}
+                    {n.addedAfter && (
+                      <span className="acc-print__late-note">
+                        {' '}
+                        (added {formatDateMedium(n.addedAfter.slice(0, 10))})
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -185,6 +199,12 @@ export default function PrintReport({ report }) {
                     {' '}
                     - Absence: {d.teacherAbsence.reason}
                     {d.teacherAbsence.text ? `: ${d.teacherAbsence.text}` : ''}
+                  </span>
+                )}
+                {d.addedAfter && (
+                  <span className="acc-print__late-note">
+                    {' '}
+                    (added {formatDateMedium(d.addedAfter.slice(0, 10))})
                   </span>
                 )}
                 {d.notes && <div className="acc-print__daynote">{d.notes}</div>}
