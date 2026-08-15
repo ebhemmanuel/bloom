@@ -37,15 +37,18 @@ import { useEffect, useRef, useState } from 'react';
   the last thing to move is the eighth row, and its delay stacks on top of the
   rung the rows start from.
 
-    out: 110 + 7 x 40 + 180 = 570
-    in:  170 + 7 x 50 + 320 = 840
+    out: 90 + 7 x 35 + 260 = 595
+    in:  130 + 7 x 45 + 420 = 865
+
+  Kept as tight as the ladder allows. Every millisecond of the out phase is one
+  where the toolbar is faded and the board refuses clicks.
 
   Rounded up so a slow frame cannot clip the last row. The out phase is the
   shorter of the two on purpose: it holds `pointer-events: none`, so every
   millisecond of it is a millisecond the board cannot be clicked.
 */
-const OUT_MS = 600;
-const IN_MS = 880;
+const OUT_MS = 620;
+const IN_MS = 900;
 
 export default function useDaySwap(dateKey, model, rangeActive) {
   // What the timer should hand over when it fires, however many times the

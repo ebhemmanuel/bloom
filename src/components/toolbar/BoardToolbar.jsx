@@ -14,6 +14,13 @@ import { formatDateLong } from '../../domain/dates.js';
   scrim before the dialog changes what it says, so the two do not fight for the
   same instant.
 */
+/**
+ * How long a filter chip takes to clear after it stops applying.
+ *
+ * `--acc-dur-normal`, plus a frame's grace. Matches `.acc-filterchip--leaving`.
+ */
+const CHIP_EXIT_MS = 300;
+
 const COPY_WORK_MS = 620;
 const COPY_SETTLE_MS = 260;
 
@@ -70,8 +77,13 @@ export default function BoardToolbar({
 }) {
   const [confirm, setConfirm] = useState(null);
   /*
-    A weekend or a non-instructional date carries nothing to record, so the
-    controls that act on a day's contents have nothing to act on.
+    A day with no board has no controls.
+
+    Two ways that happens: a weekend or non-instructional date, which carries
+    nothing to record at all, and a day nobody has started yet - a Thursday in
+    three weeks, say. Both show an empty state where the lanes would be, so
+    fold, sort, add, the roster count, the filter and Copy Yesterday were
+    answering questions about lanes that are not there.
 
     Fold, sort, add, the roster count, the filter and Copy Yesterday all
     answered questions about a board that is not there - a sort order for no
@@ -81,8 +93,12 @@ export default function BoardToolbar({
 
     The filter chips stay. They are the answer to "why am I looking at this",
     and the date chip is how a teacher gets back.
+
+    Note this takes Copy Yesterday away from the no-record case, which was one
+    way to populate such a day. The empty state's own "Start a record for this
+    day" is the other, and it is the one standing in front of the teacher.
   */
-  const noBoard = model.noClassToday;
+  const noBoard = model.noClassToday || !model.hasRecord;
   // null, or { step: 'working' } / { step: 'done', result }. See `copy`.
   const [phase, setPhase] = useState(null);
   const copyTimers = useRef([]);
@@ -91,6 +107,56 @@ export default function BoardToolbar({
   // Unmounting mid-copy must not leave a timer holding a setState. The write
   // itself is already committed by then; only the dialog's own steps are lost.
   useEffect(() => () => copyTimers.current.forEach(clearTimeout), []);
+
+  /**
+   * The chips, held on screen long enough to leave.
+   *
+   * Clearing a filter dropped its chip in the same frame the board rebuilt
+   * around it, so the one element explaining WHY the board looked like that
+   * vanished at the exact moment the board changed. Arriving was the same in
+   * reverse.
+   *
+   * Keyed off a string of the ids rather than the array: `activeFilters` is
+   * rebuilt every render, so depending on it directly would re-run this
+   * forever.
+   */
+  const filterKey = activeFilters.map((f) => `${f.id}:${f.label}`).join('|');
+  const [chips, setChips] = useState(() => activeFilters.map((f) => ({ ...f, leaving: false })));
+  const chipTimers = useRef({});
+
+  useEffect(() => () => Object.values(chipTimers.current).forEach(clearTimeout), []);
+
+  useEffect(() => {
+    const live = new Set(activeFilters.map((f) => f.id));
+
+    setChips((prev) => {
+      const going = prev.filter((c) => !live.has(c.id));
+
+      going.forEach((c) => {
+        if (chipTimers.current[c.id]) return;
+        chipTimers.current[c.id] = setTimeout(() => {
+          delete chipTimers.current[c.id];
+          setChips((cur) => cur.filter((x) => x.id !== c.id));
+        }, CHIP_EXIT_MS);
+      });
+
+      // Live chips first, in their own order, then whatever is on its way out.
+      return [
+        ...activeFilters.map((f) => ({ ...f, leaving: false })),
+        ...going.map((c) => ({ ...c, leaving: true })),
+      ];
+    });
+
+    // A chip that comes BACK while it was leaving keeps its timer, which would
+    // then remove the live one. Cancel any timer whose filter has returned.
+    activeFilters.forEach((f) => {
+      if (chipTimers.current[f.id]) {
+        clearTimeout(chipTimers.current[f.id]);
+        delete chipTimers.current[f.id];
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
 
   /**
    * Ask before writing, always.
@@ -326,9 +392,23 @@ export default function BoardToolbar({
         */}
         <div className="acc-toolbar__spacer" />
 
+        {/*
+          The chips go with the tools on a day that has no board.
+
+          A date chip explains why the board looks narrowed - and on a Thursday
+          three weeks out there is no board to have narrowed. "No record for
+          this day" already says everything the chip would, and a lone tag
+          floating over an empty state reads as a filter that is hiding
+          something.
+
+          The way back is the date control in the nav, which is always there.
+        */}
         <div className="acc-toolbar__filters">
-          {activeFilters.map((filter) => (
-            <span className="acc-filterchip" key={filter.id}>
+          {(noBoard ? [] : chips).map((filter) => (
+            <span
+              className={`acc-filterchip${filter.leaving ? ' acc-filterchip--leaving' : ''}`}
+              key={filter.id}
+            >
               <span className="acc-filterchip__kind">{filter.kind}</span>
               <span className="acc-filterchip__label">{filter.label}</span>
               <button

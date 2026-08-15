@@ -47,6 +47,23 @@
  * "Priya R." is the same fact said twice, and the count is the thing that was
  * misleading in the first place.
  */
+/*
+  Chips arrive and leave rather than blinking.
+
+  A filter chip is the answer to "why does the board look like this", so it
+  appearing and disappearing in the same frame the board rebuilds is the one
+  moment it is least readable. It fades on mount, and `--leaving` is held by
+  BoardToolbar for its exit - see CHIP_EXIT_MS.
+*/
+.acc-filterchip {
+  animation: acc-fade-in var(--acc-dur-normal) var(--acc-ease-entrance) both;
+
+  &--leaving {
+    animation: acc-fade-out var(--acc-dur-normal) var(--acc-ease-exit) both;
+    pointer-events: none;
+  }
+}
+
 .acc-filterchip {
   display: inline-flex;
   align-items: center;

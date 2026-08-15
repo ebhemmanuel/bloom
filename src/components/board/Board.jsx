@@ -38,6 +38,24 @@ import {
   isWeekend,
 } from '../../domain/dates.js';
 
+/**
+ * How long the sealed notice takes to withdraw when a day is re-opened.
+ *
+ * `--acc-dur-normal` (260ms) plus a frame's grace. Matches
+ * `.acc-banner--leaving` in _app-shell.scss: if the two drift the notice either
+ * disappears mid-slide or sits invisible for a beat afterwards.
+ */
+const BANNER_EXIT_MS = 300;
+
+/**
+ * And how long it takes to arrive when a day is closed out.
+ *
+ * `--acc-dur-slow` (420ms) plus a frame's grace. Longer than the exit, as
+ * everywhere else in the app: things leave briskly and arrive with more room.
+ * Matches `.acc-banner--entering`.
+ */
+const BANNER_ENTER_MS = 460;
+
 /** `drop:<studentId>:<status>` → parts. */
 function parseDroppable(id) {
   const [, studentId, status] = id.split(':');
@@ -108,6 +126,69 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
   }, [dragging]);
 
   const locked = readOnly || model.sealed;
+
+  /**
+   * The sealed notice, held on screen long enough to leave.
+   *
+   * Closing out and re-opening change `sealed` on the day already in view, so
+   * there is no swap phase to carry the banner - React simply stopped rendering
+   * it and it vanished in a frame, having arrived on an animation.
+   *
+   * This mirrors what `useDaySwap` does for a date change, at the scale of one
+   * element: hold it mounted through its own animation either way. A day change
+   * still goes through the phase classes, which take precedence; this only
+   * covers the case where the same day changes its mind.
+   */
+  const sealed = view.model.sealed;
+  const swapping = view.phase !== 'idle';
+
+  /*
+    `held` is the ONLY reason the notice outlives `sealed` going false, and it
+    is set only when the day is not swapping.
+
+    Two mechanisms were both claiming this element and fighting over it. Moving
+    to an unsealed day faded the notice out with the rest of the old day, then
+    the seal-change lifecycle saw `sealed` flip at the swap and mounted it AGAIN
+    to play its own exit - so it vanished, flashed back, slid away a second
+    time, and the space under it jumped. During a swap the phase classes own it
+    outright; the lifecycle only covers a day that changes its mind in place.
+  */
+  const [bannerHeld, setBannerHeld] = useState(false);
+  const [bannerPhase, setBannerPhase] = useState(null);
+  const bannerTimer = useRef(null);
+  const wasSealed = useRef(sealed);
+
+  useEffect(() => {
+    if (wasSealed.current === sealed) return undefined;
+    wasSealed.current = sealed;
+    clearTimeout(bannerTimer.current);
+
+    if (swapping) {
+      // The day is changing under it. Nothing to hold and nothing to play.
+      setBannerHeld(false);
+      setBannerPhase(null);
+      return undefined;
+    }
+
+    if (sealed) {
+      setBannerPhase('entering');
+      bannerTimer.current = setTimeout(() => setBannerPhase(null), BANNER_ENTER_MS);
+      return undefined;
+    }
+
+    setBannerHeld(true);
+    setBannerPhase('leaving');
+    bannerTimer.current = setTimeout(() => {
+      setBannerHeld(false);
+      setBannerPhase(null);
+    }, BANNER_EXIT_MS);
+    return undefined;
+  }, [sealed, swapping]);
+
+  useEffect(() => () => clearTimeout(bannerTimer.current), []);
+
+  // Shown while the day says so, or while it is still leaving.
+  const bannerOn = sealed || bannerHeld;
 
   // --- mutations ----------------------------------------------------------
 
@@ -538,13 +619,41 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
         in again on top of itself. A first appearance is covered by the board's
         own arrival cascade, which now includes this banner.
       */}
-      {view.model.sealed && (
+      {bannerOn && (
+        /*
+          A slot around it, so the space closes as the notice leaves.
+
+          Sliding the banner alone left its height reserved until React dropped
+          it, and everything below snapped up in one frame at the end - the
+          notice animated and the board it sits on cut. The slot is a grid whose
+          single row runs 1fr to 0fr, which collapses without anyone having to
+          measure a height or hard-code one.
+
+          It follows the day's phase FIRST and the seal change second, in the
+          same order the banner does. Keyed off the seal alone it did nothing
+          when stepping between two days that were both closed out - `sealed`
+          never changed, so the space opened at full height in one frame while
+          the notice slid into it, which is the cut this was supposed to remove.
+        */
         <div
-          className={`acc-banner acc-banner--sealed${
-            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
+          className={`acc-banner-slot${
+            view.phase !== 'idle'
+              ? ` acc-banner-slot--${view.phase === 'in' ? 'entering' : 'leaving'}`
+              : bannerPhase
+                ? ` acc-banner-slot--${bannerPhase}`
+                : ''
           }`}
         >
-          {/*
+          <div
+            className={`acc-banner acc-banner--sealed${
+              view.phase !== 'idle'
+                ? ` acc-board__day--${view.phase}`
+                : bannerPhase
+                  ? ` acc-banner--${bannerPhase}`
+                  : ''
+            }`}
+          >
+            {/*
             Six words, centred, and nothing else.
 
             It carried its own Re-open button on the right for a while, which
@@ -557,7 +666,8 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
             What is left is a statement of fact, so it sits in the middle rather
             than at the left edge with an empty bar stretching away from it.
           */}
-          <span>This day is closed out and read-only.</span>
+            <span>This day is closed out and read-only.</span>
+          </div>
         </div>
       )}
 
@@ -577,10 +687,17 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
           for BECAUSE you are looking at a long list. Only the lanes move now.
         */}
         {/*
-          The tools take the day's phase too, so the strip joins the cascade
-          between the notice above it and the rows below. It is a sibling of
-          `.acc-board__day` rather than inside it - it must not scroll away - so
-          like the banner it wears the class itself.
+          Second rung of the day's cascade: notice, tools, students.
+
+          It is a sibling of `.acc-board__day` rather than inside it - the tools
+          must not scroll away with the rows - so like the banner it carries the
+          phase class itself.
+
+          It moves; it never goes MISSING. Absent-on-a-date-change was a
+          separate fault: the strip held at opacity 0 for the whole out phase
+          while that phase was 600ms long. The rungs are tight now and the phase
+          is only as long as the ladder needs. The one time the tools are gone
+          is a day with no board at all - see `noBoard` in BoardToolbar.
         */}
         <div
           className={`acc-board__top${

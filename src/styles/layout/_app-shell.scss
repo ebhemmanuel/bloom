@@ -33,19 +33,21 @@ $surface-lead: 160ms;
 /*
   The day's own ladder, top to bottom.
 
-  A day change reads down the screen in BOTH directions: the notice about the
-  day, then the tools that act on it, then the rows themselves. Leaving is the
-  same order rather than its reverse - the label goes before the thing it
-  labels, and the tools before what they operate on, so the board empties the
-  way you read it.
+  Notice, tools, rows - in that order, both directions. The label goes before
+  the thing it labels and the tools before what they operate on, so the board
+  fills and empties the way you read it.
 
-  These are the rungs. The rows add their own per-row step on top of the third.
+  Kept tight on purpose. These same rungs were nearly twice as long once, and a
+  strip that holds at zero opacity for 600ms does not read as cascading, it
+  reads as the toolbar disappearing on every date change.
+
+  The rows add their own per-row step on top of the third.
 */
 $day-banner: 0;
-$day-tools-out: 55;
-$day-rows-out: 110;
-$day-tools-in: 80;
-$day-rows-in: 170;
+$day-tools-out: 40;
+$day-rows-out: 90;
+$day-tools-in: 60;
+$day-rows-in: 130;
 
 @mixin cascade-rows($name, $fill: forwards) {
   .acc-header {
@@ -256,7 +258,7 @@ $day-rows-in: 170;
     */
     &#{&} .acc-lane,
     &#{&} .acc-empty {
-      animation: acc-cascade-out 220ms var(--acc-ease-standard) both;
+      animation: acc-cascade-out var(--acc-dur-normal) var(--acc-ease-standard) both;
     }
 
     /*
@@ -269,7 +271,7 @@ $day-rows-in: 170;
     */
     @for $i from 1 through 8 {
       .acc-lane:nth-of-type(#{$i}) {
-        animation-delay: #{$day-rows-out + ($i - 1) * 40}ms;
+        animation-delay: #{$day-rows-out + ($i - 1) * 35}ms;
       }
     }
 
@@ -282,12 +284,12 @@ $day-rows-in: 170;
     // Doubled for the same reason as `--out` above.
     &#{&} .acc-lane,
     &#{&} .acc-empty {
-      animation: acc-cascade-in 420ms var(--acc-ease-entrance) backwards;
+      animation: acc-cascade-in var(--acc-dur-slow) var(--acc-ease-entrance) backwards;
     }
 
     @for $i from 1 through 8 {
       .acc-lane:nth-of-type(#{$i}) {
-        animation-delay: #{$day-rows-in + ($i - 1) * 50}ms;
+        animation-delay: #{$day-rows-in + ($i - 1) * 45}ms;
       }
     }
 
@@ -348,37 +350,120 @@ $day-rows-in: 170;
   Same curve, duration and blur as the rows; only the direction differs.
 */
 /*
+  The space the notice occupies, closing and opening with it.
+
+  A grid of one row animated between `1fr` and `0fr`. The row is what holds the
+  height, so collapsing it takes the banner's space with it - no measuring, no
+  hard-coded line height, and it stays correct if the sentence ever wraps.
+
+  `min-block-size: 0` on the child is what lets a grid row go below its
+  content's natural height at all; without it the row refuses to shrink.
+
+  The clip is on the SLOT rather than the child, and that is the difference
+  between collapsing to nothing and collapsing to 17px. A grid row at `0fr`
+  gives its item zero CONTENT height, but the item's own padding and border
+  still expand its box past the row - so the notice's padding and its hairline
+  rule stayed behind as a stripe that then vanished in a frame.
+
+  Durations come from the scale: `--acc-dur-slow` in, `--acc-dur-normal` out,
+  the same pair the notice inside it uses, so the space opens on exactly the
+  beat the words do.
+*/
+.acc-banner-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+
+  > * {
+    min-block-size: 0;
+  }
+
+  &--entering {
+    animation: acc-banner-slot-open var(--acc-dur-slow) var(--acc-ease-entrance) both;
+  }
+
+  &--leaving {
+    animation: acc-banner-slot-shut var(--acc-dur-normal) var(--acc-ease-standard) both;
+  }
+}
+
+@keyframes acc-banner-slot-open {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+
+@keyframes acc-banner-slot-shut {
+  from {
+    grid-template-rows: 1fr;
+  }
+  to {
+    grid-template-rows: 0fr;
+  }
+}
+
+/*
+  Closing out and re-opening change the notice on the day already in view, so
+  there is no swap phase to carry it. Same slide and fade as the day-change
+  pair, on their own classes - held mounted by Board for the length of each.
+*/
+.acc-banner--leaving {
+  animation: acc-banner-out var(--acc-dur-normal) var(--acc-ease-standard) both;
+}
+
+.acc-banner--entering {
+  animation: acc-banner-in var(--acc-dur-slow) var(--acc-ease-entrance) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-banner-slot--entering,
+  .acc-banner-slot--leaving {
+    animation-duration: var(--acc-dur-fast);
+  }
+
+  .acc-banner--leaving {
+    animation: acc-fade-out var(--acc-dur-fast) linear both;
+  }
+
+  .acc-banner--entering {
+    animation: acc-fade-in var(--acc-dur-fast) linear both;
+  }
+}
+
+/*
   The tools, on the rung between the notice and the rows.
 
   Same downward travel as the banner: both are pinned to the top of the card, so
   they arrive from the edge they are attached to while the rows rise from the
-  column that continues below. It is a sibling of `.acc-board__day` - it must
-  not scroll away with the rows - so it carries the phase class itself.
+  column that continues below.
 */
 .acc-board__top.acc-board__day--in {
-  animation: acc-banner-in 320ms var(--acc-ease-entrance) #{$day-tools-in}ms backwards;
+  animation: acc-banner-in var(--acc-dur-slow) var(--acc-ease-entrance) #{$day-tools-in}ms backwards;
 }
 
 .acc-board__top.acc-board__day--out {
-  animation: acc-banner-out 180ms var(--acc-ease-standard) #{$day-tools-out}ms both;
+  animation: acc-banner-out var(--acc-dur-normal) var(--acc-ease-standard) #{$day-tools-out}ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .acc-board__top.acc-board__day--in {
-    animation: acc-fade-in 120ms linear both;
+    animation: acc-fade-in var(--acc-dur-fast) linear both;
   }
 
   .acc-board__top.acc-board__day--out {
-    animation: acc-fade-out 120ms linear both;
+    animation: acc-fade-out var(--acc-dur-fast) linear both;
   }
 }
 
 .acc-banner.acc-board__day--in {
-  animation: acc-banner-in 320ms var(--acc-ease-entrance) #{$day-banner}ms backwards;
+  animation: acc-banner-in var(--acc-dur-slow) var(--acc-ease-entrance) #{$day-banner}ms backwards;
 }
 
 .acc-banner.acc-board__day--out {
-  animation: acc-banner-out 180ms var(--acc-ease-standard) #{$day-banner}ms both;
+  animation: acc-banner-out var(--acc-dur-normal) var(--acc-ease-standard) #{$day-banner}ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
