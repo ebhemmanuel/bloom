@@ -234,10 +234,12 @@ $day-rows-in: 130;
     it brings a twelve-lane board in as a single sheet - the stagger needs each
     row to own its animation, with `.acc-cascade` spacing them.
 
-    The empty state takes the first row's slot. It has no rows to stagger,
-    being the whole day by itself, and left out it was the one thing that cut:
-    stepping to a day with no record replaced the lanes with "No record for
-    this day" in a single frame.
+    The empty state is deliberately NOT in this. It is one block that says the
+    same thing on every day it appears, so sliding it out and back in animated
+    a heading, a paragraph and a button none of which had changed - and between
+    two days that both have no record, nothing on screen had changed at all.
+    Its heading and body fade themselves when their words differ, keyed on the
+    text. See EmptyState.
 
     `backwards` on the way IN and never `both`. acc-cascade-in blurs, and a
     finished animation with `both` keeps its last frame - every lane would sit
@@ -256,8 +258,7 @@ $day-rows-in: 130;
       order and the rows sat at `animation-name: none` with their staggered
       delays applied to nothing at all.
     */
-    &#{&} .acc-lane,
-    &#{&} .acc-empty {
+    &#{&} .acc-lane {
       animation: acc-cascade-out var(--acc-dur-normal) var(--acc-ease-standard) both;
     }
 
@@ -274,16 +275,11 @@ $day-rows-in: 130;
         animation-delay: #{$day-rows-out + ($i - 1) * 35}ms;
       }
     }
-
-    .acc-empty {
-      animation-delay: #{$day-rows-out}ms;
-    }
   }
 
   &--in {
     // Doubled for the same reason as `--out` above.
-    &#{&} .acc-lane,
-    &#{&} .acc-empty {
+    &#{&} .acc-lane {
       animation: acc-cascade-in var(--acc-dur-slow) var(--acc-ease-entrance) backwards;
     }
 
@@ -291,10 +287,6 @@ $day-rows-in: 130;
       .acc-lane:nth-of-type(#{$i}) {
         animation-delay: #{$day-rows-in + ($i - 1) * 45}ms;
       }
-    }
-
-    .acc-empty {
-      animation-delay: #{$day-rows-in}ms;
     }
   }
 
@@ -304,17 +296,14 @@ $day-rows-in: 130;
   */
   @media (prefers-reduced-motion: reduce) {
     &--out .acc-lane,
-    &--out .acc-empty,
-    &--in .acc-lane,
-    &--in .acc-empty {
+    &--in .acc-lane {
       animation-name: acc-fade-in;
       animation-duration: 120ms;
       animation-timing-function: linear;
       animation-delay: 0ms;
     }
 
-    &--out .acc-lane,
-    &--out .acc-empty {
+    &--out .acc-lane {
       animation-name: acc-fade-out;
     }
   }
