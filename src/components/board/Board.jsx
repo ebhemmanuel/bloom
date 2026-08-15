@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import Swimlane from './Swimlane.jsx';
 import CardDetailPopover from './CardDetailPopover.jsx';
@@ -158,7 +158,27 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
   const bannerTimer = useRef(null);
   const wasSealed = useRef(sealed);
 
-  useEffect(() => {
+  /*
+    useLayoutEffect, not useEffect, and that is the whole difference between
+    this sliding and this flashing.
+
+    A plain effect runs AFTER the browser paints, so React always got one frame
+    of the un-adjusted state on screen first. Measured at frame resolution, both
+    directions had a fault:
+
+      close   slot -1 -> slot 34 -> slot 0 -> 4 -> 6    the notice mounted at
+              full height for one painted frame, then snapped to zero and only
+              then began to open
+      reopen  slot 34 -> slot -1 -> slot 34             `sealed` went false
+              before `held` went true, so it left the document entirely for one
+              painted frame and came back
+
+    Both threw the first student row 34px and back inside a single frame, which
+    is what read as the flash. A layout effect runs after the DOM is written and
+    before the paint, so the corrected state is the first thing shown and the
+    intermediate one is never on screen.
+  */
+  useLayoutEffect(() => {
     if (wasSealed.current === sealed) return undefined;
     wasSealed.current = sealed;
     clearTimeout(bannerTimer.current);
