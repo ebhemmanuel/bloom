@@ -68,6 +68,17 @@
     border-bottom: 1px solid var(--acc-border);
   }
 
+  /*
+    The first lane's header, across its whole width.
+
+    Only the first. The line was put on the notes cell for a moment, which gave
+    every OTHER lane a second border on top of the one it already had and drew
+    them at 2px.
+  */
+  &:first-child &__header {
+    border-block-end: 1px solid var(--acc-border);
+  }
+
   &__disclosure {
     display: flex;
     align-items: center;

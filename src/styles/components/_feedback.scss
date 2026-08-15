@@ -9,9 +9,6 @@
   // tinted field inside it, which read as two surfaces in one cell.
   background: var(--acc-surface-sunken);
   min-width: 0;
-  // Its own top edge, rather than relying on the lane header's border-bottom
-  // reaching this far.
-  border-block-start: 1px solid var(--acc-border);
 
   // Integer line box, matching the status column headers beside it. See
   // `.acc-column__header` for why the fraction mattered.
