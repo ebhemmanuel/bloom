@@ -212,9 +212,9 @@ export default function CloseOutDayButton() {
           The label lives on `aria-label` and `title`, so nothing is lost to
           anyone reading it with a screen reader or hovering it.
         */
-        className={`acc-btn acc-btn--icon${phase === 'in' ? ' acc-fade-enter' : ''}${
-          phase === 'out' ? ' acc-fade-leave' : ''
-        }`}
+        className={`acc-btn acc-btn--icon${saysSealed ? ' acc-btn--locked' : ''}${
+          phase === 'in' ? ' acc-fade-enter' : ''
+        }${phase === 'out' ? ' acc-fade-leave' : ''}`}
         /*
           Straight through, both ways.
 

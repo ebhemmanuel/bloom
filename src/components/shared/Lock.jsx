@@ -20,16 +20,20 @@ export default function Lock({ open = false, size = 14 }) {
       className={`acc-lockicon${open ? ' acc-lockicon--open' : ''}`}
     >
       {/*
-        Open swings the whole shackle off to the LEFT, rather than just leaving
-        its right leg short.
+        ONE shackle, moved - not two paths swapped.
 
-        Lifting the leg in place was the difference between the two states, and
-        at 14px that is a two-pixel gap - you had to look for it to know whether
-        a day was sealed. Swung left, one leg plugs into the case and the other
-        hangs clear of it entirely, so the two read apart at a glance.
+        Open swings it off to the left, so a leg plugs into the case and the
+        other hangs clear of it. Lifting a leg in place had been the whole
+        difference between the two states, and at 14px that is a two-pixel gap
+        you have to go looking for.
+
+        Drawing it as a single path that slides is what lets the change be
+        animated: swapping `d` between two shapes can only cut, where a
+        transform eases. See `.acc-lockicon__shackle`.
       */}
       <path
-        d={open ? 'M2.1 6.4V4.9a2.5 2.5 0 0 1 5 0v2.3' : 'M5.5 7.2V4.9a2.5 2.5 0 0 1 5 0v2.3'}
+        className="acc-lockicon__shackle"
+        d="M5.5 7.2V4.9a2.5 2.5 0 0 1 5 0v2.3"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"

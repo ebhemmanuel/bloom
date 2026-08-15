@@ -104,6 +104,39 @@
     }
   }
 
+  /*
+    Filled while the day is sealed: pastel disc, white glyph.
+
+    An outlined padlock differs from an outlined open padlock by the position of
+    one arc, which is a small thing to hang "this day is closed" on in a bar
+    read at a glance. Filling it makes the sealed state the one thing in the
+    row wearing a colour.
+
+    The petal purple, not the accent - the same decorative pastel the Notes pip
+    uses. `--locked` is not the only place the state is said: the banner states
+    it in words, and the button carries `aria-pressed` and a title.
+  */
+  &--locked {
+    background: var(--acc-status-detail-petal);
+    border-color: var(--acc-status-detail-petal);
+    color: #ffffff;
+
+    /*
+      Hover holds the lavender.
+
+      It went to the full accent, which turned a pastel disc into the deepest
+      thing on the bar the moment a pointer crossed it - a jarring amount of
+      change for a hover, and it broke the rule the other controls follow, where
+      hover lights the EDGE and the fill stays put. The edge is all that moves
+      here too.
+    */
+    &:hover:not(:disabled) {
+      background: var(--acc-status-detail-petal);
+      border-color: var(--acc-accent);
+      color: #ffffff;
+    }
+  }
+
   &:disabled {
     opacity: 0.45;
     cursor: default;
@@ -205,8 +238,17 @@
     background: transparent;
     color: var(--acc-accent);
 
+    /*
+      Hover holds the lavender.
+
+      It went to the full accent, which turned a pastel disc into the deepest
+      thing on the bar the moment a pointer crossed it - a jarring amount of
+      change for a hover, and it broke the rule the other controls follow, where
+      hover lights the EDGE and the fill stays put. The edge is all that moves
+      here too.
+    */
     &:hover:not(:disabled) {
-      background: var(--acc-accent);
+      background: var(--acc-status-detail-petal);
       border-color: var(--acc-accent);
       color: #ffffff;
     }
@@ -457,3 +499,29 @@
   thing in the row, and the rule doing it was in a file about a control that no
   longer exists.
 */
+
+/*
+  The shackle sliding between shut and swung-open.
+
+  A translate rather than a change of shape: the path is identical in both
+  states and only its position moves, which is the one way this can ease instead
+  of cut. -3.4 user units on a 16-unit viewBox carries it from sitting square on
+  the case to hanging off its left edge.
+
+  The button's fill eases alongside it - `.acc-btn` already transitions
+  background, border and colour - so locking a day is one movement rather than
+  a glyph jumping inside a square that changed colour underneath it.
+*/
+.acc-lockicon__shackle {
+  transition: transform var(--acc-dur-normal) var(--acc-ease-standard);
+}
+
+.acc-lockicon--open .acc-lockicon__shackle {
+  transform: translateX(-3.4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-lockicon__shackle {
+    transition-duration: var(--acc-dur-instant);
+  }
+}
