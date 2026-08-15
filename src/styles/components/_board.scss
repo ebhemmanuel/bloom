@@ -69,16 +69,19 @@
   }
 
   /*
-    The first lane's line, on the slot rather than on the header above it.
+    The first lane's line, on the BODY slot rather than on the header above it.
 
-    The header's own `border-bottom` does not show here - the body's column
-    headers sit on that row and paint over it. Putting it on the top edge of
-    the slot draws it in the body, where nothing is covering it.
+    The header's own `border-bottom` does not show over a body - the column
+    headers sit on that row and paint over it - so the body slot draws its own
+    top edge. First lane only: every other lane already reads a line at this
+    join, and adding one to all of them drew those at 2px.
 
-    First lane only. Every other lane already reads a line at this join, and
-    adding one to all of them drew those at 2px.
+    `--body`, not every slot. A collapsed lane wraps its summary STRIP in a
+    slot too, and the strip does not cover the header's border the way the
+    column headers do - marking the first student absent drew the header's line
+    and this one, stacked.
   */
-  &:first-child &__slot {
+  &:first-child &__slot--body {
     border-block-start: 1px solid var(--acc-border);
   }
 

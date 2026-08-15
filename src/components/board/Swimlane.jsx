@@ -139,7 +139,11 @@ function Swimlane({
           )}
 
           {showBody && (
-            <div className={`acc-lane__slot${bodyPhase ? ` acc-lane__slot--${bodyPhase}` : ''}`}>
+            <div
+              className={`acc-lane__slot acc-lane__slot--body${
+                bodyPhase ? ` acc-lane__slot--${bodyPhase}` : ''
+              }`}
+            >
               <div className="acc-lane__body">
                 {BOARD_COLUMNS.map((col) => (
                   <StatusColumn

@@ -33,16 +33,27 @@ function toText(entries) {
   return entries.join('\n');
 }
 
+/** `.acc-notes__item--leaving`: `--acc-dur-normal` plus a frame's grace. */
+const NOTE_EXIT_MS = 300;
+
 export default function SwimlaneNotesCell({ studentName, value, disabled, onCommit }) {
   const entries = toEntries(value);
 
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState(null);
   const [editDraft, setEditDraft] = useState('');
+  const [removing, setRemoving] = useState(null);
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef(null);
+  const removeTimer = useRef(null);
 
-  useEffect(() => () => clearTimeout(savedTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(savedTimer.current);
+      clearTimeout(removeTimer.current);
+    },
+    []
+  );
 
   // A date change lands a different day's notes in the same cell. Anything half
   // typed belonged to the day that just left.
@@ -85,9 +96,28 @@ export default function SwimlaneNotesCell({ studentName, value, disabled, onComm
     setEditing(null);
     if (text === entries[index]) return;
     const next = entries.slice();
-    if (text) next[index] = text;
-    else next.splice(index, 1);
-    write(next);
+    if (text) {
+      next[index] = text;
+      write(next);
+      return;
+    }
+
+    /*
+      A removed note fades where it stands.
+
+      Writing straight away dropped its card in the same frame and the stack
+      below snapped up. The document keeps the note for the length of the exit -
+      the card is still there to fade - and the deletion is written when the
+      animation lands. The write is the same either way; only when it happens
+      moved.
+    */
+    next.splice(index, 1);
+    setRemoving(index);
+    clearTimeout(removeTimer.current);
+    removeTimer.current = setTimeout(() => {
+      setRemoving(null);
+      write(next);
+    }, NOTE_EXIT_MS);
   };
 
   // Enter files the note; Shift+Enter is a line break inside one.
@@ -164,7 +194,15 @@ export default function SwimlaneNotesCell({ studentName, value, disabled, onComm
             .map((text, index) => ({ text, index }))
             .reverse()
             .map(({ text, index }) =>
-              editing === index ? (
+              removing === index ? (
+                <li
+                  className="acc-notes__item acc-notes__item--leaving"
+                  key={`note-${index}-${text}`}
+                  aria-hidden="true"
+                >
+                  <p className="acc-notes__card acc-notes__card--static">{text}</p>
+                </li>
+              ) : editing === index ? (
                 <li className="acc-notes__item" key={`edit-${index}`}>
                   {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                   <textarea

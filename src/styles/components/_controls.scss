@@ -105,35 +105,30 @@
   }
 
   /*
-    Filled while the day is sealed: pastel disc, white glyph.
+    Filled while the day is sealed, in the filter chips' colours: the soft
+    accent behind the accent itself.
 
     An outlined padlock differs from an outlined open padlock by the position of
     one arc, which is a small thing to hang "this day is closed" on in a bar
-    read at a glance. Filling it makes the sealed state the one thing in the
-    row wearing a colour.
+    read at a glance. And the chips are the right pair to borrow - a chip says
+    "the board is narrowed and this is why", the lock says "the day is closed
+    and this is why", so the two states of being-in-effect wear the same colours.
+    It was petal with a white glyph for a moment, which read stronger than the
+    chips it sits above and put white text on 2:1 contrast.
 
-    The petal purple, not the accent - the same decorative pastel the Notes pip
-    uses. `--locked` is not the only place the state is said: the banner states
-    it in words, and the button carries `aria-pressed` and a title.
+    Hover lights the edge and the fill stays put, like every other control.
   */
   &--locked {
-    background: var(--acc-status-detail-petal);
-    border-color: var(--acc-status-detail-petal);
-    color: #ffffff;
+    background: var(--acc-accent-soft);
+    // The chip's full pair: soft fill AND the accent edge. Borderless it was a
+    // pale disc that read pressed rather than sealed.
+    border-color: var(--acc-accent);
+    color: var(--acc-accent);
 
-    /*
-      Hover holds the lavender.
-
-      It went to the full accent, which turned a pastel disc into the deepest
-      thing on the bar the moment a pointer crossed it - a jarring amount of
-      change for a hover, and it broke the rule the other controls follow, where
-      hover lights the EDGE and the fill stays put. The edge is all that moves
-      here too.
-    */
     &:hover:not(:disabled) {
-      background: var(--acc-status-detail-petal);
+      background: var(--acc-accent-soft);
       border-color: var(--acc-accent);
-      color: #ffffff;
+      color: var(--acc-accent);
     }
   }
 

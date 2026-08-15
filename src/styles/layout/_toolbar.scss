@@ -354,7 +354,10 @@
     border-radius: var(--acc-radius-sm);
     font-size: var(--acc-fs-sub);
     color: var(--acc-fg);
-    transition: background-color var(--acc-dur-instant) var(--acc-ease-standard);
+    // The hover duration, not instant. At 90ms the fill was on before the
+    // pointer settled, which reads as a cut - and a pointer sweeping a month
+    // leaves a soft trail at this pace instead of a flicker.
+    transition: background-color var(--acc-dur-hover) var(--acc-ease-standard);
 
     &:hover:not(:disabled) {
       background: var(--acc-surface-hover);

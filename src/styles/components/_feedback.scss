@@ -64,7 +64,7 @@
     line-height: 16px;
     resize: none;
     outline: none;
-    transition: border-color var(--acc-dur-fast) var(--acc-ease-standard);
+    transition: border-color var(--acc-dur-hover) var(--acc-ease-standard);
 
     &::placeholder {
       color: var(--acc-fg-faint);
@@ -95,10 +95,14 @@
     It scrolls rather than growing the lane: a student with eight notes must not
     make their row eight notes tall while every other student's stays one line.
   */
+  /*
+    Spacing lives on the items, not on a `gap`, because a gap cannot be
+    animated away: when a removed card collapses, the 8px the list held for it
+    would stay behind and snap shut at the end. A margin collapses with it.
+  */
   &__list {
     display: flex;
     flex-direction: column;
-    gap: var(--acc-space-2);
     margin: 0 var(--acc-space-2) var(--acc-space-2);
     padding: 0;
     list-style: none;
@@ -108,6 +112,28 @@
 
   &__item {
     display: flex;
+    margin-block-end: var(--acc-space-2);
+
+    &:last-child {
+      margin-block-end: 0;
+    }
+  }
+
+  /*
+    A removed note fading where it stands: the same grid-row collapse the lane
+    and the sealed notice use, with the margin going with it, so the cards
+    below ride up on the animation instead of arriving after it.
+  */
+  &__item--leaving {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+    pointer-events: none;
+    animation: acc-note-out var(--acc-dur-normal) var(--acc-ease-standard) both;
+
+    > * {
+      min-block-size: 0;
+    }
   }
 
   /*
@@ -130,7 +156,7 @@
     overflow-wrap: anywhere;
     white-space: pre-wrap;
     animation: acc-notes-card-in var(--acc-dur-normal) var(--acc-ease-standard) both;
-    transition: border-color var(--acc-dur-fast) var(--acc-ease-standard);
+    transition: border-color var(--acc-dur-hover) var(--acc-ease-standard);
 
     &:hover {
       border-color: var(--acc-border-strong);
@@ -150,6 +176,19 @@
   Short travel and a fade: it has just left the field two pixels above it, so it
   reads as the same object coming to rest rather than as something arriving.
 */
+@keyframes acc-note-out {
+  from {
+    grid-template-rows: minmax(0, 1fr);
+    margin-block-end: var(--acc-space-2);
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: minmax(0, 0fr);
+    margin-block-end: 0;
+    opacity: 0;
+  }
+}
+
 @keyframes acc-notes-card-in {
   from {
     opacity: 0;
@@ -162,7 +201,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .acc-notes__card {
+  .acc-notes__card,
+  .acc-notes__item--leaving {
     animation-duration: var(--acc-dur-instant);
     animation-timing-function: linear;
   }

@@ -204,10 +204,23 @@
   // as the CSS function and errors out.
   @if list.length($properties) > 0 {
     transition-property: $properties;
+    // Border-color eases at the hover duration, everything else stays instant.
+    // One duration per property, in the same order: fills and text answer a
+    // press and have to feel immediate, where a border lighting is an
+    // invitation and reads better arriving softly.
+    $durations: ();
+    @each $property in $properties {
+      @if $property == border-color {
+        $durations: list.append($durations, var(--acc-dur-hover), comma);
+      } @else {
+        $durations: list.append($durations, var(--acc-dur-instant), comma);
+      }
+    }
+    transition-duration: $durations;
   } @else {
     transition-property: all;
+    transition-duration: var(--acc-dur-instant);
   }
-  transition-duration: var(--acc-dur-instant);
   transition-timing-function: var(--acc-ease-standard);
 }
 
