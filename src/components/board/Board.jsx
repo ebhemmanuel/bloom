@@ -632,16 +632,15 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
                   and its fade plays again. Unchanged on every other render, so
                   ordinary edits never restart it.
 
-                  The fade is on the CONTAINER rather than the lanes. Lanes rest
-                  at `data-board-cascade='rest'`, which states `animation: none`
-                  outright - deliberately, see _app-shell.scss - so re-keying
-                  them animates nothing. The container is outside that reset.
-
-                  Opacity only, no travel: the cards are changing in place, and
-                  sliding the board would say something moved when nothing did.
+                  Lane by lane, not all at once. Fading the container brought a
+                  whole board of changed statuses in as a single block, which
+                  reads as a pop even when it fades. The stagger comes from
+                  `.acc-cascade`, already on this element; the animation the
+                  delays drive is `--copied` in _app-shell.scss, which has to
+                  out-specify the `rest` state's `animation: none` on the lanes.
                 */
                 <div
-                  className={`acc-board__lanes acc-cascade${copyPulse ? ' acc-fade-enter' : ''}`}
+                  className={`acc-board__lanes acc-cascade${copyPulse ? ' acc-board__lanes--copied' : ''}`}
                   key={`lanes-${copyPulse}`}
                 >
                   {view.model.lanes.map((lane) => (

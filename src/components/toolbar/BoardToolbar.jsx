@@ -209,7 +209,17 @@ export default function BoardToolbar({
           ? 'Replace it'
           : 'Copy them',
       cancelLabel: canProceed ? 'Cancel' : 'Close',
-      tone: confirm.reason === 'would-overwrite' ? 'warn' : 'default',
+      /*
+        No warn tone, even when it would replace today's work.
+
+        Amber is this app's colour for destroying something, and it made the
+        ordinary copy button mustard. Replacing is reversible - every entry
+        stays a card the teacher can move - and the body already says plainly
+        that it will replace. Colouring the button as a hazard on top of that
+        is saying the same thing twice, in the one place a teacher would rather
+        just get on with it.
+      */
+      tone: 'default',
       onCancel: closeCopy,
       onConfirm: () => {
         // The ask is answered; from here the same box reports on itself.

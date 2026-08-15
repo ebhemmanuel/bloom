@@ -1,3 +1,5 @@
+@use '../abstracts/motion' as *;
+
 // ---------------------------------------------------------------------------
 // Bloom app shell.
 //
@@ -194,6 +196,69 @@ $surface-lead: 160ms;
   display: flex;
   flex-direction: column;
   gap: var(--acc-space-4);
+}
+
+/**
+ * A copied day arriving, lane by lane, while the teacher is still in the dialog.
+ *
+ * The whole board's statuses change at once, and letting that land in a single
+ * frame is a lot of movement to appear behind a scrim with no explanation. The
+ * lanes come in staggered instead, on the same curve the board uses everywhere
+ * else - the per-lane delays come from `.acc-cascade` on the container.
+ *
+ * `backwards`, NOT `both`, and that is the whole reason this rule is written out
+ * rather than reusing `cascade-rows`. `acc-cascade-in` blurs, and a finished
+ * animation with `both` keeps its last frame - so every lane would sit on
+ * `filter: blur(0)` for ever, and a filter that is not `none` makes an element a
+ * stacking context. That is the exact bug the `rest` state below was written to
+ * undo: it trapped the toolbar's dropdowns and let the lanes paint over them.
+ * `backwards` holds the FROM state through the delay and lets go at the end.
+ *
+ * The block and the modifier are BOTH in the selector so this outranks
+ * `[data-board-cascade='rest']`'s `animation: none` further down this file on
+ * specificity rather than on order. Matching that rule's weight and relying on
+ * source position would put a working animation at the mercy of where someone
+ * later chose to paste a rule.
+ */
+/*
+  Longhands, not the shorthand.
+
+  `animation: …` sets every sub-property, including `animation-delay` - so the
+  shorthand here reset each lane's delay to 0 and every one of them arrived at
+  the same instant. The stagger lives on `.acc-cascade > *:nth-child(n)`, which
+  this rule out-specifies, so the delay is the one thing it must not name.
+*/
+.acc-board__lanes.acc-board__lanes--copied {
+  /*
+    The stagger, re-declared here rather than left to `.acc-cascade`.
+
+    `[data-board-cascade='rest']` below sets `animation: none` on `.acc-lane`,
+    and the SHORTHAND resets `animation-delay` to 0 along with everything else.
+    It carries the same specificity as `.acc-cascade > *:nth-child(n)` and sits
+    later in the cascade, so it wins - every lane came in at 0ms and the whole
+    board arrived in one frame, which is the pop this was meant to remove.
+
+    Included at this depth, the generated selectors gain the extra class and
+    out-specify both.
+  */
+  @include cascade;
+
+  > .acc-lane {
+    animation-name: acc-cascade-in;
+    animation-duration: 460ms;
+    animation-timing-function: var(--acc-ease-entrance);
+    animation-fill-mode: backwards;
+  }
+}
+
+// Reduced motion: the meaning survives, the travel and the blur do not. The
+// stagger is flattened globally by `.acc-cascade > *` in _motion.scss.
+@media (prefers-reduced-motion: reduce) {
+  .acc-board__lanes.acc-board__lanes--copied > .acc-lane {
+    animation-name: acc-fade-in;
+    animation-duration: 160ms;
+    animation-timing-function: linear;
+  }
 }
 
 // ---------------------------------------------------------------------------
