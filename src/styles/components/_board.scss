@@ -69,14 +69,17 @@
   }
 
   /*
-    The first lane's header, across its whole width.
+    The first lane's line, on the slot rather than on the header above it.
 
-    Only the first. The line was put on the notes cell for a moment, which gave
-    every OTHER lane a second border on top of the one it already had and drew
-    them at 2px.
+    The header's own `border-bottom` does not show here - the body's column
+    headers sit on that row and paint over it. Putting it on the top edge of
+    the slot draws it in the body, where nothing is covering it.
+
+    First lane only. Every other lane already reads a line at this join, and
+    adding one to all of them drew those at 2px.
   */
-  &:first-child &__header {
-    border-block-end: 1px solid var(--acc-border);
+  &:first-child &__slot {
+    border-block-start: 1px solid var(--acc-border);
   }
 
   &__disclosure {
