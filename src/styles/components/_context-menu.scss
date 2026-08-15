@@ -136,19 +136,24 @@
     font-size: var(--acc-fs-sub);
     font-weight: var(--acc-fw-medium);
     text-align: start;
-    color: var(--acc-accent);
+    /*
+      The card's own ink, not the accent.
+
+      Accent on every row made the whole menu read as a column of links, which
+      is a lot of emphasis for a list where the interesting part is the swatch
+      beside each one - and it put a second purple next to the lavender petal
+      for Used with Detail, two different meanings in nearly the same colour.
+      At `--acc-fg` these match the card title the menu was opened from, and the
+      petals are the only colour in the panel.
+    */
+    color: var(--acc-fg);
     transition: color var(--acc-dur-instant) var(--acc-ease-standard);
 
-    /*
-      A link's hover, not a button's.
-
-      These read as text now they carry the accent, so a filled block sliding in
-      behind one made it look like a menu of buttons - and the row of real
-      buttons underneath Mark absent then had nothing to distinguish it. Only
-      the colour deepens.
-    */
+    // A link's hover, not a button's: a filled block sliding in behind one made
+    // it look like a menu of buttons, and the row of real buttons underneath
+    // Mark absent then had nothing to distinguish it. Only the colour moves.
     &:hover {
-      color: var(--acc-accent-hover);
+      color: var(--acc-accent);
     }
 
     &--current {
@@ -179,16 +184,16 @@
     flex-shrink: 0;
 
     &--unassigned {
-      background: var(--acc-status-unassigned);
+      background: var(--acc-status-unassigned-petal);
     }
     &--used {
-      background: var(--acc-status-used);
+      background: var(--acc-status-used-petal);
     }
     &--used-with-detail {
-      background: var(--acc-status-detail);
+      background: var(--acc-status-detail-petal);
     }
     &--refused {
-      background: var(--acc-status-refused);
+      background: var(--acc-status-refused-petal);
     }
   }
 

@@ -78,19 +78,48 @@ $acc-tokens: (
   // failure - a student may have been absent or simply not needed the support.
   // Amber reads as "note this"; red would read as "you failed a disabled child",
   // which is both wrong and cruel on a report a teacher has to sign.
-  'status-unassigned': #7a7391,
-  'status-unassigned-soft': #f2eff7,
+  // Each status takes its HUE from a petal of the mark, and its LIGHTNESS from
+  // what a text colour needs. The petals themselves cannot be used: they run
+  // 1.4:1 to 2.2:1 against white, where body text needs 4.5:1 - these are not
+  // decorative swatches, they colour the column headings and the detail line as
+  // well as the chips. So the flower sets which family each status belongs to
+  // and the contrast requirement sets how dark it lands.
+  //
+  //   unassigned  periwinkle   refused  rose
+  //   used        mint         not used peach
+  //   detail      lavender
+  //
+  // Soft variants are the same hue taken almost to white, so a filled chip and
+  // its text are visibly the same colour rather than two that merely coexist.
+  //
+  // And a third set below: `-petal`, the actual petal, for the places colour is
+  // LOOKED AT rather than read - swatches, the card's status edge, any fill with
+  // no text on it. One token was doing both jobs, which is what dragged the
+  // whole palette dark: a colour that has to clear 4.5:1 as body text can never
+  // be a pastel, so every swatch inherited a text colour's weight and the board
+  // went drab. Split, each can be what it should be.
+  'status-unassigned': #5f6b8f,
+  'status-unassigned-soft': #eef1fb,
   'status-used': #2f7d63,
-  'status-used-soft': #e4f4ed,
+  'status-used-soft': #e6f6ef,
   'status-detail': #5b4bd6,
-  'status-detail-soft': #eeebfd,
+  'status-detail-soft': #efebfd,
   // Refused is about the student declining, not the teacher failing, so it must
-  // not carry any warning weight. Steel blue keeps it factual and distinct from
-  // the green / violet / amber already in play.
-  'status-refused': #4a6b7a,
-  'status-refused-soft': #e8f0f4,
+  // not carry any warning weight. Rose rather than red for exactly that reason:
+  // it is the pink petal taken to text weight, which reads as "declined" where
+  // red would read as "you failed a disabled child" on a report a teacher signs.
+  'status-refused': #9c4368,
+  'status-refused-soft': #fbeaf1,
   'status-not-used': #a06a2c,
-  'status-not-used-soft': #fbf1e2,
+  'status-not-used-soft': #fdf2e2,
+
+  // The petals themselves. Decorative only - never put text on these, and never
+  // use them as text: they run 1.4:1 to 2.2:1 on white.
+  'status-unassigned-petal': #a9bcf7,
+  'status-used-petal': #96ddc1,
+  'status-detail-petal': #b7a6f4,
+  'status-refused-petal': #f8aac9,
+  'status-not-used-petal': #ffd39a,
   'status-absent': #8a839a,
   'status-absent-soft': #f4f2f7,
   'status-na': #9a93a8,
@@ -253,14 +282,16 @@ $acc-tokens-dark: (
   'brand': #b3a9f5,
   'accent-soft': #322a5c,
   'accent-fg': #16121f,
-  'status-unassigned': #a49cb8,
-  'status-unassigned-soft': #2b2637,
+  // The same petal families, lifted: on dark the lightness inverts but the hue
+  // is what carries the meaning, so it is the one thing that must not move.
+  'status-unassigned': #9aa6cc,
+  'status-unassigned-soft': #262b3d,
   'status-used': #6fc9a6,
   'status-used-soft': #1c3a30,
   'status-detail': #a595ff,
   'status-detail-soft': #302a54,
-  'status-refused': #8fb3c4,
-  'status-refused-soft': #1f2f38,
+  'status-refused': #e5a0bd,
+  'status-refused-soft': #3a2029,
   'status-not-used': #e0aa63,
   'status-not-used-soft': #3b2d18,
   'status-absent': #8a839a,

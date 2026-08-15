@@ -68,8 +68,16 @@
     cursor: grabbing;
   }
 
+  /*
+    The status edge takes the petal, not the text colour.
+
+    Nothing is written on this stripe, so it has no contrast floor to clear and
+    no reason to wear a body-text weight. The petal is what the mark is made of
+    and what the swatch in the move-to menu shows, so the card, the menu and the
+    logo are visibly the same palette.
+  */
   &--custom {
-    border-inline-start: 3px solid var(--acc-status-detail);
+    border-inline-start: 3px solid var(--acc-status-detail-petal);
   }
 
   // A card that resolved to Not Used keeps the ordinary card surface. The state
@@ -77,7 +85,11 @@
   // what the closed-out day says about it, and repainting the whole Unassigned
   // column at 4pm reads as an alarm rather than as a day ending.
   &--not-used {
-    border-color: color-mix(in srgb, var(--acc-status-not-used) 22%, var(--acc-border));
+    // Mixed toward the border rather than used neat: a full petal edge on every
+    // unassigned card at 4pm would repaint the column, and the state is carried
+    // by the `__resolved` label. The petal is already soft, so it takes a larger
+    // share than the text colour did to stay visible at all.
+    border-color: color-mix(in srgb, var(--acc-status-not-used-petal) 55%, var(--acc-border));
   }
 
   &--needs-detail {
