@@ -69,6 +69,20 @@ export default function BoardToolbar({
   onToggleSort,
 }) {
   const [confirm, setConfirm] = useState(null);
+  /*
+    A weekend or a non-instructional date carries nothing to record, so the
+    controls that act on a day's contents have nothing to act on.
+
+    Fold, sort, add, the roster count, the filter and Copy Yesterday all
+    answered questions about a board that is not there - a sort order for no
+    lanes, a count of students none of whom can be recorded today. Offering them
+    made the empty state look like a board that had merely been filtered down to
+    nothing.
+
+    The filter chips stay. They are the answer to "why am I looking at this",
+    and the date chip is how a teacher gets back.
+  */
+  const noBoard = model.noClassToday;
   // null, or { step: 'working' } / { step: 'done', result }. See `copy`.
   const [phase, setPhase] = useState(null);
   const copyTimers = useRef([]);
@@ -232,17 +246,19 @@ export default function BoardToolbar({
   return (
     <>
       <div className="acc-toolbar">
-        <button
-          type="button"
-          className="acc-btn acc-btn--round"
-          onClick={onToggleFoldAll}
-          aria-label={allFolded ? 'Unfold all students' : 'Fold all students'}
-          title={allFolded ? 'Unfold all students' : 'Fold all students'}
-        >
-          <Chevron down={!allFolded} />
-        </button>
+        {!noBoard && (
+          <>
+            <button
+              type="button"
+              className="acc-btn acc-btn--round"
+              onClick={onToggleFoldAll}
+              aria-label={allFolded ? 'Unfold all students' : 'Fold all students'}
+              title={allFolded ? 'Unfold all students' : 'Fold all students'}
+            >
+              <Chevron down={!allFolded} />
+            </button>
 
-        {/*
+            {/*
           Which end of the alphabet the roster starts from. A toggle rather than
           a menu, because there are only two answers and a dropdown to choose
           between two things is a click spent on nothing.
@@ -251,40 +267,44 @@ export default function BoardToolbar({
           roster itself - how much of it you can see, how much of it there is,
           and in what order - rather than about which slice you are looking at.
         */}
-        <button
-          type="button"
-          className="acc-btn acc-sortbtn"
-          onClick={onToggleSort}
-          aria-label={
-            sort === 'az' ? 'Sorted A to Z. Switch to Z to A.' : 'Sorted Z to A. Switch to A to Z.'
-          }
-          title={sort === 'az' ? 'Sorted A to Z' : 'Sorted Z to A'}
-        >
-          <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
-          <Caret up={sort === 'za'} />
-        </button>
+            <button
+              type="button"
+              className="acc-btn acc-sortbtn"
+              onClick={onToggleSort}
+              aria-label={
+                sort === 'az'
+                  ? 'Sorted A to Z. Switch to Z to A.'
+                  : 'Sorted Z to A. Switch to A to Z.'
+              }
+              title={sort === 'az' ? 'Sorted A to Z' : 'Sorted Z to A'}
+            >
+              <span className="acc-sortbtn__label">{sort === 'az' ? 'A-Z' : 'Z-A'}</span>
+              <Caret up={sort === 'za'} />
+            </button>
 
-        <button
-          type="button"
-          className="acc-btn acc-btn--round"
-          onClick={onAddStudent}
-          disabled={readOnly}
-          aria-label="Add student"
-          title="Add a student and paste their accommodations"
-        >
-          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
-            <path
-              d="M8 3v10M3 8h10"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+            <button
+              type="button"
+              className="acc-btn acc-btn--round"
+              onClick={onAddStudent}
+              disabled={readOnly}
+              aria-label="Add student"
+              title="Add a student and paste their accommodations"
+            >
+              <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                <path
+                  d="M8 3v10M3 8h10"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
 
-        <span className="acc-toolbar__count acc-numeric">
-          {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
-        </span>
+            <span className="acc-toolbar__count acc-numeric">
+              {model.laneCount} student{model.laneCount === 1 ? '' : 's'}
+            </span>
+          </>
+        )}
 
         {/*
           What you are looking at, and a way out of each of it.
@@ -346,7 +366,9 @@ export default function BoardToolbar({
           the pill nav - it chooses which day the whole app is on, which is a
           bigger question than how this board is arranged.
         */}
-        <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
+        {!noBoard && (
+          <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
+        )}
 
         {/*
           Copy yesterday, beside the period filter.
@@ -364,15 +386,17 @@ export default function BoardToolbar({
           the day and the number of entries, because copying statuses forward
           asserts delivery on a day nobody has observed.
         */}
-        <button
-          type="button"
-          className="acc-btn"
-          onClick={askThenCopy}
-          disabled={disabled}
-          title="Bring across what you recorded on the last day you worked"
-        >
-          Copy Yesterday
-        </button>
+        {!noBoard && (
+          <button
+            type="button"
+            className="acc-btn"
+            onClick={askThenCopy}
+            disabled={disabled}
+            title="Bring across what you recorded on the last day you worked"
+          >
+            Copy Yesterday
+          </button>
+        )}
 
         {/*
           No P# button here any more. Grouping the roster by period was a toggle
