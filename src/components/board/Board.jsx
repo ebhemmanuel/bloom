@@ -584,7 +584,16 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
       periods={periods}
       selectedPeriodIds={periodIds}
       onPeriodsChange={setPeriodIds}
-      model={model}
+      /*
+        The BUFFERED day, not the live one.
+
+        Its content was reading `model` while its animation followed `view`, so
+        picking a date re-rendered the strip as the new day and then played the
+        old day's exit over it - stepping from a bare day to one with a board
+        made the tools pop in, fade out, and come back. What it shows and what
+        it is doing now agree.
+      */
+      model={view.model}
       readOnly={readOnly}
       onCopyPrevious={copyPrevious}
       onAddStudent={onAddStudent}

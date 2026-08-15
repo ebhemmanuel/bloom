@@ -17,6 +17,10 @@ import { useEffect, useRef, useState } from 'react';
  * Same-day changes (a status drop, a note, an added card) pass straight
  * through untouched: only the DATE moving is bridged.
  *
+ * Two BARE days in a row - neither with a record, or either a weekend - swap
+ * with no transition at all. Nothing on screen differs between them, so there
+ * is nothing to carry from one to the other.
+ *
  * `rangeActive` says the range view is the visible surface. Picking a date
  * from it clears the range and moves the date in one commit, and the day
  * board was not on screen - there is nothing of it to fade out, and fading
@@ -50,6 +54,15 @@ import { useEffect, useRef, useState } from 'react';
 const OUT_MS = 620;
 const IN_MS = 900;
 
+/**
+ * A day with nothing on it: no record started, or no obligation at all.
+ *
+ * Two of these in a row look identical - the same heading, the same paragraph,
+ * the same button - so there is nothing for a transition to carry. Only the
+ * heading can differ, and it fades itself when it does. See EmptyState.
+ */
+const isBare = (m) => Boolean(m) && (!m.hasRecord || m.noClassToday);
+
 export default function useDaySwap(dateKey, model, rangeActive) {
   // What the timer should hand over when it fires, however many times the
   // inputs have moved since it was set.
@@ -78,6 +91,24 @@ export default function useDaySwap(dateKey, model, rangeActive) {
     if (dateKey === shownDate.current) return undefined;
 
     if (wasRange.current) {
+      setShown({ ...latest.current });
+      setPhase('idle');
+      return undefined;
+    }
+
+    /*
+      Both days bare: swap without a transition.
+
+      Animating here moved a heading, a paragraph and a button none of which had
+      changed - stepping from one future day with no record to another is a
+      change of date and nothing else. The date is not even on this screen
+      except in the weekend heading, which fades on its own when the words
+      differ.
+
+      Any transition involving a real board still plays: that is when something
+      actually leaves and something else arrives.
+    */
+    if (isBare(shown.model) && isBare(latest.current.model)) {
       setShown({ ...latest.current });
       setPhase('idle');
       return undefined;

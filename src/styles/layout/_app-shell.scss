@@ -234,12 +234,13 @@ $day-rows-in: 130;
     it brings a twelve-lane board in as a single sheet - the stagger needs each
     row to own its animation, with `.acc-cascade` spacing them.
 
-    The empty state is deliberately NOT in this. It is one block that says the
-    same thing on every day it appears, so sliding it out and back in animated
-    a heading, a paragraph and a button none of which had changed - and between
-    two days that both have no record, nothing on screen had changed at all.
-    Its heading and body fade themselves when their words differ, keyed on the
-    text. See EmptyState.
+    The empty state takes the rows' slot: it has none to stagger, being the
+    whole day by itself, and left out it was the one thing that cut when a day
+    with lanes gave way to one without.
+
+    Whether it moves at all is decided in useDaySwap, not here. Stepping
+    between two days that are BOTH bare skips the transition outright, because
+    nothing on screen differs.
 
     `backwards` on the way IN and never `both`. acc-cascade-in blurs, and a
     finished animation with `both` keeps its last frame - every lane would sit
@@ -258,7 +259,8 @@ $day-rows-in: 130;
       order and the rows sat at `animation-name: none` with their staggered
       delays applied to nothing at all.
     */
-    &#{&} .acc-lane {
+    &#{&} .acc-lane,
+    &#{&} .acc-empty {
       animation: acc-cascade-out var(--acc-dur-normal) var(--acc-ease-standard) both;
     }
 
@@ -275,11 +277,16 @@ $day-rows-in: 130;
         animation-delay: #{$day-rows-out + ($i - 1) * 35}ms;
       }
     }
+
+    .acc-empty {
+      animation-delay: #{$day-rows-out}ms;
+    }
   }
 
   &--in {
     // Doubled for the same reason as `--out` above.
-    &#{&} .acc-lane {
+    &#{&} .acc-lane,
+    &#{&} .acc-empty {
       animation: acc-cascade-in var(--acc-dur-slow) var(--acc-ease-entrance) backwards;
     }
 
@@ -287,6 +294,10 @@ $day-rows-in: 130;
       .acc-lane:nth-of-type(#{$i}) {
         animation-delay: #{$day-rows-in + ($i - 1) * 45}ms;
       }
+    }
+
+    .acc-empty {
+      animation-delay: #{$day-rows-in}ms;
     }
   }
 
@@ -296,14 +307,17 @@ $day-rows-in: 130;
   */
   @media (prefers-reduced-motion: reduce) {
     &--out .acc-lane,
-    &--in .acc-lane {
+    &--out .acc-empty,
+    &--in .acc-lane,
+    &--in .acc-empty {
       animation-name: acc-fade-in;
       animation-duration: 120ms;
       animation-timing-function: linear;
       animation-delay: 0ms;
     }
 
-    &--out .acc-lane {
+    &--out .acc-lane,
+    &--out .acc-empty {
       animation-name: acc-fade-out;
     }
   }
@@ -348,11 +362,13 @@ $day-rows-in: 130;
   `min-block-size: 0` on the child is what lets a grid row go below its
   content's natural height at all; without it the row refuses to shrink.
 
-  The clip is on the SLOT rather than the child, and that is the difference
-  between collapsing to nothing and collapsing to 17px. A grid row at `0fr`
-  gives its item zero CONTENT height, but the item's own padding and border
-  still expand its box past the row - so the notice's padding and its hairline
-  rule stayed behind as a stripe that then vanished in a frame.
+  The child's PADDING and BORDER collapse with the row, and that is the
+  difference between reaching nothing and stopping at 17px. A grid row's
+  automatic minimum includes its item's border box, and `min-block-size: 0`
+  says nothing about padding - so 8px either side plus a hairline rule held the
+  row open, the collapse stalled, and the board jerked that last 17px in one
+  frame when React finally dropped the element. Measured: 34, 33, 28, 18, 17,
+  gone.
 
   Durations come from the scale: `--acc-dur-slow` in, `--acc-dur-normal` out,
   the same pair the notice inside it uses, so the space opens on exactly the
@@ -360,13 +376,35 @@ $day-rows-in: 130;
 */
 .acc-banner-slot {
   display: grid;
-  grid-template-rows: 1fr;
+  /*
+    `minmax(0, 1fr)`, not `1fr`.
+
+    `1fr` is shorthand for `minmax(auto, 1fr)`, and that `auto` floors the row at
+    the item's min-content height - which includes its padding and its border.
+    So `0fr` never reached zero: the row stalled at 17px, the notice sat there
+    fully collapsed but still holding space, and React dropping it a frame later
+    was the jolt. Naming the minimum explicitly is the whole fix.
+  */
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
 
   > * {
     min-block-size: 0;
   }
 
+  /*
+    One element animating, one property pair.
+
+    This ran three coordinated animations for a while: the row collapsing here,
+    the notice sliding on its own transform, and a third set of keyframes
+    squeezing that notice's padding and border to zero so the row could reach
+    the bottom. Each was there to cover for the `minmax` bug above, and together
+    they fought - the notice translated up out of a row that was still open, so
+    the student rows jumped the full height of the banner and back.
+
+    With the row able to close on its own, the notice needs to do nothing at all.
+    The clip does the reveal. Height is the animation.
+  */
   &--entering {
     animation: acc-banner-slot-open var(--acc-dur-slow) var(--acc-ease-entrance) both;
   }
@@ -378,47 +416,31 @@ $day-rows-in: 130;
 
 @keyframes acc-banner-slot-open {
   from {
-    grid-template-rows: 0fr;
+    grid-template-rows: minmax(0, 0fr);
+    opacity: 0;
   }
   to {
-    grid-template-rows: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    opacity: 1;
   }
 }
 
 @keyframes acc-banner-slot-shut {
   from {
-    grid-template-rows: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    opacity: 1;
   }
   to {
-    grid-template-rows: 0fr;
+    grid-template-rows: minmax(0, 0fr);
+    opacity: 0;
   }
-}
-
-/*
-  Closing out and re-opening change the notice on the day already in view, so
-  there is no swap phase to carry it. Same slide and fade as the day-change
-  pair, on their own classes - held mounted by Board for the length of each.
-*/
-.acc-banner--leaving {
-  animation: acc-banner-out var(--acc-dur-normal) var(--acc-ease-standard) both;
-}
-
-.acc-banner--entering {
-  animation: acc-banner-in var(--acc-dur-slow) var(--acc-ease-entrance) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .acc-banner-slot--entering,
   .acc-banner-slot--leaving {
     animation-duration: var(--acc-dur-fast);
-  }
-
-  .acc-banner--leaving {
-    animation: acc-fade-out var(--acc-dur-fast) linear both;
-  }
-
-  .acc-banner--entering {
-    animation: acc-fade-in var(--acc-dur-fast) linear both;
+    animation-timing-function: linear;
   }
 }
 
