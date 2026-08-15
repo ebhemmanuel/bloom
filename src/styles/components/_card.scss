@@ -145,7 +145,21 @@
   &__label {
     font-size: 13px;
     font-weight: var(--acc-fw-medium);
-    line-height: 1.45;
+    /*
+      19px, not the 1.45 ratio, which on 13px gives 18.85.
+
+      That fraction was the seed for every misdrawn hairline on the board. A
+      line of card label at 18.85 makes the card 63.84, the lane 191.72, and
+      every lane after the first starts on a fraction - so the 1px border under
+      one lane header sat at y=202.00 and drew crisply while the next sat at
+      409.72 and smeared across two device rows. Side by side, the correctly
+      drawn one looks like the missing one.
+
+      19px is the same line to the eye and lands the whole stack on whole
+      pixels. Ratios are right for body copy that has to scale; this is a fixed
+      13px label whose height other things are measured against.
+    */
+    line-height: 19px;
     overflow-wrap: anywhere;
     color: var(--acc-fg);
   }

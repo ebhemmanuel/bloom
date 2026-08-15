@@ -374,12 +374,21 @@
     background: var(--acc-accent-soft);
   }
 
+  /*
+    An integer line box, for the same reason the card label has one.
+
+    The small-caps label in here is 11px on the 1.45 ratio, which is 15.95 - so
+    the header came out at 27.95, the column at 145.88 and the lane at a
+    fraction, and every 1px divider below it had to paint across two device
+    rows. 16px is the same line to the eye and keeps the stack on whole pixels.
+  */
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     padding: 8px 12px 4px;
+    line-height: 16px;
   }
 
   &__count {

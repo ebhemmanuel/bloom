@@ -5,14 +5,19 @@
 .acc-notes {
   display: flex;
   flex-direction: column;
-  background: var(--acc-surface);
+  // Tinted end to end, like the status columns beside it. It was white with a
+  // tinted field inside it, which read as two surfaces in one cell.
+  background: var(--acc-surface-sunken);
   min-width: 0;
 
+  // Integer line box, matching the status column headers beside it. See
+  // `.acc-column__header` for why the fraction mattered.
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: var(--acc-space-2) var(--acc-space-3) var(--acc-space-1);
+    line-height: 16px;
   }
 
   &__saved {
@@ -33,15 +38,9 @@
     padding: var(--acc-space-2);
     border: 1px solid transparent;
     border-radius: var(--acc-radius-sm);
-    /*
-      White, like the cell it sits in.
-
-      It was `--acc-surface-sunken`, which is where the lavender came from: a
-      tall panel of tinted colour beside four already-tinted status columns,
-      for the one place on the board a teacher writes a sentence. The notes
-      column is the quiet end of the lane and should read as paper.
-    */
-    background: var(--acc-surface);
+    // Transparent, so the field is the column rather than a panel inside it.
+    // The whole cell carries one tint; see `.acc-notes`.
+    background: transparent;
     font-size: var(--acc-fs-sub);
     line-height: var(--acc-lh-normal);
     resize: none;

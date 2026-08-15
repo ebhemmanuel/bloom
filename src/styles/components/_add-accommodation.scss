@@ -22,6 +22,17 @@
     color: var(--acc-fg-faint);
     font-size: var(--acc-fs-tiny);
     font-weight: var(--acc-fw-medium);
+    /*
+      16px, so the control is exactly 34: 8 padding either side, this, and 1px
+      of border either side.
+
+      On the inherited 1.45 ratio an 11px label gives 15.95 and the trigger came
+      out 33.94 - which made the column 145.94, the lane a fraction, and every
+      hairline below it paint across two device rows. It also meant the reserved
+      spacer that stands in for this on a sealed day was 0.06 taller than the
+      thing it replaces.
+    */
+    line-height: 16px;
     transition:
       opacity var(--acc-dur-fast) var(--acc-ease-standard),
       border-color var(--acc-dur-fast) var(--acc-ease-standard),
