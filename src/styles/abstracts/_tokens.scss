@@ -240,7 +240,7 @@ $acc-tokens: (
   // Hover borders only. An edge lighting up is an invitation, not feedback on
   // something the teacher did, and at 90ms it snapped on before the pointer
   // had settled.
-  'dur-hover': 500ms,
+  'dur-hover': 350ms,
   'dur-fast': 160ms,
   'dur-normal': 260ms,
   'dur-slow': 420ms,
