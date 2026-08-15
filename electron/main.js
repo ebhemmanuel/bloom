@@ -12,7 +12,7 @@ const { registerIpcHandlers, flushPendingWrites } = require('./ipc-handlers');
 // pointer to a teacher's live data.json, and a dev run must never be able to
 // repoint or overwrite it. Must happen before app.whenReady().
 if (!app.isPackaged) {
-  app.setPath('userData', path.join(app.getPath('appData'), 'accommodations-tracker-dev'));
+  app.setPath('userData', path.join(app.getPath('appData'), 'bloom-dev'));
 }
 
 /**

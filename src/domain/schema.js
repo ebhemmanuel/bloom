@@ -17,7 +17,12 @@ import { isoTimestamp, isValidDateKey, todayKey } from './dates.js';
 /** Bump whenever the shape changes, and add a migration in ./migrations. */
 export const CURRENT_SCHEMA_VERSION = 1;
 
-export const APP_NAME = 'accommodations-tracker';
+/**
+ * Stamped into doc.app.name on a new record, and never read back for logic:
+ * normalizeDoc keeps whatever the file already says. So records written under
+ * the old name keep it, and nothing anywhere compares the two.
+ */
+export const APP_NAME = 'bloom';
 
 /** Product name, as it appears in the UI and on printed reports. */
 export const PRODUCT_NAME = 'BLOOM';

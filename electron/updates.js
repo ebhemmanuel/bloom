@@ -28,7 +28,7 @@ const path = require('node:path');
 
 /** Where releases live. Public on purpose: a token cannot ship in a client. */
 const OWNER = 'ebhemmanuel';
-const REPO = 'accommodations-tracker';
+const REPO = 'bloom';
 const LATEST = `https://api.github.com/repos/${OWNER}/${REPO}/releases/latest`;
 const RELEASES_PAGE = `https://github.com/${OWNER}/${REPO}/releases/latest`;
 

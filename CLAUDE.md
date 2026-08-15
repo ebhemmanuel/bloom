@@ -67,4 +67,4 @@ Do not apply one to the other - see §1 of the design doc.
 - The portable build unpacks to a **random** `%TEMP%` dir each launch, so `process.execPath` is not the folder holding the exe. `portable.unpackDirName: false` makes this worse, not better - leave it unset.
 - `@vitejs/plugin-react@6` requires Vite 8. On Vite 7, stay on plugin-react 5.
 - Modern Sass parses a bare `if()` as the CSS function. Use an `@if` block.
-- Dev runs use a separate userData path (`accommodations-tracker-dev`) so a dev session can never repoint a teacher's live data file.
+- Dev runs use a separate userData path (`bloom-dev`) so a dev session can never repoint a teacher's live data file.
