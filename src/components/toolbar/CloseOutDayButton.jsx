@@ -4,6 +4,7 @@ import { useBoard } from '../../context/BoardContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { sealDay, reopenDay } from '../../domain/resolve.js';
 import { todayKey } from '../../domain/dates.js';
+import { OUT_MS as DAY_SWAP_OUT_MS } from '../../hooks/useDaySwap.js';
 
 /** 2:30pm, in minutes past midnight. See `visible`. */
 const CLOSE_OUT_FROM = 14 * 60 + 30;
@@ -95,6 +96,36 @@ export default function CloseOutDayButton() {
   }, [sealed, hasRecord, dateKey, now, cycleEndTime]);
 
   /*
+    Held back until the day it describes is actually on screen.
+
+    `dateKey` moves the instant a date is picked, but the board it names does
+    not arrive until useDaySwap has faded the previous one out. Reading
+    `visible` straight through meant this button faded in over the OLD day and
+    was long finished by the time the new one cascaded in - so it read as having
+    simply appeared, which is exactly what the fade was added to stop.
+
+    Only a DATE change waits. Closing out or re-opening changes `visible` on the
+    day already in view, and that has to answer immediately.
+  */
+  const [landed, setLanded] = useState(visible);
+  const lastDate = useRef(dateKey);
+  const landTimer = useRef(null);
+
+  useLayoutEffect(() => {
+    if (lastDate.current === dateKey) {
+      clearTimeout(landTimer.current);
+      setLanded(visible);
+      return undefined;
+    }
+    lastDate.current = dateKey;
+    clearTimeout(landTimer.current);
+    landTimer.current = setTimeout(() => setLanded(visible), DAY_SWAP_OUT_MS);
+    return undefined;
+  }, [dateKey, visible]);
+
+  useEffect(() => () => clearTimeout(landTimer.current), []);
+
+  /*
     Held on screen long enough to leave, the way the sealed notice is.
 
     `if (!visible) return null` on its own only ever cut. Stepping onto a day
@@ -107,17 +138,17 @@ export default function CloseOutDayButton() {
     would paint one frame of the un-adjusted state, which is the cut it is
     supposed to remove.
   */
-  const [held, setHeld] = useState(visible);
+  const [held, setHeld] = useState(landed);
   const [phase, setPhase] = useState(null);
-  const wasVisible = useRef(visible);
+  const wasVisible = useRef(landed);
   const fadeTimer = useRef(null);
 
   useLayoutEffect(() => {
-    if (wasVisible.current === visible) return undefined;
-    wasVisible.current = visible;
+    if (wasVisible.current === landed) return undefined;
+    wasVisible.current = landed;
     clearTimeout(fadeTimer.current);
 
-    if (visible) {
+    if (landed) {
       setHeld(true);
       setPhase('in');
       fadeTimer.current = setTimeout(() => setPhase(null), FADE_IN_MS);
@@ -130,7 +161,7 @@ export default function CloseOutDayButton() {
       setPhase(null);
     }, FADE_OUT_MS);
     return undefined;
-  }, [visible]);
+  }, [landed]);
 
   useEffect(() => () => clearTimeout(fadeTimer.current), []);
 
@@ -144,10 +175,10 @@ export default function CloseOutDayButton() {
     actually offered on.
   */
   const lastSealed = useRef(sealed);
-  if (visible) lastSealed.current = sealed;
-  const saysSealed = visible ? sealed : lastSealed.current;
+  if (landed) lastSealed.current = sealed;
+  const saysSealed = landed ? sealed : lastSealed.current;
 
-  if (!visible && !held) return null;
+  if (!landed && !held) return null;
 
   const commit = () => {
     mutate((d) =>
@@ -190,9 +221,13 @@ export default function CloseOutDayButton() {
           above - the button is not rendered at all on a day with nothing in it,
           rather than rendered and refusing.
         */
-        // `!visible` covers the exit: for the moment it is still on screen
-        // fading out, it belongs to a day it is no longer offered on.
-        disabled={readOnly || !visible}
+        /*
+          Inert while it is on screen but not current: mid-exit, and during the
+          beat after a date change before `landed` catches up. In that window it
+          still shows the previous day's label while `commit` would act on the
+          new date, so it must not be clickable.
+        */
+        disabled={readOnly || !landed || landed !== visible}
         title={
           saysSealed
             ? 'Makes the day editable again'

@@ -51,7 +51,7 @@ import { useEffect, useRef, useState } from 'react';
   shorter of the two on purpose: it holds `pointer-events: none`, so every
   millisecond of it is a millisecond the board cannot be clicked.
 */
-const OUT_MS = 620;
+export const OUT_MS = 620;
 const IN_MS = 900;
 
 /**
