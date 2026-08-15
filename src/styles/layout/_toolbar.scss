@@ -150,6 +150,21 @@
     align-items: center;
     gap: var(--acc-space-2);
     /*
+      The same 32px box every other pill wears - `.acc-btn` sets it, and this is
+      not one.
+
+      Without it the control sized to its own line-box and came out at 19px: it
+      had the border, the fill and the radius of the pills beside it and none of
+      their height, which is why it kept reading as not-quite-matching however
+      many times the colours were checked.
+
+      `box-sizing` with it, or the border and padding would push the box past
+      the height just declared. `.acc-btn` sets that on itself for the same
+      reason; there is no global reset here to inherit it from.
+    */
+    box-sizing: border-box;
+    block-size: 32px;
+    /*
       A MINIMUM, not a fixed measure.
 
       A fixed width was slack by definition: sized for the longest label, every
@@ -180,11 +195,19 @@
     border-radius: var(--acc-radius-pill);
     color: var(--acc-fg);
     font-size: var(--acc-fs-sub);
-    transition: color var(--acc-dur-instant) var(--acc-ease-standard);
+    font-weight: var(--acc-fw-medium);
+    @include motion.interactive(border-color, background-color, color);
 
+    /*
+      The edge lights, the fill holds - exactly what `.acc-btn` does, because
+      this now looks like one and a control that matches at rest and behaves
+      differently under the pointer is worse than one that never matched.
+
+      `--on` shares it so the pill stays lit while its calendar is open.
+    */
     &:hover,
     &--on {
-      color: var(--acc-fg);
+      border-color: var(--acc-accent);
     }
   }
 
