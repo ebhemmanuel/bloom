@@ -22,6 +22,16 @@
  */
 $surface-lead: 160ms;
 
+/*
+  The head start the sealed notice takes on its way OUT.
+
+  It is the label on the day, so it withdraws before the day does - clearing a
+  date filter on a closed board reads top-down rather than as one slab leaving.
+  On the way IN the order reverses and the notice lands last, on its own delay
+  in the rule below.
+*/
+$banner-lead: 60;
+
 @mixin cascade-rows($name, $fill: forwards) {
   .acc-header {
     animation: #{$name} 550ms var(--acc-ease-standard) $surface-lead #{$fill};
@@ -234,10 +244,22 @@ $surface-lead: 160ms;
       animation: acc-cascade-out 220ms var(--acc-ease-standard) both;
     }
 
+    /*
+      The rows go AFTER the notice, which leaves at 0ms.
+
+      Clearing a date filter on a closed day should read top-down: the label
+      about the day withdraws, then the day it labelled follows it out. Starting
+      both at zero made them one movement, and the sentence that explains the
+      board disappeared in the same instant as the board.
+    */
     @for $i from 1 through 8 {
       .acc-lane:nth-of-type(#{$i}) {
-        animation-delay: #{($i - 1) * 50}ms;
+        animation-delay: #{$banner-lead + ($i - 1) * 50}ms;
       }
+    }
+
+    .acc-empty {
+      animation-delay: #{$banner-lead}ms;
     }
   }
 
@@ -291,15 +313,21 @@ $surface-lead: 160ms;
   describes is already there. First on the way out, for the same reason in
   reverse: the label goes before the thing it labels.
 
-  Same keyframes as everything else, so it rises into place and drops away on
-  exit exactly as the rows do.
+  It travels the OTHER WAY from the rows, and that is the point. The lanes rise
+  from below because they live in a column that continues downward off the
+  screen. This is pinned to the top edge of the card, so it comes DOWN into
+  place and withdraws upward - a thing that enters from where it is attached.
+  Rising into it looked like the notice had been pushed up out of the board it
+  belongs to.
+
+  Same curve, duration and blur as the rows; only the direction differs.
 */
 .acc-banner.acc-board__day--in {
-  animation: acc-cascade-in 420ms var(--acc-ease-entrance) 240ms backwards;
+  animation: acc-banner-in 420ms var(--acc-ease-entrance) 240ms backwards;
 }
 
 .acc-banner.acc-board__day--out {
-  animation: acc-cascade-out 220ms var(--acc-ease-standard) both;
+  animation: acc-banner-out 220ms var(--acc-ease-standard) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -607,5 +635,39 @@ body[data-dragging='true'] {
   [data-board-cascade] .acc-app__main {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
+  }
+}
+
+/*
+  The sealed notice, entering and leaving from the edge it is attached to.
+
+  A mirror of acc-cascade-in / acc-cascade-out: same distance, same blur, the
+  travel negated. The rows rise from below because their column continues down
+  off the screen; this is pinned under the card's top edge, so it descends into
+  place and withdraws back up rather than being pushed out of the board.
+*/
+@keyframes acc-banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes acc-banner-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-26px);
+    filter: blur(6px);
   }
 }

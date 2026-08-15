@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
+import { EXIT_MS } from '../../hooks/useDismissAnimation.js';
 import Caret from '../shared/Caret.jsx';
 import CalendarPanel from '../shared/CalendarPanel.jsx';
 import { formatDateMedium, isWeekend } from '../../domain/dates.js';
@@ -32,7 +33,41 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   const [anchor, setAnchor] = useState(dateKey);
   const [at, setAt] = useState({ top: 0, right: 0 });
 
-  const ref = usePopoverDismiss(open, () => setOpen(false));
+  /*
+    Closing plays the exit before the portal goes.
+
+    React unmounts the instant its condition goes false, so the calendar
+    vanished in a frame having arrived on an animation - a thing that eases in
+    and blinks out reads as two different objects.
+
+    `useDismissAnimation` is not reusable here: its `started` ref never resets,
+    which is right for a dialog that unmounts with the component and wrong for a
+    popover that opens again and again inside one that never does.
+  */
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef(null);
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+  const closeCal = useCallback(() => {
+    setClosing((already) => {
+      if (already) return already;
+      closeTimer.current = setTimeout(() => {
+        setOpen(false);
+        setClosing(false);
+      }, EXIT_MS);
+      return true;
+    });
+  }, []);
+
+  // Re-opening mid-exit cancels it, or the pending timer would close the
+  // calendar the teacher has just asked for.
+  const openCal = useCallback(() => {
+    clearTimeout(closeTimer.current);
+    setClosing(false);
+    setOpen(true);
+  }, []);
+
+  const ref = usePopoverDismiss(open, closeCal);
   const triggerRef = useRef(null);
 
   /**
@@ -69,7 +104,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   // than let the calendar float somewhere it no longer belongs.
   useEffect(() => {
     if (!open) return undefined;
-    const close = () => setOpen(false);
+    const close = () => closeCal();
     window.addEventListener('resize', close);
     window.addEventListener('scroll', close, true);
     return () => {
@@ -85,7 +120,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
   const pick = (key) => {
     if (!isPickable(key)) return;
     onChange(key);
-    setOpen(false);
+    closeCal();
   };
 
   return (
@@ -99,11 +134,13 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
             // Always open on the month you are actually on. The anchor only
             // seeded from `dateKey` at mount, so after browsing to April and
             // closing, the next open still started in April.
-            if (!open) {
-              place();
-              setAnchor(dateKey);
+            if (open) {
+              closeCal();
+              return;
             }
-            setOpen((o) => !o);
+            place();
+            setAnchor(dateKey);
+            openCal();
           }}
           aria-expanded={open}
           aria-label="Pick a date"
@@ -122,7 +159,7 @@ export default function DatePicker({ dateKey, onChange, nonInstructionalDates = 
         {open &&
           createPortal(
             <div
-              className="acc-cal acc-enter"
+              className={`acc-cal ${closing ? 'acc-leave' : 'acc-enter'}`}
               ref={ref}
               role="dialog"
               aria-label="Choose a date"
