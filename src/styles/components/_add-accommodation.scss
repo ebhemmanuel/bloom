@@ -35,6 +35,18 @@
     }
   }
 
+  /*
+    The trigger's height with nothing in it, for the days it is not offered.
+
+    34px is what `&__trigger` measures. See renderAddAccommodation: on a sealed
+    day or an absent student the control goes, and without this the column lost
+    it plus the 8px gap above it, so the board shortened by 42px a lane the
+    moment a day closed out.
+  */
+  &--reserved {
+    block-size: 34px;
+  }
+
   &--open {
     padding: var(--acc-space-2);
     background: var(--acc-surface);

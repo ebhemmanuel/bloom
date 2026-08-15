@@ -521,11 +521,23 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
    * The "+ Add accommodation" affordance at the end of each Unassigned column.
    * Hidden on sealed days and for absent students - neither is a moment to be
    * adding new obligations.
+   *
+   * Hidden, but its SPACE is kept. Returning null took the control and the gap
+   * above it out of the column, so closing out a day shortened every Unassigned
+   * column by 42px at once and the lanes crunched rather than resized. The
+   * column's own min-height cannot catch that: any lane with more than one card
+   * is already past the floor.
+   *
+   * An empty `li` of the same height, rather than the real control disabled,
+   * because a disabled control is still a control - it would be read out, and
+   * it would sit there on a sealed day inviting a click that cannot land.
    */
   const renderAddAccommodation = useCallback(
     (lane, columnId) => {
       if (columnId !== STATUS.UNASSIGNED) return null;
-      if (locked || lane.absent) return null;
+      if (locked || lane.absent) {
+        return <li className="acc-addacc acc-addacc--reserved" aria-hidden="true" />;
+      }
       return <AddAccommodationInline studentId={lane.studentId} dateKey={dateKey} />;
     },
     [locked, dateKey]
