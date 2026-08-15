@@ -31,6 +31,18 @@ $surface-lead: 160ms;
     animation: #{$name} 550ms var(--acc-ease-standard) #{$surface-lead + 80ms} #{$fill};
   }
 
+  /*
+    The sealed-day notice leaves with the room it is part of.
+
+    Left out, it was the one thing on the board that did not move: the lanes
+    fell, the toolbar went, and "This day is closed out and read-only" sat there
+    at full strength on top of the screen arriving underneath it. It takes the
+    toolbar's slot because that is where it stands, directly beneath it.
+  */
+  .acc-banner {
+    animation: #{$name} 550ms var(--acc-ease-standard) #{$surface-lead + 80ms} #{$fill};
+  }
+
   // Capped at twelve: a forty-student roster must not stretch this past the
   // point where it stops reading as one gesture. Everything past the twelfth
   // shares the last slot and lands together.
@@ -181,8 +193,22 @@ $surface-lead: 160ms;
   flex: 1 0 auto;
   gap: var(--acc-space-4);
 
+  /*
+    Linear, not `--acc-ease-exit`.
+
+    That curve is cubic-bezier(0.7, 0, 0.84, 0) - an extreme ease-in, right for
+    something flying off the screen where you want it to commit late and leave
+    fast. On OPACITY it means nothing visibly happens and then the thing is
+    gone: measured 0.94 at 135ms of a 160ms fade, so the outgoing day was still
+    effectively solid when it was replaced. Which is a cut with a fade attached
+    to it.
+
+    A crossfade wants a straight ramp. The two halves then sum to roughly
+    constant brightness instead of the old day hanging on and the new one
+    arriving into a hole.
+  */
   &--out {
-    animation: acc-fade-out 160ms var(--acc-ease-exit) both;
+    animation: acc-fade-out 160ms linear both;
     // A board mid-goodbye must not take clicks meant for the incoming day.
     pointer-events: none;
   }
@@ -219,6 +245,13 @@ $surface-lead: 160ms;
  * specificity rather than on order. Matching that rule's weight and relying on
  * source position would put a working animation at the mercy of where someone
  * later chose to paste a rule.
+ *
+ * SCOPED to the rest state, and that is not decoration. `--copied` stays on the
+ * container after its animation finishes, and at this weight it also outranked
+ * `[data-board-cascade='out'] .acc-lane` - so once a teacher had copied a day,
+ * the lanes could never animate OUT again. Opening Settings left the whole
+ * board standing at full strength on top of the screen arriving underneath it.
+ * Confined to rest, it cannot touch a transition it has no business in.
  */
 /*
   Longhands, not the shorthand.
@@ -228,7 +261,7 @@ $surface-lead: 160ms;
   the same instant. The stagger lives on `.acc-cascade > *:nth-child(n)`, which
   this rule out-specifies, so the delay is the one thing it must not name.
 */
-.acc-board__lanes.acc-board__lanes--copied {
+[data-board-cascade='rest'] .acc-board__lanes.acc-board__lanes--copied {
   /*
     The stagger, re-declared here rather than left to `.acc-cascade`.
 
@@ -254,7 +287,7 @@ $surface-lead: 160ms;
 // Reduced motion: the meaning survives, the travel and the blur do not. The
 // stagger is flattened globally by `.acc-cascade > *` in _motion.scss.
 @media (prefers-reduced-motion: reduce) {
-  .acc-board__lanes.acc-board__lanes--copied > .acc-lane {
+  [data-board-cascade='rest'] .acc-board__lanes.acc-board__lanes--copied > .acc-lane {
     animation-name: acc-fade-in;
     animation-duration: 160ms;
     animation-timing-function: linear;

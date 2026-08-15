@@ -504,10 +504,23 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
 
   return (
     <div className="acc-board">
-      {/* From the buffered view, so it appears with the sealed day it
-          describes rather than a fade ahead of it. */}
+      {/*
+        From the buffered view, so it appears with the sealed day it describes
+        rather than a fade ahead of it - and carrying the SAME phase class the
+        day below it wears.
+
+        It sits outside `.acc-board__day` because it belongs above the scroll
+        area rather than inside it, which meant it was the one piece of the day
+        that cut instead of fading: clear a date filter while on a closed day
+        and the notice vanished in a frame while everything under it crossfaded.
+        Sharing the phase puts it back in step without moving it.
+      */}
       {view.model.sealed && (
-        <div className="acc-banner acc-banner--sealed acc-fade-enter">
+        <div
+          className={`acc-banner acc-banner--sealed${
+            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ' acc-fade-enter'
+          }`}
+        >
           {/*
             Six words, centred, and nothing else.
 
