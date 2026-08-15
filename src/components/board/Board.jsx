@@ -28,7 +28,7 @@ import StudentContextMenu from './StudentContextMenu.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import AddAccommodationInline from './AddAccommodationInline.jsx';
 import { ensureDay, copyFromPreviousDay, copyStudentFromPreviousDay } from '../../domain/seed.js';
-import { sealDay, reopenDay, amendStudentNotes } from '../../domain/resolve.js';
+import { amendStudentNotes } from '../../domain/resolve.js';
 import { STATUS, SEED_MODE } from '../../domain/constants.js';
 import {
   todayKey,
@@ -317,20 +317,12 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
     [doc, dateKey, mutate]
   );
 
-  /**
-   * Close the day, or open it again.
-   *
-   * One control rather than two, because a day is either open or closed and the
-   * menu should say which. Reopening reverts only what the seal itself wrote -
-   * see `reopenDay` - and logs that it happened.
-   */
-  const toggleDayClosed = useCallback(() => {
-    mutate((d) =>
-      d.days?.[dateKey]?.sealed
-        ? reopenDay(d, dateKey, new Date())
-        : sealDay(d, dateKey, new Date(), 'user')
-    );
-  }, [dateKey, mutate]);
+  /*
+    Closing and re-opening a day used to live here, behind the sealed banner's
+    own button. It is CloseOutDayButton's now - one control, in the header
+    beside the date - so the handler and its two domain imports have gone with
+    the button that called them.
+  */
 
   // --- context menu -------------------------------------------------------
 
@@ -517,30 +509,19 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
       {view.model.sealed && (
         <div className="acc-banner acc-banner--sealed acc-fade-enter">
           {/*
-            Six words and a button.
+            Six words, centred, and nothing else.
 
-            This was a two-clause sentence explaining that Amend corrects one
-            entry and re-opening corrects the day - which stretched across the
-            whole 1200px bar with the button flung to the far right, so the word
-            Amend sat alone in the middle of the screen reading like a heading
-            for the lanes below it. Worse, it pointed at something that does not
-            exist: nothing in the card menu offers Amend, and `amendEntry` has
-            never had a caller.
+            It carried its own Re-open button on the right for a while, which
+            was the only way back before the nav had one. Now that Close out Day
+            lives beside the date and turns into Re-open Day on a sealed day,
+            this one was a second control doing the same job six inches away -
+            with different capitalisation, which reads as two different things
+            rather than one.
 
-            So the banner says the state, and offers the one thing a teacher can
-            actually do about it.
+            What is left is a statement of fact, so it sits in the middle rather
+            than at the left edge with an empty bar stretching away from it.
           */}
           <span>This day is closed out and read-only.</span>
-          <span className="acc-banner__actions">
-            <button
-              type="button"
-              className="acc-btn acc-btn--small acc-btn--quiet"
-              onClick={toggleDayClosed}
-              disabled={readOnly}
-            >
-              Re-open day
-            </button>
-          </span>
         </div>
       )}
 

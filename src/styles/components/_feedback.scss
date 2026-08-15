@@ -122,12 +122,45 @@
     color: var(--acc-warning);
   }
 
-  // Neutral, non-urgent. Used for the sealed-day notice and for informational
-  // context like the browser-preview warning.
+  /*
+    Neutral, non-urgent: the sealed-day notice and informational context like
+    the browser-preview warning.
+
+    White rather than the sunken grey. These sit at the top of the board card,
+    and a filled strip there read as a separate slab laid over the panel - the
+    one place in the app where a background change means "this is a different
+    surface" was being used for a sentence about the same one. The muted text
+    carries the quietness on its own.
+  */
   &--sealed,
   &--info {
-    background: var(--acc-surface-sunken);
+    background: var(--acc-surface);
     color: var(--acc-fg-muted);
+  }
+
+  /*
+    The sealed notice is a statement, not a row of controls.
+
+    The block's `space-between` is there to push an action to the far end, and
+    with the Re-open button gone that left one sentence pinned to the left edge
+    of a 1200px bar. Centred, it reads as a label on the day rather than as the
+    start of a toolbar.
+  */
+  &--sealed {
+    justify-content: center;
+  }
+
+  /*
+    These two sit at the very top of the board card, which is rounded.
+
+    Square-cornered, they overpainted its curve and read as a slab laid across
+    the top of the panel rather than as part of it. They take the container's
+    own radius so the fill stops where the card does.
+  */
+  &--sealed,
+  &--info {
+    border-start-start-radius: var(--acc-radius-container);
+    border-start-end-radius: var(--acc-radius-container);
   }
 
   &--ok {

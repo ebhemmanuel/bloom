@@ -57,6 +57,23 @@ export default function CloseOutDayButton() {
    */
   const visible = useMemo(() => {
     if (sealed) return true;
+
+    /*
+      Nothing to close on a day that never started.
+
+      It was offered on every past date, which put a live-looking button over
+      "No record for this day" - and closing out is precisely the act that turns
+      unassigned entries into Not Used. On a day with no record there is nothing
+      to turn, and the distinction it would blur is the one this app exists to
+      protect: `no_record` says nobody wrote anything down, `not_used` says the
+      accommodation was not delivered. See sealDay, which refuses these too.
+
+      It was disabled rather than hidden before, which is the thing the comment
+      below argues against: a control that is permanently present and
+      permanently refusing is one people stop seeing.
+    */
+    if (!hasRecord) return false;
+
     const today = todayKey(now);
     if (dateKey < today) return true;
     if (dateKey > today) return false;
@@ -71,7 +88,7 @@ export default function CloseOutDayButton() {
     */
     const cutoff = Math.min(CLOSE_OUT_FROM, minutesOf(cycleEndTime) ?? CLOSE_OUT_FROM);
     return now.getHours() * 60 + now.getMinutes() >= cutoff;
-  }, [sealed, dateKey, now, cycleEndTime]);
+  }, [sealed, hasRecord, dateKey, now, cycleEndTime]);
 
   if (!visible) return null;
 
@@ -97,9 +114,15 @@ export default function CloseOutDayButton() {
         */
         className="acc-btn acc-fade-enter"
         onClick={() => setAsking(true)}
-        // Re-opening is never blocked by the day being read-only: being read
-        // only is the thing it undoes.
-        disabled={sealed ? readOnly : readOnly || !hasRecord}
+        /*
+          Only the document-level lock disables it now: a file written by a
+          newer version of Bloom is read-only whatever the day says.
+
+          The `!hasRecord` case used to live here and is handled by `visible`
+          above - the button is not rendered at all on a day with nothing in it,
+          rather than rendered and refusing.
+        */
+        disabled={readOnly}
         title={
           sealed
             ? 'Makes the day editable again'
