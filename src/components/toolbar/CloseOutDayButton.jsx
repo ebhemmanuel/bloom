@@ -248,9 +248,16 @@ export default function CloseOutDayButton() {
         aria-label={saysSealed ? 'Re-open day' : 'Close out day'}
         aria-pressed={saysSealed}
       >
-        {/* Open padlock on a sealed day - the state it is in, and the thing the
-            click undoes. */}
-        <Lock open={saysSealed} />
+        {/*
+          The padlock shows the day AS IT IS, not what the click will do: open
+          while the day is still being written to, closed once it is sealed.
+
+          It was the other way round for a moment, showing a shut padlock on a
+          day you could still edit. An icon that pictures the action rather than
+          the state has to be read as an instruction, and this one sits beside a
+          date that is plainly stating a fact.
+        */}
+        <Lock open={!saysSealed} />
       </button>
     </>
   );
