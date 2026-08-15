@@ -22,7 +22,10 @@
 
   &__saved {
     font-size: var(--acc-fs-tiny);
-    color: var(--acc-status-used);
+    // The petal green, not the ink one. This is a transient confirmation that
+    // appears for 1.4s next to a heading, and at full `--acc-status-used` it
+    // was darker than the word Notes beside it.
+    color: var(--acc-status-used-petal);
     opacity: 0;
     transition: opacity var(--acc-dur-fast) var(--acc-ease-standard);
 
