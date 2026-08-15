@@ -34,7 +34,9 @@
   &__count {
     // Body size. It is a sentence about the roster, not a label on a control,
     // and it sits between two pills where control-sized text disappeared.
-    font-size: var(--acc-fs-body);
+    // `--acc-fs-sub`, with the date menu, the search and the nav words. It was
+    // body size, which made the one number on the bar the largest text on it.
+    font-size: var(--acc-fs-sub);
     color: var(--acc-fg-muted);
     white-space: nowrap;
   }

@@ -150,16 +150,26 @@
     color: var(--acc-fg);
   }
 
+  /*
+    The row is held whether or not it has anything in it.
+
+    It collapsed with `&:empty { display: none }`, and that row is where a card
+    says "Not used", "One-off" or carries its detail chip. So a card GAINED
+    18.5px the moment a status resolved onto it and lost it again when one went
+    away - closing out a day, re-opening one, marking a student absent. Every
+    lane on the board changed height at once and the students below jumped.
+
+    15px rather than the 14.5 it measures: a whole pixel, so a card's height
+    stays an integer and the hairlines below it are not asked to paint on a half
+    pixel. Wrapping still grows it; this is a floor.
+  */
   &__meta {
     display: flex;
     align-items: center;
     gap: 4px;
     flex-wrap: wrap;
     margin-block-start: 4px;
-
-    &:empty {
-      display: none;
-    }
+    min-block-size: 15px;
   }
 
   &__badge {

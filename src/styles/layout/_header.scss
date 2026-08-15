@@ -92,8 +92,11 @@
   &__search-label {
     flex: 1;
     text-align: start;
-    // Body size, with the menus. This is a prompt to read, not a control label.
-    font-size: var(--acc-fs-body);
+    // `--acc-fs-sub`, with the menus and the dropdowns either side of it. It
+    // was body size on the grounds that it is a prompt to read rather than a
+    // control label, which put the widest thing in the bar at a size nothing
+    // around it shared.
+    font-size: var(--acc-fs-sub);
   }
 
   /**

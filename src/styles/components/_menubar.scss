@@ -46,14 +46,15 @@
     padding: 0 var(--acc-space-3);
     border-radius: var(--acc-radius-pill);
     /*
-      Body size, not the control size.
+      The size every other control in this bar is.
 
-      These are words, not controls: File, Edit and Notes are read, where a
-      button is aimed at. At `--acc-fs-sub` they matched the pills at the other
-      end of the bar and undershot everything they actually sit beside, which
-      left the app's own menus as the smallest text on screen.
+      These read as words rather than as buttons, so they carried body size for
+      a while. But they sit in one row with the date menu, the time and Close
+      out Day, all of which are `--acc-fs-sub` - and two type sizes in a single
+      strip of controls reads as a mistake, whatever the reasoning behind each
+      one. Matching the row wins over classifying the element.
     */
-    font-size: var(--acc-fs-body);
+    font-size: var(--acc-fs-sub);
     font-weight: var(--acc-fw-medium);
     color: var(--acc-fg-muted);
     white-space: nowrap;

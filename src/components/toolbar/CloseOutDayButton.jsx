@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import useClock from '../../hooks/useClock.js';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
@@ -37,7 +36,6 @@ function minutesOf(hhmm) {
  * no second copy of the seal logic to drift.
  */
 export default function CloseOutDayButton() {
-  const [asking, setAsking] = useState(false);
   const { doc, mutate, readOnly } = useData();
   const { dateKey } = useBoard();
   const now = useClock();
@@ -175,17 +173,15 @@ export default function CloseOutDayButton() {
           phase === 'out' ? ' acc-fade-leave' : ''
         }`}
         /*
-          Closing out asks nothing. Re-opening still does.
+          Straight through, both ways.
 
-          It had a confirm in both directions, which put a dialog in front of
-          the one action a teacher performs at the end of every single day - and
-          closing out is reversible by the very button that replaces it, so the
-          dialog was guarding against a click that costs one more click to undo.
-
-          Re-opening keeps its confirm because it is the direction that discards
-          something: every Not Used the close-out wrote goes back to unassigned.
+          This had a confirm dialog in each direction. Closing out is what a
+          teacher does at the end of every day, and re-opening is how they undo
+          it - the two are each other's escape hatch, so a dialog in front of
+          either was guarding an action that the other button reverses in one
+          click. Neither destroys anything a teacher cannot immediately put back.
         */
-        onClick={() => (saysSealed ? setAsking(true) : commit())}
+        onClick={commit}
         /*
           Only the document-level lock disables it now: a file written by a
           newer version of Bloom is read-only whatever the day says.
@@ -205,41 +201,6 @@ export default function CloseOutDayButton() {
       >
         {saysSealed ? 'Re-open Day' : 'Close out Day'}
       </button>
-
-      {/*
-        Only on the way back.
-
-        This asked in both directions once. Closing out is what a teacher does
-        at the end of every day and is undone by the button that replaces it, so
-        a dialog in front of it was a step in the daily path guarding against
-        something one click reverses.
-
-        Re-opening is the direction that discards: every Not Used the close-out
-        wrote goes back to unassigned. The body says what it will DO rather than
-        naming the action, because "re-open" does not tell a teacher that the
-        day's recorded Not Used entries are about to be undone.
-      */}
-      {asking && (
-        <ConfirmDialog
-          title="Re-open this day?"
-          body="Anything the close-out recorded as Not Used goes back to unassigned, so you can change it. What you marked yourself is left alone."
-          confirmLabel="Re-open it"
-          cancelLabel="Cancel"
-          /*
-            No `warn` tone. It paints the confirm button amber, which is the
-            app's colour for "this destroys something" - and closing out is the
-            ordinary end of an ordinary day, not a hazard. The dialog is here to
-            make sure the click was meant, and the body already says exactly
-            what will happen; dressing it as a warning would make the thing a
-            teacher does every afternoon feel like a mistake.
-          */
-          onCancel={() => setAsking(false)}
-          onConfirm={() => {
-            setAsking(false);
-            commit();
-          }}
-        />
-      )}
     </>
   );
 }

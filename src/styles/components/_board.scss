@@ -249,8 +249,25 @@
     grid-template-columns:
       repeat(4, minmax(var(--acc-column-min-w), 1fr))
       var(--acc-notes-col-w);
-    gap: 1px;
-    background: var(--acc-border);
+  }
+
+  /*
+    Dividers as one border, not as a gap between two backgrounds.
+
+    This was `gap: 1px` over a `--acc-border` parent, so each line was the strip
+    left uncovered between the right edge of one column and the left edge of the
+    next. Both edges get snapped to device pixels independently, and `1fr`
+    columns do not land on whole pixels - measured lefts of 327.25, 554.50 and
+    781.75 across ordinary window widths. Where an edge fell on a quarter pixel
+    the two roundings disagreed and the strip painted two pixels wide, so one
+    divider looked twice the weight of its neighbours and which one changed as
+    the window resized.
+
+    A border belongs to one element and is snapped with it, so there is a single
+    rounding decision per line instead of two that can disagree.
+  */
+  &__body > * + * {
+    border-inline-start: 1px solid var(--acc-border);
   }
 
   &__strip {
