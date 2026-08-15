@@ -76,9 +76,23 @@ export default function MenuBar({ menus }) {
             aria-haspopup={menu.onSelect ? undefined : 'menu'}
           >
             {menu.label}
-            {/* Something is already written for this day. A dot rather than a
-                count: it reports that the note exists, not how much of it. */}
-            {menu.pip && <span className="acc-menubar__pip" aria-hidden="true" />}
+            {/*
+              Something is already written for this day. A dot rather than a
+              count: it reports that the note exists, not how much of it.
+
+              Rendered for every menu that declares a pip at all, then faded by
+              the modifier, rather than mounted only when true. Stepping from a
+              day with a note to one without used to take it out of the document
+              mid-stride while the board was still cascading - it blinked out,
+              and the word beside it shifted 10px as the space went with it. Now
+              the space is always there and only the dot comes and goes.
+            */}
+            {menu.pip !== undefined && (
+              <span
+                className={`acc-menubar__pip${menu.pip ? ' acc-menubar__pip--on' : ''}`}
+                aria-hidden="true"
+              />
+            )}
           </button>
 
           {open === menu.id && menu.items && (

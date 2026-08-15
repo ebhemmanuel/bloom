@@ -3,6 +3,16 @@
 .acc-addacc {
   list-style: none;
 
+  /*
+    Pinned to the bottom of the column, not floating under the last card.
+
+    The column is a flex column with a reserved minimum height, so without this
+    the trigger sat directly beneath whatever cards there were and landed at a
+    different height in every lane. At the bottom it is one straight line across
+    the board, and dropping a card into the column pushes nothing around.
+  */
+  margin-block-start: auto;
+
   &__trigger {
     inline-size: 100%;
     padding: var(--acc-space-2);
@@ -13,6 +23,7 @@
     font-size: var(--acc-fs-tiny);
     font-weight: var(--acc-fw-medium);
     transition:
+      opacity var(--acc-dur-fast) var(--acc-ease-standard),
       border-color var(--acc-dur-fast) var(--acc-ease-standard),
       color var(--acc-dur-fast) var(--acc-ease-standard),
       background-color var(--acc-dur-fast) var(--acc-ease-standard);
@@ -30,6 +41,40 @@
     border: 1px solid var(--acc-accent);
     border-radius: var(--acc-radius-md);
     box-shadow: var(--acc-shadow-card);
+  }
+}
+
+/*
+  Shown on the column you are actually pointing at.
+
+  A dashed rectangle under every Unassigned column on every lane is a lot of
+  permanent furniture for something a teacher reaches for occasionally, and it
+  read as an empty slot waiting to be filled rather than as a control. It can
+  hide now because `.acc-column__list` reserves the height either way, so this
+  fading in moves nothing on the board - which is the only reason a hover
+  reveal is safe here.
+
+  Only inside `(hover: hover)`. On a touch screen there is no hover state to
+  discover it with, so it stays exactly as it was.
+*/
+@media (hover: hover) {
+  .acc-column .acc-addacc__trigger {
+    opacity: 0;
+  }
+
+  // `:focus-within` on the column, not `:focus` on the button: a control at
+  // opacity 0 is still in the tab order, and it has to become visible the
+  // moment it is tabbed to rather than staying invisible under the focus ring.
+  .acc-column:hover .acc-addacc__trigger,
+  .acc-column:focus-within .acc-addacc__trigger,
+  .acc-addacc--open .acc-addacc__trigger {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-addacc__trigger {
+    transition-duration: var(--acc-dur-instant);
   }
 }
 

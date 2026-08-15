@@ -17,8 +17,18 @@
   border-radius: var(--acc-radius-lg);
   box-shadow: var(--acc-shadow-card);
   overflow: hidden;
+  /*
+    `background-color` is in here for the same reason opacity is.
+
+    Both `--readonly` and `--preenrolment` swap the lane's fill, and with only
+    opacity and filter listed those two swapped in one frame - closing out a day
+    dropped every lane to the locked grey instantly while the rest of the board
+    eased, and re-opening snapped them back to white. Both tokens are flat
+    rgba() rather than gradients, so the colour interpolates.
+  */
   transition:
     opacity var(--acc-dur-normal) var(--acc-ease-standard),
+    background-color var(--acc-dur-normal) var(--acc-ease-standard),
     filter var(--acc-dur-normal) var(--acc-ease-standard);
 
   // Both are needed: the variable keeps the entrance animation's end state in
@@ -160,6 +170,46 @@
     }
   }
 
+  /*
+    The collapsing row. Height is the whole animation.
+
+    `minmax(0, 1fr)` rather than `1fr`, which is `minmax(auto, 1fr)` - the auto
+    floors the row at the body's min-content height, so it would stall part-way
+    down and drop the rest in one frame. The same mistake the sealed notice had.
+
+    One element and one property: no transform on the body, nothing sliding
+    against the row it lives in.
+  */
+  &__slot {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+
+    > * {
+      min-block-size: 0;
+    }
+
+    /*
+      The SAME duration and the SAME curve for both directions, because these
+      two run against each other: as a lane collapses its body shuts while its
+      summary strip opens, and the lane's height is the sum.
+
+      They were `--acc-dur-slow` with the entrance curve opening and
+      `--acc-dur-normal` with the standard curve shutting. The entrance ease is
+      heavily front-loaded, so the strip took its full height almost at once
+      while the body had barely begun to give any up, and the lane grew 16px
+      before it shrank - the row below rose into it and dropped back. Matched
+      curves make the two exactly complementary.
+    */
+    &--open {
+      animation: acc-lane-slot-open var(--acc-dur-normal) var(--acc-ease-standard) both;
+    }
+
+    &--shut {
+      animation: acc-lane-slot-shut var(--acc-dur-normal) var(--acc-ease-standard) both;
+    }
+  }
+
   // Four status columns + the notes column.
   &__body {
     display: grid;
@@ -182,6 +232,42 @@
   &__strip-empty {
     font-size: var(--acc-fs-tiny);
     color: var(--acc-fg-faint);
+  }
+}
+
+/*
+  Height and opacity together: the row that is arriving fades up as its space is
+  reserved, and the one leaving fades out as it gives that space back. Without
+  the fade the strip's text was simply revealed by the clip, which reads as it
+  being wiped into view rather than replacing what was there.
+*/
+@keyframes acc-lane-slot-open {
+  from {
+    grid-template-rows: minmax(0, 0fr);
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: minmax(0, 1fr);
+    opacity: 1;
+  }
+}
+
+@keyframes acc-lane-slot-shut {
+  from {
+    grid-template-rows: minmax(0, 1fr);
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: minmax(0, 0fr);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-lane__slot--open,
+  .acc-lane__slot--shut {
+    animation-duration: var(--acc-dur-fast);
+    animation-timing-function: linear;
   }
 }
 
@@ -262,7 +348,29 @@
     gap: 8px;
     padding: 0 8px 12px;
     flex: 1;
-    min-block-size: 64px;
+    /*
+      One card at its TALLEST, the gap, and the add trigger: 63 + 8 + 34.
+
+      63 rather than 45 because a card carrying a resolved status prints that
+      status under its label, and sizing to the bare card left every lane
+      holding a resolved one 30px taller than its neighbours - which is most of
+      them by the end of a day. Measured both: 45 plain, 63 with the status line.
+
+      At the old 64px a lane holding nothing sat visibly shorter than the lane
+      under it holding a single card, so a roster of students who differ only in
+      whether anyone has touched them yet rendered as a ragged stack. Reserving
+      the height a first card WILL take means adding one does not resize the
+      lane, and it is what lets the add trigger hide until the column is
+      hovered: the space is already held, so revealing it moves nothing.
+
+      Two cards still grow the lane. This is a floor, not a clamp.
+
+      117, not 105: `box-sizing` is border-box app-wide, so this measures the
+      padding too. At 105 an empty column came out a full 12px - the exact
+      padding-block-end below - shorter than one holding a card, which is the
+      same ragged edge one step smaller.
+    */
+    min-block-size: 117px;
     border-radius: 8px;
   }
 

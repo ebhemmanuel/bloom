@@ -174,7 +174,18 @@ export default function CloseOutDayButton() {
         className={`acc-btn${phase === 'in' ? ' acc-fade-enter' : ''}${
           phase === 'out' ? ' acc-fade-leave' : ''
         }`}
-        onClick={() => setAsking(true)}
+        /*
+          Closing out asks nothing. Re-opening still does.
+
+          It had a confirm in both directions, which put a dialog in front of
+          the one action a teacher performs at the end of every single day - and
+          closing out is reversible by the very button that replaces it, so the
+          dialog was guarding against a click that costs one more click to undo.
+
+          Re-opening keeps its confirm because it is the direction that discards
+          something: every Not Used the close-out wrote goes back to unassigned.
+        */
+        onClick={() => (saysSealed ? setAsking(true) : commit())}
         /*
           Only the document-level lock disables it now: a file written by a
           newer version of Bloom is read-only whatever the day says.
@@ -196,32 +207,23 @@ export default function CloseOutDayButton() {
       </button>
 
       {/*
-        Confirmed in both directions.
+        Only on the way back.
 
-        Sealing writes Not Used across every unassigned entry, which is a claim
-        about what a child received, and re-opening reverts every one the
-        close-out wrote. Neither belongs one stray click away, and that goes
-        double now the control sits in the always-visible bar rather than two
-        clicks inside a menu.
+        This asked in both directions once. Closing out is what a teacher does
+        at the end of every day and is undone by the button that replaces it, so
+        a dialog in front of it was a step in the daily path guarding against
+        something one click reverses.
 
-        The body says what it will DO rather than what it is called, because
-        "close out day" does not tell a teacher that anything they have not
-        touched is about to be recorded as not delivered.
+        Re-opening is the direction that discards: every Not Used the close-out
+        wrote goes back to unassigned. The body says what it will DO rather than
+        naming the action, because "re-open" does not tell a teacher that the
+        day's recorded Not Used entries are about to be undone.
       */}
       {asking && (
         <ConfirmDialog
-          title={sealed ? 'Re-open this day?' : 'Close out this day?'}
-          body={
-            sealed
-              ? 'Anything the close-out recorded as Not Used goes back to unassigned, so you can change it. What you marked yourself is left alone.'
-              : 'Everything still unassigned will be recorded as Not Used, and the day becomes read-only.'
-          }
-          reassurance={
-            sealed
-              ? undefined
-              : 'You can re-open it afterwards, and notes can still be added either way.'
-          }
-          confirmLabel={sealed ? 'Re-open it' : 'Close it out'}
+          title="Re-open this day?"
+          body="Anything the close-out recorded as Not Used goes back to unassigned, so you can change it. What you marked yourself is left alone."
+          confirmLabel="Re-open it"
           cancelLabel="Cancel"
           /*
             No `warn` tone. It paints the confirm button amber, which is the

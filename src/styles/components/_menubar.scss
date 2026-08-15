@@ -14,6 +14,17 @@
   // Something is already written for today. Inline rather than pinned to a
   // corner: the trigger is a word now, not a 32px square, and a badge floating
   // off the end of text reads as a typo.
+  /*
+    The petal purple, not the accent.
+
+    At `--acc-accent` this 5px disc was the darkest thing in a bar of quiet grey
+    words, so a note existing read louder than the menus themselves. The petal
+    token is the soft pastel of the same hue and is meant for exactly this: a
+    decorative mark, never text, where contrast is not a legibility question.
+
+    Always in the document, faded by `--on`, so it can arrive and leave with the
+    day rather than blinking. See MenuBar.
+  */
   &__pip {
     display: inline-block;
     inline-size: 5px;
@@ -21,7 +32,13 @@
     margin-inline-start: 5px;
     vertical-align: 0.35em;
     border-radius: 50%;
-    background: var(--acc-accent);
+    background: var(--acc-status-detail-petal);
+    opacity: 0;
+    transition: opacity var(--acc-dur-normal) var(--acc-ease-standard);
+
+    &--on {
+      opacity: 1;
+    }
   }
 
   &__trigger {
@@ -170,7 +187,8 @@
     line-height: var(--acc-lh-normal);
   }
 
-  // Something written on this day, said the same way the menu bar said it.
+  // Something written on this day, said the same way the menu bar says it -
+  // same size, same petal purple.
   &__pip {
     display: inline-block;
     inline-size: 5px;
@@ -178,7 +196,7 @@
     margin-inline-start: 5px;
     vertical-align: 0.15em;
     border-radius: 50%;
-    background: var(--acc-accent);
+    background: var(--acc-status-detail-petal);
   }
 }
 
