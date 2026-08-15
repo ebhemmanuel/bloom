@@ -72,6 +72,22 @@ export default function useDaySwap(dateKey, model, rangeActive) {
   const [shown, setShown] = useState({ dateKey, model });
   const [phase, setPhase] = useState('idle');
 
+  /*
+    Whether the TOOLS take part in this swap, as opposed to the rows alone.
+
+    Stepping between two days that both have a board leaves the toolbar showing
+    exactly the same controls either side, so fading it out and back in animated
+    something that never changed - and it took the collapse, the sort, the
+    period filter and Copy Yesterday out from under the pointer for the length
+    of the swap. Only the date chip differs, and that fades itself.
+
+    So the tools move only when they are actually arriving or leaving: when the
+    day on one side or the other has no board at all. Decided once, when the
+    swap starts, and held for both phases - reading it per render would flip it
+    halfway, because `shown` becomes the new day at the handover.
+  */
+  const [toolsMove, setToolsMove] = useState(false);
+
   // Same-day document edits flow straight through. Render-phase sync rather
   // than an effect, so the frame that carries the edit never shows stale data.
   if (shown.dateKey === dateKey && shown.model !== model) {
@@ -96,6 +112,8 @@ export default function useDaySwap(dateKey, model, rangeActive) {
     */
     if (isBare(shown.model) && !isBare(model)) {
       setPhase('in');
+      // The toolbar is one of the things arriving here: an empty state has none.
+      setToolsMove(true);
     }
   }
 
@@ -135,6 +153,7 @@ export default function useDaySwap(dateKey, model, rangeActive) {
       return undefined;
     }
 
+    setToolsMove(isBare(shown.model) || isBare(latest.current.model));
     setPhase('out');
     const swap = setTimeout(() => {
       setShown({ ...latest.current });
@@ -158,5 +177,5 @@ export default function useDaySwap(dateKey, model, rangeActive) {
     return () => clearTimeout(settle);
   }, [phase]);
 
-  return { dateKey: shown.dateKey, model: shown.model, phase };
+  return { dateKey: shown.dateKey, model: shown.model, phase, toolsMove };
 }

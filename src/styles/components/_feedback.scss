@@ -31,18 +31,26 @@
     }
   }
 
-  &__input {
-    flex: 1;
-    min-height: 64px;
+  /*
+    The field that keeps giving itself back.
+
+    Two rows, not a panel: it is a place to type one thought, and the cell's
+    height belongs to the stack of thoughts already filed. It was a single
+    textarea stretched to the full height of the cell, which is where the "large
+    floating block with no space for the content" came from.
+  */
+  &__field {
     margin: 0 var(--acc-space-2) var(--acc-space-2);
     padding: var(--acc-space-2);
     border: 1px solid transparent;
-    border-radius: var(--acc-radius-sm);
-    // Transparent, so the field is the column rather than a panel inside it.
-    // The whole cell carries one tint; see `.acc-notes`.
-    background: transparent;
+    // The card radius, not the smaller form one. This field turns into a card
+    // and a card turns back into this field, so a tighter corner made editing a
+    // note look like a different kind of object from reading one.
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-family: inherit;
     font-size: var(--acc-fs-sub);
-    line-height: var(--acc-lh-normal);
+    line-height: 16px;
     resize: none;
     outline: none;
     transition: border-color var(--acc-dur-fast) var(--acc-ease-standard);
@@ -51,26 +59,93 @@
       color: var(--acc-fg-faint);
     }
 
-    /*
-      No accent border and no ring.
-
-      Focusing this drew a purple outline with a 3px halo around a box the size
-      of the whole lane, which is a lot of emphasis for putting a cursor in a
-      text field - and it fired on every click, so writing a note lit up the
-      loudest thing on the board.
-
-      The border still changes, to the ordinary neutral. Something has to mark
-      focus: this is a textarea, so the caret carries most of it, and a quiet
-      edge is enough to say which cell the caret is in without the field
-      announcing itself.
-    */
+    // No accent ring. See the note on the card below: this column is where a
+    // teacher writes a sentence, not somewhere to be alerted.
     &:focus {
-      border-color: var(--acc-border);
+      border-color: var(--acc-border-strong);
     }
 
-    &:disabled {
-      opacity: 0.6;
+    &--editing {
+      border-color: var(--acc-border-strong);
     }
+  }
+
+  /*
+    The stack, newest at the top, directly under the field.
+
+    It scrolls rather than growing the lane: a student with eight notes must not
+    make their row eight notes tall while every other student's stays one line.
+  */
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acc-space-2);
+    margin: 0 var(--acc-space-2) var(--acc-space-2);
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+    min-block-size: 0;
+  }
+
+  &__item {
+    display: flex;
+  }
+
+  /*
+    A note, as a card - the same white-on-tint the accommodation cards use, so
+    the notes column reads as the same kind of surface as the four beside it.
+
+    It is a button because clicking one edits it. A note is part of a compliance
+    record and has to stay correctable; emptying it is how it goes away.
+  */
+  &__card {
+    inline-size: 100%;
+    padding: var(--acc-space-2);
+    border: 1px solid var(--acc-border);
+    border-radius: var(--acc-radius-md);
+    background: var(--acc-surface);
+    font-size: var(--acc-fs-sub);
+    line-height: 16px;
+    color: var(--acc-fg);
+    text-align: start;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    animation: acc-notes-card-in var(--acc-dur-normal) var(--acc-ease-standard) both;
+    transition: border-color var(--acc-dur-fast) var(--acc-ease-standard);
+
+    &:hover {
+      border-color: var(--acc-border-strong);
+    }
+
+    // On a sealed day or an absent student it is a paragraph, not a control.
+    &--static {
+      cursor: default;
+      animation: none;
+    }
+  }
+}
+
+/*
+  The new note settling in under the field it was typed in.
+
+  Short travel and a fade: it has just left the field two pixels above it, so it
+  reads as the same object coming to rest rather than as something arriving.
+*/
+@keyframes acc-notes-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-notes__card {
+    animation-duration: var(--acc-dur-instant);
+    animation-timing-function: linear;
   }
 }
 

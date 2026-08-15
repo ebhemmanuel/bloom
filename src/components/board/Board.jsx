@@ -742,7 +742,7 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
         */}
         <div
           className={`acc-board__top${
-            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
+            view.phase !== 'idle' && view.toolsMove ? ` acc-board__day--${view.phase}` : ''
           }`}
         >
           {toolbar}
