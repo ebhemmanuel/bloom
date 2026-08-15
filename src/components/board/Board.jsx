@@ -576,7 +576,19 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
           moved down a roster of thirty - and those are the controls you reach
           for BECAUSE you are looking at a long list. Only the lanes move now.
         */}
-        <div className="acc-board__top">{toolbar}</div>
+        {/*
+          The tools take the day's phase too, so the strip joins the cascade
+          between the notice above it and the rows below. It is a sibling of
+          `.acc-board__day` rather than inside it - it must not scroll away - so
+          like the banner it wears the class itself.
+        */}
+        <div
+          className={`acc-board__top${
+            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
+          }`}
+        >
+          {toolbar}
+        </div>
 
         <div className="acc-board__scroll" ref={scrollRef} onScroll={onScroll}>
           {/*

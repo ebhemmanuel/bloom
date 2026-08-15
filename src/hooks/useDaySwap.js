@@ -33,13 +33,19 @@ import { useEffect, useRef, useState } from 'react';
   mid-flight and the tail of the board snapped into place - which read as the
   cascade not happening at all.
 
-    out: 7 steps x 50ms + 220ms  = 570
-    in:  7 steps x 60ms + 420ms  = 840
+  The ladder runs notice, tools, rows - see `$day-*` in _app-shell.scss - so
+  the last thing to move is the eighth row, and its delay stacks on top of the
+  rung the rows start from.
 
-  Rounded up a little so a slow frame cannot clip the last row.
+    out: 110 + 7 x 40 + 180 = 570
+    in:  170 + 7 x 50 + 320 = 840
+
+  Rounded up so a slow frame cannot clip the last row. The out phase is the
+  shorter of the two on purpose: it holds `pointer-events: none`, so every
+  millisecond of it is a millisecond the board cannot be clicked.
 */
-const OUT_MS = 300;
-const IN_MS = 620;
+const OUT_MS = 600;
+const IN_MS = 880;
 
 export default function useDaySwap(dateKey, model, rangeActive) {
   // What the timer should hand over when it fires, however many times the

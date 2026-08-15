@@ -30,7 +30,22 @@ $surface-lead: 160ms;
   On the way IN the order reverses and the notice lands last, on its own delay
   in the rule below.
 */
-$banner-lead: 60;
+/*
+  The day's own ladder, top to bottom.
+
+  A day change reads down the screen in BOTH directions: the notice about the
+  day, then the tools that act on it, then the rows themselves. Leaving is the
+  same order rather than its reverse - the label goes before the thing it
+  labels, and the tools before what they operate on, so the board empties the
+  way you read it.
+
+  These are the rungs. The rows add their own per-row step on top of the third.
+*/
+$day-banner: 0;
+$day-tools-out: 55;
+$day-rows-out: 110;
+$day-tools-in: 80;
+$day-rows-in: 170;
 
 @mixin cascade-rows($name, $fill: forwards) {
   .acc-header {
@@ -254,12 +269,12 @@ $banner-lead: 60;
     */
     @for $i from 1 through 8 {
       .acc-lane:nth-of-type(#{$i}) {
-        animation-delay: #{$banner-lead + ($i - 1) * 50}ms;
+        animation-delay: #{$day-rows-out + ($i - 1) * 40}ms;
       }
     }
 
     .acc-empty {
-      animation-delay: #{$banner-lead}ms;
+      animation-delay: #{$day-rows-out}ms;
     }
   }
 
@@ -272,8 +287,12 @@ $banner-lead: 60;
 
     @for $i from 1 through 8 {
       .acc-lane:nth-of-type(#{$i}) {
-        animation-delay: #{($i - 1) * 60}ms;
+        animation-delay: #{$day-rows-in + ($i - 1) * 50}ms;
       }
+    }
+
+    .acc-empty {
+      animation-delay: #{$day-rows-in}ms;
     }
   }
 
@@ -313,6 +332,12 @@ $banner-lead: 60;
   describes is already there. First on the way out, for the same reason in
   reverse: the label goes before the thing it labels.
 
+  First in both directions - arriving as well as leaving. It used to land last
+  on the way in, on the reasoning that a label should settle once the thing it
+  describes is there. In practice a teacher picking a closed-out day wants to
+  know THAT FACT before they start reading the board, and a notice that appears
+  after everything else reads as an afterthought bolted on.
+
   It travels the OTHER WAY from the rows, and that is the point. The lanes rise
   from below because they live in a column that continues downward off the
   screen. This is pinned to the top edge of the card, so it comes DOWN into
@@ -322,12 +347,38 @@ $banner-lead: 60;
 
   Same curve, duration and blur as the rows; only the direction differs.
 */
+/*
+  The tools, on the rung between the notice and the rows.
+
+  Same downward travel as the banner: both are pinned to the top of the card, so
+  they arrive from the edge they are attached to while the rows rise from the
+  column that continues below. It is a sibling of `.acc-board__day` - it must
+  not scroll away with the rows - so it carries the phase class itself.
+*/
+.acc-board__top.acc-board__day--in {
+  animation: acc-banner-in 320ms var(--acc-ease-entrance) #{$day-tools-in}ms backwards;
+}
+
+.acc-board__top.acc-board__day--out {
+  animation: acc-banner-out 180ms var(--acc-ease-standard) #{$day-tools-out}ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-board__top.acc-board__day--in {
+    animation: acc-fade-in 120ms linear both;
+  }
+
+  .acc-board__top.acc-board__day--out {
+    animation: acc-fade-out 120ms linear both;
+  }
+}
+
 .acc-banner.acc-board__day--in {
-  animation: acc-banner-in 420ms var(--acc-ease-entrance) 240ms backwards;
+  animation: acc-banner-in 320ms var(--acc-ease-entrance) #{$day-banner}ms backwards;
 }
 
 .acc-banner.acc-board__day--out {
-  animation: acc-banner-out 220ms var(--acc-ease-standard) both;
+  animation: acc-banner-out 180ms var(--acc-ease-standard) #{$day-banner}ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
