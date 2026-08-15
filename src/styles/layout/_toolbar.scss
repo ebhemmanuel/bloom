@@ -32,7 +32,9 @@
   }
 
   &__count {
-    font-size: var(--acc-fs-sub);
+    // Body size. It is a sentence about the roster, not a label on a control,
+    // and it sits between two pills where control-sized text disappeared.
+    font-size: var(--acc-fs-body);
     color: var(--acc-fg-muted);
     white-space: nowrap;
   }

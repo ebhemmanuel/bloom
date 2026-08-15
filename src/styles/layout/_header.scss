@@ -92,7 +92,8 @@
   &__search-label {
     flex: 1;
     text-align: start;
-    font-size: var(--acc-fs-sub);
+    // Body size, with the menus. This is a prompt to read, not a control label.
+    font-size: var(--acc-fs-body);
   }
 
   /**
@@ -177,6 +178,9 @@
     display: flex;
     align-items: center;
     gap: var(--acc-space-3);
+    // Sized with the date pill it sits against, not with the menus. The two are
+    // read as a pair - which day, and what time it is on that day - so the time
+    // matching the words at the far end of the bar looked like an outlier.
     font-size: var(--acc-fs-sub);
     font-variant-numeric: tabular-nums;
     color: var(--acc-fg-muted);
