@@ -233,6 +233,21 @@ function AppShell() {
           // Where a desktop app puts it. This replaces the avatar button, which
           // spent a permanent slot in the bar on something opened once a term.
           { label: 'Settings', onSelect: () => openScene('settings') },
+          /*
+            The licence, named in the menu rather than only reachable by
+            scrolling Settings.
+
+            It was one field inside the Reminders tab, which is where it lives
+            because it is the other thing the app says about itself rather than
+            about a student - but that made "where do I put my key" a hunt. The
+            label changes with the answer: somebody who has not bought yet is
+            looking to buy, and somebody who has is looking to check.
+          */
+          {
+            label: licensed ? 'Licence' : 'Purchase a licence',
+            hidden: !isDesktop,
+            onSelect: () => openScene('licence'),
+          },
           // Directly under it, for the same reason: a screen opened once. It
           // had a word of its own in the bar, which is a permanent slot spent
           // on something read one time.
@@ -312,7 +327,7 @@ function AppShell() {
         pip: Boolean(model?.dayNotes || model?.teacherAbsence),
       },
     ],
-    [openScene, model?.dayNotes, model?.teacherAbsence]
+    [openScene, licensed, model?.dayNotes, model?.teacherAbsence]
   );
 
   return (
@@ -403,8 +418,13 @@ function AppShell() {
           <DayNotesPanel background={background} leaving={sceneLeaving} onClose={closeScene} />
         )}
 
-        {modal === 'settings' && (
-          <ProfileModal background={background} leaving={sceneLeaving} onClose={closeScene} />
+        {(modal === 'settings' || modal === 'licence') && (
+          <ProfileModal
+            background={background}
+            leaving={sceneLeaving}
+            onClose={closeScene}
+            initialSection={modal === 'licence' ? 'notify' : 'you'}
+          />
         )}
 
         {/* The same list setup asks on, asked again with a year of record in

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import SceneFrame from '../shared/SceneFrame.jsx';
 import PrintReport from './PrintReport.jsx';
 import { useData } from '../../context/DataContext.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 import { useBoard } from '../../context/BoardContext.jsx';
 import { buildReport, resolveScope, schoolDaysIn, formatRangeLabel } from '../../domain/report.js';
 import { todayKey } from '../../domain/dates.js';
@@ -29,7 +30,7 @@ import { pdfBridge, isDesktop } from '../../lib/bridge.js';
 
 const TIPS = {
   coverage: 'Everything so far is the safe default.',
-  periods: 'Leave All periods selected for the full record.',
+  // `periods` is filled in at render from the teacher's own vocabulary.
   review: 'Nothing is uploaded - the file is written on this computer.',
 };
 
@@ -41,6 +42,8 @@ export default function PrintReportModal({
 }) {
   const { doc } = useData();
   const { periodIds, periods } = useBoard();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
 
   /**
    * One student's own record, reached by right-clicking their lane.
@@ -94,7 +97,7 @@ export default function PrintReportModal({
   const invalid = kind === 'range' && (!from || !to || from > to);
   const periodsLabel =
     scopePeriods.length === 0
-      ? 'All periods'
+      ? words.all
       : periods
           .filter((p) => scopePeriods.includes(p.id))
           .map((p) => p.shortName)
@@ -169,7 +172,11 @@ export default function PrintReportModal({
         )}
       </div>
 
-      <span className="acc-sheet__tip">{TIPS[current]}</span>
+      {/* The periods step's tip names the teacher's own word for a slot, so it
+          is built here rather than sitting in the static map above. */}
+      <span className="acc-sheet__tip">
+        {current === 'periods' ? `Leave ${words.all} selected for the full record.` : TIPS[current]}
+      </span>
 
       {last ? (
         <div className="acc-print__actions">

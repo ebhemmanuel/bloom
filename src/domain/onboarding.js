@@ -1,3 +1,4 @@
+import { slotWordsFor } from './vocabulary.js';
 import { createEmptyDoc } from './schema.js';
 import { addPeriod, addCatalogEntry } from './mutations.js';
 import { addStudentWithAccommodations } from './importStudent.js';
@@ -89,11 +90,28 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
 
   // Periods first: students reference them by id, so they have to exist before
   // the roster is built.
+  /*
+    The generated names follow the teacher's own vocabulary.
+
+    An elementary teacher gets "Block 1" and "B1" where a secondary one gets
+    "Period 1" and "P1". These are LABELS, not identity: the period object, its
+    id and every reference to it are unchanged, and a teacher who types their
+    own name over the top - "Literacy block" - overrides this anyway. It only
+    decides what the app writes when nobody said.
+
+    Read from the doc rather than passed in, because the teacher's grades were
+    saved a step earlier in the same flow.
+  */
+  const words = slotWordsFor(doc);
+
   const periodIdByNumber = {};
   for (const n of [...periods].sort((a, b) => a - b)) {
     const spoken = String(periodNames[n] || '').trim();
     const before = doc.periods.length;
-    doc = addPeriod(doc, { name: spoken || `Period ${n}`, shortName: `P${n}` });
+    doc = addPeriod(doc, {
+      name: spoken || `${words.One} ${n}`,
+      shortName: `${words.short}${n}`,
+    });
     if (doc.periods.length > before) periodIdByNumber[n] = doc.periods[doc.periods.length - 1].id;
   }
 

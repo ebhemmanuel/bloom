@@ -4,6 +4,7 @@ import { activeStudentsFor, activeAssignmentsFor } from './seed.js';
 import { eachDateInRange, isWeekend, todayKey, isoTimestamp, formatDateLong } from './dates.js';
 import { assignmentConfig } from './schema.js';
 import { matchesSearch, buildSearchIndex } from './selectors.js';
+import { slotWordsFor } from './vocabulary.js';
 
 /**
  * Assemble the printable compliance record. Pure.
@@ -187,6 +188,16 @@ export function buildReport(
 
   return {
     teacher,
+    /*
+      What this teacher calls a slot in their day, carried ON the model rather
+      than read from React context by the print view.
+
+      The report renders twice: once in the preview, and once in a hidden window
+      for the PDF. Deciding the wording in the component would mean the printed
+      copy depended on which of those two trees it happened to be in. Here, the
+      document and the words it uses are built together and cannot disagree.
+    */
+    words: slotWordsFor(doc),
     from,
     to,
     dates,

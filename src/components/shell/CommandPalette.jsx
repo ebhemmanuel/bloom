@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 
 import { normalizeSearch, studentSearchTerms } from '../../domain/selectors.js';
 import { planClassOf } from '../../domain/constants.js';
@@ -25,6 +26,8 @@ import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
  */
 export default function CommandPalette({ onClose }) {
   const { doc } = useData();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
   const { setSearch, setPeriodIds, setDateKey, dateKey } = useBoard();
 
   const [query, setQuery] = useState('');
@@ -176,8 +179,8 @@ export default function CommandPalette({ onClose }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Jump to a student or period…"
-              aria-label="Jump to a student or period"
+              placeholder={`Jump to a student or ${words.one}…`}
+              aria-label={`Jump to a student or ${words.one}`}
             />
             <kbd className="acc-palette__kbd">Esc</kbd>
           </div>
@@ -205,7 +208,7 @@ export default function CommandPalette({ onClose }) {
                       onClick={() => choose(item)}
                     >
                       <span className={`acc-palette__kind acc-palette__kind--${item.kind}`}>
-                        {item.kind === 'period' ? 'Period' : 'Student'}
+                        {item.kind === 'period' ? words.One : 'Student'}
                       </span>
                       {item.code && (
                         <span className="acc-palette__code" aria-hidden="true">

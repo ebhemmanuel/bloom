@@ -8,6 +8,7 @@ import RangeView from './RangeView.jsx';
 import useCollapsedLanes from '../../hooks/useCollapsedLanes.js';
 import useCardSelection from '../../hooks/useCardSelection.js';
 import useCustomScrollbar from '../../hooks/useCustomScrollbar.js';
+import useSlotWords from '../../hooks/useSlotWords.js';
 import useDaySwap from '../../hooks/useDaySwap.js';
 import { useData } from '../../context/DataContext.jsx';
 import { useBoard } from '../../context/BoardContext.jsx';
@@ -45,6 +46,8 @@ function parseDroppable(id) {
 
 export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
   const { doc, mutate, readOnly } = useData();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
 
   // Date, period filter and search live in BoardContext because the Bloom shell
   // splits those controls between the pill nav and the toolbar.
@@ -477,10 +480,10 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
   if (periodIds.length) {
     activeFilters.push({
       id: 'periods',
-      kind: periodIds.length === 1 ? 'Period' : 'Periods',
+      kind: periodIds.length === 1 ? words.One : words.Many,
       label:
         periodIds.length === 1
-          ? periods.find((p) => p.id === periodIds[0])?.name || 'Period'
+          ? periods.find((p) => p.id === periodIds[0])?.name || words.One
           : `${periodIds.length} selected`,
       onClear: () => setPeriodIds([]),
     });

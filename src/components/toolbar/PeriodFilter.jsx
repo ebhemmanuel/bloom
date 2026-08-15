@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { usePopoverDismiss } from '../shell/AppHeader.jsx';
 import { useData } from '../../context/DataContext.jsx';
 import { renamePeriod, addPeriod } from '../../domain/mutations.js';
+import useSlotWords from '../../hooks/useSlotWords.js';
+import { BLOCK_WORDS } from '../../domain/vocabulary.js';
 import Caret from '../shared/Caret.jsx';
 
 /**
@@ -15,6 +17,10 @@ import Caret from '../shared/Caret.jsx';
  * appears - lane headers, this filter, the add-student form.
  */
 export default function PeriodFilter({ periods, selected, onChange }) {
+  // "Period" or "block", from the grades this teacher said they work with.
+  // Presentation only - see domain/vocabulary.js.
+  const words = useSlotWords();
+  const blocks = words === BLOCK_WORDS;
   const { mutate, readOnly } = useData();
   const [open, setOpen] = useState(false);
   const [renaming, setRenaming] = useState(null);
@@ -53,12 +59,12 @@ export default function PeriodFilter({ periods, selected, onChange }) {
 
   const label =
     periods.length === 0
-      ? 'Periods'
+      ? words.Many
       : selected.length === 0
-        ? 'All periods'
+        ? words.all
         : selected.length === 1
-          ? periods.find((p) => p.id === selected[0])?.shortName || '1 period'
-          : `${selected.length} periods`;
+          ? periods.find((p) => p.id === selected[0])?.shortName || `1 ${words.one}`
+          : `${selected.length} ${words.many}`;
 
   const commitRename = (period) => {
     const next = draft.trim();
@@ -83,7 +89,9 @@ export default function PeriodFilter({ periods, selected, onChange }) {
         className={`acc-btn${open ? ' acc-btn--on' : ''}${filtering ? ' acc-btn--active' : ''}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        title={filtering ? 'Showing only some periods. Click to change.' : 'Filter by period'}
+        title={
+          filtering ? `Showing only some ${words.many}. Click to change.` : `Filter by ${words.one}`
+        }
       >
         {label}
         <Caret up={open} />
@@ -100,7 +108,7 @@ export default function PeriodFilter({ periods, selected, onChange }) {
               onClick={() => onChange([])}
             >
               <span className="acc-periods__check">{selected.length === 0 ? '✓' : ''}</span>
-              All periods
+              {words.all}
             </button>
           )}
 
@@ -196,8 +204,8 @@ export default function PeriodFilter({ periods, selected, onChange }) {
                   className="acc-inputgroup__input"
                   value={adding}
                   onChange={(e) => setAdding(e.target.value)}
-                  placeholder="Add a period…"
-                  aria-label="Add a period"
+                  placeholder={`Add a ${words.one}…`}
+                  aria-label={`Add a ${words.one}`}
                 />
                 <button type="submit" className="acc-inputgroup__action" disabled={!adding.trim()}>
                   Add
@@ -220,8 +228,10 @@ export default function PeriodFilter({ periods, selected, onChange }) {
 
           <p className="acc-periods__hint">
             {visible.length
-              ? 'Right-click a period to rename it. Periods nobody is in are not listed.'
-              : 'Add as many as you teach - “Period 3”, “Block B”, “Homeroom”.'}
+              ? `Right-click a ${words.one} to rename it. ${words.Many} nobody is in are not listed.`
+              : blocks
+                ? 'Add as many as you teach - “Literacy block”, “Math block”, “Specials”.'
+                : 'Add as many as you teach - “Period 3”, “Block B”, “Homeroom”.'}
           </p>
         </div>
       )}

@@ -71,12 +71,25 @@ const TIPS = {
   look: 'Changes the scene immediately.',
 };
 
-export default function ProfileModal({ onClose, background, leaving = false }) {
+export default function ProfileModal({
+  onClose,
+  background,
+  leaving = false,
+  /**
+   * Which tab to open on.
+   *
+   * File > Licence lands straight on the section that holds it. Settings has
+   * five tabs and the licence is the one thing in here somebody arrives at with
+   * a specific errand - being dropped on "You" and having to hunt is how it got
+   * reported as missing.
+   */
+  initialSection = 'you',
+}) {
   const { doc, mutate, readOnly } = useData();
   const teacher =
     doc.teachers.find((t) => t.id === doc.settings?.activeTeacherId) || doc.teachers[0];
 
-  const [section, setSection] = useState('you');
+  const [section, setSection] = useState(initialSection);
   const [draft, setDraft] = useState({
     displayName: teacher?.displayName || '',
     school: teacher?.school || '',

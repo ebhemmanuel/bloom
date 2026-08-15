@@ -11,7 +11,10 @@ import { PRODUCT_NAME } from '../../domain/schema.js';
  * input surface and this is a document.
  */
 export default function PrintReport({ report }) {
-  const { teacher, from, to, dates, students, dayContext, totals, generatedAt } = report;
+  // `words` comes off the model, not from context: this renders in a hidden
+  // window for the PDF as well as in the preview, and the two must not be able
+  // to describe the same day differently. See domain/vocabulary.js.
+  const { teacher, from, to, dates, students, dayContext, totals, generatedAt, words } = report;
 
   return (
     <article className="acc-print">
@@ -122,7 +125,7 @@ export default function PrintReport({ report }) {
               {s.rows.length === 0 && (
                 <tr>
                   <td className="acc-print__none" colSpan={2}>
-                    No accommodations assigned in this period.
+                    No accommodations assigned in this {words.one}.
                   </td>
                 </tr>
               )}

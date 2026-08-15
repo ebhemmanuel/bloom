@@ -6,6 +6,7 @@ import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
 import DatePicker from '../toolbar/DatePicker.jsx';
 import CloseOutDayButton from '../toolbar/CloseOutDayButton.jsx';
+import useSlotWords from '../../hooks/useSlotWords.js';
 import useClock from '../../hooks/useClock.js';
 import useSpinOnHover from '../../hooks/useSpinOnHover.js';
 
@@ -67,6 +68,8 @@ export default function AppHeader({
   onOpenAbout,
 }) {
   const { doc } = useData();
+  // "Period" or "block", from this teacher's grades. Presentation only.
+  const words = useSlotWords();
   const { dateKey, setDateKey } = useBoard();
   // Only warnings light the bell. The info items (nothing recorded yet, days
   // not closed out) are ambient status for when the panel is opened - a badge
@@ -131,8 +134,8 @@ export default function AppHeader({
           type="button"
           className="acc-header__searchmain"
           onClick={onOpenSearch}
-          aria-label="Find a student or period"
-          title="Find a student or period  ·  Ctrl+Space"
+          aria-label={`Find a student or ${words.one}`}
+          title={`Find a student or ${words.one}  ·  Ctrl+Space`}
         >
           <Icon path={SEARCH_ICON} size={15} />
           <span className="acc-header__search-label">Find a student…</span>
