@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import useClock from '../../hooks/useClock.js';
 import { useBoard } from '../../context/BoardContext.jsx';
@@ -8,6 +8,12 @@ import { todayKey } from '../../domain/dates.js';
 
 /** 2:30pm, in minutes past midnight. See `visible`. */
 const CLOSE_OUT_FROM = 14 * 60 + 30;
+
+/** `.acc-fade-enter`, which runs at `--acc-dur-normal`. */
+const FADE_IN_MS = 260;
+
+/** `.acc-fade-leave`, at `--acc-dur-fast` - departures are quicker than arrivals. */
+const FADE_OUT_MS = 160;
 
 /** "16:00" to 960. Null for anything unparseable, so callers can fall back. */
 function minutesOf(hhmm) {
@@ -90,7 +96,60 @@ export default function CloseOutDayButton() {
     return now.getHours() * 60 + now.getMinutes() >= cutoff;
   }, [sealed, hasRecord, dateKey, now, cycleEndTime]);
 
-  if (!visible) return null;
+  /*
+    Held on screen long enough to leave, the way the sealed notice is.
+
+    `if (!visible) return null` on its own only ever cut. Stepping onto a day
+    with no record took the button out of the document in the same frame the new
+    date arrived, and stepping back put it there fully formed - the one control
+    in the bar that appears and disappears as you browse was the one thing that
+    did it without a transition.
+
+    Laid out before paint for the same reason as the notice: a plain effect
+    would paint one frame of the un-adjusted state, which is the cut it is
+    supposed to remove.
+  */
+  const [held, setHeld] = useState(visible);
+  const [phase, setPhase] = useState(null);
+  const wasVisible = useRef(visible);
+  const fadeTimer = useRef(null);
+
+  useLayoutEffect(() => {
+    if (wasVisible.current === visible) return undefined;
+    wasVisible.current = visible;
+    clearTimeout(fadeTimer.current);
+
+    if (visible) {
+      setHeld(true);
+      setPhase('in');
+      fadeTimer.current = setTimeout(() => setPhase(null), FADE_IN_MS);
+      return undefined;
+    }
+
+    setPhase('out');
+    fadeTimer.current = setTimeout(() => {
+      setHeld(false);
+      setPhase(null);
+    }, FADE_OUT_MS);
+    return undefined;
+  }, [visible]);
+
+  useEffect(() => () => clearTimeout(fadeTimer.current), []);
+
+  /*
+    The label a leaving button keeps.
+
+    It reads `sealed` from whichever day is now in view, so a button fading out
+    because you stepped off a closed day would have flipped from Re-open Day to
+    Close out Day halfway through its own exit - changing what it says on the
+    way out of a day it no longer belongs to. Frozen at the last day it was
+    actually offered on.
+  */
+  const lastSealed = useRef(sealed);
+  if (visible) lastSealed.current = sealed;
+  const saysSealed = visible ? sealed : lastSealed.current;
+
+  if (!visible && !held) return null;
 
   const commit = () => {
     mutate((d) =>
@@ -112,7 +171,9 @@ export default function CloseOutDayButton() {
 
           Weight comes from being the only labelled verb up here, not from fill.
         */
-        className="acc-btn acc-fade-enter"
+        className={`acc-btn${phase === 'in' ? ' acc-fade-enter' : ''}${
+          phase === 'out' ? ' acc-fade-leave' : ''
+        }`}
         onClick={() => setAsking(true)}
         /*
           Only the document-level lock disables it now: a file written by a
@@ -122,14 +183,16 @@ export default function CloseOutDayButton() {
           above - the button is not rendered at all on a day with nothing in it,
           rather than rendered and refusing.
         */
-        disabled={readOnly}
+        // `!visible` covers the exit: for the moment it is still on screen
+        // fading out, it belongs to a day it is no longer offered on.
+        disabled={readOnly || !visible}
         title={
-          sealed
+          saysSealed
             ? 'Makes the day editable again'
             : 'Seals the day; anything unassigned records as Not Used'
         }
       >
-        {sealed ? 'Re-open Day' : 'Close out Day'}
+        {saysSealed ? 'Re-open Day' : 'Close out Day'}
       </button>
 
       {/*
