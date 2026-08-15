@@ -405,35 +405,43 @@ export default function BoardToolbar({
         */}
         <div className="acc-toolbar__filters">
           {(noBoard ? [] : chips).map((filter) => (
+            /*
+              A slot around each chip, like the one around the sealed notice:
+              the chip fades, the slot closes the width it occupied. Fading
+              alone left the row holding a chip-sized hole until React dropped
+              the element, and everything beside it lurched over in one frame.
+            */
             <span
-              className={`acc-filterchip${filter.leaving ? ' acc-filterchip--leaving' : ''}`}
+              className={`acc-chipslot${filter.leaving ? ' acc-chipslot--leaving' : ''}`}
               key={filter.id}
             >
-              <span className="acc-filterchip__kind">{filter.kind}</span>
-              <span className="acc-filterchip__label">{filter.label}</span>
-              <button
-                type="button"
-                className="acc-filterchip__clear"
-                onClick={filter.onClear}
-                aria-label={`Clear the ${filter.kind.toLowerCase()} filter`}
-                title={
-                  filter.id === 'date' || filter.id === 'dates'
-                    ? 'Back to today'
-                    : 'Show everyone again'
-                }
-              >
-                {/* Drawn, not typed. The × character sits off its own centre and
+              <span className={`acc-filterchip${filter.leaving ? ' acc-filterchip--leaving' : ''}`}>
+                <span className="acc-filterchip__kind">{filter.kind}</span>
+                <span className="acc-filterchip__label">{filter.label}</span>
+                <button
+                  type="button"
+                  className="acc-filterchip__clear"
+                  onClick={filter.onClear}
+                  aria-label={`Clear the ${filter.kind.toLowerCase()} filter`}
+                  title={
+                    filter.id === 'date' || filter.id === 'dates'
+                      ? 'Back to today'
+                      : 'Show everyone again'
+                  }
+                >
+                  {/* Drawn, not typed. The × character sits off its own centre and
                   carries the font's weight, so it never quite lines up inside a
                   circle this small. */}
-                <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true">
-                  <path
-                    d="M4 4l8 8M12 4l-8 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+                  <svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true">
+                    <path
+                      d="M4 4l8 8M12 4l-8 8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </span>
             </span>
           ))}
         </div>
