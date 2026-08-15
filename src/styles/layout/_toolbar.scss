@@ -155,12 +155,14 @@
       hard against the clock's divider, instead of the caret being flung to the
       far end with a corridor of nothing between them.
 
-      This went start-aligned for a while, when the bell sat immediately before
-      it and the left slack became 84px of empty button between the two. The
-      bell lives inside the search now, so the slack falls against nothing again
-      and the date can go back to where it reads best.
+      Sized to the content rather than generously. It was 170px against roughly
+      86px of caret, label and padding, which was invisible while the slack fell
+      against nothing - and became 84px of dead air the moment the close-out
+      button moved in on its left. The same thing happened when the bell sat
+      there, which is why the measure is now the label's own width plus room for
+      a longer day and month, and not a round number.
     */
-    inline-size: 170px;
+    inline-size: 108px;
     justify-content: flex-end;
     padding-inline: var(--acc-space-2);
     background: none;

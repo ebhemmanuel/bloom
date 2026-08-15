@@ -5,6 +5,7 @@ import { useBoard } from '../../context/BoardContext.jsx';
 import MenuBar from './MenuBar.jsx';
 import BloomMark from '../onboarding/BloomMark.jsx';
 import DatePicker from '../toolbar/DatePicker.jsx';
+import CloseOutDayButton from '../toolbar/CloseOutDayButton.jsx';
 import useClock from '../../hooks/useClock.js';
 import useSpinOnHover from '../../hooks/useSpinOnHover.js';
 
@@ -159,6 +160,14 @@ export default function AppHeader({
       </div>
 
       <div className="acc-header__right">
+        {/*
+          Commit the day, immediately left of the date that says which day it
+          is. Both are about the DAY rather than about how the lanes are
+          arranged, so they read as one thought: this day, and I am done with
+          it. It shows itself from mid-afternoon - see the component.
+        */}
+        <CloseOutDayButton />
+
         {/*
           Which day you are recording, in the bar rather than in the board's own
           toolbar. It governs everything below it - the lanes, the notes dialog,

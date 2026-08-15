@@ -146,6 +146,28 @@
     gap: var(--acc-space-2);
   }
 
+  /*
+    Close out the day: purple, at the row's own scale.
+
+    `.acc-btn--primary` is 38px and semibold, drawn for the commit button at the
+    foot of a sheet where it is the only thing to press. In a bar beside a 32px
+    search pill it towered. Pairing it with `--small` fixed the height and took
+    the font down to 11px with it, which only made it the odd one out in the
+    other direction.
+
+    So the height comes back to what the search pill beside it wears - 32px -
+    and only the fill and the weight are left to say it is the one thing here
+    you actually do.
+
+    `.acc-btn` is in the selector on purpose: `--primary` carries the same
+    single-class specificity as this, so without it the two tie and the 38px
+    wins on nothing more than which file the bundler emitted last.
+  */
+  &__closeout.acc-btn {
+    height: 32px;
+    padding-inline: var(--acc-space-4);
+  }
+
   // Quiet by default. It is a reference, not a notification, so it sits at the
   // weight of the icons beside it rather than competing with them.
   //

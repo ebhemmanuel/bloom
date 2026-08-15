@@ -1,23 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import PeriodFilter from './PeriodFilter.jsx';
 import Toast from '../shared/Toast.jsx';
 import Caret from '../shared/Caret.jsx';
 import ConfirmDialog from '../shared/ConfirmDialog.jsx';
-import useClock from '../../hooks/useClock.js';
-import { useBoard } from '../../context/BoardContext.jsx';
-import { useData } from '../../context/DataContext.jsx';
 import { SEED_MODE } from '../../domain/constants.js';
-import { formatDateMedium, formatDateLong, todayKey } from '../../domain/dates.js';
-
-/** 2:30pm, in minutes past midnight. See `showCloseOut`. */
-const CLOSE_OUT_FROM = 14 * 60 + 30;
-
-/** "16:00" to 960. Null for anything unparseable, so callers can fall back. */
-function minutesOf(hhmm) {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ''));
-  if (!match) return null;
-  return Number(match[1]) * 60 + Number(match[2]);
-}
+import { formatDateMedium, formatDateLong } from '../../domain/dates.js';
 
 function Chevron({ down }) {
   return (
@@ -43,15 +30,18 @@ function Chevron({ down }) {
 /**
  * The board's tools, as a single floating row above the first lane.
  *
- * Left: the roster and what you do to its day - fold, sort, add a student, copy
- * yesterday forward. Right: how the board is arranged, and the close-out.
+ * Left: the roster and how much of it you can see - fold, sort, add a student.
+ * Right: which slice you are looking at, and copying a day forward.
  *
  * The three-dot menu is gone. It held Copy yesterday, Close out day and the
- * day's notes; the first two have their own buttons here and the notes went
- * back to the menu bar, which left an unlabelled control guarding nothing.
+ * day's notes: the first has its own button here, and the other two moved to
+ * the header - closing out beside the date because both are about the DAY, and
+ * the notes back to the menu bar. That left an unlabelled control guarding
+ * nothing.
  *
- * The date is deliberately not here. It sets which day the whole app is on, not
- * how this board is laid out, so it lives in the pill nav with the chrome.
+ * The date is deliberately not here, for the same reason the close-out is not:
+ * it sets which day the whole app is on, rather than how this board is laid
+ * out, so it lives in the pill nav with the chrome.
  */
 export default function BoardToolbar({
   periods,
@@ -60,8 +50,6 @@ export default function BoardToolbar({
   model,
   readOnly,
   onCopyPrevious,
-  onCloseOutDay,
-  sealed,
   onAddStudent,
   allFolded,
   onToggleFoldAll,
@@ -71,46 +59,7 @@ export default function BoardToolbar({
 }) {
   const [notice, setNotice] = useState(null);
   const [confirm, setConfirm] = useState(null);
-  const [closeOut, setCloseOut] = useState(false);
   const disabled = readOnly || model.sealed;
-
-  const now = useClock();
-  const { dateKey } = useBoard();
-  // From the document, not the board model: the model does not carry it.
-  const { doc } = useData();
-  const cycleEndTime = doc.settings?.cycleEndTime;
-
-  /**
-   * When the close-out button is offered at all.
-   *
-   * Not greyed out all morning: a control that is present and refusing from
-   * 8am teaches a teacher to stop seeing it, and the one moment it matters is
-   * the end of the day. So it fades in when closing out is actually the next
-   * thing to do.
-   *
-   *   - A past day is finished by definition, so it is always offered.
-   *   - A sealed day always offers the way back, whatever the clock says.
-   *     Re-opening is how a mistake gets fixed and must never be unreachable.
-   *   - A future day has nothing to close.
-   *   - Today: from CLOSE_OUT_FROM.
-   */
-  const showCloseOut = useMemo(() => {
-    if (sealed) return true;
-    const today = todayKey(now);
-    if (dateKey < today) return true;
-    if (dateKey > today) return false;
-
-    /*
-      2:30pm, or `cycleEndTime` if a teacher set one earlier than that.
-
-      The clamp matters: the day auto-seals at cycleEndTime, so a teacher whose
-      day ends at 1pm would watch the board seal itself every afternoon without
-      the button ever having appeared, and would never find the control that
-      does it deliberately.
-    */
-    const cutoff = Math.min(CLOSE_OUT_FROM, minutesOf(cycleEndTime) ?? CLOSE_OUT_FROM);
-    return now.getHours() * 60 + now.getMinutes() >= cutoff;
-  }, [sealed, dateKey, now, cycleEndTime]);
 
   /**
    * Ask before writing, always.
@@ -265,33 +214,6 @@ export default function BoardToolbar({
           the pill nav - it chooses which day the whole app is on, which is a
           bigger question than how this board is arranged.
         */}
-        {/*
-          Close out the day, to the left of the period filter.
-
-          Purple because it is the one thing on this row a teacher is meant to
-          do, and the last thing they do: everything else here changes what is
-          on screen, this one commits the day.
-
-          It appears rather than sitting there greyed. A button that is present
-          all morning and refuses all morning teaches people to ignore it, and
-          the moment it matters is the end of the day.
-        */}
-        {showCloseOut && (
-          <button
-            type="button"
-            className="acc-btn acc-btn--primary acc-fade-enter"
-            onClick={() => setCloseOut(true)}
-            disabled={sealed ? readOnly : readOnly || !model.hasRecord}
-            title={
-              sealed
-                ? 'Makes the day editable again'
-                : 'Seals the day; anything unassigned records as Not Used'
-            }
-          >
-            {sealed ? 'Re-open day' : 'Close out day'}
-          </button>
-        )}
-
         <PeriodFilter periods={periods} selected={selectedPeriodIds} onChange={onPeriodsChange} />
 
         {/*
@@ -317,7 +239,7 @@ export default function BoardToolbar({
           disabled={disabled}
           title="Bring across what you recorded on the last day you worked"
         >
-          Copy yesterday
+          Copy Yesterday
         </button>
 
         {/*
@@ -355,44 +277,6 @@ export default function BoardToolbar({
           onConfirm={() => {
             if (canProceed) copy(true);
             setConfirm(null);
-          }}
-        />
-      )}
-
-      {/*
-        Closing out is confirmed, in both directions.
-
-        It used to be one click on a menu item. Sealing writes Not Used across
-        every unassigned entry on the board, which is a claim about what was
-        delivered to a child, and re-opening reverts every one of those the
-        close-out wrote. Neither belongs one stray click away, and now that the
-        control sits in the always-visible row rather than two clicks inside a
-        menu, that goes double.
-
-        The body says what it will DO rather than what it is called, because
-        "close out day" does not tell a teacher that anything they have not
-        touched is about to be recorded as not delivered.
-      */}
-      {closeOut && (
-        <ConfirmDialog
-          title={sealed ? 'Re-open this day?' : 'Close out this day?'}
-          body={
-            sealed
-              ? 'Anything the close-out recorded as Not Used goes back to unassigned, so you can change it. What you marked yourself is left alone.'
-              : 'Everything still unassigned will be recorded as Not Used, and the day becomes read-only.'
-          }
-          reassurance={
-            sealed
-              ? undefined
-              : 'You can re-open it afterwards, and notes can still be added either way.'
-          }
-          confirmLabel={sealed ? 'Re-open it' : 'Close it out'}
-          cancelLabel="Cancel"
-          tone={sealed ? 'default' : 'warn'}
-          onCancel={() => setCloseOut(false)}
-          onConfirm={() => {
-            setCloseOut(false);
-            onCloseOutDay();
           }}
         />
       )}

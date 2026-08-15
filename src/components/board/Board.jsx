@@ -476,8 +476,6 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
       model={model}
       readOnly={readOnly}
       onCopyPrevious={copyPrevious}
-      onCloseOutDay={toggleDayClosed}
-      sealed={Boolean(doc.days?.[dateKey]?.sealed)}
       onAddStudent={onAddStudent}
       activeFilters={activeFilters}
       sort={sort}
