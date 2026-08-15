@@ -33,24 +33,40 @@
     padding: var(--acc-space-2);
     border: 1px solid transparent;
     border-radius: var(--acc-radius-sm);
-    background: var(--acc-surface-sunken);
+    /*
+      White, like the cell it sits in.
+
+      It was `--acc-surface-sunken`, which is where the lavender came from: a
+      tall panel of tinted colour beside four already-tinted status columns,
+      for the one place on the board a teacher writes a sentence. The notes
+      column is the quiet end of the lane and should read as paper.
+    */
+    background: var(--acc-surface);
     font-size: var(--acc-fs-sub);
     line-height: var(--acc-lh-normal);
     resize: none;
     outline: none;
-    transition:
-      border-color var(--acc-dur-fast) var(--acc-ease-standard),
-      box-shadow var(--acc-dur-fast) var(--acc-ease-standard),
-      background-color var(--acc-dur-fast) var(--acc-ease-standard);
+    transition: border-color var(--acc-dur-fast) var(--acc-ease-standard);
 
     &::placeholder {
       color: var(--acc-fg-faint);
     }
 
+    /*
+      No accent border and no ring.
+
+      Focusing this drew a purple outline with a 3px halo around a box the size
+      of the whole lane, which is a lot of emphasis for putting a cursor in a
+      text field - and it fired on every click, so writing a note lit up the
+      loudest thing on the board.
+
+      The border still changes, to the ordinary neutral. Something has to mark
+      focus: this is a textarea, so the caret carries most of it, and a quiet
+      edge is enough to say which cell the caret is in without the field
+      announcing itself.
+    */
     &:focus {
-      background: var(--acc-surface);
-      border-color: var(--acc-accent);
-      box-shadow: 0 0 0 3px var(--acc-accent-soft);
+      border-color: var(--acc-border);
     }
 
     &:disabled {

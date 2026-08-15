@@ -347,6 +347,9 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  // Tinted, so the white cards read as sitting ON the column rather than as
+  // being the column. The notes cell beside them is the exception: it is white,
+  // because it holds a written sentence rather than cards.
   background: var(--acc-surface-sunken);
   transition: background-color var(--acc-dur-fast) var(--acc-ease-standard);
 

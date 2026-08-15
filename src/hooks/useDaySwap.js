@@ -76,6 +76,27 @@ export default function useDaySwap(dateKey, model, rangeActive) {
   // than an effect, so the frame that carries the edit never shows stale data.
   if (shown.dateKey === dateKey && shown.model !== model) {
     setShown({ dateKey, model });
+
+    /*
+      Starting a record is not an ordinary edit: it is the board arriving.
+
+      "Start a record for this day" changes the document without changing the
+      date, so it took the pass-through above and the whole board - toolbar,
+      lanes, notes column - replaced a centred paragraph in a single frame. It
+      was the last cut left on this screen, and the one that lands on a
+      deliberate button press rather than on a date step.
+
+      Handing the model over immediately and playing only the IN phase, so the
+      board cascades in the way it does after a date change. No OUT phase: what
+      it replaces is an empty state with nothing to carry, and 620ms of fading
+      that out before anything appeared would make the button feel unresponsive.
+
+      Bare to real only. Nothing runs when a record is already there, so status
+      drops, notes and added cards still pass through untouched.
+    */
+    if (isBare(shown.model) && !isBare(model)) {
+      setPhase('in');
+    }
   }
 
   const shownDate = useRef(shown.dateKey);
