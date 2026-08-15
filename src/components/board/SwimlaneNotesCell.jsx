@@ -162,7 +162,9 @@ export default function SwimlaneNotesCell({ studentName, value, disabled, onComm
                     onKeyDown={onEditKeyDown(index)}
                     onBlur={() => commitEdit(index)}
                     aria-label={`Edit note for ${studentName}`}
-                    rows={2}
+                    // One row, like the card it replaces. Two made the note
+                    // taller the moment it was clicked.
+                    rows={1}
                     autoFocus
                     spellCheck
                   />

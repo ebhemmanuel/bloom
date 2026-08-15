@@ -68,7 +68,15 @@
       border-color: var(--acc-border-strong);
     }
 
+    /*
+      Editing a note is the same box as reading it.
+
+      The field's own margin is for the one at the top of the cell, which stands
+      alone. Inside the list the item already carries the spacing, so keeping it
+      inset the box a second time and a note grew as soon as you clicked it.
+    */
     &--editing {
+      margin: 0;
       border-color: var(--acc-border-strong);
     }
   }
