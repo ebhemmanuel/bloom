@@ -28,7 +28,15 @@
     height: 26px;
     padding: 0 var(--acc-space-3);
     border-radius: var(--acc-radius-pill);
-    font-size: var(--acc-fs-sub);
+    /*
+      Body size, not the control size.
+
+      These are words, not controls: File, Edit and Notes are read, where a
+      button is aimed at. At `--acc-fs-sub` they matched the pills at the other
+      end of the bar and undershot everything they actually sit beside, which
+      left the app's own menus as the smallest text on screen.
+    */
+    font-size: var(--acc-fs-body);
     font-weight: var(--acc-fw-medium);
     color: var(--acc-fg-muted);
     white-space: nowrap;
