@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import Swimlane from './Swimlane.jsx';
 import CardDetailPopover from './CardDetailPopover.jsx';
@@ -294,6 +294,19 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
    * on every lane at once, which is exactly the case the animation exists for.
    */
   const [copyPulse, setCopyPulse] = useState(0);
+  /*
+    Whether that cascade is still running.
+
+    Separate from the counter, and it has to be: the counter keys the container
+    so a copy remounts it, but the CLASS must not outlive the animation. Left on
+    permanently it out-specified the day-change fade below, so once a teacher had
+    copied anything, every later date change played the copy's cascade instead of
+    the crossfade - two different transitions for the same gesture depending on
+    something they did ten minutes earlier.
+  */
+  const [copyCascading, setCopyCascading] = useState(false);
+  const copyCascadeTimer = useRef(null);
+  useEffect(() => () => clearTimeout(copyCascadeTimer.current), []);
 
   const copyPrevious = useCallback(
     (mode = SEED_MODE.FULL, force = false, { apply = true } = {}) => {
@@ -301,6 +314,10 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
       if (apply && result.applied) {
         mutate(() => result.doc);
         setCopyPulse((n) => n + 1);
+        setCopyCascading(true);
+        clearTimeout(copyCascadeTimer.current);
+        // The animation plus the last lane's delay, with a little room.
+        copyCascadeTimer.current = setTimeout(() => setCopyCascading(false), 1000);
       }
       return result;
     },
@@ -637,7 +654,7 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
                   out-specify the `rest` state's `animation: none` on the lanes.
                 */
                 <div
-                  className={`acc-board__lanes acc-cascade${copyPulse ? ' acc-board__lanes--copied' : ''}`}
+                  className={`acc-board__lanes acc-cascade${copyCascading ? ' acc-board__lanes--copied' : ''}`}
                   key={`lanes-${copyPulse}`}
                 >
                   {view.model.lanes.map((lane) => (

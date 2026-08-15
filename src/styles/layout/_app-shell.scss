@@ -194,27 +194,79 @@ $surface-lead: 160ms;
   gap: var(--acc-space-4);
 
   /*
-    Linear, not `--acc-ease-exit`.
+    The day leaves and arrives ROW BY ROW, not as one block.
 
-    That curve is cubic-bezier(0.7, 0, 0.84, 0) - an extreme ease-in, right for
-    something flying off the screen where you want it to commit late and leave
-    fast. On OPACITY it means nothing visibly happens and then the thing is
-    gone: measured 0.94 at 135ms of a 160ms fade, so the outgoing day was still
-    effectively solid when it was replaced. Which is a cut with a fade attached
-    to it.
+    The fade sits on the children rather than on this wrapper, which is the
+    whole point: a wrapper can only carry one opacity, so fading it made a
+    twelve-lane board arrive as a single sheet. Staggering needs each row to own
+    its own animation, and `.acc-cascade`'s delays to space them.
 
-    A crossfade wants a straight ramp. The two halves then sum to roughly
-    constant brightness instead of the old day hanging on and the new one
-    arriving into a hole.
+    Still inside the §4.4 budget. The steps are shorter than the board's arrival
+    cascade (30/45ms against 90ms) and there is no travel or blur - this is a
+    day changing under a fixed toolbar, not the board itself coming or going, so
+    it reads as the contents turning over rather than the room being rebuilt.
+
+    An empty state has no rows to stagger, so it keeps a single fade. It is the
+    one child that is the whole day by itself.
   */
   &--out {
-    animation: acc-fade-out 160ms linear both;
     // A board mid-goodbye must not take clicks meant for the incoming day.
     pointer-events: none;
+
+    .acc-board__lanes {
+      @include cascade(30ms);
+    }
+
+    .acc-board__lanes > .acc-lane {
+      animation-name: acc-fade-out;
+      animation-duration: 160ms;
+      animation-timing-function: var(--acc-ease-exit);
+      animation-fill-mode: both;
+    }
+
+    .acc-empty {
+      animation: acc-fade-out 160ms var(--acc-ease-exit) both;
+    }
   }
 
   &--in {
-    animation: acc-fade-in 200ms var(--acc-ease-entrance) both;
+    .acc-board__lanes {
+      @include cascade(45ms);
+    }
+
+    .acc-board__lanes > .acc-lane {
+      animation-name: acc-fade-in;
+      animation-duration: 200ms;
+      animation-timing-function: var(--acc-ease-entrance);
+      animation-fill-mode: both;
+    }
+
+    .acc-empty {
+      animation: acc-fade-in 200ms var(--acc-ease-entrance) both;
+    }
+  }
+
+  /*
+    Reduced motion: one fade for the whole day, no stagger.
+
+    A crossfade carries meaning and causes no vestibular trouble, so it stays -
+    but the sequencing is the part that is motion for its own sake here.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    &--out {
+      animation: acc-fade-out 120ms linear both;
+    }
+
+    &--in {
+      animation: acc-fade-in 120ms linear both;
+    }
+
+    &--out .acc-board__lanes > .acc-lane,
+    &--in .acc-board__lanes > .acc-lane,
+    &--out .acc-empty,
+    &--in .acc-empty {
+      animation: none;
+    }
   }
 }
 
