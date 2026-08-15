@@ -531,11 +531,17 @@ export default function Board({ onAddStudent, onEditStudent, onPrintStudent }) {
         that cut instead of fading: clear a date filter while on a closed day
         and the notice vanished in a frame while everything under it crossfaded.
         Sharing the phase puts it back in step without moving it.
+
+        Nothing at all at rest. It used to fall back to `acc-fade-enter` when
+        the phase cleared, which changes `animation-name` and therefore
+        RESTARTS - so the notice cascaded into place and then immediately faded
+        in again on top of itself. A first appearance is covered by the board's
+        own arrival cascade, which now includes this banner.
       */}
       {view.model.sealed && (
         <div
           className={`acc-banner acc-banner--sealed${
-            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ' acc-fade-enter'
+            view.phase !== 'idle' ? ` acc-board__day--${view.phase}` : ''
           }`}
         >
           {/*

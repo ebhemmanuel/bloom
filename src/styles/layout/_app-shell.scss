@@ -277,6 +277,41 @@ $surface-lead: 160ms;
   }
 }
 
+/*
+  The sealed notice joins the day's cascade, and arrives last.
+
+  It carries `--out` / `--in` itself rather than sitting inside
+  `.acc-board__day` - it belongs above the scroll area, so it is a SIBLING of
+  the rows it changes with. The rules above match descendants, which meant the
+  banner wore the phase class and had no animation attached to it: it cut in
+  while everything under it cascaded.
+
+  Last on the way in, on a delay past the first rows, because it is a statement
+  ABOUT the day rather than part of it - it should settle once the day it
+  describes is already there. First on the way out, for the same reason in
+  reverse: the label goes before the thing it labels.
+
+  Same keyframes as everything else, so it rises into place and drops away on
+  exit exactly as the rows do.
+*/
+.acc-banner.acc-board__day--in {
+  animation: acc-cascade-in 420ms var(--acc-ease-entrance) 240ms backwards;
+}
+
+.acc-banner.acc-board__day--out {
+  animation: acc-cascade-out 220ms var(--acc-ease-standard) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-banner.acc-board__day--in {
+    animation: acc-fade-in 120ms linear both;
+  }
+
+  .acc-banner.acc-board__day--out {
+    animation: acc-fade-out 120ms linear both;
+  }
+}
+
 .acc-board__lanes {
   display: flex;
   flex-direction: column;
