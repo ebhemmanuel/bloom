@@ -208,6 +208,39 @@
     &--shut {
       animation: acc-lane-slot-shut var(--acc-dur-normal) var(--acc-ease-standard) both;
     }
+
+    /*
+      The CONTENT fades on its own clock, slower than the space it sits in.
+
+      The height has to stay at `--acc-dur-normal` in both directions or the two
+      slots stop being complementary and the lane changes size on its own. The
+      words have no such constraint, and matching them to the height made the
+      summary snap to full strength the instant the row stopped moving. At
+      `--acc-dur-slow` the text is still arriving after the collapse has
+      settled, which is what makes it read as fading in rather than as being
+      uncovered.
+
+      Leaving is left at the collapse duration: that content unmounts when the
+      row finishes, so a slower fade out would simply be cut off.
+    */
+    /*
+      `--acc-ease-standard`, NOT the entrance curve, and the duration is only
+      half the reason.
+
+      `--acc-ease-entrance` is cubic-bezier(0.16, 1, 0.3, 1) - an out-expo that
+      spends almost all its progress in the first instant. On this fade it hit
+      41% opacity 25ms in and was effectively done before the row had finished
+      moving, so lengthening it changed nothing you could see. The standard
+      curve is a symmetric ease-in-out, which actually spreads the change across
+      the time it is given.
+    */
+    &--open > * {
+      animation: acc-fade-in var(--acc-dur-slow) var(--acc-ease-standard) both;
+    }
+
+    &--shut > * {
+      animation: acc-fade-out var(--acc-dur-normal) var(--acc-ease-standard) both;
+    }
   }
 
   // Four status columns + the notes column.
@@ -236,30 +269,25 @@
 }
 
 /*
-  Height and opacity together: the row that is arriving fades up as its space is
-  reserved, and the one leaving fades out as it gives that space back. Without
-  the fade the strip's text was simply revealed by the clip, which reads as it
-  being wiped into view rather than replacing what was there.
+  Height only. The fade lives on the content, at its own slower duration - see
+  `--open > *` above. Keeping opacity out of here is what lets the two run on
+  different clocks without the height pair drifting apart.
 */
 @keyframes acc-lane-slot-open {
   from {
     grid-template-rows: minmax(0, 0fr);
-    opacity: 0;
   }
   to {
     grid-template-rows: minmax(0, 1fr);
-    opacity: 1;
   }
 }
 
 @keyframes acc-lane-slot-shut {
   from {
     grid-template-rows: minmax(0, 1fr);
-    opacity: 1;
   }
   to {
     grid-template-rows: minmax(0, 0fr);
-    opacity: 0;
   }
 }
 
