@@ -183,6 +183,27 @@ export default function BoardToolbar({
           <Caret up={sort === 'za'} />
         </button>
 
+        {/*
+          Copy yesterday, immediately after the sort.
+
+          Out of the three-dot menu, which is gone: close-out has its own button
+          now and the day's notes went back to the menu bar, so the menu was
+          guarding nothing.
+
+          Still confirmed before it writes. See `askThenCopy` - the dialog names
+          the day and the number of entries, because copying statuses forward
+          asserts delivery on a day nobody has observed.
+        */}
+        <button
+          type="button"
+          className="acc-btn acc-btn--quiet"
+          onClick={askThenCopy}
+          disabled={disabled}
+          title="Bring across what you recorded on the last day you worked"
+        >
+          Copy yesterday
+        </button>
+
         <button
           type="button"
           className="acc-btn acc-btn--round"
@@ -199,29 +220,6 @@ export default function BoardToolbar({
               strokeLinecap="round"
             />
           </svg>
-        </button>
-
-        {/*
-          Copy yesterday, out of the three-dot menu and next to the sort.
-
-          It belongs on this side because it acts on the ROSTER's day rather
-          than on how the board is filtered, and because the menu that used to
-          hold it is gone: close-out has its own button now and the day's notes
-          went back to the menu bar, which left a three-dot control guarding
-          nothing.
-
-          Still confirmed before it writes. See `askThenCopy` - the dialog names
-          the day and the number of entries, because copying statuses forward
-          asserts delivery on a day nobody has observed.
-        */}
-        <button
-          type="button"
-          className="acc-btn acc-btn--quiet"
-          onClick={askThenCopy}
-          disabled={disabled}
-          title="Bring across what you recorded on the last day you worked"
-        >
-          Copy yesterday
         </button>
 
         <span className="acc-toolbar__count acc-numeric">
