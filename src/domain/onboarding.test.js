@@ -44,6 +44,13 @@ describe('buildOnboardedDoc', () => {
     expect(doc.settings.lowPerformance).toBe(true);
   });
 
+  it('honours the switch on the review screen', () => {
+    // A teacher on a machine that can afford the motion turns it off at the end
+    // of setup, and that choice has to survive the handover intact.
+    const doc = buildOnboardedDoc({ ...answers, lowPerformance: false }, now);
+    expect(doc.settings.lowPerformance).toBe(false);
+  });
+
   it('leaves every reminder off when none were chosen', () => {
     // Onboarding promises "these stay off unless you turn them on", and a
     // default that drifted on would make that copy a lie.

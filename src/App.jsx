@@ -560,8 +560,19 @@ function AppRoutes() {
    *
    * The attribute is removed rather than set to a second value, so the CSS is
    * one selector that either matches or does not.
+   *
+   * NEVER during onboarding. The default is ON, and it is on for the sake of
+   * the daily board on a district laptop - see DEFAULT_LOW_PERFORMANCE. But
+   * onboarding runs before there is a document to read the setting from, so
+   * the `??` fallback switched every animation off for the one screen that is
+   * built as an ambient performance: the reveal, the step crossfades, the tilt
+   * on Begin, the outro all ran at 1ms. The teacher's first minute with the app
+   * was a stack of cuts. Onboarding is a handful of screens, once, and it opts
+   * out; the setting takes over the moment the board does.
    */
-  const lowPerformance = doc?.settings?.lowPerformance ?? DEFAULT_LOW_PERFORMANCE;
+  const { showOnboarding, needsLocation } = setupStage(doc, loadState.status);
+  const lowPerformance =
+    !showOnboarding && (doc?.settings?.lowPerformance ?? DEFAULT_LOW_PERFORMANCE);
   useEffect(() => {
     const root = document.documentElement;
     if (lowPerformance) root.setAttribute('data-motion', 'off');
@@ -579,8 +590,6 @@ function AppRoutes() {
   // stranded anyone who booted without a pointer file - the status is a snapshot
   // of how the app started and never changes, so finishing setup did not release
   // the gate and onboarding stayed up on its last phase.
-  const { showOnboarding, needsLocation } = setupStage(doc, loadState.status);
-
   if (showOnboarding) {
     return <OnboardingFlow needsLocation={needsLocation} />;
   }

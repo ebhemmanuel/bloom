@@ -7,6 +7,7 @@ import { todayKey } from '../../domain/dates.js';
 import {
   DEFAULT_CYCLE_END_TIME,
   DEFAULT_REMINDERS,
+  DEFAULT_LOW_PERFORMANCE,
   CYCLE_END_OPTIONS,
   GRADE_OPTIONS,
 } from '../../domain/constants.js';
@@ -105,6 +106,7 @@ export default function OnboardingFlow({ needsLocation }) {
     from those directly.
   */
   const [answers, setAnswers] = useState({
+    lowPerformance: DEFAULT_LOW_PERFORMANCE,
     name: '',
     subjects: [],
     grades: [],
@@ -335,7 +337,15 @@ export default function OnboardingFlow({ needsLocation }) {
       case 'location':
         return <LocationStep onChoose={chooseLocation} busy={busy} error={error} />;
       case 'set':
-        return <SetStep summary={summary} onRoster={() => go('roster')} onBoard={finish} />;
+        return (
+          <SetStep
+            summary={summary}
+            lowPerformance={answers.lowPerformance}
+            onLowPerformance={(on) => patch({ lowPerformance: on })}
+            onRoster={() => go('roster')}
+            onBoard={finish}
+          />
+        );
       case 'roster':
         return (
           <RosterStep

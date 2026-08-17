@@ -48,6 +48,7 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
     reminders = DEFAULT_REMINDERS,
     students = [],
     termStart = null,
+    lowPerformance = DEFAULT_LOW_PERFORMANCE,
   } = answers;
 
   let doc = createEmptyDoc(now);
@@ -73,14 +74,16 @@ export function buildOnboardedDoc(answers = {}, now = new Date()) {
     lastKnownDate: todayKey(now),
     cycleEndTime: endTime || DEFAULT_CYCLE_END_TIME,
     /*
-      Setup hands the board over with the motion already off.
+      Whatever the teacher chose on the review screen, defaulting to OFF-motion.
 
       Nothing about this machine is known at this point except that a district
       chose it, and the safe assumption about an unknown machine is the slow
       one. A first board that stutters reads as a broken app; a first board that
-      is merely instant reads as a fast one. Appearance turns it back on.
+      is merely instant reads as a fast one. So the switch is offered at the end
+      of setup, defaulted on, and a teacher on hardware that can afford the
+      motion turns it off there rather than hunting for it in Settings later.
     */
-    lowPerformance: DEFAULT_LOW_PERFORMANCE,
+    lowPerformance: Boolean(lowPerformance),
     reminders: { ...DEFAULT_REMINDERS, ...reminders },
   };
 

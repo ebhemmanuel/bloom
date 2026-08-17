@@ -354,7 +354,7 @@ export function DayStep({
   );
 }
 
-export function SetStep({ summary, onRoster, onBoard }) {
+export function SetStep({ summary, lowPerformance, onLowPerformance, onRoster, onBoard }) {
   return (
     <div className="acc-ob__screen acc-ob__screen--card">
       <div className="acc-sheet__dialog acc-sheet__dialog--wide">
@@ -371,6 +371,40 @@ export function SetStep({ summary, onRoster, onBoard }) {
                 </p>
               </div>
               <p className="acc-ob__summary acc-numeric">{summary}</p>
+
+              {/*
+                The one setting worth asking about before the board appears.
+
+                It defaults ON, and the board this hands over to is built to be
+                instant on a slow district laptop. But a teacher on a machine
+                that can afford the motion should not have to find out in
+                Settings that the app has any - and the setup they just went
+                through has been showing them exactly what turning it off looks
+                like. Same control as Settings, so the two are recognisably one
+                switch.
+              */}
+              <div className="acc-set__field acc-ob__perf">
+                <div className="acc-set__toggles">
+                  <button
+                    type="button"
+                    className={`acc-set__toggle${lowPerformance ? ' acc-set__toggle--on' : ''}`}
+                    aria-pressed={lowPerformance}
+                    onClick={() => onLowPerformance(!lowPerformance)}
+                  >
+                    <span className="acc-set__toggle-text">
+                      <span className="acc-set__toggle-title">Low performance mode</span>
+                      <span className="acc-set__toggle-body">
+                        Everything happens instantly. No fades, no cascades, no drifting scene.
+                        Leave it on if this computer is older or feels slow.
+                      </span>
+                    </span>
+                    <span className="acc-set__track" aria-hidden="true">
+                      <span className="acc-set__knob" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               <div className="acc-ob__actions">
                 <button type="button" className="acc-btn acc-btn--primary" onClick={onRoster}>
                   Add my students

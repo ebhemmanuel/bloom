@@ -626,6 +626,21 @@
   text-align: center;
 }
 
+/*
+  The performance switch on the review screen, borrowed from Settings.
+
+  Settings lays its fields out full width and left-aligned; this pane centres
+  everything. So the switch gets a measure and its own left alignment inside
+  it, or a two-line description centres itself under a right-hand track and
+  reads as a paragraph that happens to have a knob beside it.
+*/
+.acc-ob__perf {
+  inline-size: 100%;
+  max-inline-size: 460px;
+  text-align: start;
+  margin-block: var(--acc-space-2) var(--acc-space-3);
+}
+
 .acc-ob__label {
   font-size: 14px;
   font-weight: 500;
@@ -819,10 +834,28 @@
 
 // --- Buttons ---------------------------------------------------------------
 
+/*
+  Two layers, because the button wants two speeds at once.
+
+  The lean has to TRACK the cursor - 90ms and linear, or it lags a moving
+  pointer and reads as lag rather than life. The lift on hover has to EASE -
+  the scale to 1.045 was riding on the same `transform` as the lean, so the
+  moment the pointer entered and the tracking transition took over, the button
+  jumped to its hovered size in 90ms. That is the cut.
+
+  One `transform` cannot carry both timings, so they are split. The button
+  itself only tilts, on the fast tracking clock while the pointer is inside and
+  the slow settle on the way out. The scale, the fill and the shadow live on a
+  `::before` that is the button's whole visible surface, easing over
+  `--acc-dur-hover` on its own transition, untouched by which tilt clock is
+  running. The label sits above it.
+*/
 .acc-ob__cta {
+  position: relative;
+  isolation: isolate;
   appearance: none;
   border: none;
-  background: var(--acc-accent);
+  background: transparent;
   color: #ffffff;
   font-family: inherit;
   font-size: 15px;
@@ -830,32 +863,44 @@
   padding: 13px 30px;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
 
-  // The tilt. See useTilt: it supplies only where the pointer is; how far the
+  // The tilt only. See useTilt: it supplies where the pointer is; how far the
   // button leans and how it springs back is decided here.
-  transform: perspective(520px) rotateX(var(--acc-tilt-x, 0deg)) rotateY(var(--acc-tilt-y, 0deg))
-    scale(var(--acc-tilt-scale, 1));
+  transform: perspective(520px) rotateX(var(--acc-tilt-x, 0deg)) rotateY(var(--acc-tilt-y, 0deg));
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  transition:
-    background-color 220ms var(--acc-ob-ease),
-    box-shadow 220ms var(--acc-ob-ease),
-    transform var(--acc-dur-normal) var(--acc-ease-settle);
+  transition: transform var(--acc-dur-normal) var(--acc-ease-settle);
+
+  // The surface: fill, shadow, and the lift. This is what the eye sees scale.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--acc-accent);
+    box-shadow: 0 4px 12px -2px rgba(91, 75, 214, 0.35);
+    transform: scale(var(--acc-tilt-scale, 1));
+    transition:
+      background-color var(--acc-dur-hover) var(--acc-ease-standard),
+      box-shadow var(--acc-dur-hover) var(--acc-ease-standard),
+      transform var(--acc-dur-hover) var(--acc-ease-standard);
+  }
 
   &:hover:not(:disabled) {
-    background: var(--acc-accent-hover);
     --acc-tilt-scale: 1.045;
-    box-shadow: 0 10px 22px -6px rgba(91, 75, 214, 0.45);
+
+    &::before {
+      background: var(--acc-accent-hover);
+      box-shadow: 0 10px 22px -6px rgba(91, 75, 214, 0.45);
+    }
   }
 
   // Short and linear while the pointer is inside, so the lean TRACKS it. On the
   // settle curve it lags a moving cursor and reads as lag rather than life.
+  // Only the button's own transform: the surface has its own clock.
   &.acc-tilt--live {
-    transition:
-      background-color 220ms var(--acc-ob-ease),
-      box-shadow 220ms var(--acc-ob-ease),
-      transform 90ms linear;
+    transition: transform 90ms linear;
   }
 
   &:active:not(:disabled) {
