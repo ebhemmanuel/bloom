@@ -235,7 +235,11 @@ export function PeriodsStep({
       <div className="acc-ob__chips acc-ob__chips--center">
         {PERIOD_NUMBERS.map((n) => (
           <Chip key={n} wide on={periods.includes(n)} onClick={() => onToggle(n)}>
-            P{n}
+            {/* B1 for an elementary teacher, P1 otherwise. The heading above
+                already says "blocks"; a chip reading P1 under it contradicted
+                the very word the screen had just chosen. */}
+            {words.short}
+            {n}
           </Chip>
         ))}
       </div>

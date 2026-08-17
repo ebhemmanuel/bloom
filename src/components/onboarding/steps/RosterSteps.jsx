@@ -808,7 +808,7 @@ export function SupportsStep({
 
   const periodChoices = periods.map((n) => ({
     key: n,
-    label: `P${n}`,
+    label: `${words.short}${n}`,
     title: periodNames[n] || `${words.One} ${n}`,
   }));
 
