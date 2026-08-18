@@ -39,11 +39,16 @@ function broadcast(channel, payload) {
 }
 
 function openStore(dirPath) {
+  // Re-pointing closes the old watcher, or the old folder would keep reporting.
+  store?.stopWatching?.();
   store = createDataStore({
     dirPath,
     log,
     onStatus: (payload) => broadcast('data:status', payload),
+    // A teacher pasted a file over data.json. The renderer reloads.
+    onExternalChange: (payload) => broadcast('data:externalChange', payload),
   });
+  store.startWatching();
   log.info(`data store opened at ${store.filePath}`);
   return store;
 }

@@ -67,6 +67,17 @@ export function DataProvider({ children }) {
     The token lets a run that has been superseded (unmount, or a second reload)
     stop before it sets state.
   */
+  /**
+   * Saves are held from the moment a reload is asked for until it lands.
+   *
+   * Between those two points the document in memory is the OLD one, and the
+   * save effect would happily write it back over the file we are about to read.
+   * That is precisely the clobber this reload exists to stop. `load` clears the
+   * hold right before it sets the new document, so the first save after a
+   * reload is of the file that was just read.
+   */
+  const holdSaves = useRef(false);
+
   const loadToken = useRef({ cancelled: false });
 
   const load = useCallback(async () => {
@@ -134,6 +145,7 @@ export function DataProvider({ children }) {
     }
 
     lastSavedRef.current = readOnly ? JSON.stringify(next) : null;
+    holdSaves.current = false;
     setDoc(next);
     setRepairs(found);
     setMeta({
@@ -161,13 +173,23 @@ export function DataProvider({ children }) {
 
   /** Read the record from disk again, from wherever the pointer now names. */
   const reload = useCallback(() => {
+    holdSaves.current = true;
     setLoadState({ status: 'loading', stage: 'locating', progress: 0 });
     return load();
   }, [load]);
 
+  /*
+    Someone replaced data.json while the app was open. Almost always a teacher
+    pasting an old copy of their record over it - the most natural repair there
+    is, and until the store watched the file it did not work: the paste went
+    unnoticed until the next autosave overwrote it from memory. Main now sees
+    it, keeps any unsaved edits aside, and tells us; we open what they pasted.
+  */
+  useEffect(() => dataBridge.onExternalChange?.(() => reload()), [reload]);
+
   // --- save ---------------------------------------------------------------
   useEffect(() => {
-    if (!doc || meta.readOnly) return;
+    if (!doc || meta.readOnly || holdSaves.current) return;
     const serialized = JSON.stringify(doc, null, 2);
     if (serialized === lastSavedRef.current) return;
     lastSavedRef.current = serialized;

@@ -158,24 +158,46 @@ describe('writeNow - atomicity', () => {
     expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(2);
   });
 
-  it('preserves an external modification but still saves', () => {
-    // A sync client, a backup agent or AV rewriting the file used to stall
-    // autosave for the rest of the session. Both versions have to survive AND
-    // the teacher's own edit has to land.
+  it('lets a file replaced under it win, and sets our edit aside', () => {
+    // This used to go the other way: the on-disk change was copied to backups
+    // and OURS was written. That was the policy that made a teacher's pasted
+    // data.json look ignored - it was noticed, preserved, and overwritten within
+    // a second. Now the file on disk is what the teacher wanted, and the edit we
+    // were holding is kept beside it rather than lost.
+    const changes = [];
+    const watched = createDataStore({
+      dirPath: tmp,
+      log: silentLog,
+      onExternalChange: (p) => changes.push(p),
+    });
+    watched.writeNow(doc(1));
+    fs.writeFileSync(watched.filePath, doc(99));
+    const future = new Date(Date.now() + 5000);
+    fs.utimesSync(watched.filePath, future, future);
+
+    const r = watched.writeNow(doc(2));
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('replaced-externally');
+    expect(JSON.parse(fs.readFileSync(watched.filePath, 'utf8')).n).toBe(99);
+    expect(changes).toHaveLength(1);
+
+    const aside = fs.readdirSync(tmp).find((n) => n.startsWith('data.unsaved-'));
+    expect(aside).toBeDefined();
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, aside), 'utf8')).n).toBe(2);
+  });
+
+  it('treats identical bytes with a new timestamp as a touch, and keeps saving', () => {
+    // AV and sync clients rewrite the same file. Only the mtime moves. That
+    // must not become a reload, and must not stall the save.
     store.writeNow(doc(1));
-    fs.writeFileSync(store.filePath, doc(99));
+    fs.writeFileSync(store.filePath, doc(1));
     const future = new Date(Date.now() + 5000);
     fs.utimesSync(store.filePath, future, future);
 
     const r = store.writeNow(doc(2));
     expect(r.ok).toBe(true);
     expect(JSON.parse(fs.readFileSync(store.filePath, 'utf8')).n).toBe(2);
-
-    const preserved = fs.readdirSync(store.backupDir).filter((n) => n.startsWith('data-external-'));
-    expect(preserved).toHaveLength(1);
-    expect(JSON.parse(fs.readFileSync(path.join(store.backupDir, preserved[0]), 'utf8')).n).toBe(
-      99
-    );
+    expect(fs.readdirSync(tmp).some((n) => n.startsWith('data.unsaved-'))).toBe(false);
   });
 
   it('honours read-only mode', () => {
@@ -585,5 +607,105 @@ describe('importRecord - opening a file the teacher already has', () => {
 
     expect(store.importRecord(source).ok).toBe(true);
     expect(store.load().text).toContain('"chosen"');
+  });
+});
+
+/**
+ * The teacher pastes their old data.json over the current one WHILE THE APP IS
+ * OPEN. This is the case that used to read as "not recognised": nothing watched
+ * the file, the next autosave saw a foreign mtime, and wrote the in-memory
+ * record straight back over the paste. Now the store watches, and the paste
+ * wins.
+ */
+describe('a file pasted over data.json while the app is open', () => {
+  const record = (marker) => JSON.stringify({ schemaVersion: 1, marker, students: [], days: {} });
+  const waitFor = (pred, ms = 3000) =>
+    new Promise((resolve, reject) => {
+      const start = Date.now();
+      const tick = () => {
+        if (pred()) return resolve();
+        if (Date.now() - start > ms) return reject(new Error('timed out waiting'));
+        setTimeout(tick, 25);
+      };
+      tick();
+    });
+
+  it('is noticed, adopted, and the caller is told to reload', async () => {
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('before'), 'utf8');
+    const changes = [];
+    const watched = createDataStore({
+      dirPath: tmp,
+      log: silentLog,
+      onExternalChange: (p) => changes.push(p),
+    });
+    watched.load();
+    watched.startWatching();
+
+    // Small delay so the paste's mtime is distinguishable from the load's.
+    await new Promise((r) => setTimeout(r, 30));
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('pasted'), 'utf8');
+
+    await waitFor(() => changes.length > 0);
+    watched.stopWatching();
+
+    expect(changes[0].path).toBe(path.join(tmp, 'data.json'));
+    // What is on disk is still the pasted file: nothing wrote over it.
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'data.json'), 'utf8')).marker).toBe('pasted');
+    // And a following save does not treat it as foreign either.
+    const saved = watched.writeNow(record('edited-after'));
+    expect(saved.ok).toBe(true);
+    expect(
+      fs.readdirSync(path.join(tmp, 'backups')).some((n) => n.startsWith('data-external-'))
+    ).toBe(false);
+  });
+
+  it("does not fire for the store's own writes", async () => {
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('a'), 'utf8');
+    const changes = [];
+    const watched = createDataStore({
+      dirPath: tmp,
+      log: silentLog,
+      onExternalChange: (p) => changes.push(p),
+    });
+    watched.load();
+    watched.startWatching();
+
+    watched.writeNow(record('b'));
+    watched.writeNow(record('c'));
+    // Longer than the watch debounce, so a false positive would have fired.
+    await new Promise((r) => setTimeout(r, 900));
+    watched.stopWatching();
+
+    expect(changes).toEqual([]);
+  });
+
+  it('keeps unsaved edits aside rather than letting them land on the paste', async () => {
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('before'), 'utf8');
+    const changes = [];
+    const watched = createDataStore({
+      dirPath: tmp,
+      log: silentLog,
+      onExternalChange: (p) => changes.push(p),
+    });
+    watched.load();
+    watched.startWatching();
+
+    // An edit is queued (debounced) but has not reached disk.
+    watched.save(record('typing'));
+    await new Promise((r) => setTimeout(r, 30));
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('pasted'), 'utf8');
+
+    await waitFor(() => changes.length > 0);
+    // Give any stray debounce a chance to (wrongly) fire.
+    await new Promise((r) => setTimeout(r, 600));
+    watched.stopWatching();
+
+    // The paste is what is on disk.
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'data.json'), 'utf8')).marker).toBe('pasted');
+    // The edit is not gone: it is beside the file, findable.
+    const kept = fs.readdirSync(tmp).find((n) => /^data\.unsaved-\d{8}-\d{6}\.json$/.test(n));
+    expect(kept).toBeDefined();
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, kept), 'utf8')).marker).toBe('typing');
+    expect(watched.hasPendingWrite()).toBe(false);
   });
 });

@@ -54,6 +54,8 @@ const EXIT_BUDGET_MS = 1600;
 const RETRY_BACKOFF_MS = [200, 500, 1000, 2000, 5000];
 
 const KEEP_ROLLING = 10;
+/** How long after the last change event before we look. One paste fires several. */
+const WATCH_DEBOUNCE_MS = 400;
 const KEEP_DAILY_DAYS = 30;
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -126,11 +128,22 @@ function isValidJson(text) {
 /**
  * @param {{ dirPath: string, onStatus?: (payload: object) => void, log?: object }} options
  */
-function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
+function createDataStore({
+  dirPath,
+  onStatus = () => {},
+  onExternalChange = () => {},
+  log = console,
+}) {
   const filePath = dataFilePath(dirPath);
   const tmpPath = filePath + TMP_SUFFIX;
   const backupDir = backupDirPath(dirPath);
 
+  /**
+   * What we last knew the file to be, on disk. `knownText` lets a foreign mtime
+   * be told apart from a foreign FILE: AV and sync clients rewrite identical
+   * bytes and only the timestamp moves. That is a touch, not a replacement.
+   */
+  let knownText = null;
   /** mtime observed at last read/write, for conflict detection. */
   let knownMtimeMs = null;
   let readOnly = false;
@@ -172,6 +185,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     const text = safeRead(filePath);
     if (text !== null && isValidJson(text)) {
       knownMtimeMs = statMtime(filePath);
+      knownText = text;
       return { status: 'ok', text, meta: baseMeta() };
     }
 
@@ -274,22 +288,39 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
 
     // 1 - something else touched the file since we last read or wrote it.
     //
-    // This used to refuse the write. That protected a foreign edit at the cost
-    // of the teacher's own, which is the wrong trade for a single-user app: the
-    // realistic causes are a sync client, a backup agent or AV rewriting the
-    // file, and the outcome was autosave silently stalling for the rest of the
-    // session. Now BOTH versions survive - the on-disk one is copied into
-    // backups first, then ours is written - and saving continues to work.
+    // Two things can have happened, and they get opposite answers.
+    //
+    // A TOUCH: a sync client, a backup agent or AV rewrote the same bytes and
+    // only the timestamp moved. Adopt the timestamp and carry on saving; there
+    // is nothing to preserve and nothing to reload.
+    //
+    // A REPLACEMENT: the content is different. Almost always a teacher who
+    // pasted an old copy of their record over data.json, which is the most
+    // natural repair there is. This used to "preserve" the paste to backups and
+    // write memory straight back over it, and to the teacher that read as the
+    // file being ignored. Now the file on disk WINS: what we were about to
+    // write is kept aside as data.unsaved-<stamp>.json so nothing is lost, and
+    // the caller is told to reload. The write does not happen.
     const currentMtime = statMtime(filePath);
     if (knownMtimeMs !== null && currentMtime !== null && currentMtime !== knownMtimeMs) {
-      log.warn?.('[data-store] external modification detected; preserving it and continuing');
-      try {
-        fs.mkdirSync(backupDir, { recursive: true });
-        fs.copyFileSync(filePath, path.join(backupDir, `data-external-${backupStamp()}.json`));
-      } catch (err) {
-        log.warn?.(`[data-store] could not preserve external copy: ${err.message}`);
+      const onDisk = safeRead(filePath);
+      if (onDisk !== null && onDisk === knownText) {
+        knownMtimeMs = currentMtime;
+      } else if (onDisk !== null && isValidJson(onDisk)) {
+        log.warn?.(
+          '[data-store] data.json was replaced outside the app; it wins, ours is set aside'
+        );
+        keepAside(text);
+        clearTimers();
+        pendingText = null;
+        knownMtimeMs = currentMtime;
+        knownText = onDisk;
+        onStatus({ state: 'conflict', path: filePath });
+        onExternalChange({ path: filePath });
+        return { ok: false, reason: 'replaced-externally' };
       }
-      onStatus({ state: 'conflict', path: filePath });
+      // Unreadable or mid-copy: fall through and write. The watcher will see
+      // the finished file if one is coming.
     }
 
     onStatus({ state: 'saving' });
@@ -354,6 +385,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
       if (lastErr) throw lastErr;
 
       knownMtimeMs = statMtime(filePath);
+      knownText = text;
       onStatus({ state: 'saved', at: Date.now() });
       return { ok: true, path: filePath };
     } catch (err) {
@@ -454,8 +486,10 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     }
 
     // Read-only is not a failure to retry past - there is nowhere to write and
-    // no amount of trying changes that. Everything else gets another go.
-    if (result.reason === 'readonly') {
+    // no amount of trying changes that. Nor is the file having been replaced
+    // under us: the edit is already set aside and retrying would write it over
+    // the very file the teacher just put there. Everything else gets another go.
+    if (result.reason === 'readonly' || result.reason === 'replaced-externally') {
       pendingText = null;
       return result;
     }
@@ -504,6 +538,106 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
   }
 
   const hasPendingWrite = () => pendingText !== null;
+
+  // --- watching the file -----------------------------------------------------
+
+  let watcher = null;
+  let watchTimer = null;
+
+  /**
+   * Notice when someone else replaces data.json, and say so.
+   *
+   * A teacher with an old copy of their record pastes it over data.json in the
+   * records folder. That is the most natural repair in the world, and it did
+   * not work: nothing watched the file, so the paste went unnoticed until the
+   * next autosave, which saw a foreign mtime, dutifully preserved the pasted
+   * file to backups, and wrote the in-memory record straight back over it. To
+   * the teacher the file was "not recognised". It was recognised and undone.
+   *
+   * So the store watches. When data.json changes and the change was not ours,
+   * the pasted file WINS: anything unsaved in memory is written to
+   * data.unsaved-<stamp>.json first so it is not lost, the pending write is
+   * dropped so it cannot land on top, and the caller is told to reload.
+   *
+   * The directory is watched rather than the file, because on Windows a paste
+   * is a delete and a create, and a watch on the old inode goes with it.
+   * Debounced, because one paste fires several events. Our own writes are
+   * recognised by mtime: writeNow records the mtime it produced, synchronously,
+   * before any watch callback can run.
+   */
+  function onWatchEvent(_type, filename) {
+    // `filename` is null on some platforms; when given, only our own file matters.
+    if (filename && filename !== path.basename(filePath)) return;
+    if (watchTimer) clearTimeout(watchTimer);
+    watchTimer = setTimeout(() => {
+      watchTimer = null;
+      considerExternalChange();
+    }, WATCH_DEBOUNCE_MS);
+  }
+
+  /**
+   * Seconds of edits that were on their way to disk, kept beside the file under
+   * a name the teacher can find and the pruner never sees. Never lost, never
+   * written over the file that displaced them.
+   */
+  function keepAside(text) {
+    if (text === null || text === undefined) return;
+    try {
+      const aside = path.join(dirPath, `data.unsaved-${backupStamp()}.json`);
+      fs.writeFileSync(aside, text, 'utf8');
+      log.warn?.(`[data-store] unsaved edits kept at ${aside}`);
+    } catch (err) {
+      log.warn?.(`[data-store] could not keep unsaved edits: ${err.message}`);
+    }
+  }
+
+  function considerExternalChange() {
+    if (knownMtimeMs === null) return; // never read it: no baseline to compare
+    const mtime = statMtime(filePath);
+    if (mtime === null || mtime === knownMtimeMs) return;
+
+    const text = safeRead(filePath);
+    if (text === null || !isValidJson(text)) return; // mid-copy; a later event will land
+
+    if (text === knownText) {
+      // A touch, not a replacement. Same bytes, new timestamp.
+      knownMtimeMs = mtime;
+      return;
+    }
+
+    log.info?.('[data-store] data.json was replaced outside the app; adopting it');
+    keepAside(pendingText);
+    clearTimers();
+    pendingText = null;
+    knownMtimeMs = mtime;
+    knownText = text;
+    onExternalChange({ path: filePath });
+  }
+
+  function startWatching() {
+    if (watcher) return;
+    try {
+      fs.mkdirSync(dirPath, { recursive: true });
+      watcher = fs.watch(dirPath, { persistent: false }, onWatchEvent);
+      watcher.on?.('error', (err) => log.warn?.(`[data-store] watch error: ${err.message}`));
+    } catch (err) {
+      log.warn?.(`[data-store] could not watch records folder: ${err.message}`);
+      watcher = null;
+    }
+  }
+
+  function stopWatching() {
+    if (watchTimer) clearTimeout(watchTimer);
+    watchTimer = null;
+    if (watcher) {
+      try {
+        watcher.close();
+      } catch {
+        /* already closed */
+      }
+      watcher = null;
+    }
+  }
 
   function setReadOnly(value) {
     readOnly = Boolean(value);
@@ -680,6 +814,8 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     listBackups,
     restoreBackup,
     importRecord,
+    startWatching,
+    stopWatching,
     // exposed for tests
     _selectBackupsToPrune: selectBackupsToPrune,
   };
