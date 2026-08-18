@@ -375,15 +375,28 @@ function discoverExistingRecord(app, env = process.env) {
     grow an empty Bloom folder in Documents, LocalAppData and OneDrive before
     the teacher had chosen anything. Looking must not leave marks.
   */
+  const hasRecord = (dirPath) => {
+    try {
+      return fs.statSync(path.join(dirPath, DATA_FILENAME)).isFile();
+    } catch {
+      return false;
+    }
+  };
+
   let found;
   try {
-    found = candidateLocations(app, env).filter((c) => {
-      try {
-        return fs.statSync(path.join(c.dirPath, DATA_FILENAME)).isFile();
-      } catch {
-        return false;
-      }
-    });
+    const current = candidateLocations(app, env);
+    /*
+      The same bases under the folder name the app used before it was Bloom.
+      Not offered to anyone setting up fresh - suggestLocations does not know
+      about it - but a record kept there by an early build is still a record,
+      and this is the one place that has to be able to see it.
+    */
+    const legacy = current.map((c) => ({
+      ...c,
+      dirPath: path.join(path.dirname(c.dirPath), LEGACY_USERDATA_NAME),
+    }));
+    found = [...current, ...legacy].filter((c) => hasRecord(c.dirPath));
   } catch {
     return null;
   }
