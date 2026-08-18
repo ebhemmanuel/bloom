@@ -161,6 +161,15 @@ function registerIpcHandlers({ getMainWindow } = {}) {
     return { canceled: false, dirPath, probe: paths.probeLocation(dirPath) };
   });
 
+  /**
+   * Point at a folder. If a record is ALREADY there, say so.
+   *
+   * `existing` is the one flag the caller must not ignore. It used to be
+   * computed by the probe and dropped here, so onboarding pointed at a folder
+   * holding a teacher's year, carried on asking its questions, and at the end
+   * wrote a fresh empty document over the answer to all of them. The renderer
+   * now reloads from the folder instead when this is true - see OnboardingFlow.
+   */
   ipcMain.handle('data:chooseLocation', (_e, dirPath) => {
     if (!isNonEmptyString(dirPath)) return { ok: false, reason: 'EMPTY' };
 
@@ -169,7 +178,8 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
     paths.writePointer(app, probe.dirPath, { synced: probe.synced, provider: probe.provider });
     openStore(probe.dirPath);
-    return { ok: true, dirPath: probe.dirPath, probe };
+    if (probe.existingFile) log.info('location chosen: adopting the record already there');
+    return { ok: true, dirPath: probe.dirPath, existing: Boolean(probe.existingFile), probe };
   });
 
   /**
@@ -304,6 +314,44 @@ function registerIpcHandlers({ getMainWindow } = {}) {
 
     require('node:fs').writeFileSync(result.filePath, loaded.text, 'utf8');
     return { ok: true, path: result.filePath };
+  });
+
+  /**
+   * Open a record file the teacher already has, and make it the current one.
+   *
+   * Native pick, native confirm, then the store does the replacing. The confirm
+   * says what will happen to the current file - kept, not deleted - because a
+   * teacher reaching for this is usually already worried about losing
+   * something.
+   */
+  ipcMain.handle('data:importRecord', async () => {
+    const s = requireStore();
+    if (!s) return { ok: false, reason: 'NO_LOCATION' };
+
+    const win = getWindow();
+    const picked = await dialog.showOpenDialog(win, {
+      title: 'Open a records file',
+      properties: ['openFile'],
+      filters: [{ name: 'Bloom records', extensions: ['json'] }],
+    });
+    if (picked.canceled || picked.filePaths.length === 0) return { ok: false, canceled: true };
+    const sourcePath = picked.filePaths[0];
+
+    const answer = await dialog.showMessageBox(win, {
+      type: 'question',
+      buttons: ['Open this file', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Open a records file',
+      message: 'Replace your current records with this file?',
+      detail:
+        'Your current records are not deleted. They are kept in the backups folder next to your data file, and you can open them again the same way.',
+    });
+    if (answer.response !== 0) return { ok: false, canceled: true };
+
+    const result = s.importRecord(sourcePath);
+    if (result.ok) log.info('records replaced from a chosen file');
+    return result.ok ? { ok: true } : result;
   });
 
   // --- printing ------------------------------------------------------------

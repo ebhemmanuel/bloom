@@ -465,3 +465,125 @@ describe('isValidJson', () => {
     expect(isValidJson('')).toBe(false);
   });
 });
+
+describe('the record a teacher pastes back by hand', () => {
+  it('reads a file that carries a UTF-8 byte order mark', () => {
+    // Notepad writes one. Node keeps it, JSON.parse rejects it, and the store
+    // used to quarantine the file as corrupt and restore the newest backup -
+    // the empty record the teacher was trying to get away from.
+    const withBom = '\uFEFF' + JSON.stringify({ schemaVersion: 1, marker: 'pasted' });
+    fs.writeFileSync(path.join(tmp, 'data.json'), withBom, 'utf8');
+
+    const result = store.load();
+    expect(result.status).toBe('ok');
+    expect(JSON.parse(result.text).marker).toBe('pasted');
+    // Nothing was quarantined.
+    expect(fs.readdirSync(tmp).some((n) => n.startsWith('data.corrupt-'))).toBe(false);
+  });
+});
+
+describe('writing over a file this session never read', () => {
+  it('keeps a copy under a name the pruner never touches', () => {
+    // The shape of onboarding writing a fresh record over a teacher's year:
+    // the store was created pointing at the folder and written to without
+    // load() ever being called. The rolling backup holds ten; this one holds.
+    fs.writeFileSync(path.join(tmp, 'data.json'), '{"schemaVersion":1,"year":"real"}', 'utf8');
+
+    const fresh = createDataStore({ dirPath: tmp, log: silentLog });
+    const written = fresh.writeNow('{"schemaVersion":1,"year":"empty"}');
+    expect(written.ok).toBe(true);
+
+    const backups = fs.readdirSync(path.join(tmp, 'backups'));
+    const kept = backups.find((n) => /^data-preexisting-\d{8}-\d{6}\.json$/.test(n));
+    expect(kept).toBeDefined();
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'backups', kept), 'utf8')).year).toBe('real');
+    // And it is not something selectBackupsToPrune would ever return.
+    expect(selectBackupsToPrune(backups)).not.toContain(kept);
+  });
+
+  it('does not keep the extra copy for an ordinary save of a file it loaded', () => {
+    fs.writeFileSync(path.join(tmp, 'data.json'), '{"schemaVersion":1}', 'utf8');
+    const loaded = createDataStore({ dirPath: tmp, log: silentLog });
+    loaded.load();
+    loaded.writeNow('{"schemaVersion":1,"edited":true}');
+
+    const backups = fs.readdirSync(path.join(tmp, 'backups'));
+    expect(backups.some((n) => n.startsWith('data-preexisting-'))).toBe(false);
+  });
+});
+
+describe('importRecord - opening a file the teacher already has', () => {
+  const record = (marker) => JSON.stringify({ schemaVersion: 1, marker, students: [], days: {} });
+
+  it('replaces the current record with the chosen file and keeps the old one', () => {
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('current'), 'utf8');
+    store.load();
+    const source = path.join(tmp, 'from-old-laptop.json');
+    fs.writeFileSync(source, record('imported'), 'utf8');
+
+    const result = store.importRecord(source);
+    expect(result.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'data.json'), 'utf8')).marker).toBe(
+      'imported'
+    );
+
+    // The displaced record is kept under a name the pruner never matches.
+    const backups = fs.readdirSync(path.join(tmp, 'backups'));
+    const kept = backups.find((n) => n.startsWith('data-replaced-'));
+    expect(kept).toBeDefined();
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'backups', kept), 'utf8')).marker).toBe(
+      'current'
+    );
+    expect(selectBackupsToPrune(backups)).not.toContain(kept);
+  });
+
+  it('accepts a file with a byte order mark', () => {
+    // The file a teacher opened in Notepad to look at, and saved.
+    const source = path.join(tmp, 'looked-at.json');
+    fs.writeFileSync(source, '\uFEFF' + record('bom'), 'utf8');
+    expect(store.importRecord(source).ok).toBe(true);
+    expect(store.load().text).toContain('"bom"');
+  });
+
+  it('accepts a backup file by its backup name, from anywhere', () => {
+    // data-20260812-091500.json dragged out of the backups folder onto the
+    // desktop and picked from there.
+    const source = path.join(tmp, 'data-20260812-091500.json');
+    fs.writeFileSync(source, record('from-backup'), 'utf8');
+    expect(store.importRecord(source).ok).toBe(true);
+  });
+
+  it('refuses a file that is not a record, and leaves the current one alone', () => {
+    // A stray JSON picked by mistake must not become an empty record over a
+    // teacher's year. normalizeDoc would happily repair it into one.
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('current'), 'utf8');
+    store.load();
+    const stray = path.join(tmp, 'settings.json');
+    fs.writeFileSync(stray, '{"theme":"dark","fontSize":14}', 'utf8');
+
+    const result = store.importRecord(stray);
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe('not-a-record');
+    expect(JSON.parse(fs.readFileSync(path.join(tmp, 'data.json'), 'utf8')).marker).toBe('current');
+  });
+
+  it('refuses a file that is not JSON at all', () => {
+    const notJson = path.join(tmp, 'notes.txt');
+    fs.writeFileSync(notJson, 'hello', 'utf8');
+    expect(store.importRecord(notJson).reason).toBe('not-json');
+  });
+
+  it('wins over the conflict guard: an externally-changed data.json is the point', () => {
+    // The pasted-while-open case, done properly: the on-disk file differs from
+    // what the store last saw, and the import must still land rather than
+    // being treated as a foreign edit to preserve and write over.
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('a'), 'utf8');
+    store.load();
+    fs.writeFileSync(path.join(tmp, 'data.json'), record('pasted-by-hand'), 'utf8');
+    const source = path.join(tmp, 'chosen.json');
+    fs.writeFileSync(source, record('chosen'), 'utf8');
+
+    expect(store.importRecord(source).ok).toBe(true);
+    expect(store.load().text).toContain('"chosen"');
+  });
+});

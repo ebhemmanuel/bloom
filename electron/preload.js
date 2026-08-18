@@ -55,6 +55,7 @@ contextBridge.exposeInMainWorld('accommodations', {
 
     listBackups: () => ipcRenderer.invoke('data:listBackups'),
     restoreBackup: (id) => ipcRenderer.invoke('data:restoreBackup', id),
+    importRecord: () => ipcRenderer.invoke('data:importRecord'),
     exportBackup: () => ipcRenderer.invoke('data:exportBackup'),
 
     /** 'saving' | 'saved' | 'error' | 'readonly' */

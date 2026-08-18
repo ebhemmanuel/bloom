@@ -97,6 +97,7 @@ const browserFallback = {
     revealFolder: async () => ({ ok: false, reason: 'browser' }),
     listBackups: async () => [],
     restoreBackup: async () => ({ ok: false, reason: 'browser' }),
+    importRecord: async () => ({ ok: false, reason: 'browser' }),
     exportBackup: async () => ({ ok: false, reason: 'browser' }),
     onStatus: () => () => {},
     onExternalChange: () => () => {},

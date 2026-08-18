@@ -64,7 +64,7 @@ function Loader({ loadState }) {
 
 /** The shell, once a document is loaded and onboarding is done. */
 function AppShell() {
-  const { doc, meta, repairs, dismissRepairs, firstRun, clearFirstRun } = useData();
+  const { doc, meta, repairs, dismissRepairs, firstRun, clearFirstRun, reload } = useData();
   // Plays only on the run that just finished onboarding. See the hook.
   const firstrunClass = useFirstRunCascade(firstRun, clearFirstRun);
   const { model, setDateKey } = useBoard();
@@ -229,6 +229,22 @@ function AppShell() {
             onSelect: () => openScene('recordsFolder'),
           },
           { label: 'Save a copy', onSelect: () => dataBridge.exportBackup() },
+          /*
+            The other half of Save a copy. A teacher with an old data.json, a
+            backup, or a copy from another laptop needed a way to hand it over
+            that was not "close the app and paste it into the folder" - which,
+            done with the app open, had the autosave write straight back over
+            it. Main asks which file and confirms; this only reloads once it
+            has landed, so the board is the file they chose.
+          */
+          {
+            label: 'Open a records file',
+            hidden: isNativeMobile,
+            onSelect: async () => {
+              const result = await dataBridge.importRecord();
+              if (result?.ok) reload();
+            },
+          },
           { separator: true },
           // Where a desktop app puts it. This replaces the avatar button, which
           // spent a permanent slot in the bar on something opened once a term.

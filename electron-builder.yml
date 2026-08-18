@@ -37,11 +37,14 @@ portable:
   #
   # Note this is the OUTPUT FILENAME only. What moves userData is productName in
   # package.json, which Electron reads for app.getName(): the one in this file
-  # stamps the exe metadata and nothing else. Both were renamed together on day
-  # zero, while every copy in the wild was a beta and no licence or records
-  # pointer existed to be stranded in the old %APPDATA% folder. After a single
-  # sale that stops being true, and a rename would need to carry location.json
-  # and licence.json across.
+  # stamps the exe metadata and nothing else. Both were renamed together on the
+  # belief that every copy in the wild was a beta with nothing to strand. That
+  # was wrong: beta testers had records, their pointer was left behind in the
+  # old %APPDATA% folder, and launching the new name walked them into onboarding
+  # - which wrote a fresh record over theirs. readPointer in data-paths.js now
+  # adopts the old folder's location.json, and resolveDataDir looks for a
+  # data.json in the standard folders before ever showing onboarding. If this
+  # name changes AGAIN, add the current folder name to that legacy lookup.
   artifactName: 'bloom.exe'
   # unpackDirName is deliberately NOT set. The default derives a stable directory
   # name from productName + version, so a relaunch reuses the existing unpack

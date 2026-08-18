@@ -161,7 +161,7 @@ function oneDriveDir(env = process.env) {
  * and the OneDrive environment variables, so it carries the account actually
  * signed in to this machine. Nothing about it is a placeholder or a sample.
  */
-function suggestLocations(app, env = process.env) {
+function candidateLocations(app, env = process.env) {
   const localAppData = env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
   const documents = safeGetPath(app, 'documents') || os.homedir();
   const documentsProbe = detectSync(documents);
@@ -212,7 +212,16 @@ function suggestLocations(app, env = process.env) {
     });
   }
 
-  return candidates.map((c) => ({ ...c, ...probeLocation(c.dirPath) }));
+  return candidates;
+}
+
+/**
+ * The candidates, probed. Probing CREATES the folder (it has to, to test that
+ * it can write there), so this is for the location step, where the teacher is
+ * about to pick one - not for a quiet look at launch. See discoverExistingRecord.
+ */
+function suggestLocations(app, env = process.env) {
+  return candidateLocations(app, env).map((c) => ({ ...c, ...probeLocation(c.dirPath) }));
 }
 
 function safeGetPath(app, name) {
@@ -229,16 +238,87 @@ function pointerPath(app) {
   return path.join(app.getPath('userData'), POINTER_FILENAME);
 }
 
-function readPointer(app) {
+/**
+ * The userData folder this app had before it was called Bloom.
+ *
+ * Renaming productName moved userData from here to %APPDATA%\Bloom, and the
+ * pointer file did not move with it. Every teacher who set up on the old name
+ * launched the new one, found no pointer, and was shown onboarding - which then
+ * wrote a fresh record over the one their pointer had been naming. This is the
+ * folder that pointer is still sitting in.
+ */
+const LEGACY_USERDATA_NAME = 'Accommodations Tracker';
+
+/**
+ * Only the packaged, production identity looks in the legacy folder.
+ *
+ * Dev runs use `bloom-dev` (see main.js) precisely so they can never touch a
+ * teacher's live file - and the developer's own machine is the one most likely
+ * to still hold a real legacy pointer. Keyed on the folder name rather than on
+ * `app.isPackaged` so it holds under the test double as well.
+ */
+function isProductionIdentity(app) {
   try {
-    const raw = fs.readFileSync(pointerPath(app), 'utf8');
-    const parsed = JSON.parse(raw);
+    return path.basename(app.getPath('userData')) === 'Bloom';
+  } catch {
+    return false;
+  }
+}
+
+function parsePointerFile(file) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (parsed && typeof parsed.dirPath === 'string' && parsed.dirPath.length > 0) {
       return parsed;
     }
     return null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * The pointer, adopting the legacy one when the current one is missing.
+ *
+ * Adoption WRITES the new pointer and LEAVES the old file where it is. Writing
+ * means the next launch is ordinary; leaving means nothing about the old
+ * install is destroyed, so if this ever adopts wrongly there is still a record
+ * of what it read. The old pointer's own dirPath has to exist for it to count -
+ * a legacy pointer at a folder that has since gone is exactly the 'missing'
+ * case resolveDataDir already handles, and it must not be turned into
+ * 'unconfigured' by being ignored here.
+ */
+function readPointer(app) {
+  const current = parsePointerFile(pointerPath(app));
+  if (current) return current;
+
+  if (!isProductionIdentity(app)) return null;
+
+  let legacyFile;
+  try {
+    legacyFile = path.join(app.getPath('appData'), LEGACY_USERDATA_NAME, POINTER_FILENAME);
+  } catch {
+    return null;
+  }
+
+  const legacy = parsePointerFile(legacyFile);
+  if (!legacy) return null;
+  if (!fs.existsSync(path.resolve(legacy.dirPath))) {
+    // Still return it: 'missing' is the right answer, and only the pointer's
+    // dirPath can produce it.
+    return legacy;
+  }
+
+  try {
+    return writePointer(app, legacy.dirPath, {
+      synced: legacy.synced,
+      provider: legacy.provider,
+      adoptedFrom: legacyFile,
+    });
+  } catch {
+    // Could not write the new pointer, but the old one still names a real
+    // folder. Use it for this launch; the write is retried next time.
+    return legacy;
   }
 }
 
@@ -272,11 +352,64 @@ function parseDataDirArg(argv = process.argv) {
 }
 
 /**
+ * No pointer, but a record sitting where we would have put one: open it.
+ *
+ * The pointer can go missing for reasons that have nothing to do with the
+ * record - the app was renamed, %APPDATA% was cleared, the machine was
+ * reimaged with Documents on OneDrive - and every one of those used to land the
+ * teacher in onboarding, in front of a form asking who they are, with a year of
+ * their work one folder away. Now the standard folders are checked first, and
+ * if exactly one holds a data.json, that is their record and it is adopted.
+ *
+ * EXACTLY one. Two records in two folders is a question, and the location step
+ * is where it gets asked (and, since it now adopts rather than overwrites,
+ * where it gets answered safely). Only under the production identity: a dev run
+ * must never wander into a live folder, see the guard on readPointer.
+ */
+function discoverExistingRecord(app, env = process.env) {
+  if (!isProductionIdentity(app)) return null;
+
+  /*
+    A stat, not a probe. probeLocation creates the folder to test writability,
+    and this runs on every launch that has no pointer - a fresh install would
+    grow an empty Bloom folder in Documents, LocalAppData and OneDrive before
+    the teacher had chosen anything. Looking must not leave marks.
+  */
+  let found;
+  try {
+    found = candidateLocations(app, env).filter((c) => {
+      try {
+        return fs.statSync(path.join(c.dirPath, DATA_FILENAME)).isFile();
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return null;
+  }
+  if (found.length !== 1) return null;
+
+  const dirPath = found[0].dirPath;
+  const sync = detectSync(dirPath);
+  try {
+    return writePointer(app, dirPath, {
+      synced: sync.synced,
+      provider: sync.provider,
+      discovered: true,
+    });
+  } catch {
+    // Could not write the pointer; still open the record this launch.
+    return { dirPath };
+  }
+}
+
+/**
  * Resolve where to read and write, in priority order:
  *   1. --data-dir <path>                 (support / testing escape hatch)
  *   2. ACCOMMODATIONS_DATA_DIR env var
- *   3. the pointer file written at onboarding
- *   4. nothing - onboarding has not run
+ *   3. the pointer file written at onboarding (or the old app's, adopted)
+ *   4. a record found in one of the standard folders, adopted
+ *   5. nothing - onboarding has not run
  *
  * Returns a status the renderer can act on. Critically, when the pointer names a
  * folder that has since disappeared (re-imaged machine, a Documents folder that
@@ -292,6 +425,15 @@ function resolveDataDir(app, argv = process.argv) {
 
   const pointer = readPointer(app);
   if (!pointer) {
+    const discovered = discoverExistingRecord(app);
+    if (discovered) {
+      return {
+        status: 'ok',
+        dirPath: path.resolve(discovered.dirPath),
+        source: 'discovered',
+        pointer: discovered,
+      };
+    }
     return { status: 'unconfigured', dirPath: null, source: null };
   }
 
@@ -314,12 +456,14 @@ module.exports = {
   probeWritable,
   probeLocation,
   oneDriveDir,
+  candidateLocations,
   suggestLocations,
   pointerPath,
   readPointer,
   writePointer,
   clearPointer,
   parseDataDirArg,
+  discoverExistingRecord,
   resolveDataDir,
   dataFilePath,
   backupDirPath,

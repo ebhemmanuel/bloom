@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import {
   detectSync,
+  discoverExistingRecord,
   probeLocation,
   probeWritable,
   readPointer,
@@ -303,5 +304,216 @@ describe('resolveDataDir', () => {
 describe('dataFilePath', () => {
   it('appends the fixed filename', () => {
     expect(dataFilePath('C:\\recs')).toBe(path.join('C:\\recs', 'data.json'));
+  });
+});
+
+/**
+ * The legacy pointer, from before the app was called Bloom.
+ *
+ * These are the tests for the failure teachers actually reported: set up on
+ * the old name, launch the new one, land in onboarding, lose the year. Every
+ * one of them has to pass for that path to be closed.
+ */
+describe('readPointer - adopting the pointer the old app left behind', () => {
+  /** An app whose userData is the production folder, with a sibling appData. */
+  function productionApp(appData) {
+    return {
+      getPath: (name) => {
+        if (name === 'userData') return path.join(appData, 'Bloom');
+        if (name === 'appData') return appData;
+        if (name === 'documents') return path.join(appData, 'Documents');
+        throw new Error(`unexpected path request: ${name}`);
+      },
+    };
+  }
+
+  function plantLegacyPointer(appData, dirPath) {
+    const legacyDir = path.join(appData, 'Accommodations Tracker');
+    fs.mkdirSync(legacyDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(legacyDir, 'location.json'),
+      JSON.stringify({ dirPath, chosenAt: '2026-08-01T12:00:00.000Z' }),
+      'utf8'
+    );
+    return path.join(legacyDir, 'location.json');
+  }
+
+  it('finds the record a v1.0.1 teacher already had, so onboarding never runs', () => {
+    const appData = path.join(tmp, 'AppData');
+    const records = path.join(tmp, 'Documents', 'Bloom');
+    fs.mkdirSync(records, { recursive: true });
+    fs.writeFileSync(dataFilePath(records), '{"schemaVersion":1}', 'utf8');
+    plantLegacyPointer(appData, records);
+
+    const prod = productionApp(appData);
+    const resolved = resolveDataDir(prod, []);
+
+    expect(resolved.status).toBe('ok');
+    expect(resolved.dirPath).toBe(path.resolve(records));
+  });
+
+  it('writes the new pointer and leaves the old one where it was', () => {
+    const appData = path.join(tmp, 'AppData');
+    const records = path.join(tmp, 'Records');
+    fs.mkdirSync(records, { recursive: true });
+    const legacyFile = plantLegacyPointer(appData, records);
+
+    const prod = productionApp(appData);
+    const adopted = readPointer(prod);
+
+    expect(adopted.dirPath).toBe(path.resolve(records));
+    expect(adopted.adoptedFrom).toBe(legacyFile);
+    // Next launch is ordinary: the new pointer exists on its own.
+    expect(fs.existsSync(path.join(appData, 'Bloom', 'location.json'))).toBe(true);
+    // And nothing about the old install was destroyed.
+    expect(fs.existsSync(legacyFile)).toBe(true);
+  });
+
+  it('prefers the current pointer when both exist', () => {
+    const appData = path.join(tmp, 'AppData');
+    const legacyRecords = path.join(tmp, 'Old');
+    const currentRecords = path.join(tmp, 'New');
+    fs.mkdirSync(legacyRecords, { recursive: true });
+    fs.mkdirSync(currentRecords, { recursive: true });
+    plantLegacyPointer(appData, legacyRecords);
+
+    const prod = productionApp(appData);
+    writePointer(prod, currentRecords);
+
+    expect(readPointer(prod).dirPath).toBe(path.resolve(currentRecords));
+  });
+
+  it('reports a legacy pointer at a folder that has gone as missing, not unconfigured', () => {
+    // 'missing' gets the teacher a "locate my file" screen. 'unconfigured' gets
+    // them onboarding, and onboarding is the thing that overwrote records.
+    const appData = path.join(tmp, 'AppData');
+    plantLegacyPointer(appData, path.join(tmp, 'Vanished'));
+
+    const prod = productionApp(appData);
+    expect(resolveDataDir(prod, []).status).toBe('missing');
+  });
+
+  it('never looks in the legacy folder from a dev identity', () => {
+    // bloom-dev exists so a dev session cannot repoint at a live file - and the
+    // developer's own machine is the one most likely to hold a real legacy
+    // pointer. The guard has to hold under exactly that shape.
+    const appData = path.join(tmp, 'AppData');
+    const records = path.join(tmp, 'Records');
+    fs.mkdirSync(records, { recursive: true });
+    plantLegacyPointer(appData, records);
+
+    const dev = {
+      getPath: (name) => {
+        if (name === 'userData') return path.join(appData, 'bloom-dev');
+        if (name === 'appData') return appData;
+        throw new Error(`unexpected path request: ${name}`);
+      },
+    };
+    expect(readPointer(dev)).toBeNull();
+    expect(resolveDataDir(dev, []).status).toBe('unconfigured');
+  });
+});
+
+/**
+ * A record with no pointer at all: found where we would have put it.
+ *
+ * Reimaged machine, cleared %APPDATA%, the app renamed - the pointer goes for
+ * reasons that have nothing to do with the record, and the record is one folder
+ * away. The teacher's own words: the software should already see they have a
+ * data.json and load up as normal, not make them go through onboarding again.
+ */
+describe('discoverExistingRecord - the record is there, the pointer is not', () => {
+  /** Production identity, with every candidate folder rooted under tmp. */
+  function productionApp(appData, documents) {
+    return {
+      getPath: (name) => {
+        if (name === 'userData') return path.join(appData, 'Bloom');
+        if (name === 'appData') return appData;
+        if (name === 'documents') return documents;
+        throw new Error(`unexpected path request: ${name}`);
+      },
+    };
+  }
+
+  it('opens the one record it finds, and writes the pointer so next launch is ordinary', () => {
+    const appData = path.join(tmp, 'AppData');
+    const documents = path.join(tmp, 'Documents');
+    const local = path.join(tmp, 'Local');
+    const records = path.join(documents, 'Bloom');
+    fs.mkdirSync(records, { recursive: true });
+    fs.writeFileSync(dataFilePath(records), '{"schemaVersion":1}', 'utf8');
+
+    const prod = productionApp(appData, documents);
+    const env = { LOCALAPPDATA: local };
+    const found = discoverExistingRecord(prod, env);
+
+    expect(found.dirPath).toBe(path.resolve(records));
+    expect(found.discovered).toBe(true);
+    expect(fs.existsSync(path.join(appData, 'Bloom', 'location.json'))).toBe(true);
+  });
+
+  it('resolves straight to ok, so onboarding never appears', () => {
+    const appData = path.join(tmp, 'AppData');
+    const documents = path.join(tmp, 'Documents');
+    const records = path.join(documents, 'Bloom');
+    fs.mkdirSync(records, { recursive: true });
+    fs.writeFileSync(dataFilePath(records), '{"schemaVersion":1}', 'utf8');
+    process.env.LOCALAPPDATA = path.join(tmp, 'Local');
+
+    const resolved = resolveDataDir(productionApp(appData, documents), []);
+    delete process.env.LOCALAPPDATA;
+
+    expect(resolved.status).toBe('ok');
+    expect(resolved.source).toBe('discovered');
+    expect(resolved.dirPath).toBe(path.resolve(records));
+  });
+
+  it('looks without leaving marks: no candidate folder is created', () => {
+    // A fresh install with nothing anywhere must stay that way. Probing would
+    // have grown an empty Bloom folder in every candidate.
+    const appData = path.join(tmp, 'AppData');
+    const documents = path.join(tmp, 'Documents');
+    const local = path.join(tmp, 'Local');
+    fs.mkdirSync(documents, { recursive: true });
+
+    expect(discoverExistingRecord(productionApp(appData, documents), { LOCALAPPDATA: local })).toBe(
+      null
+    );
+    expect(fs.existsSync(path.join(documents, 'Bloom'))).toBe(false);
+    expect(fs.existsSync(path.join(local, 'Bloom'))).toBe(false);
+  });
+
+  it('adopts nothing when two folders both hold a record - that is a question for the teacher', () => {
+    const appData = path.join(tmp, 'AppData');
+    const documents = path.join(tmp, 'Documents');
+    const local = path.join(tmp, 'Local');
+    for (const base of [documents, local]) {
+      fs.mkdirSync(path.join(base, 'Bloom'), { recursive: true });
+      fs.writeFileSync(dataFilePath(path.join(base, 'Bloom')), '{"schemaVersion":1}', 'utf8');
+    }
+
+    expect(discoverExistingRecord(productionApp(appData, documents), { LOCALAPPDATA: local })).toBe(
+      null
+    );
+    // And no pointer was written for either.
+    expect(fs.existsSync(path.join(appData, 'Bloom', 'location.json'))).toBe(false);
+  });
+
+  it('never runs under a dev identity', () => {
+    const appData = path.join(tmp, 'AppData');
+    const documents = path.join(tmp, 'Documents');
+    const records = path.join(documents, 'Bloom');
+    fs.mkdirSync(records, { recursive: true });
+    fs.writeFileSync(dataFilePath(records), '{"schemaVersion":1}', 'utf8');
+
+    const dev = {
+      getPath: (name) => {
+        if (name === 'userData') return path.join(appData, 'bloom-dev');
+        if (name === 'appData') return appData;
+        if (name === 'documents') return documents;
+        throw new Error(`unexpected path request: ${name}`);
+      },
+    };
+    expect(discoverExistingRecord(dev, { LOCALAPPDATA: path.join(tmp, 'Local') })).toBe(null);
   });
 });

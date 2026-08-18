@@ -54,92 +54,116 @@ export function DataProvider({ children }) {
   }, []);
 
   // --- load ---------------------------------------------------------------
-  useEffect(() => {
-    let cancelled = false;
 
-    (async () => {
-      stage('locating', 0.1);
-      const result = await dataBridge.load();
-      if (cancelled) return;
+  /*
+    One loader, called at mount and again on request.
 
-      stage('reading', 0.35);
+    It was the body of a mount-only effect, which meant the ONLY way a document
+    ever entered the app was at startup. Onboarding's location step could point
+    at a folder that already held a teacher's year and had no way to read it -
+    so it carried on and, at the end, wrote a fresh record over it. `reload` is
+    what that step calls now when the folder turns out not to be empty.
 
-      if (result.status === 'unconfigured' || result.status === 'missing') {
-        // Onboarding has not run, or the pointer names a folder that has gone.
-        // Deliberately do NOT create an empty record here - an empty record is
-        // indistinguishable from data loss, and the user must get a real choice.
-        setMeta({ ...(result.meta || {}), locationStatus: result.status });
-        setLoadState({ status: 'needs-location', stage: 'locating', progress: 1 });
-        return;
+    The token lets a run that has been superseded (unmount, or a second reload)
+    stop before it sets state.
+  */
+  const loadToken = useRef({ cancelled: false });
+
+  const load = useCallback(async () => {
+    loadToken.current.cancelled = true;
+    const token = { cancelled: false };
+    loadToken.current = token;
+
+    stage('locating', 0.1);
+    const result = await dataBridge.load();
+    if (token.cancelled) return;
+
+    stage('reading', 0.35);
+
+    if (result.status === 'unconfigured' || result.status === 'missing') {
+      // Onboarding has not run, or the pointer names a folder that has gone.
+      // Deliberately do NOT create an empty record here - an empty record is
+      // indistinguishable from data loss, and the user must get a real choice.
+      setMeta({ ...(result.meta || {}), locationStatus: result.status });
+      setLoadState({ status: 'needs-location', stage: 'locating', progress: 1 });
+      return;
+    }
+
+    let parsed = null;
+    if (result.text) {
+      try {
+        parsed = JSON.parse(result.text);
+      } catch {
+        parsed = null;
       }
+    }
 
-      let parsed = null;
-      if (result.text) {
-        try {
-          parsed = JSON.parse(result.text);
-        } catch {
-          parsed = null;
-        }
-      }
+    stage('upgrading', 0.6);
 
-      stage('upgrading', 0.6);
+    const migrated = migrate(parsed || createEmptyDoc());
+    const readOnly = migrated.status === 'too-new' || Boolean(result.meta?.readOnly);
 
-      const migrated = migrate(parsed || createEmptyDoc());
-      const readOnly = migrated.status === 'too-new' || Boolean(result.meta?.readOnly);
+    const { doc: normalised, repairs: found } = normalizeDoc(migrated.doc);
+    if (token.cancelled) return;
 
-      const { doc: normalised, repairs: found } = normalizeDoc(migrated.doc);
-      if (cancelled) return;
+    stage('preparing', 0.85);
 
-      stage('preparing', 0.85);
+    // Seal any completed day that already has a record - but only if the clock
+    // is trustworthy. A wrong BIOS clock or a district re-image must never be
+    // able to rewrite history.
+    let next = normalised;
+    if (!readOnly && next.settings?.autoSealOnStartup && !clockMovedBackwards(next)) {
+      next = sealCompletedDays(next);
+    }
 
-      // Seal any completed day that already has a record - but only if the clock
-      // is trustworthy. A wrong BIOS clock or a district re-image must never be
-      // able to rewrite history.
-      let next = normalised;
-      if (!readOnly && next.settings?.autoSealOnStartup && !clockMovedBackwards(next)) {
-        next = sealCompletedDays(next);
-      }
+    const today = todayKey();
+    const needsOnboarding = !next.settings?.onboardingCompletedAt;
+    if (!readOnly && !needsOnboarding) {
+      // Lay out any school day between the start of the year and today that
+      // does not have a record yet, so the teacher never has to create a day
+      // before they can fill it in. Every day this creates is flagged
+      // `backfilled`, which is what stops a laid-out day from reading as
+      // documented non-delivery - see backfillDays.
+      //
+      // Runs AFTER sealing on purpose: sealing must only ever see days a
+      // teacher actually worked, never ones this just created.
+      const range = backfillRange(next);
+      if (range) next = backfillDays(next, range).doc;
 
-      const today = todayKey();
-      const needsOnboarding = !next.settings?.onboardingCompletedAt;
-      if (!readOnly && !needsOnboarding) {
-        // Lay out any school day between the start of the year and today that
-        // does not have a record yet, so the teacher never has to create a day
-        // before they can fill it in. Every day this creates is flagged
-        // `backfilled`, which is what stops a laid-out day from reading as
-        // documented non-delivery - see backfillDays.
-        //
-        // Runs AFTER sealing on purpose: sealing must only ever see days a
-        // teacher actually worked, never ones this just created.
-        const range = backfillRange(next);
-        if (range) next = backfillDays(next, range).doc;
+      next = openDay(next, today);
+    }
 
-        next = openDay(next, today);
-      }
-
-      lastSavedRef.current = readOnly ? JSON.stringify(next) : null;
-      setDoc(next);
-      setRepairs(found);
-      setMeta({
-        ...(result.meta || {}),
-        readOnly,
-        tooNew: migrated.status === 'too-new',
-        migratedFrom: migrated.status === 'migrated' ? migrated.from : null,
-        recoveredFrom: result.from || null,
-        quarantined: result.quarantined || null,
-        loadStatus: result.status,
-      });
-      setLoadState({
-        status: needsOnboarding ? 'needs-onboarding' : 'ready',
-        stage: 'preparing',
-        progress: 1,
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    lastSavedRef.current = readOnly ? JSON.stringify(next) : null;
+    setDoc(next);
+    setRepairs(found);
+    setMeta({
+      ...(result.meta || {}),
+      readOnly,
+      tooNew: migrated.status === 'too-new',
+      migratedFrom: migrated.status === 'migrated' ? migrated.from : null,
+      recoveredFrom: result.from || null,
+      quarantined: result.quarantined || null,
+      loadStatus: result.status,
+    });
+    setLoadState({
+      status: needsOnboarding ? 'needs-onboarding' : 'ready',
+      stage: 'preparing',
+      progress: 1,
+    });
   }, [stage]);
+
+  useEffect(() => {
+    load();
+    return () => {
+      loadToken.current.cancelled = true;
+    };
+  }, [load]);
+
+  /** Read the record from disk again, from wherever the pointer now names. */
+  const reload = useCallback(() => {
+    setLoadState({ status: 'loading', stage: 'locating', progress: 0 });
+    return load();
+  }, [load]);
 
   // --- save ---------------------------------------------------------------
   useEffect(() => {
@@ -196,6 +220,12 @@ export function DataProvider({ children }) {
       },
       firstRun,
       clearFirstRun,
+      /*
+        Read the file again from wherever the pointer now names. Onboarding's
+        location step calls this when the folder it was pointed at already
+        holds a record, so that record is opened rather than written over.
+      */
+      reload,
       dismissRepairs: () => setRepairs([]),
       readOnly: Boolean(meta.readOnly),
       /*
@@ -205,7 +235,7 @@ export function DataProvider({ children }) {
       */
       patchMeta: (changes) => setMeta((m) => ({ ...m, ...changes })),
     }),
-    [doc, meta, loadState, repairs, saveStatus, mutate, firstRun, clearFirstRun]
+    [doc, meta, loadState, repairs, saveStatus, mutate, firstRun, clearFirstRun, reload]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

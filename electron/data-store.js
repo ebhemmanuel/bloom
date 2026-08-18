@@ -211,9 +211,19 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     return { status: 'corrupt', text: null, quarantined: quarantine, meta: baseMeta() };
   }
 
+  /*
+    Strips a UTF-8 byte order mark. Node keeps it, JSON.parse rejects it, and
+    Notepad (and most things a teacher would open a .json file in) writes one.
+    Without this, a backup a teacher had opened to look at and saved was read
+    as corrupt, quarantined, and replaced by the newest backup - which by then
+    was the empty record they were trying to get away from. normalizeDoc's
+    promise is that no readable file is ever refused; a BOM does not make a
+    file unreadable, so it must not be refused before normalizeDoc sees it.
+  */
   function safeRead(p) {
     try {
-      return fs.readFileSync(p, 'utf8');
+      const text = fs.readFileSync(p, 'utf8');
+      return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
     } catch {
       return null;
     }
@@ -292,6 +302,25 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
         try {
           fs.mkdirSync(backupDir, { recursive: true });
           fs.copyFileSync(filePath, path.join(backupDir, `data-${backupStamp()}.json`));
+
+          /*
+            Writing over a file we NEVER READ keeps a copy that is never pruned.
+
+            `knownMtimeMs` is set by load() and by our own writes. If it is still
+            null, whatever is on disk was not the source of what we are about to
+            write - which is the shape of onboarding writing a fresh record over
+            a teacher's year. The rolling backup above holds ten; ten autosaves
+            later that copy is gone. `data-preexisting-*` does not match
+            BACKUP_RE, so it survives until someone deletes it by hand.
+          */
+          if (knownMtimeMs === null) {
+            log.warn?.('[data-store] overwriting a file this session never read; keeping it');
+            fs.copyFileSync(
+              filePath,
+              path.join(backupDir, `data-preexisting-${backupStamp()}.json`)
+            );
+          }
+
           pruneBackups();
         } catch (err) {
           // A failed backup must not block the save itself.
@@ -512,6 +541,69 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     }
   }
 
+  /**
+   * Does this text look like one of our records?
+   *
+   * normalizeDoc will repair ANYTHING into a document, which is the right
+   * promise for a file we already own and the wrong one for a file about to
+   * replace it: a stray settings.json picked by mistake would become an empty
+   * record and overwrite a teacher's year. So an import has to carry a mark of
+   * having been ours. Deliberately loose - a schemaVersion, or a students list,
+   * or a days map - because a hand-edited file may have lost one and must still
+   * be accepted; it only has to have kept one.
+   */
+  function looksLikeRecord(text) {
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return false;
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    return (
+      Number.isFinite(parsed.schemaVersion) ||
+      Array.isArray(parsed.students) ||
+      (parsed.days !== null && typeof parsed.days === 'object')
+    );
+  }
+
+  /**
+   * Replace the current record with a file the teacher chose. Any path.
+   *
+   * This is the door for "I have my old data.json / a backup / a copy from my
+   * other laptop, take it". Before it existed the only way was to close the
+   * app and paste over data.json by hand - and pasting while the app was open
+   * had the autosave write the in-memory record straight back over the pasted
+   * one within a second, which read as the file being ignored.
+   *
+   * The displaced file is kept as `data-replaced-*`, a name the pruner never
+   * matches, so this is reversible by the same door.
+   */
+  function importRecord(sourcePath) {
+    if (typeof sourcePath !== 'string' || !sourcePath) return { ok: false, reason: 'bad-path' };
+    const text = safeRead(sourcePath);
+    if (text === null) return { ok: false, reason: 'unreadable' };
+    if (!isValidJson(text)) return { ok: false, reason: 'not-json' };
+    if (!looksLikeRecord(text)) return { ok: false, reason: 'not-a-record' };
+
+    clearTimers();
+    pendingText = null;
+
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.mkdirSync(backupDir, { recursive: true });
+        fs.copyFileSync(filePath, path.join(backupDir, `data-replaced-${backupStamp()}.json`));
+      } catch (err) {
+        log.warn?.(`[data-store] could not keep the replaced record: ${err.message}`);
+      }
+    }
+
+    // The teacher asked for this file to win. A differing mtime is the point.
+    knownMtimeMs = statMtime(filePath);
+    const result = writeNow(text);
+    return result.ok ? { ok: true, text } : result;
+  }
+
   /** Promote a backup to current. The displaced file is itself backed up first. */
   function restoreBackup(id) {
     if (!BACKUP_RE.test(id)) return { ok: false, reason: 'bad-id' };
@@ -587,6 +679,7 @@ function createDataStore({ dirPath, onStatus = () => {}, log = console }) {
     isReadOnly: () => readOnly,
     listBackups,
     restoreBackup,
+    importRecord,
     // exposed for tests
     _selectBackupsToPrune: selectBackupsToPrune,
   };

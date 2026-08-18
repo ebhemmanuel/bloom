@@ -86,7 +86,7 @@ function summariseGrades(grades) {
 }
 
 export default function OnboardingFlow({ needsLocation }) {
-  const { setDoc } = useData();
+  const { setDoc, reload } = useData();
 
   const [phase, setPhase] = useState('intro');
   // The screen on its way out. Both are rendered at once for the crossfade.
@@ -170,8 +170,8 @@ export default function OnboardingFlow({ needsLocation }) {
     setBusy(true);
     setError(null);
     const result = await dataBridge.chooseLocation(dirPath);
-    setBusy(false);
     if (!result.ok) {
+      setBusy(false);
       setError(
         result.reason === 'NOT_WRITABLE'
           ? 'That folder is not writable. Try another.'
@@ -179,6 +179,28 @@ export default function OnboardingFlow({ needsLocation }) {
       );
       return;
     }
+
+    /*
+      A record is already in that folder: OPEN it. Do not carry on.
+
+      Carrying on is what lost people their year. The step pointed at a folder
+      that already held data.json, the questions continued as if it were empty,
+      and the handover at the end wrote a fresh document over it. Every teacher
+      who set up under the app's old name and then launched the new one walked
+      straight down this path.
+
+      Reloading reads what is there. If it is a finished record it has
+      onboardingCompletedAt and the board opens; setup is simply over. If it is
+      somehow not, the loader says needs-onboarding and we are back here with
+      the folder pointed at - and still nothing has been written over.
+    */
+    if (result.existing) {
+      await reload();
+      setBusy(false);
+      return;
+    }
+
+    setBusy(false);
     go('set');
   };
 
